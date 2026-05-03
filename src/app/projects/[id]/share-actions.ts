@@ -4,7 +4,12 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
 import { createProjectShareLink } from "@/lib/project-share";
-import { resolveShareLinkOriginForProjectFromHeaders } from "@/lib/share-link-origin";
+import { loadProjectDetail } from "@/lib/projects-data";
+import {
+  buildShareProjectRelativePath,
+  resolveShareLinkOriginForProjectFromHeaders,
+  shareLinkPathClientSlug,
+} from "@/lib/share-link-origin";
 import { resolvePublicSiteBaseUrl } from "@/lib/site-url";
 
 export type CreateShareLinkState = { ok: true; url: string } | { ok: false; message: string } | null;
@@ -31,7 +36,9 @@ export async function createClientShareLinkAction(
 
   const h = await headers();
   const origin = await resolveShareLinkOriginForProjectFromHeaders(projectId, h);
-  const path = `/share/${created.token}`;
+  const { project } = await loadProjectDetail(projectId);
+  const slug = shareLinkPathClientSlug(project?.registered_clients ?? null);
+  const path = buildShareProjectRelativePath(slug, created.token);
   const url = origin ? `${origin.replace(/\/$/, "")}${path}` : path;
 
   revalidatePath(`/projects/${projectId}/work`);

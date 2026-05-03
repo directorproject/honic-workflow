@@ -6,8 +6,9 @@ import type { WorkflowProjectRow } from "@/lib/home-workflow-data";
 import { isDriveConfigured } from "@/lib/google-drive-server";
 import { loadProjectPipelineFilesForView } from "@/lib/project-pipeline-files";
 import { formatProjectType } from "@/lib/project-types";
-import { resolveShareTokenToProjectId } from "@/lib/project-share";
+import { resolveShareTokenWithClientSlug } from "@/lib/project-share";
 import { loadProjectDetail, type TrackedProjectDetail } from "@/lib/projects-data";
+import { shareLinkPathClientSlug } from "@/lib/share-link-origin";
 import { workflowStepCounts } from "@/lib/workflow-checklist";
 
 export const dynamic = "force-dynamic";
@@ -73,9 +74,11 @@ function SectionJumpPills() {
   );
 }
 
-export default async function PublicShareProjectPage(props: { params: Promise<{ token: string }> }) {
-  const { token } = await props.params;
-  const resolved = await resolveShareTokenToProjectId(token);
+export default async function PublicShareProjectPage(props: {
+  params: Promise<{ slug: string; token: string }>;
+}) {
+  const { slug, token } = await props.params;
+  const resolved = await resolveShareTokenWithClientSlug(token, slug);
   if (!resolved.ok) {
     notFound();
   }
@@ -89,6 +92,8 @@ export default async function PublicShareProjectPage(props: { params: Promise<{ 
   if (isDriveConfigured() && project.google_drive_folder_id) {
     pipelineFilesResult = await loadProjectPipelineFilesForView(project.google_drive_folder_id);
   }
+
+  const canonicalClientSlug = shareLinkPathClientSlug(project.registered_clients);
 
   const wf = workflowStepCounts(project.workflow_checklist);
   const pct = wf.weightedPercent;
@@ -255,6 +260,7 @@ export default async function PublicShareProjectPage(props: { params: Promise<{ 
           projectId={project.id}
           activities={pipelineFilesResult.activities}
           shareToken={token}
+          shareClientSlug={canonicalClientSlug}
           sectionId="share-files"
         />
       ) : null}

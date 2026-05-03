@@ -21,7 +21,7 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function ShareTokenLayout({ children }: { children: React.ReactNode }) {
+export default function ShareSlugLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="bg-dash-canvas dash-grid-bg text-dash-foreground relative min-h-screen">
       <div className="border-dash-border bg-dash-canvas/95 supports-[backdrop-filter]:bg-dash-canvas/85 sticky top-0 z-30 shrink-0 border-b shadow-sm backdrop-blur-md">

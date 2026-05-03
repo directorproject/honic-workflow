@@ -4,8 +4,9 @@ import { notFound, redirect } from "next/navigation";
 import { DriveFilePreview } from "@/components/drive/drive-file-preview";
 import {
   assertShareFileInProjectFolder,
-  resolveShareTokenToProjectId,
+  resolveShareTokenWithClientSlug,
 } from "@/lib/project-share";
+import { buildShareProjectRelativePath, shareLinkPathClientSlug } from "@/lib/share-link-origin";
 import { loadProjectDetail } from "@/lib/projects-data";
 import { getDriveItemMeta, isDriveConfigured } from "@/lib/google-drive-server";
 
@@ -13,12 +14,12 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function PublicShareFileViewPage(props: {
-  params: Promise<{ token: string; fileId: string }>;
+  params: Promise<{ slug: string; token: string; fileId: string }>;
 }) {
-  const { token, fileId: raw } = await props.params;
+  const { slug, token, fileId: raw } = await props.params;
   const fileId = decodeURIComponent(raw);
 
-  const resolved = await resolveShareTokenToProjectId(token);
+  const resolved = await resolveShareTokenWithClientSlug(token, slug);
   if (!resolved.ok) {
     notFound();
   }
@@ -28,10 +29,14 @@ export default async function PublicShareFileViewPage(props: {
   }
 
   const { project } = await loadProjectDetail(resolved.projectId);
-  const folderId = project?.google_drive_folder_id;
+  if (!project) {
+    notFound();
+  }
+  const folderId = project.google_drive_folder_id;
   if (!folderId) {
     notFound();
   }
+  const projectPath = buildShareProjectRelativePath(shareLinkPathClientSlug(project.registered_clients), token);
 
   const allowed = await assertShareFileInProjectFolder(folderId, fileId);
   if (!allowed) {
@@ -44,7 +49,7 @@ export default async function PublicShareFileViewPage(props: {
   }
 
   if (meta.isFolder) {
-    redirect(`/share/${encodeURIComponent(token)}`);
+    redirect(projectPath);
   }
 
   const fileApiBasePath = `/api/share/${encodeURIComponent(token)}/file`;
@@ -57,7 +62,7 @@ export default async function PublicShareFileViewPage(props: {
 
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Link
-            href={`/share/${encodeURIComponent(token)}`}
+            href={projectPath}
             className="border-dash-border bg-dash-card text-dash-foreground hover:border-dash-accent/40 focus-visible:ring-dash-accent inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
           >
             ← Back to project

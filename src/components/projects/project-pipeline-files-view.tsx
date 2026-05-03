@@ -16,20 +16,28 @@ export function ProjectPipelineFilesViewSection({
   projectId,
   activities,
   shareToken,
+  shareClientSlug,
   sectionId,
 }: {
   projectId: string;
   activities: ProjectPipelineActivityFiles[];
   /** When set, links stay on the public share host (no internal app URLs). */
   shareToken?: string;
+  /** With `shareToken`, path is `/share/{slug}/{token}/…`. */
+  shareClientSlug?: string;
   /** Anchor id for in-page navigation (e.g. public share page). */
   sectionId?: string;
 }) {
   const encToken = shareToken ? encodeURIComponent(shareToken) : "";
+  const encSlug = shareClientSlug ? encodeURIComponent(shareClientSlug) : "";
+  const shareBase =
+    shareToken && shareClientSlug ? `/share/${encSlug}/${encToken}` : shareToken ? `/share/${encToken}` : "";
   const previewHref = (fileId: string) =>
-    shareToken
-      ? `/share/${encToken}/view/${encodeURIComponent(fileId)}`
-      : `/drive/view/${encodeURIComponent(fileId)}`;
+    shareToken && shareClientSlug
+      ? `${shareBase}/view/${encodeURIComponent(fileId)}`
+      : shareToken
+        ? `/share/${encToken}/view/${encodeURIComponent(fileId)}`
+        : `/drive/view/${encodeURIComponent(fileId)}`;
   const downloadHref = (fileId: string) =>
     shareToken
       ? `/api/share/${encToken}/file/${encodeURIComponent(fileId)}?download=1`

@@ -36,17 +36,32 @@ Also set Supabase and any Google Drive / OAuth vars as in **`.env.example`**.
 
 Restart the app after any env change.
 
-### Per-client share hosts (`{name}-api.honiccompany.com`)
+### Share links: fixed host (`share.honiccompany.com`) vs per-client subdomains
+
+Share URLs always include a **client segment** in the path: **`/share/{client-slug}/{token}`** (and file previews under **`/share/{client-slug}/{token}/view/{fileId}`**). The slug comes from **`registered_clients.share_subdomain`** when set and valid; otherwise it is derived from the registered client **name** (slugified). Old **`/share/{token}`** links still work and redirect to the canonical URL.
+
+**Option A — one host for every client (typical with Vercel + `share` subdomain):**
+
+1. Add **`share.honiccompany.com`** to **Vercel → Domains** for this project (CNAME in Cloudflare to Vercel as usual).
+2. Set:
+
+```env
+NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN=https://share.honiccompany.com
+```
+
+Generated links look like **`https://share.honiccompany.com/share/{client-slug}/{token}`**.
+
+**Option B — per-client wildcard hosts (`{name}-api.honiccompany.com`):**
 
 1. Run **`supabase/012_registered_clients_share_subdomain.sql`** in the Supabase SQL editor (optional column + uniqueness).
-2. In Cloudflare (zone **`honiccompany.com`**) add a **wildcard** record **`*.honiccompany.com`** to the same target as your Vercel app (and add **`*.honiccompany.com`** under **Vercel → Domains** for this project).
-3. Set:
+2. In Cloudflare add **`*.honiccompany.com`** to Vercel’s target (and add the wildcard under **Vercel → Domains**).
+3. Omit **`NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN`** and set:
 
 ```env
 NEXT_PUBLIC_SHARE_PARENT_DOMAIN=honiccompany.com
 ```
 
-Client share links become **`https://{slug}-api.honiccompany.com/share/{token}`**, where `{slug}` comes from the registered client **name** (slugified) unless **`registered_clients.share_subdomain`** is set for a manual override. The path is still **`/share/{token}`** (same Next.js route on every host).
+Links become **`https://{slug}-api.honiccompany.com/share/{client-slug}/{token}`** (unless **`share_subdomain`** overrides the hostname label).
 
 ---
 

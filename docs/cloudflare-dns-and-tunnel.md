@@ -24,16 +24,18 @@ You need whatever **Vercel** shows under **Project → Settings → Domains** fo
   - **Proxied (orange cloud)** — traffic goes through Cloudflare (CDN/WAF).  
   - **DNS only (grey)** — direct to Vercel; sometimes used for debugging.
 
-#### B. Wildcard for client share hosts: `*.honiccompany.com`
+#### B. Wildcard for client share hosts: `*.honiccompany.com` (only if you use per-client subdomains)
+
+Skip this if you use a **single** share host (e.g. **`share.honiccompany.com`**) via **`NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN`** in the app.
 
 1. In Vercel, add domain **`*.honiccompany.com`** to the **same** project and note the DNS instructions.
 2. In Cloudflare **DNS → Add record**:
    - **Type:** **CNAME** (unless Vercel says otherwise)
    - **Name:** `*` (this means `*.honiccompany.com`)
-   - **Target:** same style of target Vercel shows for the wildcard (often same family as `inova`).
+   - **Target:** the **CNAME / value** Vercel shows for the wildcard (not `ns1.vercel-dns.com` — those are nameservers, not a CNAME target).
 3. Save.
 
-**Important:** A **specific** record (e.g. `inova`) overrides the wildcard **only for that exact name**. Other names like `hosea-api.honiccompany.com` use the wildcard.
+**Important:** A **specific** record (e.g. `inova` or `share`) overrides the wildcard **only for that exact name**.
 
 ### 3. SSL/TLS (when proxied)
 
@@ -138,7 +140,10 @@ Set in **Vercel env** or on the machine running Next:
 
 ```env
 NEXT_PUBLIC_APP_URL=https://inova.honiccompany.com
-NEXT_PUBLIC_SHARE_PARENT_DOMAIN=honiccompany.com
+# Pick one share strategy:
+NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN=https://share.honiccompany.com
+# or per-client subdomains:
+# NEXT_PUBLIC_SHARE_PARENT_DOMAIN=honiccompany.com
 ```
 
 OAuth / Google Console must list the same origins you actually use.

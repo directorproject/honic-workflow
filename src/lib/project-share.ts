@@ -3,10 +3,22 @@ import { randomBytes } from "node:crypto";
 import { assertDescendantOfFolder, getDriveApi } from "@/lib/google-drive-server";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
+import { shareLinkPathClientSlug } from "@/lib/share-link-origin";
+import { loadProjectDetail } from "@/lib/projects-data";
+
 const TOKEN_BYTES = 24;
+
+/** Hex length of `generateShareToken()` output (bytes × 2). */
+export const SHARE_LINK_TOKEN_HEX_LENGTH = TOKEN_BYTES * 2;
 
 export function generateShareToken(): string {
   return randomBytes(TOKEN_BYTES).toString("hex");
+}
+
+/** True when `segment` looks like a legacy `/share/{token}` path (single hex token). */
+export function isLegacyShareTokenPathSegment(segment: string): boolean {
+  const s = segment.trim();
+  return s.length === SHARE_LINK_TOKEN_HEX_LENGTH && /^[a-f0-9]+$/i.test(s);
 }
 
 export async function createProjectShareLink(params: {
@@ -64,6 +76,30 @@ export async function resolveShareTokenToProjectId(
   }
 
   return { ok: true, projectId: data.tracked_project_id as string };
+}
+
+/**
+ * Validates share URL `/share/{clientSlug}/{token}`: token must exist and slug must match the project’s client.
+ */
+export async function resolveShareTokenWithClientSlug(
+  token: string,
+  clientSlug: string,
+): Promise<{ ok: true; projectId: string } | { ok: false; error: string }> {
+  const resolved = await resolveShareTokenToProjectId(token);
+  if (!resolved.ok) return resolved;
+
+  const { project } = await loadProjectDetail(resolved.projectId);
+  if (!project) {
+    return { ok: false, error: "This link is not valid or has been removed." };
+  }
+
+  const expected = shareLinkPathClientSlug(project.registered_clients);
+  const got = decodeURIComponent(clientSlug).trim().toLowerCase();
+  if (got !== expected.toLowerCase()) {
+    return { ok: false, error: "This link is not valid or has been removed." };
+  }
+
+  return { ok: true, projectId: resolved.projectId };
 }
 
 /**

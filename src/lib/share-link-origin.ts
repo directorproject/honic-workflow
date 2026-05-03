@@ -8,6 +8,14 @@ const MAX_LABEL = 63;
 const MAX_BASE_FOR_AUTO = MAX_LABEL - 4;
 
 /**
+ * Single public origin for all share links (no path, no trailing slash), e.g. https://share.honiccompany.com
+ * When set, overrides per-client wildcard hosts from NEXT_PUBLIC_SHARE_PARENT_DOMAIN.
+ */
+export function getSharePublicOriginFromEnv(): string {
+  return (process.env.NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN ?? "").trim().replace(/\/$/, "");
+}
+
+/**
  * Parent domain for per-client share hosts (no protocol, no leading dot).
  * Example: honiccompany.com → https://hosea-api.honiccompany.com/share/…
  */
@@ -28,6 +36,26 @@ function slugifyNameSegment(name: string): string {
     s = s.slice(0, MAX_BASE_FOR_AUTO).replace(/-+$/g, "") || "client";
   }
   return s;
+}
+
+/**
+ * URL path segment after `/share/` for this client (lowercase, DNS-like).
+ * Uses `registered_clients.share_subdomain` when valid; otherwise slugifies the client name.
+ */
+export function shareLinkPathClientSlug(
+  client: { name: string; share_subdomain?: string | null } | null | undefined,
+): string {
+  if (!client?.name?.trim()) return "client";
+  const explicit = client.share_subdomain?.trim().toLowerCase();
+  if (explicit && explicit.length <= MAX_LABEL && DNS_LABEL.test(explicit)) {
+    return explicit;
+  }
+  return slugifyNameSegment(client.name);
+}
+
+/** Relative path to the share project page (leading slash, URL-encoded segments). */
+export function buildShareProjectRelativePath(clientSlug: string, token: string): string {
+  return `/share/${encodeURIComponent(clientSlug)}/${encodeURIComponent(token)}`;
 }
 
 /** Full hostname label before `.${parent}`: explicit DB value or `{slug}-api` from name. */
@@ -51,6 +79,9 @@ export function buildShareLinkOrigin(
   client: { name: string; share_subdomain?: string | null } | null,
   fallbackOrigin: string,
 ): string {
+  const fixed = getSharePublicOriginFromEnv();
+  if (fixed) return fixed;
+
   const fb = fallbackOrigin.replace(/\/$/, "");
   const parent = getShareParentDomainFromEnv();
   if (!parent || !client) return fb;
