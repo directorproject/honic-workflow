@@ -1,8 +1,8 @@
 /** Matches supabase/007_workflow_checklist.sql JSON keys */
 
 /**
- * `not_provided`: This team does not deliver that step (e.g. client or another party provides it).
- * It is excluded from completion ratio — not “pending work”, out of scope for us.
+ * `not_provided`: Outside our scope — still counts as full credit in **weighted** pipeline % (same as done).
+ * `in_progress`: Counts as **half** credit toward weighted %.
  */
 export type WorkflowStepStatus = "pending" | "in_progress" | "done" | "not_provided";
 
@@ -48,14 +48,23 @@ export function normalizeWorkflowChecklist(raw: unknown): Record<string, Workflo
   return out;
 }
 
-export function workflowCompletionRatio(checklist: Record<string, WorkflowStepStatus>): number {
-  const values = WORKFLOW_STEPS.map((s) => checklist[s.key] ?? "pending");
-  const applicable = values.filter((v) => v !== "not_provided");
-  const done = applicable.filter((v) => v === "done").length;
-  return applicable.length ? done / applicable.length : 0;
+/** Weight for pipeline %: done & outside scope = 1; in progress = ½; pending = 0. */
+export function workflowActivityWeight(status: WorkflowStepStatus): number {
+  if (status === "done" || status === "not_provided") return 1;
+  if (status === "in_progress") return 0.5;
+  return 0;
 }
 
-/** For compact dashboard columns: how many steps are done / in progress / total. */
+/** 0–1: sum of step weights / number of steps (same basis as `weightedPercent`). */
+export function workflowCompletionRatio(checklist: Record<string, WorkflowStepStatus>): number {
+  let sum = 0;
+  for (const s of WORKFLOW_STEPS) {
+    sum += workflowActivityWeight(checklist[s.key] ?? "pending");
+  }
+  return WORKFLOW_STEPS.length ? sum / WORKFLOW_STEPS.length : 0;
+}
+
+/** For compact dashboard columns: how many steps are done / in progress / total + weighted %. */
 export function workflowStepCounts(raw: unknown): {
   done: number;
   inProgress: number;
@@ -65,19 +74,26 @@ export function workflowStepCounts(raw: unknown): {
   inScopeTotal: number;
   /** Done by us + marked outside our scope (closed on the board), e.g. 5+2=7 of 10. */
   addressed: number;
+  /** Sum of per-step weights (max = total). Outside scope = 1; in progress = 0.5. */
+  weightedPoints: number;
+  /** 0–100 from weightedPoints / total. */
+  weightedPercent: number;
 } {
   const n = normalizeWorkflowChecklist(raw);
   let done = 0;
   let inProgress = 0;
   let notProvided = 0;
+  let weightedPoints = 0;
   for (const s of WORKFLOW_STEPS) {
     const v = n[s.key] ?? "pending";
     if (v === "done") done += 1;
     else if (v === "in_progress") inProgress += 1;
     else if (v === "not_provided") notProvided += 1;
+    weightedPoints += workflowActivityWeight(v);
   }
   const total = WORKFLOW_STEPS.length;
   const inScopeTotal = total - notProvided;
   const addressed = done + notProvided;
-  return { done, inProgress, notProvided, total, inScopeTotal, addressed };
+  const weightedPercent = total ? Math.min(100, Math.round((weightedPoints / total) * 100)) : 0;
+  return { done, inProgress, notProvided, total, inScopeTotal, addressed, weightedPoints, weightedPercent };
 }

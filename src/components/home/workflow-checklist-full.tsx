@@ -184,22 +184,22 @@ export function WorkflowChecklistFull({
                 ) : null}
               </span>
             </p>
-            {liveCounts.notProvided > 0 ? (
-              <p className="text-dash-muted-foreground text-xs">
-                {liveCounts.total} steps on the board. Addressed = done + outside our scope (e.g. 5 + 2 = 7 of 10).
-              </p>
-            ) : null}
+            <p className="text-dash-muted-foreground text-xs">
+              Progress bar: <span className="text-dash-foreground font-medium">{liveCounts.weightedPercent}%</span>{" "}
+              weighted — outside our scope counts like done; in progress counts half.
+            </p>
             <div
               className="bg-dash-border h-2 max-w-md overflow-hidden rounded-full"
               role="progressbar"
-              aria-valuenow={liveCounts.done}
+              aria-valuenow={liveCounts.weightedPercent}
               aria-valuemin={0}
-              aria-valuemax={Math.max(1, liveCounts.inScopeTotal)}
+              aria-valuemax={100}
+              aria-label={`Pipeline weighted progress ${liveCounts.weightedPercent} percent`}
             >
               <div
                 className="bg-dash-accent h-full rounded-full transition-[width] duration-300"
                 style={{
-                  width: `${liveCounts.inScopeTotal > 0 ? Math.min(100, Math.round((liveCounts.done / liveCounts.inScopeTotal) * 100)) : 0}%`,
+                  width: `${liveCounts.weightedPercent}%`,
                 }}
               />
             </div>

@@ -46,9 +46,8 @@ export function WorkflowTableMinimal({ projects }: { projects: WorkflowProjectRo
           </thead>
           <tbody className="divide-dash-border divide-y">
             {projects.map((p) => {
-              const { done, inProgress, notProvided, total, inScopeTotal, addressed } = workflowStepCounts(
-                p.workflow_checklist
-              );
+              const { done, inProgress, notProvided, total, inScopeTotal, addressed, weightedPercent } =
+                workflowStepCounts(p.workflow_checklist);
               return (
                 <tr key={p.id} className="hover:bg-dash-muted/40">
                   <td className="text-dash-foreground px-4 py-3 font-medium whitespace-nowrap">
@@ -68,10 +67,13 @@ export function WorkflowTableMinimal({ projects }: { projects: WorkflowProjectRo
                     className="text-dash-foreground max-w-[220px] px-4 py-3 text-xs leading-snug tabular-nums sm:max-w-none"
                     title={
                       notProvided > 0
-                        ? `${done}/${inScopeTotal} done on steps we deliver · ${notProvided} outside our scope · ${addressed}/${total} addressed on full board`
-                        : undefined
+                        ? `${weightedPercent}% weighted · ${done}/${inScopeTotal} fully done · ${notProvided} outside scope (full credit) · ${inProgress} in progress (½ credit) · ${addressed}/${total} addressed`
+                        : `${weightedPercent}% weighted · ${done}/${inScopeTotal} fully done${inProgress > 0 ? ` · ${inProgress} in progress (½ credit)` : ""}`
                     }
                   >
+                    <span className="text-dash-foreground font-semibold">{weightedPercent}%</span>
+                    <span className="text-dash-muted-foreground ml-1">weighted</span>
+                    <span className="text-dash-muted-foreground mx-1">·</span>
                     <span className="font-medium">{done}</span>
                     <span className="text-dash-muted-foreground">/{inScopeTotal} done</span>
                     {inProgress > 0 ? (
@@ -116,8 +118,9 @@ export function WorkflowTableMinimal({ projects }: { projects: WorkflowProjectRo
           and milestones (named checkpoints you plan to hit, often with target dates).{" "}
           <span className="text-dash-foreground font-medium">View</span> opens a read-only summary;{" "}
           <span className="text-dash-foreground font-medium">Manage</span> opens pipeline steps, tasks, and controls for
-          that project. Steps marked <span className="text-dash-foreground font-medium">out of scope</span> are provided
-          by someone else (e.g. client), not counted as work we still owe.
+          that project. <span className="text-dash-foreground font-medium">Weighted %</span> treats each step as 0–100%:
+          done and out-of-scope count full; in progress counts half. Raw counts still show fully done vs steps we
+          deliver.
         </p>
       </div>
     </div>

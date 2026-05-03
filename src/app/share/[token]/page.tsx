@@ -91,8 +91,7 @@ export default async function PublicShareProjectPage(props: { params: Promise<{ 
   }
 
   const wf = workflowStepCounts(project.workflow_checklist);
-  const pct =
-    wf.inScopeTotal > 0 ? Math.min(100, Math.round((wf.done / wf.inScopeTotal) * 100)) : wf.notProvided === wf.total ? 100 : 0;
+  const pct = wf.weightedPercent;
   const tone = statusTone(project.status);
   const ringR = 15.5;
   const ringC = 2 * Math.PI * ringR;
@@ -165,7 +164,7 @@ export default async function PublicShareProjectPage(props: { params: Promise<{ 
           </div>
 
           <div className="border-dash-border bg-dash-card/90 flex w-full shrink-0 flex-col justify-center rounded-2xl border p-5 sm:max-w-xs lg:w-56">
-            <p className="text-dash-muted-foreground text-center text-xs font-semibold uppercase">Pipeline progress</p>
+            <p className="text-dash-muted-foreground text-center text-xs font-semibold uppercase">Weighted pipeline</p>
             <div className="relative mx-auto mt-3 h-28 w-28 sm:h-32 sm:w-32">
               <svg className="-rotate-90 h-full w-full" viewBox="0 0 36 36" aria-hidden>
                 <circle cx="18" cy="18" r={ringR} className="fill-none stroke-dash-border" strokeWidth="3" />
@@ -182,12 +181,13 @@ export default async function PublicShareProjectPage(props: { params: Promise<{ 
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-dash-foreground text-2xl font-bold tabular-nums sm:text-3xl">{pct}%</span>
-                <span className="text-dash-muted-foreground text-[10px] sm:text-xs">in-scope done</span>
+                <span className="text-dash-muted-foreground text-[10px] sm:text-xs">all steps</span>
               </div>
             </div>
             <p className="text-dash-muted-foreground mt-3 text-center text-xs leading-snug">
-              {wf.done}/{wf.inScopeTotal} steps complete
-              {wf.inProgress > 0 ? ` · ${wf.inProgress} in progress` : ""}
+              {wf.done}/{wf.inScopeTotal} fully done (steps we deliver)
+              {wf.inProgress > 0 ? ` · ${wf.inProgress} in progress (counts 50% each)` : ""}
+              {wf.notProvided > 0 ? ` · ${wf.notProvided} outside our scope (counts 100%)` : ""}
             </p>
           </div>
         </div>
