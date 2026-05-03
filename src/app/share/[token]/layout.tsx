@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
 import { ShareIntroTitles } from "@/components/share/share-intro-titles";
+import { SharePrivateLinkNotice } from "@/components/share/share-private-link-notice";
 import { ShareSiteFooter } from "@/components/share/share-site-footer";
 import { ShareStickyNav } from "@/components/share/share-sticky-nav";
 
@@ -27,13 +28,14 @@ export default function ShareTokenLayout({ children }: { children: React.ReactNo
         <CompanyBrandBar variant="full" endContent={<ShareIntroTitles variant="header" />} />
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 pb-6 pt-4 sm:px-6 sm:pb-10 sm:pt-8 lg:px-8 lg:pt-10">
+      <div className="mx-auto max-w-7xl px-4 pb-3 pt-4 sm:px-6 sm:pb-5 sm:pt-8 lg:px-8 lg:pt-10">
         <div className="mb-6 sm:hidden">
           <ShareIntroTitles variant="content" />
         </div>
         {children}
       </div>
 
+      <SharePrivateLinkNotice />
       <ShareSiteFooter />
 
       <ShareStickyNav />

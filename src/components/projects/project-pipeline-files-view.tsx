@@ -35,10 +35,12 @@ export function ProjectPipelineFilesViewSection({
       ? `/api/share/${encToken}/file/${encodeURIComponent(fileId)}?download=1`
       : `/api/drive/file/${encodeURIComponent(fileId)}?download=1`;
 
+  const bottomMargin = shareToken ? "mb-4 sm:mb-5" : "mb-10 sm:mb-12";
+
   return (
     <section
       id={sectionId}
-      className="border-dash-border bg-dash-card mb-10 scroll-mt-28 rounded-3xl border p-5 shadow-sm sm:mb-12 sm:p-6 sm:shadow-md"
+      className={`border-dash-border bg-dash-card scroll-mt-28 rounded-3xl border p-5 shadow-sm sm:p-6 sm:shadow-md ${bottomMargin}`}
       aria-labelledby="pipeline-files-heading"
     >
       <h2 id="pipeline-files-heading" className="text-dash-foreground mb-1 text-lg font-bold tracking-tight sm:text-xl">

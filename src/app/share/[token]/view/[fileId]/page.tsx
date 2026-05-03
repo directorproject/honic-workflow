@@ -72,12 +72,13 @@ export default async function PublicShareFileViewPage(props: {
         </div>
       </div>
 
-      <div className="border-dash-border bg-dash-card/80 flex min-h-[50vh] flex-1 flex-col overflow-hidden rounded-3xl border shadow-sm sm:min-h-[60vh]">
+      <div className="flex min-h-[50vh] flex-1 flex-col items-center justify-center overflow-hidden px-2 py-6 sm:min-h-[60vh] sm:px-4">
         <DriveFilePreview
           mimeType={meta.mimeType}
           fileId={fileId}
           fileName={meta.name}
           fileApiBasePath={fileApiBasePath}
+          showInlineDownload={false}
         />
       </div>
     </div>
