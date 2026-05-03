@@ -1,11 +1,17 @@
 import Link from "next/link";
 
+import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
+
 /** Static HTML at build time — use for fixed public copy only; app dashboards stay dynamic. */
 export const dynamic = "force-static";
 
 export default function AboutPage() {
   return (
-    <main className="bg-dash-canvas text-dash-foreground flex min-h-screen flex-col items-center justify-center px-6 py-16">
+    <main className="bg-dash-canvas text-dash-foreground flex min-h-screen flex-col px-0">
+      <div className="border-dash-border bg-dash-canvas/95 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
+        <CompanyBrandBar variant="full" />
+      </div>
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-16">
       <div className="max-w-lg text-center">
         <h1 className="text-2xl font-semibold tracking-tight">About</h1>
         <p className="text-dash-muted-foreground mt-3 text-sm leading-relaxed">
@@ -17,6 +23,7 @@ export default function AboutPage() {
             ← Home
           </Link>
         </p>
+      </div>
       </div>
     </main>
   );

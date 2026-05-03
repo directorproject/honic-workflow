@@ -224,20 +224,22 @@ export function WorkflowChecklistFull({
         </div>
       ) : null}
       {readOnly && rows.length === 1 ? (
-        <ul className="flex flex-col gap-2 p-2 md:hidden">
+        <ul className="grid grid-cols-2 gap-1 p-1 md:hidden">
           {WORKFLOW_STEPS.map((step) => {
             const st = rows[0]!.checklist[step.key] ?? "pending";
             return (
               <li
                 key={step.key}
-                className="border-dash-border bg-dash-muted/25 flex min-h-[52px] items-start justify-between gap-4 rounded-xl border px-4 py-3.5"
+                className="border-dash-border bg-dash-muted/25 flex min-h-[5rem] flex-col justify-between gap-1.5 rounded-lg border px-2 py-2"
               >
-                <span className="text-dash-foreground min-w-0 flex-1 text-sm font-medium leading-snug">{step.label}</span>
+                <span className="text-dash-foreground line-clamp-4 text-sm font-medium leading-snug">
+                  {step.label}
+                </span>
                 <span
                   title={
                     st === "not_provided" ? "Provided by another party — outside our scope." : undefined
                   }
-                  className={`inline-flex shrink-0 items-center justify-center rounded-xl border border-transparent px-3 py-1.5 text-xs font-semibold ${cellClass(st)}`}
+                  className={`inline-flex w-full items-center justify-center rounded-md border border-transparent px-1.5 py-1.5 text-xs font-semibold ${cellClass(st)}`}
                 >
                   {statusLabel(st)}
                 </span>

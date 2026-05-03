@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 
+import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
+import { ShareIntroTitles } from "@/components/share/share-intro-titles";
+import { ShareSiteFooter } from "@/components/share/share-site-footer";
 import { ShareStickyNav } from "@/components/share/share-sticky-nav";
 
 export const metadata: Metadata = {
@@ -20,29 +23,18 @@ export const viewport: Viewport = {
 export default function ShareTokenLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="bg-dash-canvas dash-grid-bg text-dash-foreground relative min-h-screen">
-      <header className="border-dash-border bg-dash-header supports-[backdrop-filter]:bg-dash-card/75 sticky top-0 z-30 border-b px-4 py-3 backdrop-blur-md sm:px-6 sm:py-4">
-        <div className="mx-auto flex max-w-5xl flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-          <div className="min-w-0">
-            <p className="text-dash-accent text-[11px] font-bold tracking-[0.2em] uppercase sm:text-xs">Shared with you</p>
-            <p className="text-dash-foreground mt-0.5 text-sm font-semibold sm:text-base">Project update</p>
-          </div>
-          <p className="text-dash-muted-foreground hidden max-w-xl text-xs leading-relaxed sm:block sm:text-[13px]">
-            Read-only link: preview and download files below. This is not the full Honic app — other projects and
-            settings are not available.
-          </p>
-          <details className="text-dash-muted-foreground text-xs leading-relaxed sm:hidden">
-            <summary className="text-dash-accent hover:text-dash-accent-dim cursor-pointer list-none font-semibold underline-offset-2 [&::-webkit-details-marker]:hidden">
-              About this page
-            </summary>
-            <p className="border-dash-border mt-2 border-t pt-2">
-              Read-only project update. Preview and download files below. This page is not the full Honic app — you
-              cannot open other projects or settings from here.
-            </p>
-          </details>
-        </div>
-      </header>
+      <div className="border-dash-border bg-dash-canvas/95 supports-[backdrop-filter]:bg-dash-canvas/85 sticky top-0 z-30 shrink-0 border-b shadow-sm backdrop-blur-md">
+        <CompanyBrandBar variant="full" endContent={<ShareIntroTitles variant="header" />} />
+      </div>
 
-      <div className="mx-auto max-w-5xl px-4 pb-28 pt-6 sm:px-6 sm:pb-12 sm:pt-8 lg:px-8 lg:pt-10">{children}</div>
+      <div className="mx-auto max-w-7xl px-4 pb-6 pt-4 sm:px-6 sm:pb-10 sm:pt-8 lg:px-8 lg:pt-10">
+        <div className="mb-6 sm:hidden">
+          <ShareIntroTitles variant="content" />
+        </div>
+        {children}
+      </div>
+
+      <ShareSiteFooter />
 
       <ShareStickyNav />
     </div>

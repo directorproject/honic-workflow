@@ -25,10 +25,10 @@ export function ShareStickyNav() {
       className="border-dash-border bg-dash-card/95 supports-[backdrop-filter]:bg-dash-card/80 pointer-events-none fixed inset-x-0 bottom-0 z-40 border-t pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1 shadow-[0_-8px_30px_rgba(15,23,42,0.08)] backdrop-blur-md md:hidden dark:shadow-[0_-8px_30px_rgba(0,0,0,0.45)]"
       aria-label="Jump to section"
     >
-      <div className="pointer-events-auto mx-auto flex max-w-lg gap-1 px-3">
+      <div className="pointer-events-auto mx-auto flex max-w-4xl gap-1 px-3">
         <NavButton id="share-overview" label="Overview" />
         <NavButton id="activity-checklist" label="Steps" />
-        <NavButton id="share-files" label="Files" />
+        <NavButton id="share-files" label="Access files" />
       </div>
     </nav>
   );

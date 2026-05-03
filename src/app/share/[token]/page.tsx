@@ -67,7 +67,7 @@ function SectionJumpPills() {
         Activity checklist
       </a>
       <a href="#share-files" className={pill}>
-        Files
+        Access files
       </a>
     </nav>
   );
@@ -106,8 +106,8 @@ export default async function PublicShareProjectPage(props: { params: Promise<{ 
         className="border-dash-border from-dash-card to-dash-muted/30 scroll-mt-28 mb-8 rounded-3xl border bg-gradient-to-br p-5 shadow-sm sm:mb-10 sm:p-7 sm:shadow-md"
         aria-labelledby="share-project-title"
       >
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0 flex-1 space-y-4">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between lg:gap-12">
+          <div className="min-w-0 flex-1 space-y-4 lg:min-w-0">
             <div>
               <p className="text-dash-muted-foreground text-xs font-medium tracking-wide uppercase sm:text-sm">
                 {project.registered_clients?.name ?? "Client"}
@@ -127,17 +127,19 @@ export default async function PublicShareProjectPage(props: { params: Promise<{ 
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="no-scrollbar -mx-1 flex max-w-full flex-nowrap items-center gap-1.5 overflow-x-auto px-1 pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
               <span
-                className={`inline-flex min-h-9 items-center rounded-full border px-3 py-1 text-xs font-semibold capitalize sm:text-sm ${statusChipClass[tone]}`}
+                className={`inline-flex shrink-0 min-h-8 items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize sm:min-h-9 sm:px-3 sm:text-sm ${statusChipClass[tone]}`}
               >
                 {project.status.replace(/_/g, " ")}
               </span>
-              <span className="border-dash-border bg-dash-card/80 text-dash-foreground inline-flex min-h-9 items-center rounded-full border px-3 py-1 text-xs font-medium capitalize sm:text-sm">
-                {project.priority} priority
+              <span className="border-dash-border bg-dash-card/80 text-dash-foreground inline-flex shrink-0 min-h-8 items-center rounded-full border px-2.5 py-1 text-[11px] font-medium capitalize sm:min-h-9 sm:px-3 sm:text-xs sm:text-sm">
+                <span className="sm:hidden">{project.priority}</span>
+                <span className="hidden sm:inline">{project.priority} priority</span>
               </span>
-              <span className="border-dash-border bg-dash-card/80 text-dash-muted-foreground inline-flex min-h-9 items-center rounded-full border px-3 py-1 text-xs font-medium sm:text-sm">
-                {formatProjectType(project.project_type)}
+              <span className="border-dash-border bg-dash-card/80 text-dash-muted-foreground inline-flex shrink-0 min-h-8 max-w-[55vw] items-center truncate rounded-full border px-2.5 py-1 text-[11px] font-medium sm:max-w-none sm:min-h-9 sm:px-3 sm:text-xs sm:text-sm">
+                <span className="sm:hidden">{formatProjectType(project.project_type, { compact: true })}</span>
+                <span className="hidden sm:inline">{formatProjectType(project.project_type)}</span>
               </span>
             </div>
 
@@ -163,9 +165,11 @@ export default async function PublicShareProjectPage(props: { params: Promise<{ 
             ) : null}
           </div>
 
-          <div className="border-dash-border bg-dash-card/90 flex w-full shrink-0 flex-col justify-center rounded-2xl border p-5 sm:max-w-xs lg:w-56">
-            <p className="text-dash-muted-foreground text-center text-xs font-semibold uppercase">Weighted pipeline</p>
-            <div className="relative mx-auto mt-3 h-28 w-28 sm:h-32 sm:w-32">
+          <div className="border-dash-border bg-dash-card/90 flex w-full shrink-0 flex-col justify-center rounded-2xl border p-6 sm:p-8 lg:min-w-[min(100%,22rem)] lg:max-w-xl xl:min-w-[26rem] xl:max-w-2xl">
+            <p className="text-dash-muted-foreground text-center text-xs font-semibold uppercase sm:text-sm">
+              Weighted pipeline
+            </p>
+            <div className="relative mx-auto mt-4 h-32 w-32 sm:h-36 sm:w-36 lg:h-40 lg:w-40">
               <svg className="-rotate-90 h-full w-full" viewBox="0 0 36 36" aria-hidden>
                 <circle cx="18" cy="18" r={ringR} className="fill-none stroke-dash-border" strokeWidth="3" />
                 <circle
@@ -184,10 +188,12 @@ export default async function PublicShareProjectPage(props: { params: Promise<{ 
                 <span className="text-dash-muted-foreground text-[10px] sm:text-xs">all steps</span>
               </div>
             </div>
-            <p className="text-dash-muted-foreground mt-3 text-center text-xs leading-snug">
-              {wf.done}/{wf.inScopeTotal} fully done (steps we deliver)
-              {wf.inProgress > 0 ? ` · ${wf.inProgress} in progress (counts 50% each)` : ""}
-              {wf.notProvided > 0 ? ` · ${wf.notProvided} outside our scope (counts 100%)` : ""}
+            <p className="text-dash-muted-foreground mt-4 max-w-sm text-center text-xs leading-relaxed sm:text-sm">
+              {wf.done} of {wf.inScopeTotal} steps finished on our side
+              {wf.inProgress > 0 ? ` · ${wf.inProgress} underway (each adds half toward the ring)` : ""}
+              {wf.notProvided > 0
+                ? ` · ${wf.notProvided} handled outside our team (each counts fully toward the ring)`
+                : ""}
             </p>
           </div>
         </div>
@@ -208,9 +214,8 @@ export default async function PublicShareProjectPage(props: { params: Promise<{ 
           <h2 id="share-activity-heading" className="text-dash-foreground text-lg font-bold tracking-tight sm:text-xl">
             Activity checklist
           </h2>
-          <p className="text-dash-muted-foreground mt-1 max-w-2xl text-sm">
-            Pipeline steps for this project (view only). On a phone you get a step-by-step list; on larger screens the
-            full grid is below.
+          <p className="text-dash-muted-foreground mt-1 max-w-3xl text-sm leading-snug sm:text-base">
+            Each stage below shows where things stand—tap or scroll to see every step.
           </p>
         </div>
         <WorkflowChecklistFull readOnly projects={[toWorkflowRow(project)]} />
@@ -254,9 +259,6 @@ export default async function PublicShareProjectPage(props: { params: Promise<{ 
         />
       ) : null}
 
-      <footer className="border-dash-border text-dash-muted-foreground mx-auto max-w-lg rounded-2xl border bg-dash-card/50 px-4 py-4 text-center text-xs leading-relaxed sm:text-sm">
-        This is a private share link. Do not forward it unless you intend to share project visibility with others.
-      </footer>
     </>
   );
 }

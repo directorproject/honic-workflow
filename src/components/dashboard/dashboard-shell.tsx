@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
+
 type NavItem = {
   href: string;
   label: string;
@@ -91,23 +93,11 @@ export function DashboardShell({
 
       <aside
         id="dash-sidebar"
-        className={`border-dash-border bg-dash-sidebar text-dash-sidebar-muted fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r shadow-xl transition-transform lg:static lg:z-auto lg:shadow-none ${
+        className={`border-dash-border bg-dash-sidebar text-dash-sidebar-muted fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r shadow-xl transition-transform ${
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <Link
-          href="/"
-          className="border-dash-border flex items-center gap-3 border-b px-5 py-6"
-          onClick={() => setOpen(false)}
-        >
-          <div className="from-dash-accent to-dash-accent-dim flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg shadow-cyan-500/15">
-            <span className="text-slate-950 font-bold tracking-tight">H</span>
-          </div>
-          <div className="min-w-0">
-            <p className="font-semibold tracking-tight text-slate-50">Honic Ops</p>
-            <p className="text-dash-sidebar-muted truncate text-xs">Project tracker</p>
-          </div>
-        </Link>
+        <CompanyBrandBar variant="compact" onNavigate={() => setOpen(false)} />
 
         <nav className="flex flex-1 flex-col gap-5 overflow-y-auto p-3" aria-label="Main navigation">
           {navSections.map((section) => (
@@ -145,34 +135,36 @@ export function DashboardShell({
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-dash-border bg-dash-header/80 sticky top-0 z-30 flex items-center gap-4 border-b px-4 py-3 backdrop-blur-md lg:px-8">
-          <button
-            type="button"
-            className="hover:bg-dash-muted inline-flex rounded-lg p-2 lg:hidden"
-            aria-expanded={open}
-            aria-controls="dash-sidebar"
-            onClick={() => setOpen(true)}
-          >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
-          </button>
+      <div className="flex min-w-0 flex-1 flex-col pl-0 lg:pl-64">
+        <div className="border-dash-border bg-dash-header/90 supports-[backdrop-filter]:bg-dash-header/75 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
+          <header className="flex items-center gap-4 px-4 py-3 lg:px-8">
+            <button
+              type="button"
+              className="hover:bg-dash-muted inline-flex rounded-lg p-2 lg:hidden"
+              aria-expanded={open}
+              aria-controls="dash-sidebar"
+              onClick={() => setOpen(true)}
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            </button>
 
-          <div className="min-w-0 flex-1">
-            <h1 className="text-dash-foreground truncate text-lg font-semibold tracking-tight sm:text-xl">{title}</h1>
-            <p className="text-dash-muted-foreground truncate text-sm">{subtitle}</p>
-          </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-dash-foreground truncate text-lg font-semibold tracking-tight sm:text-xl">{title}</h1>
+              <p className="text-dash-muted-foreground truncate text-sm">{subtitle}</p>
+            </div>
 
-          <div className="hidden items-center gap-2 sm:flex">
-            <span className={`h-2 w-2 rounded-full ${statusDotClass}`} aria-hidden />
-            <span className="text-dash-muted-foreground text-xs font-medium">Live data</span>
-          </div>
-        </header>
+            <div className="hidden items-center gap-2 sm:flex">
+              <span className={`h-2 w-2 rounded-full ${statusDotClass}`} aria-hidden />
+              <span className="text-dash-muted-foreground text-xs font-medium">Live data</span>
+            </div>
+          </header>
 
-        {headerBelow ? (
-          <div className="border-dash-border bg-dash-header/50 border-b px-4 py-2.5 lg:px-8">{headerBelow}</div>
-        ) : null}
+          {headerBelow ? (
+            <div className="border-dash-border border-t bg-dash-header/60 px-4 py-2.5 lg:px-8">{headerBelow}</div>
+          ) : null}
+        </div>
 
         <div className="dash-grid-bg flex-1">
           <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">{children}</div>

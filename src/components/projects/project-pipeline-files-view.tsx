@@ -46,10 +46,7 @@ export function ProjectPipelineFilesViewSection({
       </h2>
       <p className="text-dash-muted-foreground mb-6 max-w-2xl text-sm leading-relaxed">
         {shareToken ? (
-          <>
-            Preview appears only when the file type can open in your browser; otherwise use Download. This shared page
-            only includes this project.
-          </>
+          "Use Preview to view image and video, or Download files. Everything here is for this project only."
         ) : (
           <>
             Uploads from Manage are grouped under each pipeline step. Preview appears only when the file type can open

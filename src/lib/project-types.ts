@@ -37,14 +37,40 @@ const LABEL_BY_VALUE = Object.fromEntries(PROJECT_TYPES.map((p) => [p.value, p.l
   string
 >;
 
+/** Shorter labels for narrow screens (one-row meta chips). */
+const COMPACT_TYPE_LABEL: Partial<Record<ProjectTypeValue, string>> = {
+  student_fyp: "Final year project",
+  research: "Research",
+  product_prototype: "Prototype",
+  product: "Product",
+  mvp: "MVP",
+  other: "Other",
+};
+
+export type FormatProjectTypeOptions = {
+  /** Shorter type text on phones (e.g. FYP → "Final year project"). */
+  compact?: boolean;
+};
+
 /** Human-readable label for tables and detail pages. */
-export function formatProjectType(value: string | null | undefined): string {
+export function formatProjectType(
+  value: string | null | undefined,
+  options?: FormatProjectTypeOptions,
+): string {
   if (!value) return "—";
   if (value in LABEL_BY_VALUE) {
-    return LABEL_BY_VALUE[value as ProjectTypeValue];
+    const key = value as ProjectTypeValue;
+    if (options?.compact && COMPACT_TYPE_LABEL[key]) {
+      return COMPACT_TYPE_LABEL[key]!;
+    }
+    return LABEL_BY_VALUE[key];
   }
   /* Legacy DB values before migration */
-  if (value === "student_final") return "Student final year project (FYP) (legacy)";
-  if (value === "prototype") return "Product prototype (legacy)";
+  if (value === "student_final") {
+    return options?.compact ? "Final year project" : "Student final year project (FYP) (legacy)";
+  }
+  if (value === "prototype") {
+    return options?.compact ? "Prototype" : "Product prototype (legacy)";
+  }
   return value.replace(/_/g, " ");
 }
