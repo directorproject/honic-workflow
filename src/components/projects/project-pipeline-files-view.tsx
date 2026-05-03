@@ -76,7 +76,6 @@ export function ProjectPipelineFilesViewSection({
           <details
             key={a.key}
             className="border-dash-border group rounded-2xl border bg-dash-muted/10 open:bg-dash-muted/25 transition-colors"
-            open={a.files.length > 0}
           >
             <summary className="text-dash-foreground flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors hover:bg-dash-muted/30 [&::-webkit-details-marker]:hidden">
               <span className="min-w-0">
