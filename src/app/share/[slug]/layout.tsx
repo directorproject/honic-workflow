@@ -4,6 +4,7 @@ import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
 import { ShareIntroTitles } from "@/components/share/share-intro-titles";
 import { SharePrivateLinkNotice } from "@/components/share/share-private-link-notice";
 import { ShareSiteFooter } from "@/components/share/share-site-footer";
+import { ShareScrollRestore } from "@/components/share/share-scroll-restore";
 import { ShareStickyNav } from "@/components/share/share-sticky-nav";
 
 export const metadata: Metadata = {
@@ -39,6 +40,8 @@ export default function ShareSlugLayout({ children }: { children: React.ReactNod
       <ShareSiteFooter />
 
       <ShareStickyNav />
+
+      <ShareScrollRestore />
     </div>
   );
 }

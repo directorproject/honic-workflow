@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SharePreviewLink } from "@/components/share/share-preview-link";
 import { canPreviewInBrowser } from "@/lib/drive-preview-helpers";
 import type { ProjectPipelineActivityFiles } from "@/lib/project-pipeline-files";
 
@@ -44,6 +45,7 @@ export function ProjectPipelineFilesViewSection({
       : `/api/drive/file/${encodeURIComponent(fileId)}?download=1`;
 
   const bottomMargin = shareToken ? "mb-4 sm:mb-5" : "mb-10 sm:mb-12";
+  const sharePreview = Boolean(shareToken && shareClientSlug);
 
   return (
     <section
@@ -112,12 +114,21 @@ export function ProjectPipelineFilesViewSection({
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {canPreviewInBrowser(f.mimeType, f.name) ? (
-                              <Link
-                                href={previewHref(f.id)}
-                                className="border-dash-border bg-dash-accent/10 text-dash-accent-dim hover:bg-dash-accent/20 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
-                              >
-                                Preview
-                              </Link>
+                              sharePreview ? (
+                                <SharePreviewLink
+                                  href={previewHref(f.id)}
+                                  className="border-dash-border bg-dash-accent/10 text-dash-accent-dim hover:bg-dash-accent/20 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                                >
+                                  Preview
+                                </SharePreviewLink>
+                              ) : (
+                                <Link
+                                  href={previewHref(f.id)}
+                                  className="border-dash-border bg-dash-accent/10 text-dash-accent-dim hover:bg-dash-accent/20 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                                >
+                                  Preview
+                                </Link>
+                              )
                             ) : null}
                             <a
                               href={downloadHref(f.id)}
@@ -152,12 +163,21 @@ export function ProjectPipelineFilesViewSection({
                             <td className="px-2 py-2.5 text-right">
                               <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
                                 {canPreviewInBrowser(f.mimeType, f.name) ? (
-                                  <Link
-                                    href={previewHref(f.id)}
-                                    className="text-dash-accent hover:text-dash-accent-dim text-xs font-semibold underline-offset-2 hover:underline"
-                                  >
-                                    Preview
-                                  </Link>
+                                  sharePreview ? (
+                                    <SharePreviewLink
+                                      href={previewHref(f.id)}
+                                      className="text-dash-accent hover:text-dash-accent-dim text-xs font-semibold underline-offset-2 hover:underline"
+                                    >
+                                      Preview
+                                    </SharePreviewLink>
+                                  ) : (
+                                    <Link
+                                      href={previewHref(f.id)}
+                                      className="text-dash-accent hover:text-dash-accent-dim text-xs font-semibold underline-offset-2 hover:underline"
+                                    >
+                                      Preview
+                                    </Link>
+                                  )
                                 ) : null}
                                 <a
                                   href={downloadHref(f.id)}

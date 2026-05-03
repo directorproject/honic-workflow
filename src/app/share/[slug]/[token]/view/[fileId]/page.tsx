@@ -63,6 +63,7 @@ export default async function PublicShareFileViewPage(props: {
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Link
             href={projectPath}
+            scroll={false}
             className="border-dash-border bg-dash-card text-dash-foreground hover:border-dash-accent/40 focus-visible:ring-dash-accent inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
           >
             ← Back to project

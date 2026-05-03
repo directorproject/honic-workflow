@@ -26,12 +26,12 @@ export function CompanyBrandBar({
         onClick={onNavigate}
         className="border-dash-border flex items-center gap-3 border-b px-5 py-5 transition-opacity hover:opacity-95"
       >
-        <div className="relative h-11 w-11 shrink-0">
+        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl">
           <Image
             src="/logo.jpg"
             alt="Honic Company Limited"
             fill
-            className="object-contain"
+            className="rounded-xl object-contain"
             sizes="44px"
             priority
           />
@@ -57,12 +57,12 @@ export function CompanyBrandBar({
       >
         <div className="flex min-w-0 items-center gap-4 sm:gap-6">
           <div className="flex shrink-0 flex-col items-stretch">
-            <div className="relative h-16 w-[4.5rem] sm:h-[4.5rem] sm:w-24">
+            <div className="relative h-16 w-[4.5rem] overflow-hidden rounded-2xl sm:h-[4.5rem] sm:w-24">
               <Image
                 src="/logo.jpg"
                 alt="Honic Company Limited"
                 fill
-                className="object-contain object-left"
+                className="rounded-2xl object-contain object-left"
                 sizes="(max-width: 640px) 72px, 96px"
                 priority
               />

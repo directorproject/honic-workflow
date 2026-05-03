@@ -51,6 +51,8 @@ NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN=https://share.honiccompany.com
 
 Generated links look like **`https://share.honiccompany.com/share/{client-slug}/{token}`**.
 
+With **`NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN`** set, **middleware** (`src/middleware.ts`) restricts that hostname to **`/share/**`, **`/api/share/**`**, **`/_next/**`**, and a few static files (`favicon.ico`, `robots.txt`, `logo.jpg`). Any other path on the share host returns **404** (dashboard and other APIs stay on **`NEXT_PUBLIC_APP_URL`** only).
+
 **Option B — per-client wildcard hosts (`{name}-api.honiccompany.com`):**
 
 1. Run **`supabase/012_registered_clients_share_subdomain.sql`** in the Supabase SQL editor (optional column + uniqueness).

@@ -128,7 +128,7 @@ export default async function PublicShareProjectPage(props: {
                   Read-only share
                 </span>
                 <span className="hidden sm:inline">·</span>
-                <span>Updates when your team publishes changes.</span>
+                <span>Updates when our team publishes changes.</span>
               </p>
             </div>
 
