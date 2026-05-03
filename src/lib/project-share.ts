@@ -25,10 +25,25 @@ export async function createProjectShareLink(params: {
   trackedProjectId: string;
   label?: string | null;
   expiresAt?: Date | null;
-}): Promise<{ ok: true; token: string } | { ok: false; error: string }> {
+}): Promise<{ ok: true; token: string; alreadyExisted: boolean } | { ok: false; error: string }> {
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return { ok: false, error: "Database not configured." };
+  }
+
+  const { data: existingRows, error: readErr } = await supabase
+    .from("project_share_links")
+    .select("token")
+    .eq("tracked_project_id", params.trackedProjectId)
+    .order("created_at", { ascending: true })
+    .limit(1);
+
+  if (readErr) {
+    return { ok: false, error: readErr.message };
+  }
+  const existingToken = existingRows?.[0]?.token as string | undefined;
+  if (existingToken) {
+    return { ok: true, token: existingToken, alreadyExisted: true };
   }
 
   const token = generateShareToken();
@@ -40,9 +55,21 @@ export async function createProjectShareLink(params: {
   });
 
   if (error) {
+    if (error.code === "23505") {
+      const { data: rows } = await supabase
+        .from("project_share_links")
+        .select("token")
+        .eq("tracked_project_id", params.trackedProjectId)
+        .order("created_at", { ascending: true })
+        .limit(1);
+      const t = rows?.[0]?.token as string | undefined;
+      if (t) {
+        return { ok: true, token: t, alreadyExisted: true };
+      }
+    }
     return { ok: false, error: error.message };
   }
-  return { ok: true, token };
+  return { ok: true, token, alreadyExisted: false };
 }
 
 export async function resolveShareTokenToProjectId(
@@ -131,7 +158,7 @@ export async function listShareLinksForProject(projectId: string): Promise<Proje
     .select("id, token, created_at, expires_at, label")
     .eq("tracked_project_id", projectId)
     .order("created_at", { ascending: false })
-    .limit(20);
+    .limit(1);
 
   if (error) return [];
   return (data ?? []) as ProjectShareLinkRow[];

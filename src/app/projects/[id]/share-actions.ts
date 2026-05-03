@@ -12,7 +12,10 @@ import {
 } from "@/lib/share-link-origin";
 import { resolvePublicSiteBaseUrl } from "@/lib/site-url";
 
-export type CreateShareLinkState = { ok: true; url: string } | { ok: false; message: string } | null;
+export type CreateShareLinkState =
+  | { ok: true; url: string; alreadyExisted?: boolean }
+  | { ok: false; message: string }
+  | null;
 
 async function inferBaseUrlFromRequest(): Promise<string> {
   const h = await headers();
@@ -42,5 +45,5 @@ export async function createClientShareLinkAction(
   const url = origin ? `${origin.replace(/\/$/, "")}${path}` : path;
 
   revalidatePath(`/projects/${projectId}/work`);
-  return { ok: true, url };
+  return { ok: true, url, alreadyExisted: created.alreadyExisted };
 }
