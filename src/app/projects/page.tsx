@@ -122,8 +122,8 @@ export default async function ProjectsPage(props: {
                   <td className="text-dash-muted-foreground px-5 py-3.5 text-sm">{formatProjectType(p.project_type)}</td>
                   <td className="text-dash-muted-foreground px-5 py-3.5 capitalize">{p.status.replace(/_/g, " ")}</td>
                   <td className="text-dash-muted-foreground px-5 py-3.5 tabular-nums">{formatDate(p.updated_at)}</td>
-                  <td className="px-5 py-3.5 text-right">
-                    <div className="flex flex-wrap items-center justify-end gap-2">
+                  <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                    <div className="inline-flex shrink-0 items-center justify-end gap-2">
                       <Link
                         href={`/projects/${p.id}`}
                         className="border-dash-border bg-dash-muted hover:bg-dash-border inline-flex rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-colors"

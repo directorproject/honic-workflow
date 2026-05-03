@@ -89,8 +89,8 @@ export function WorkflowTableMinimal({ projects }: { projects: WorkflowProjectRo
                   <td className="text-dash-muted-foreground max-w-[260px] px-4 py-3 text-xs leading-snug">
                     {p.timeline_summary}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex flex-wrap items-center justify-end gap-2">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <div className="inline-flex shrink-0 items-center justify-end gap-2">
                       <Link
                         href={`/projects/${p.id}#activity-checklist`}
                         className="border-dash-border bg-dash-muted hover:bg-dash-border inline-flex rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors"

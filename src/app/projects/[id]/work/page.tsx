@@ -10,6 +10,7 @@ import type { WorkflowProjectRow } from "@/lib/home-workflow-data";
 import { formatProjectType } from "@/lib/project-types";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
 import { getPublicSiteBaseUrl } from "@/app/projects/[id]/share-actions";
+import { RegisteredClientEditor } from "@/components/projects/registered-client-editor";
 import { ProjectShareLinkPanel } from "@/components/projects/project-share-link-panel";
 import { buildShareLinkOrigin, shareLinkPathClientSlug } from "@/lib/share-link-origin";
 import { isDriveConfigured } from "@/lib/google-drive-server";
@@ -114,6 +115,14 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
 
       {project.description ? (
         <p className="text-dash-muted-foreground mb-8 max-w-3xl text-sm leading-relaxed">{project.description}</p>
+      ) : null}
+
+      {project.registered_client_id ? (
+        <RegisteredClientEditor
+          projectId={project.id}
+          initialName={project.registered_clients?.name ?? ""}
+          initialShareSubdomain={project.registered_clients?.share_subdomain ?? null}
+        />
       ) : null}
 
       <ProjectShareLinkPanel
