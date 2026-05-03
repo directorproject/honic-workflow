@@ -9,13 +9,13 @@ export function ShareSiteFooter() {
       <div className="mt-6 space-y-2">
         <p className="text-dash-foreground text-xs font-semibold uppercase tracking-wide">Support</p>
         <p>
-          POC Eng. Hamid —{" "}
+          PM Eng. N. Hamind —{" "}
           <a href="tel:+255628882871" className="text-dash-accent font-medium underline-offset-2 hover:underline">
             +255 628 882 871
           </a>
         </p>
         <p>
-          POC Eng. John —{" "}
+          APM Eng. D. Johndean —{" "}
           <a href="tel:+255620518724" className="text-dash-accent font-medium underline-offset-2 hover:underline">
             +255 620 518 724
           </a>
