@@ -14,4 +14,6 @@ export type RegisteredClientRow = {
   firstSeenAt?: string | null;
   lastSeenAt?: string | null;
   phone?: string | null;
+  /** Present when loaded for project forms (Drive share slug). */
+  shareSubdomain?: string | null;
 };

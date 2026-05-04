@@ -1,10 +1,9 @@
 import type { RegisteredClientRow } from "@/lib/dashboard-types";
+import { getSupabaseAdminClient } from "@/lib/supabase-server";
+import { normalizeRegisteredClientJoin } from "@/lib/supabase-relations";
 
 /** Returned when `tracked_projects` has no row for the given id (and the query itself succeeded). */
 export const PROJECT_DETAIL_NOT_FOUND_MESSAGE = "Project not found.";
-import { fetchRegisteredClients } from "@/lib/registered-clients";
-import { getSupabaseAdminClient } from "@/lib/supabase-server";
-import { normalizeRegisteredClientJoin } from "@/lib/supabase-relations";
 
 export type TrackedProjectListRow = {
   id: string;
@@ -187,10 +186,28 @@ export async function loadClientsForProjectForms(): Promise<{
     return { clients: [], error: "Database not configured." };
   }
 
-  const { clients, hints } = await fetchRegisteredClients(supabase);
-  if (clients.length === 0 && hints.length > 0) {
-    return { clients: [], error: hints[0] ?? "No registered clients." };
+  const { data, error } = await supabase
+    .from("registered_clients")
+    .select("id, name, phone, share_subdomain")
+    .order("last_seen_at", { ascending: false });
+
+  if (error) {
+    return { clients: [], error: error.message };
   }
+
+  const clients: RegisteredClientRow[] = (data ?? [])
+    .filter((r) => typeof r.name === "string" && r.name.trim())
+    .map((r) => {
+      const rawSub = r.share_subdomain;
+      const shareSubdomain =
+        typeof rawSub === "string" && rawSub.trim() ? rawSub.trim().toLowerCase() : null;
+      return {
+        id: r.id as string,
+        name: String(r.name).trim(),
+        phone: typeof r.phone === "string" && r.phone.trim() ? r.phone.trim() : null,
+        shareSubdomain,
+      };
+    });
 
   return { clients, error: null };
 }
