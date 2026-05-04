@@ -92,12 +92,11 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
       ) : null}
 
       <div className="no-scrollbar -mx-1 mb-6 flex max-w-full flex-nowrap items-center gap-1.5 overflow-x-auto px-1 pb-0.5 text-[11px] font-medium capitalize [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0 sm:text-xs [&::-webkit-scrollbar]:hidden">
-        <span className="border-dash-border shrink-0 rounded-full border px-2.5 py-1 sm:px-3">
+        <span className="border-dash-border max-w-[min(100%,20rem)] shrink-0 whitespace-normal rounded-full border px-2.5 py-1 text-center capitalize leading-snug sm:max-w-none sm:px-3">
           {project.status.replace(/_/g, " ")}
         </span>
-        <span className="border-dash-border shrink-0 rounded-full border px-2.5 py-1 sm:px-3">
-          <span className="sm:hidden">{project.priority}</span>
-          <span className="hidden sm:inline">{project.priority} priority</span>
+        <span className="border-dash-border max-w-[min(100%,20rem)] shrink-0 whitespace-normal rounded-full border px-2.5 py-1 text-center capitalize leading-snug sm:max-w-none sm:px-3">
+          {project.priority} priority
         </span>
         <span className="border-dash-border max-w-[55vw] shrink-0 truncate rounded-full border px-2.5 py-1 sm:max-w-none sm:px-3">
           <span className="sm:hidden">{formatProjectType(project.project_type, { compact: true })}</span>

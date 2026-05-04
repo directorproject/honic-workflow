@@ -134,19 +134,18 @@ export default async function PublicShareProjectPage(props: {
 
             <div className="no-scrollbar -mx-1 flex max-w-full flex-nowrap items-center gap-1.5 overflow-x-auto px-1 pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
               <span
-                className={`inline-flex shrink-0 min-h-8 items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize sm:min-h-9 sm:px-3 sm:text-sm ${statusChipClass[tone]}`}
+                className={`inline-flex shrink-0 min-h-8 max-w-[min(100%,22rem)] items-center whitespace-normal rounded-full border px-2.5 py-1 text-center text-[11px] font-semibold capitalize leading-snug sm:min-h-9 sm:max-w-none sm:px-3 sm:text-sm ${statusChipClass[tone]}`}
               >
                 {project.status.replace(/_/g, " ")}
               </span>
               <span
                 className={
                   priorityHot
-                    ? "inline-flex shrink-0 min-h-8 items-center rounded-full border border-rose-400/80 bg-gradient-to-r from-red-600 via-rose-600 to-red-600 px-2.5 py-1 text-[11px] font-semibold capitalize text-white shadow-lg shadow-red-900/30 ring-2 ring-rose-300/60 sm:min-h-9 sm:px-3 sm:text-xs sm:text-sm dark:border-rose-400/50 dark:from-red-500 dark:via-rose-500 dark:to-red-600 dark:ring-rose-400/40"
-                    : "border-dash-border bg-dash-card/80 text-dash-foreground inline-flex shrink-0 min-h-8 items-center rounded-full border px-2.5 py-1 text-[11px] font-medium capitalize sm:min-h-9 sm:px-3 sm:text-xs sm:text-sm"
+                    ? "inline-flex shrink-0 min-h-8 max-w-[min(100%,22rem)] items-center whitespace-normal rounded-full border border-rose-400/80 bg-gradient-to-r from-red-600 via-rose-600 to-red-600 px-2.5 py-1 text-center text-[11px] font-semibold capitalize leading-snug text-white shadow-lg shadow-red-900/30 ring-2 ring-rose-300/60 sm:min-h-9 sm:max-w-none sm:px-3 sm:text-xs sm:text-sm dark:border-rose-400/50 dark:from-red-500 dark:via-rose-500 dark:to-red-600 dark:ring-rose-400/40"
+                    : "border-dash-border bg-dash-card/80 text-dash-foreground inline-flex shrink-0 min-h-8 max-w-[min(100%,22rem)] items-center whitespace-normal rounded-full border px-2.5 py-1 text-center text-[11px] font-medium capitalize leading-snug sm:min-h-9 sm:max-w-none sm:px-3 sm:text-xs sm:text-sm"
                 }
               >
-                <span className="sm:hidden">{project.priority}</span>
-                <span className="hidden sm:inline">{project.priority} priority</span>
+                {project.priority} priority
               </span>
               <span className="border-dash-border bg-dash-card/80 text-dash-muted-foreground inline-flex shrink-0 min-h-8 max-w-[55vw] items-center truncate rounded-full border px-2.5 py-1 text-[11px] font-medium sm:max-w-none sm:min-h-9 sm:px-3 sm:text-xs sm:text-sm">
                 <span className="sm:hidden">{formatProjectType(project.project_type, { compact: true })}</span>
