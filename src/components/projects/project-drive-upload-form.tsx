@@ -19,7 +19,7 @@ function UploadSubmitButton({ pending }: { pending: boolean }) {
       disabled={pending}
       className="bg-dash-accent hover:bg-dash-accent-dim rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
     >
-      Upload to project folder
+      Upload file(s) to project folder
     </button>
   );
 }
@@ -31,7 +31,7 @@ function AttachSubmitButton({ pending, disabled }: { pending: boolean; disabled:
       disabled={pending || disabled}
       className="bg-dash-accent hover:bg-dash-accent-dim rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
     >
-      Move file into activity folder
+      Move file(s) into activity folder
     </button>
   );
 }
@@ -48,8 +48,8 @@ export function ProjectDriveUploadForm({
   heading?: string;
   intro?: string;
 }) {
-  const [mode, setMode] = useState<"upload" | "attach">("upload");
-  const [selectedFileId, setSelectedFileId] = useState("");
+  const [mode, setMode] = useState<"upload" | "attach">("attach");
+  const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
 
   const boundUpload = uploadProjectFileAction.bind(null, projectId);
   const [uploadState, uploadAction, uploadPending] = useActionState<ProjectDriveUploadState, FormData>(
@@ -64,8 +64,15 @@ export function ProjectDriveUploadForm({
   );
 
   useEffect(() => {
-    if (mode === "upload") setSelectedFileId("");
+    setSelectedFileIds([]);
   }, [mode]);
+
+  function toggleSelectedFile(fileId: string, checked: boolean) {
+    setSelectedFileIds((prev) => {
+      if (checked) return prev.includes(fileId) ? prev : [...prev, fileId];
+      return prev.filter((id) => id !== fileId);
+    });
+  }
 
   const stepDefault = WORKFLOW_STEPS.some((s) => s.key === defaultPipelineStep)
     ? defaultPipelineStep
@@ -81,17 +88,6 @@ export function ProjectDriveUploadForm({
       <div className="mb-6 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={() => setMode("upload")}
-          className={`rounded-xl px-4 py-2 text-xs font-semibold transition-colors ${
-            mode === "upload"
-              ? "bg-dash-accent text-slate-950"
-              : "border-dash-border bg-dash-muted/30 text-dash-foreground hover:bg-dash-muted/50 border"
-          }`}
-        >
-          Upload new file
-        </button>
-        <button
-          type="button"
           onClick={() => setMode("attach")}
           className={`rounded-xl px-4 py-2 text-xs font-semibold transition-colors ${
             mode === "attach"
@@ -99,7 +95,18 @@ export function ProjectDriveUploadForm({
               : "border-dash-border bg-dash-muted/30 text-dash-foreground hover:bg-dash-muted/50 border"
           }`}
         >
-          Use file already in project folder
+          Use file(s) already in project folder
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("upload")}
+          className={`rounded-xl px-4 py-2 text-xs font-semibold transition-colors ${
+            mode === "upload"
+              ? "bg-dash-accent text-slate-950"
+              : "border-dash-border bg-dash-muted/30 text-dash-foreground hover:bg-dash-muted/50 border"
+          }`}
+        >
+          Upload new file(s)
         </button>
       </div>
 
@@ -143,13 +150,13 @@ export function ProjectDriveUploadForm({
               id={`project-file-${projectId}`}
               name="file"
               type="file"
-              required
+              multiple
               disabled={uploadPending}
               className="border-dash-border bg-dash-muted/30 text-dash-foreground file:text-dash-foreground w-full max-w-lg cursor-pointer rounded-xl border px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-600 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white dark:file:bg-slate-500"
             />
             <p className="text-dash-muted-foreground mt-2 text-xs">
-              Images, videos, PDFs, CAD, archives — any type the browser can pick. Same max size as global Drive upload (
-              <code className="text-dash-foreground">DRIVE_UPLOAD_MAX_MB</code>).
+              Select one or more files (Shift/Ctrl+click). Images, videos, PDFs, CAD, archives — same max per file as
+              global Drive upload (<code className="text-dash-foreground">DRIVE_UPLOAD_MAX_MB</code>).
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -181,23 +188,32 @@ export function ProjectDriveUploadForm({
               ))}
             </select>
             <p className="text-dash-muted-foreground text-xs">
-              Open subfolders if needed, then select a file. It will be moved into the activity subfolder (not copied).
+              Open subfolders if needed, then tick one or more files. They are moved into the activity subfolder (not
+              copied).
             </p>
           </div>
 
-          <input type="hidden" name="existing_drive_file_id" value={selectedFileId} />
+          {selectedFileIds.map((fid) => (
+            <input key={fid} type="hidden" name="existing_drive_file_id" value={fid} />
+          ))}
 
           <div>
             <p className="text-dash-foreground mb-2 text-sm font-medium">Browse project Drive folder</p>
             <ProjectDriveBrowser
               projectId={projectId}
-              selectedFileId={selectedFileId}
-              onSelectFile={setSelectedFileId}
+              selectedFileIds={selectedFileIds}
+              onToggleFile={toggleSelectedFile}
             />
+            {selectedFileIds.length > 0 ? (
+              <p className="text-dash-muted-foreground mt-2 text-xs">
+                {selectedFileIds.length} file{selectedFileIds.length === 1 ? "" : "s"} selected (may span folders you
+                visited).
+              </p>
+            ) : null}
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <AttachSubmitButton pending={attachPending} disabled={!selectedFileId} />
+            <AttachSubmitButton pending={attachPending} disabled={selectedFileIds.length === 0} />
             {attachPending ? <span className="text-dash-muted-foreground text-sm">Moving…</span> : null}
           </div>
         </form>
@@ -212,26 +228,42 @@ export function ProjectDriveUploadForm({
       {activeState?.ok ? (
         <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-950 dark:text-emerald-100">
           <p className="font-medium">
-            {activeState.kind === "attach" ? "Moved" : "Uploaded"} &quot;{activeState.fileName}&quot; under pipeline
-            folder &quot;{activeState.pipelineStepLabel}&quot;.
+            {activeState.kind === "attach" ? "Moved" : "Uploaded"}{" "}
+            {activeState.items.length === 1 ? (
+              <>
+                &quot;{activeState.items[0].fileName}&quot; under pipeline folder &quot;{activeState.pipelineStepLabel}
+                &quot;.
+              </>
+            ) : (
+              <>
+                {activeState.items.length} files under pipeline folder &quot;{activeState.pipelineStepLabel}&quot;.
+              </>
+            )}
           </p>
-          <div className="mt-2 flex flex-wrap gap-4">
-            {canPreviewInBrowser(activeState.mimeType, activeState.fileName) ? (
-              <Link
-                href={`/drive/view/${encodeURIComponent(activeState.driveFileId)}`}
-                className="text-dash-accent font-semibold underline-offset-2 hover:underline"
-              >
-                Preview
-              </Link>
-            ) : null}
-            <a
-              href={`/api/drive/file/${encodeURIComponent(activeState.driveFileId)}?download=1`}
-              download={activeState.fileName}
-              className="text-dash-accent font-semibold underline-offset-2 hover:underline"
-            >
-              Download
-            </a>
-          </div>
+          <ul className="mt-2 space-y-2">
+            {activeState.items.map((it) => (
+              <li key={it.driveFileId} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-emerald-500/20 pt-2 first:border-t-0 first:pt-0">
+                <span className="min-w-0 flex-1 truncate font-medium">&quot;{it.fileName}&quot;</span>
+                <span className="flex flex-wrap gap-3">
+                  {canPreviewInBrowser(it.mimeType, it.fileName) ? (
+                    <Link
+                      href={`/drive/view/${encodeURIComponent(it.driveFileId)}`}
+                      className="text-dash-accent font-semibold underline-offset-2 hover:underline"
+                    >
+                      Preview
+                    </Link>
+                  ) : null}
+                  <a
+                    href={`/api/drive/file/${encodeURIComponent(it.driveFileId)}?download=1`}
+                    download={it.fileName}
+                    className="text-dash-accent font-semibold underline-offset-2 hover:underline"
+                  >
+                    Download
+                  </a>
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
     </div>

@@ -10,14 +10,14 @@ import {
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { WORKFLOW_STEPS, workflowStepUploadFolderLabel } from "@/lib/workflow-checklist";
 
+const MAX_PROJECT_DRIVE_FILES_PER_SUBMIT = 25;
+
 export type ProjectDriveUploadState =
   | {
       ok: true;
       kind: "upload" | "attach";
-      fileName: string;
-      driveFileId: string;
       pipelineStepLabel: string;
-      mimeType: string;
+      items: { fileName: string; driveFileId: string; mimeType: string }[];
     }
   | { ok: false; message: string }
   | null;
@@ -52,9 +52,15 @@ export async function uploadProjectFileAction(
   }
   const pipelineStepLabel = workflowStepUploadFolderLabel(rawStep);
 
-  const file = formData.get("file");
-  if (!(file instanceof File)) {
-    return { ok: false, message: "Choose a file to upload." };
+  const files = formData.getAll("file").filter((f): f is File => f instanceof File);
+  if (files.length === 0) {
+    return { ok: false, message: "Choose one or more files to upload." };
+  }
+  if (files.length > MAX_PROJECT_DRIVE_FILES_PER_SUBMIT) {
+    return {
+      ok: false,
+      message: `At most ${MAX_PROJECT_DRIVE_FILES_PER_SUBMIT} files per upload. Choose fewer files and try again.`,
+    };
   }
 
   const ensured = await ensureChildFolderByName(row.google_drive_folder_id, pipelineStepLabel);
@@ -62,15 +68,26 @@ export async function uploadProjectFileAction(
     return { ok: false, message: ensured.error };
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const result = await uploadFileToParentFolder(ensured.folderId, {
-    rawName: file.name,
-    mimeType: file.type,
-    buffer,
-  });
+  const items: { fileName: string; driveFileId: string; mimeType: string }[] = [];
+  for (const file of files) {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const result = await uploadFileToParentFolder(ensured.folderId, {
+      rawName: file.name,
+      mimeType: file.type,
+      buffer,
+    });
 
-  if (!result.ok) {
-    return { ok: false, message: result.error };
+    if (!result.ok) {
+      const moved = items.length;
+      return {
+        ok: false,
+        message:
+          moved > 0
+            ? `${result.error}\n(${moved} file(s) were uploaded before this failure.)`
+            : result.error,
+      };
+    }
+    items.push({ fileName: result.name, driveFileId: result.id, mimeType: result.mimeType });
   }
 
   revalidatePath(`/projects/${projectId}/files`);
@@ -78,10 +95,8 @@ export async function uploadProjectFileAction(
   return {
     ok: true,
     kind: "upload" as const,
-    fileName: result.name,
-    driveFileId: result.id,
     pipelineStepLabel,
-    mimeType: result.mimeType,
+    items,
   };
 }
 
@@ -115,9 +130,16 @@ export async function assignExistingProjectFileAction(
   }
   const pipelineStepLabel = workflowStepUploadFolderLabel(rawStep);
 
-  const fileId = String(formData.get("existing_drive_file_id") ?? "").trim();
-  if (!fileId) {
-    return { ok: false, message: "Select a file from your project folder, then attach." };
+  const rawIds = formData.getAll("existing_drive_file_id").map((v) => String(v).trim()).filter(Boolean);
+  const fileIds = [...new Set(rawIds)];
+  if (fileIds.length === 0) {
+    return { ok: false, message: "Select one or more files from your project folder, then move them." };
+  }
+  if (fileIds.length > MAX_PROJECT_DRIVE_FILES_PER_SUBMIT) {
+    return {
+      ok: false,
+      message: `At most ${MAX_PROJECT_DRIVE_FILES_PER_SUBMIT} files per move. Select fewer files and try again.`,
+    };
   }
 
   const ensured = await ensureChildFolderByName(row.google_drive_folder_id, pipelineStepLabel);
@@ -125,9 +147,20 @@ export async function assignExistingProjectFileAction(
     return { ok: false, message: ensured.error };
   }
 
-  const moved = await moveDriveFileIntoPipelineFolder(fileId, row.google_drive_folder_id, ensured.folderId);
-  if (!moved.ok) {
-    return { ok: false, message: moved.error };
+  const items: { fileName: string; driveFileId: string; mimeType: string }[] = [];
+  for (const fileId of fileIds) {
+    const moved = await moveDriveFileIntoPipelineFolder(fileId, row.google_drive_folder_id, ensured.folderId);
+    if (!moved.ok) {
+      const done = items.length;
+      return {
+        ok: false,
+        message:
+          done > 0
+            ? `${moved.error}\n(${done} file(s) were moved before this failure.)`
+            : moved.error,
+      };
+    }
+    items.push({ fileName: moved.name, driveFileId: fileId, mimeType: moved.mimeType });
   }
 
   revalidatePath(`/projects/${projectId}/files`);
@@ -136,9 +169,7 @@ export async function assignExistingProjectFileAction(
   return {
     ok: true,
     kind: "attach" as const,
-    fileName: moved.name,
-    driveFileId: fileId,
     pipelineStepLabel,
-    mimeType: moved.mimeType,
+    items,
   };
 }

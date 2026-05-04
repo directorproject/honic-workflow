@@ -8,12 +8,12 @@ type StackEntry = { id: string; name: string };
 
 export function ProjectDriveBrowser({
   projectId,
-  selectedFileId,
-  onSelectFile,
+  selectedFileIds,
+  onToggleFile,
 }: {
   projectId: string;
-  selectedFileId: string;
-  onSelectFile: (id: string) => void;
+  selectedFileIds: string[];
+  onToggleFile: (fileId: string, checked: boolean) => void;
 }) {
   const [stack, setStack] = useState<StackEntry[]>([]);
   const [folders, setFolders] = useState<{ id: string; name: string }[]>([]);
@@ -108,11 +108,10 @@ export function ProjectDriveBrowser({
                 <li key={f.id} className="px-3 py-2.5">
                   <label className="flex cursor-pointer items-center gap-3">
                     <input
-                      type="radio"
-                      name="existing_drive_file_pick"
-                      checked={selectedFileId === f.id}
-                      onChange={() => onSelectFile(f.id)}
-                      className="border-dash-border text-dash-accent h-4 w-4 shrink-0"
+                      type="checkbox"
+                      checked={selectedFileIds.includes(f.id)}
+                      onChange={(e) => onToggleFile(f.id, e.target.checked)}
+                      className="border-dash-border text-dash-accent h-4 w-4 shrink-0 rounded"
                     />
                     <span className="text-dash-foreground min-w-0 truncate text-sm font-medium">{f.name}</span>
                   </label>
@@ -125,8 +124,8 @@ export function ProjectDriveBrowser({
 
       {listedFolderId && !loading && !error ? (
         <p className="text-dash-muted-foreground text-xs">
-          Select a file with the radio control, then attach. Folders are for navigation only; the file will move into
-          the pipeline activity folder you choose above.
+          Use checkboxes to select one or more files in this folder (you can open other subfolders and add more). Folders
+          are for navigation only; selected files move into the pipeline activity folder you chose above.
         </p>
       ) : null}
     </div>
