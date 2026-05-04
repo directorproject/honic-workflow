@@ -60,7 +60,7 @@ export default async function DashboardPage() {
             <span className="font-medium text-dash-foreground">Pipeline</span> counts checklist progress (steps marked{" "}
             <span className="font-medium text-dash-foreground">outside our scope</span> are someone else’s deliverable,
             not ours to finish); <span className="font-medium text-dash-foreground">Timeline</span> shows dates and
-            milestones. View for read-only summary; Manage to edit pipeline and tasks.
+            milestones. View for read-only summary; Manage to edit pipeline, milestones, and extra tasks.
           </p>
         </div>
         <WorkflowTableMinimal projects={projects} />

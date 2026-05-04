@@ -37,7 +37,7 @@ function ProjectSummaryNavLinks({ projectId }: { projectId: string }) {
         href={`/projects/${projectId}/work`}
         className="text-dash-accent font-semibold underline-offset-2 hover:underline"
       >
-        Manage progress & tasks
+        Manage progress & milestones
       </Link>
       <Link href="/projects" className="text-dash-accent font-semibold underline-offset-2 hover:underline">
         ← All projects

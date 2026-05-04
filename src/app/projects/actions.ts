@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { createSubfolderUnderLinkedTree, validateDriveFolderForProject } from "@/lib/google-drive-server";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
+import type { ProjectMilestoneRow } from "@/lib/projects-data";
 import { PROJECT_TYPES, type ProjectTypeValue } from "@/lib/project-types";
 
 const MAX_TIMELINE_MILESTONES = 50;
@@ -274,6 +275,72 @@ export async function createProjectTask(
   revalidatePath("/");
 
   return data;
+}
+
+export async function addProjectMilestone(formData: FormData): Promise<ProjectMilestoneRow> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) {
+    throw new Error("Database not configured.");
+  }
+
+  const tracked_project_id = String(formData.get("tracked_project_id") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim().slice(0, MAX_MILESTONE_TITLE);
+  const assigneeRaw = String(formData.get("assignee") ?? "").trim().slice(0, MAX_MILESTONE_ASSIGNEE);
+  const assignee = assigneeRaw.length > 0 ? assigneeRaw : null;
+  const target_date = parseOptionalDateField(formData, "target_date");
+
+  if (!tracked_project_id || !title) {
+    throw new Error("Milestone title is required.");
+  }
+
+  const { count, error: cErr } = await supabase
+    .from("project_milestones")
+    .select("*", { count: "exact", head: true })
+    .eq("tracked_project_id", tracked_project_id);
+
+  if (cErr) {
+    throw new Error(cErr.message);
+  }
+  if (typeof count === "number" && count >= MAX_TIMELINE_MILESTONES) {
+    throw new Error(`At most ${MAX_TIMELINE_MILESTONES} milestones per project.`);
+  }
+
+  const { data: lastRow, error: qErr } = await supabase
+    .from("project_milestones")
+    .select("sort_order")
+    .eq("tracked_project_id", tracked_project_id)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (qErr) {
+    throw new Error(qErr.message);
+  }
+
+  const sort_order = lastRow?.sort_order != null ? Number(lastRow.sort_order) + 1 : 0;
+
+  const { data, error } = await supabase
+    .from("project_milestones")
+    .insert({
+      tracked_project_id,
+      title,
+      target_date,
+      assignee,
+      sort_order,
+    })
+    .select("id, title, target_date, sort_order, completed_at, assignee")
+    .single();
+
+  if (error || !data) {
+    throw new Error(error?.message ?? "Insert failed.");
+  }
+
+  revalidatePath(`/projects/${tracked_project_id}/work`);
+  revalidatePath(`/projects/${tracked_project_id}`);
+  revalidatePath("/projects");
+  revalidatePath("/");
+
+  return data as ProjectMilestoneRow;
 }
 
 export async function deleteTrackedProject(formData: FormData) {

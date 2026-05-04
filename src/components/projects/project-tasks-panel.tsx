@@ -84,7 +84,7 @@ export function ProjectTasksPanel({
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <div className="min-w-0 flex-1">
               <label htmlFor="task-title" className="text-dash-muted-foreground mb-1 block text-[11px] font-medium">
-                Task
+                Extra task
               </label>
               <input
                 id="task-title"
@@ -98,7 +98,7 @@ export function ProjectTasksPanel({
               type="submit"
               className="border-dash-border bg-dash-muted hover:bg-dash-border shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors sm:mb-0.5"
             >
-              Add task
+              Add extra task
             </button>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -132,7 +132,7 @@ export function ProjectTasksPanel({
 
       <ul className="divide-dash-border divide-y rounded-xl border border-dashed">
         {displayTasks.length === 0 ? (
-          <li className="text-dash-muted-foreground px-4 py-8 text-center text-sm">No tasks yet.</li>
+          <li className="text-dash-muted-foreground px-4 py-8 text-center text-sm">No extra tasks yet.</li>
         ) : (
           displayTasks.map((t) => (
             <li key={t.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">

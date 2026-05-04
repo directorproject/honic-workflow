@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { WorkflowChecklistFull } from "@/components/home/workflow-checklist-full";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { ProjectDriveUploadForm } from "@/components/projects/project-drive-upload-form";
+import { ProjectMilestoneAddForm } from "@/components/projects/project-milestone-add-form";
 import { ProjectTasksPanel } from "@/components/projects/project-tasks-panel";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import type { WorkflowProjectRow } from "@/lib/home-workflow-data";
@@ -70,7 +71,7 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
   return (
     <DashboardShell
       title={project.title}
-      subtitle={`${project.registered_clients?.name ?? "Registered client"} · Manage progress`}
+      subtitle={`${project.registered_clients?.name ?? "Registered client"} · Milestones & extra tasks`}
       statusDotClass={statusDotClass}
     >
       <p className="text-dash-muted-foreground mb-6 flex flex-wrap gap-x-4 gap-y-2 text-xs">
@@ -196,13 +197,11 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
         <section className="border-dash-border bg-dash-card rounded-2xl border p-5 shadow-sm">
           <h2 className="text-dash-foreground mb-1 text-base font-semibold">Timeline</h2>
           <p className="text-dash-muted-foreground mb-4 text-xs">
-            Milestones and who is assigned to each activity are set when the project is created. Dates and completion
-            can be adjusted later via the database or a future editor.
+            Milestones can be added when you create the project or anytime here. Each can have a target date and someone
+            assigned. Completion dates are not editable in the UI yet.
           </p>
           {milestones.length === 0 ? (
-            <p className="text-dash-muted-foreground text-sm">
-              No milestones yet. Add them when you create a project.
-            </p>
+            <p className="text-dash-muted-foreground mb-1 text-sm">No milestones yet — add one below.</p>
           ) : (
             <ul className="relative space-y-0 pl-1 text-sm before:absolute before:top-2 before:bottom-2 before:left-[7px] before:w-px before:bg-dash-border">
               {milestones.map((m) => (
@@ -230,11 +229,14 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
               ))}
             </ul>
           )}
+          <ProjectMilestoneAddForm projectId={project.id} />
         </section>
 
         <section className="border-dash-border bg-dash-card rounded-2xl border p-5 shadow-sm">
-          <h2 className="text-dash-foreground mb-1 text-base font-semibold">Tasks</h2>
-          <p className="text-dash-muted-foreground mb-4 text-xs">Add tasks and set status; updates save to the project.</p>
+          <h2 className="text-dash-foreground mb-1 text-base font-semibold">Extra tasks</h2>
+          <p className="text-dash-muted-foreground mb-4 text-xs">
+            Informal follow-ups outside the timeline; add items, assign people, set due dates, and track status.
+          </p>
           <ProjectTasksPanel projectId={project.id} tasks={tasks} />
         </section>
       </div>

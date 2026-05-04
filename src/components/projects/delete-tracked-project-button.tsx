@@ -59,7 +59,7 @@ export function DeleteTrackedProjectButton({ projectId, title }: { projectId: st
           </h2>
           <p id={descId} className="text-dash-muted-foreground mt-3 text-sm leading-relaxed">
             <span className="text-dash-foreground font-medium">&quot;{title}&quot;</span> will be removed. Milestones and
-            tasks for this project will be deleted. This cannot be undone.
+            extra tasks for this project will be deleted. This cannot be undone.
           </p>
 
           <div className="mt-8 flex flex-wrap justify-end gap-3">

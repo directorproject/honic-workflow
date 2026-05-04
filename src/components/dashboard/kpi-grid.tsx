@@ -114,7 +114,7 @@ export function KpiGrid({
         icon={<IconPlay />}
       />
       <KpiCard
-        label="Open tasks"
+        label="Open extra tasks"
         value={openTasks ?? "—"}
         hint={`${registryNewThisMonth} new registrants this month (UTC)`}
         accentClass="bg-emerald-500/10 text-emerald-700 ring-emerald-500/25 dark:text-emerald-400"
