@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { addProjectMilestone } from "@/app/projects/actions";
+import { WORKFLOW_STEPS } from "@/lib/workflow-checklist";
 
 export function ProjectMilestoneAddForm({ projectId }: { projectId: string }) {
   const router = useRouter();
@@ -15,7 +16,10 @@ export function ProjectMilestoneAddForm({ projectId }: { projectId: string }) {
     const form = e.currentTarget;
     const fd = new FormData(form);
     const title = String(fd.get("title") ?? "").trim();
-    if (!title) return;
+    if (!title) {
+      setMessage("Choose a timeline activity.");
+      return;
+    }
 
     setPending(true);
     setMessage(null);
@@ -36,18 +40,29 @@ export function ProjectMilestoneAddForm({ projectId }: { projectId: string }) {
       <form onSubmit={(e) => void onSubmit(e)} className="space-y-3">
         <input type="hidden" name="tracked_project_id" value={projectId} />
         <div>
-          <label htmlFor="new-ms-title" className="text-dash-muted-foreground mb-1 block text-[11px] font-medium">
-            Activity / title <span className="text-red-600 dark:text-red-400">*</span>
+          <label htmlFor="new-ms-activity" className="text-dash-muted-foreground mb-1 block text-[11px] font-medium">
+            Timeline activity <span className="text-red-600 dark:text-red-400">*</span>
           </label>
-          <input
-            id="new-ms-title"
+          <select
+            id="new-ms-activity"
             name="title"
             required
             disabled={pending}
-            placeholder="e.g. Layout review"
-            autoComplete="off"
+            defaultValue=""
             className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2 disabled:opacity-50"
-          />
+          >
+            <option value="" disabled>
+              Choose pipeline activity…
+            </option>
+            {WORKFLOW_STEPS.map((s) => (
+              <option key={s.key} value={s.label}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+          <p className="text-dash-muted-foreground mt-1 text-[11px] leading-relaxed">
+            Same steps as the project checklist and Drive activity folders.
+          </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>

@@ -2,10 +2,12 @@
 
 import { useMemo, useState } from "react";
 
-type MilestoneDraft = { title: string; target_date: string; assignee: string };
+import { WORKFLOW_STEPS } from "@/lib/workflow-checklist";
+
+type MilestoneDraft = { stepKey: string; target_date: string; assignee: string };
 
 function emptyRow(): MilestoneDraft {
-  return { title: "", target_date: "", assignee: "" };
+  return { stepKey: "", target_date: "", assignee: "" };
 }
 
 /** Client-only: dates, milestone rows, hidden JSON. Static intro lives in `project-timeline-card.tsx` (server). */
@@ -14,11 +16,15 @@ export function ProjectTimelineFields() {
 
   const timelineJson = useMemo(() => {
     const cleaned = milestones
-      .map((m) => ({
-        title: m.title.trim(),
-        target_date: m.target_date.trim() || null,
-        assignee: m.assignee.trim() || null,
-      }))
+      .map((m) => {
+        const step = WORKFLOW_STEPS.find((s) => s.key === m.stepKey);
+        const title = step?.label?.trim() ?? "";
+        return {
+          title,
+          target_date: m.target_date.trim() || null,
+          assignee: m.assignee.trim() || null,
+        };
+      })
       .filter((m) => m.title.length > 0);
     return JSON.stringify(cleaned);
   }, [milestones]);
@@ -68,18 +74,22 @@ export function ProjectTimelineFields() {
           <div key={index} className="border-dash-border/80 space-y-2 rounded-xl border border-dashed p-3 sm:p-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
               <div className="min-w-0 flex-1">
-                <label className="text-dash-muted-foreground mb-1 block text-[11px] font-medium" htmlFor={`milestone-title-${index}`}>
-                  Activity / milestone
+                <label className="text-dash-muted-foreground mb-1 block text-[11px] font-medium" htmlFor={`milestone-activity-${index}`}>
+                  Timeline activity
                 </label>
-                <input
-                  id={`milestone-title-${index}`}
-                  type="text"
-                  value={row.title}
-                  onChange={(e) => patchRow(index, { title: e.target.value })}
-                  placeholder="e.g. Schematic review"
-                  autoComplete="off"
+                <select
+                  id={`milestone-activity-${index}`}
+                  value={row.stepKey}
+                  onChange={(e) => patchRow(index, { stepKey: e.target.value })}
                   className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2"
-                />
+                >
+                  <option value="">Choose activity…</option>
+                  {WORKFLOW_STEPS.map((s) => (
+                    <option key={s.key} value={s.key}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="flex w-full shrink-0 flex-col gap-2 sm:w-44">
                 <label className="text-dash-muted-foreground mb-1 block text-[11px] font-medium" htmlFor={`milestone-date-${index}`}>
@@ -123,7 +133,8 @@ export function ProjectTimelineFields() {
       </div>
 
       <p className="text-dash-muted-foreground mt-2 text-xs leading-relaxed">
-        For each activity, set who is responsible and an optional target date (e.g. layout release — 2026-06-15).
+        Pick a pipeline activity from the list for each milestone, then optional target date and assignee (same steps
+        as the checklist and Drive folders).
       </p>
 
       <div className="mt-3 flex flex-wrap items-center gap-3">

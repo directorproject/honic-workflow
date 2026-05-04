@@ -17,7 +17,8 @@ export function ProjectTimelineCard() {
         A <span className="text-dash-foreground font-medium">milestone</span> is a planned checkpoint on the calendar
         (for example schematic review, prototype build)—different from the Pipeline checklist, which tracks design
         workflow steps. Optional start/end dates define the project window; for each milestone you can record who is
-        assigned to that activity. Milestones show on the home Activity table and on the project Manage page.
+        assigned to that activity. Activities are chosen from the same pipeline step list as the checklist. Milestones
+        show on the home Activity table and on the project Manage page.
       </p>
       <ProjectTimelineFields />
     </section>
