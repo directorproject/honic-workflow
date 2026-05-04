@@ -1,7 +1,7 @@
 import { listDriveFolder, type DriveFileRow } from "@/lib/google-drive-server";
 import { WORKFLOW_STEPS, workflowStepUploadFolderLabel } from "@/lib/workflow-checklist";
 
-/** Optional folder at the project Drive root; listed first under “Files by pipeline activity”. */
+/** Optional folder at the project Drive root; listed after “Full project test” in Files by pipeline activity. */
 export const PIPELINE_DOCUMENTS_FOLDER_NAME = "Pipeline documents";
 
 export type ProjectPipelineActivityFiles = {
@@ -61,7 +61,9 @@ export async function loadProjectPipelineFilesForView(
     }
   }
 
-  const activities = [pipelineDocuments, ...stepActivities];
+  const afterFullTestIdx = WORKFLOW_STEPS.findIndex((s) => s.key === "full_project_test");
+  const splitAt = afterFullTestIdx >= 0 ? afterFullTestIdx + 1 : stepActivities.length;
+  const activities = [...stepActivities.slice(0, splitAt), pipelineDocuments, ...stepActivities.slice(splitAt)];
 
   return { ok: true, activities };
 }
