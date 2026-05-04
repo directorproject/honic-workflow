@@ -129,6 +129,10 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
       {project.registered_client_id ? (
         <RegisteredClientEditor
           projectId={project.id}
+          initialProjectTitle={project.title}
+          initialProjectType={project.project_type}
+          initialPriority={project.priority}
+          initialDescription={project.description}
           initialName={project.registered_clients?.name ?? ""}
           initialShareSubdomain={project.registered_clients?.share_subdomain ?? null}
           initialPhone={project.registered_clients?.phone ?? null}
