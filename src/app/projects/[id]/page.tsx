@@ -11,7 +11,12 @@ import { loadProjectPipelineFilesForView } from "@/lib/project-pipeline-files";
 import { formatProjectType } from "@/lib/project-types";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
 import { ProjectReadOnlyTimelineCard } from "@/components/projects/project-read-only-timeline-card";
-import { loadProjectDetail, type TrackedProjectDetail } from "@/lib/projects-data";
+import { ProjectLoadFailureNotice } from "@/components/projects/project-load-failure-notice";
+import {
+  loadProjectDetail,
+  PROJECT_DETAIL_NOT_FOUND_MESSAGE,
+  type TrackedProjectDetail,
+} from "@/lib/projects-data";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -64,6 +69,9 @@ export default async function ProjectDetailPage(props: { params: Promise<{ id: s
   const { project, error } = await loadProjectDetail(id);
 
   if (!project) {
+    if (error !== PROJECT_DETAIL_NOT_FOUND_MESSAGE) {
+      return <ProjectLoadFailureNotice message={error ?? "Unknown error."} />;
+    }
     notFound();
   }
 

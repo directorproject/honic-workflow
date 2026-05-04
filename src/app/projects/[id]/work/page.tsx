@@ -15,7 +15,12 @@ import { ProjectShareLinkPanel } from "@/components/projects/project-share-link-
 import { buildShareLinkOrigin, shareLinkPathClientSlug } from "@/lib/share-link-origin";
 import { isDriveConfigured } from "@/lib/google-drive-server";
 import { listShareLinksForProject } from "@/lib/project-share";
-import { loadProjectDetail, type TrackedProjectDetail } from "@/lib/projects-data";
+import { ProjectLoadFailureNotice } from "@/components/projects/project-load-failure-notice";
+import {
+  loadProjectDetail,
+  PROJECT_DETAIL_NOT_FOUND_MESSAGE,
+  type TrackedProjectDetail,
+} from "@/lib/projects-data";
 
 function formatIsoDate(iso: string | null): string | null {
   if (!iso) return null;
@@ -44,6 +49,9 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
   const { project, milestones, tasks, error } = await loadProjectDetail(id);
 
   if (!project) {
+    if (error !== PROJECT_DETAIL_NOT_FOUND_MESSAGE) {
+      return <ProjectLoadFailureNotice message={error ?? "Unknown error."} />;
+    }
     notFound();
   }
 

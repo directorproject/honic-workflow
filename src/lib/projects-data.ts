@@ -1,4 +1,7 @@
 import type { RegisteredClientRow } from "@/lib/dashboard-types";
+
+/** Returned when `tracked_projects` has no row for the given id (and the query itself succeeded). */
+export const PROJECT_DETAIL_NOT_FOUND_MESSAGE = "Project not found.";
 import { fetchRegisteredClients } from "@/lib/registered-clients";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { normalizeRegisteredClientJoin } from "@/lib/supabase-relations";
@@ -142,7 +145,7 @@ export async function loadProjectDetail(
       project: null,
       milestones: [],
       tasks: [],
-      error: pErr?.message ?? "Project not found.",
+      error: pErr?.message ?? PROJECT_DETAIL_NOT_FOUND_MESSAGE,
     };
   }
 

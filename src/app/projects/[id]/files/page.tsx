@@ -7,7 +7,8 @@ import { ProjectDriveUploadForm } from "@/components/projects/project-drive-uplo
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { isDriveConfigured, listDriveFolder } from "@/lib/google-drive-server";
-import { loadProjectDetail } from "@/lib/projects-data";
+import { ProjectLoadFailureNotice } from "@/components/projects/project-load-failure-notice";
+import { loadProjectDetail, PROJECT_DETAIL_NOT_FOUND_MESSAGE } from "@/lib/projects-data";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
 
 export const dynamic = "force-dynamic";
@@ -17,9 +18,12 @@ export default async function ProjectFilesPage(props: { params: Promise<{ id: st
   const { id } = await props.params;
 
   const dash = await loadDashboardData();
-  const { project } = await loadProjectDetail(id);
+  const { project, error } = await loadProjectDetail(id);
 
   if (!project) {
+    if (error !== PROJECT_DETAIL_NOT_FOUND_MESSAGE) {
+      return <ProjectLoadFailureNotice message={error ?? "Unknown error."} />;
+    }
     notFound();
   }
 

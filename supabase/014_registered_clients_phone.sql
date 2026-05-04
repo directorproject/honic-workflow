@@ -4,8 +4,11 @@ alter table public.registered_clients add column if not exists phone text;
 
 comment on column public.registered_clients.phone is 'Optional phone; shown on /projects/[id] and /work; not selected on public share pages.';
 
+-- Return type (OUT columns) changed: must drop first; CREATE OR REPLACE cannot alter row type (PostgreSQL 42P13).
+drop function if exists public.get_registered_clients_for_dashboard ();
+
 -- Keep dashboard RPC aligned with table columns.
-create or replace function public.get_registered_clients_for_dashboard ()
+create function public.get_registered_clients_for_dashboard ()
 returns table (
   id uuid,
   name text,
@@ -27,3 +30,5 @@ as $$
   from public.registered_clients r
   order by r.last_seen_at desc;
 $$;
+
+grant execute on function public.get_registered_clients_for_dashboard () to anon, authenticated;
