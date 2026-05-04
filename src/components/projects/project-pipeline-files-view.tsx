@@ -58,10 +58,16 @@ export function ProjectPipelineFilesViewSection({
       </h2>
       <p className="text-dash-muted-foreground mb-6 max-w-2xl text-sm leading-relaxed">
         {shareToken ? (
-          "Use Preview to view image and video, or Download files. Everything here is for this project only."
+          <>
+            Use Preview to view image and video, or Download files. Everything here is for this project only.{" "}
+            <span className="text-dash-foreground font-medium">Pipeline documents</span> is an optional folder in the
+            project Drive root for specs and files that apply across steps (create it in Drive with that exact name).
+          </>
         ) : (
           <>
-            Uploads from Manage are grouped under each pipeline step. Preview appears only when the file type can open
+            The first group is <span className="text-dash-foreground font-medium">Pipeline documents</span>—add a
+            folder with that exact name under the project Drive root for cross-cutting specs and PDFs. Other groups
+            match each pipeline step (same as Manage uploads). Preview appears only when the file type can open
             in-app; otherwise use Download. Open the full{" "}
             <Link href={`/projects/${projectId}/files`} className="text-dash-accent font-medium underline-offset-2 hover:underline">
               project Files

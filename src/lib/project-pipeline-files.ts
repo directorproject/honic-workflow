@@ -1,6 +1,9 @@
 import { listDriveFolder, type DriveFileRow } from "@/lib/google-drive-server";
 import { WORKFLOW_STEPS, workflowStepUploadFolderLabel } from "@/lib/workflow-checklist";
 
+/** Optional folder at the project Drive root; listed first under “Files by pipeline activity”. */
+export const PIPELINE_DOCUMENTS_FOLDER_NAME = "Pipeline documents";
+
 export type ProjectPipelineActivityFiles = {
   key: string;
   label: string;
@@ -23,7 +26,7 @@ export async function loadProjectPipelineFilesForView(
 
   const childFolders = rootList.files.filter((f) => f.mimeType === "application/vnd.google-apps.folder");
 
-  const activities: ProjectPipelineActivityFiles[] = await Promise.all(
+  const stepActivities: ProjectPipelineActivityFiles[] = await Promise.all(
     WORKFLOW_STEPS.map(async (step) => {
       const folderName = workflowStepUploadFolderLabel(step.key);
       const folder = childFolders.find((f) => f.name === folderName);
@@ -38,6 +41,27 @@ export async function loadProjectPipelineFilesForView(
       return { key: step.key, label: step.label, folderId: folder.id, files };
     }),
   );
+
+  const docsFolder = childFolders.find((f) => f.name === PIPELINE_DOCUMENTS_FOLDER_NAME);
+  let pipelineDocuments: ProjectPipelineActivityFiles = {
+    key: "pipeline_documents",
+    label: PIPELINE_DOCUMENTS_FOLDER_NAME,
+    folderId: docsFolder?.id ?? null,
+    files: [],
+  };
+  if (docsFolder?.id) {
+    const inner = await listDriveFolder({ parentFolderId: docsFolder.id });
+    if (!inner.ok) {
+      pipelineDocuments = { ...pipelineDocuments, listError: inner.error };
+    } else {
+      pipelineDocuments = {
+        ...pipelineDocuments,
+        files: inner.files.filter((f) => f.mimeType !== "application/vnd.google-apps.folder"),
+      };
+    }
+  }
+
+  const activities = [pipelineDocuments, ...stepActivities];
 
   return { ok: true, activities };
 }
