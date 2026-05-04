@@ -18,7 +18,7 @@ export async function GET(
     return new Response(resolved.error, { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
   }
 
-  const { project } = await loadProjectDetail(resolved.projectId);
+  const { project } = await loadProjectDetail(resolved.projectId, { includeRegisteredClientContact: false });
   const folderId = project?.google_drive_folder_id;
   if (!folderId) {
     return new Response("This project has no linked Drive folder.", {

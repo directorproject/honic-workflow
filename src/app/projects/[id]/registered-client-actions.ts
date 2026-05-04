@@ -14,6 +14,8 @@ export async function updateRegisteredClientForProjectAction(
   const name = (formData.get("name") as string | null)?.trim() ?? "";
   const shareRaw = (formData.get("share_subdomain") as string | null)?.trim() ?? "";
   const share_subdomain = shareRaw.length > 0 ? shareRaw.toLowerCase() : null;
+  const phoneRaw = (formData.get("phone") as string | null)?.trim() ?? "";
+  const phone = phoneRaw.length > 0 ? phoneRaw : null;
 
   if (!name) {
     return { ok: false, message: "Client name is required." };
@@ -38,7 +40,7 @@ export async function updateRegisteredClientForProjectAction(
 
   const { error } = await supabase
     .from("registered_clients")
-    .update({ name, share_subdomain })
+    .update({ name, share_subdomain, phone })
     .eq("id", clientId);
 
   if (error) {

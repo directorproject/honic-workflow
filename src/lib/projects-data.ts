@@ -11,7 +11,7 @@ export type TrackedProjectListRow = {
   project_type: string;
   updated_at: string;
   registered_client_id: string;
-  registered_clients: { name: string; share_subdomain?: string | null } | null;
+  registered_clients: { name: string; share_subdomain?: string | null; phone?: string | null } | null;
 };
 
 export type TrackedProjectDetail = {
@@ -28,7 +28,7 @@ export type TrackedProjectDetail = {
   registered_client_id: string;
   /** Google Drive folder for uploads / files (under GOOGLE_DRIVE_FOLDER_ID). */
   google_drive_folder_id: string | null;
-  registered_clients: { name: string; share_subdomain?: string | null } | null;
+  registered_clients: { name: string; share_subdomain?: string | null; phone?: string | null } | null;
 };
 
 export type ProjectMilestoneRow = {
@@ -37,6 +37,7 @@ export type ProjectMilestoneRow = {
   target_date: string | null;
   sort_order: number;
   completed_at: string | null;
+  assignee: string | null;
 };
 
 export type ProjectTaskRow = {
@@ -101,7 +102,18 @@ export async function loadProjectsList(clientId?: string): Promise<{
   return { projects, error: null };
 }
 
-export async function loadProjectDetail(projectId: string): Promise<{
+export type LoadProjectDetailOptions = {
+  /**
+   * When false, omits `phone` from the registered_clients join (public share / token routes).
+   * Default true for authenticated project pages.
+   */
+  includeRegisteredClientContact?: boolean;
+};
+
+export async function loadProjectDetail(
+  projectId: string,
+  options?: LoadProjectDetailOptions,
+): Promise<{
   project: TrackedProjectDetail | null;
   milestones: ProjectMilestoneRow[];
   tasks: ProjectTaskRow[];
@@ -112,10 +124,15 @@ export async function loadProjectDetail(projectId: string): Promise<{
     return { project: null, milestones: [], tasks: [], error: "Database not configured." };
   }
 
+  const includeContact = options?.includeRegisteredClientContact !== false;
+  const registeredClientsSelect = includeContact
+    ? "registered_clients ( name, share_subdomain, phone )"
+    : "registered_clients ( name, share_subdomain )";
+
   const { data: proj, error: pErr } = await supabase
     .from("tracked_projects")
     .select(
-      "id, title, description, status, priority, project_type, workflow_checklist, start_date, target_end_date, updated_at, registered_client_id, google_drive_folder_id, registered_clients ( name, share_subdomain )"
+      `id, title, description, status, priority, project_type, workflow_checklist, start_date, target_end_date, updated_at, registered_client_id, google_drive_folder_id, ${registeredClientsSelect}`
     )
     .eq("id", projectId)
     .maybeSingle();
@@ -131,7 +148,7 @@ export async function loadProjectDetail(projectId: string): Promise<{
 
   const { data: ms, error: mErr } = await supabase
     .from("project_milestones")
-    .select("id, title, target_date, sort_order, completed_at")
+    .select("id, title, target_date, sort_order, completed_at, assignee")
     .eq("tracked_project_id", projectId)
     .order("sort_order", { ascending: true });
 

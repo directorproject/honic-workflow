@@ -66,7 +66,7 @@ export async function loadHomeWorkflowPage(): Promise<{
   const { data: rawProjects, error } = await supabase
     .from("tracked_projects")
     .select(
-      "id, title, status, priority, project_type, workflow_checklist, start_date, target_end_date, registered_client_id, registered_clients ( name ), project_milestones ( title, target_date, completed_at, sort_order )"
+      "id, title, status, priority, project_type, workflow_checklist, start_date, target_end_date, registered_client_id, registered_clients ( name ), project_milestones ( title, target_date, completed_at, sort_order, assignee )"
     )
     .order("updated_at", { ascending: false });
 
@@ -92,7 +92,13 @@ export async function loadHomeWorkflowPage(): Promise<{
     const milestones = Array.isArray(rawMs)
       ? rawMs
           .filter(
-            (m): m is { title: string; target_date: string | null; completed_at: string | null; sort_order: number } =>
+            (m): m is {
+              title: string;
+              target_date: string | null;
+              completed_at: string | null;
+              sort_order: number;
+              assignee?: string | null;
+            } =>
               typeof m === "object" &&
               m !== null &&
               "title" in m &&
@@ -103,6 +109,8 @@ export async function loadHomeWorkflowPage(): Promise<{
             target_date: m.target_date ?? null,
             completed_at: m.completed_at ?? null,
             sort_order: Number(m.sort_order),
+            assignee:
+              typeof m.assignee === "string" && m.assignee.trim() ? m.assignee.trim() : null,
           }))
       : [];
 

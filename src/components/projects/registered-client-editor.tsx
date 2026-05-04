@@ -10,10 +10,12 @@ export function RegisteredClientEditor({
   projectId,
   initialName,
   initialShareSubdomain,
+  initialPhone,
 }: {
   projectId: string;
   initialName: string;
   initialShareSubdomain: string | null;
+  initialPhone: string | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -43,6 +45,17 @@ export function RegisteredClientEditor({
           <span className="text-dash-foreground font-medium">Registered client:</span> {initialName}
           {initialShareSubdomain ? (
             <span className="text-dash-muted-foreground ml-1 font-mono text-xs">· {initialShareSubdomain}</span>
+          ) : null}
+          {initialPhone ? (
+            <span className="text-dash-muted-foreground ml-1">
+              ·{" "}
+              <a
+                href={`tel:${initialPhone.replace(/\s/g, "")}`}
+                className="text-dash-accent font-semibold underline-offset-2 hover:underline"
+              >
+                {initialPhone}
+              </a>
+            </span>
           ) : null}
         </p>
         <button
@@ -89,6 +102,21 @@ export function RegisteredClientEditor({
                   required
                   defaultValue={initialName}
                   disabled={pending}
+                  className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2"
+                />
+              </div>
+              <div>
+                <label htmlFor="rc-phone" className="text-dash-foreground mb-1 block text-xs font-semibold">
+                  Phone <span className="text-dash-muted-foreground font-normal">(optional)</span>
+                </label>
+                <input
+                  id="rc-phone"
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  defaultValue={initialPhone ?? ""}
+                  disabled={pending}
+                  placeholder="e.g. +1 234 567 8900"
                   className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2"
                 />
               </div>

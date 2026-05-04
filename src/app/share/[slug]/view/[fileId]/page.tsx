@@ -21,7 +21,7 @@ export default async function LegacyShareFileViewRedirectPage(props: {
     notFound();
   }
 
-  const { project } = await loadProjectDetail(resolved.projectId);
+  const { project } = await loadProjectDetail(resolved.projectId, { includeRegisteredClientContact: false });
   if (!project) {
     notFound();
   }

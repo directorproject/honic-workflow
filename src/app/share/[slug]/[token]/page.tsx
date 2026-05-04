@@ -9,17 +9,11 @@ import { formatProjectType } from "@/lib/project-types";
 import { resolveShareTokenWithClientSlug } from "@/lib/project-share";
 import { loadProjectDetail, type TrackedProjectDetail } from "@/lib/projects-data";
 import { shareLinkPathClientSlug } from "@/lib/share-link-origin";
+import { ProjectReadOnlyTimelineCard } from "@/components/projects/project-read-only-timeline-card";
 import { workflowStepCounts } from "@/lib/workflow-checklist";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-function formatIsoDate(iso: string | null): string | null {
-  if (!iso) return null;
-  const d = new Date(`${iso}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-}
 
 function toWorkflowRow(project: TrackedProjectDetail): WorkflowProjectRow {
   return {
@@ -83,7 +77,7 @@ export default async function PublicShareProjectPage(props: {
     notFound();
   }
 
-  const { project, error } = await loadProjectDetail(resolved.projectId);
+  const { project, error } = await loadProjectDetail(resolved.projectId, { includeRegisteredClientContact: false });
   if (!project) {
     notFound();
   }
@@ -148,22 +142,7 @@ export default async function PublicShareProjectPage(props: {
               </span>
             </div>
 
-            {project.start_date || project.target_end_date ? (
-              <dl className="border-dash-border bg-dash-card/60 grid max-w-lg gap-3 rounded-2xl border p-4 text-sm sm:grid-cols-2">
-                {formatIsoDate(project.start_date) ? (
-                  <div>
-                    <dt className="text-dash-muted-foreground text-xs font-medium uppercase">Start</dt>
-                    <dd className="text-dash-foreground mt-0.5 font-semibold">{formatIsoDate(project.start_date)}</dd>
-                  </div>
-                ) : null}
-                {formatIsoDate(project.target_end_date) ? (
-                  <div>
-                    <dt className="text-dash-muted-foreground text-xs font-medium uppercase">Target end</dt>
-                    <dd className="text-dash-foreground mt-0.5 font-semibold">{formatIsoDate(project.target_end_date)}</dd>
-                  </div>
-                ) : null}
-              </dl>
-            ) : null}
+            <ProjectReadOnlyTimelineCard startDate={project.start_date} targetEndDate={project.target_end_date} />
 
             {project.description ? (
               <p className="text-dash-muted-foreground max-w-2xl text-sm leading-relaxed sm:text-base">{project.description}</p>

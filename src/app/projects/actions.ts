@@ -9,6 +9,8 @@ import { PROJECT_TYPES, type ProjectTypeValue } from "@/lib/project-types";
 
 const MAX_TIMELINE_MILESTONES = 50;
 const MAX_MILESTONE_TITLE = 200;
+const MAX_MILESTONE_ASSIGNEE = 120;
+const MAX_TASK_ASSIGNEE = 200;
 
 function parseOptionalDateField(formData: FormData, key: string): string | null {
   const v = String(formData.get(key) ?? "").trim();
@@ -17,7 +19,11 @@ function parseOptionalDateField(formData: FormData, key: string): string | null 
   return v;
 }
 
-function parseTimelineMilestonesPayload(raw: string): { title: string; target_date: string | null }[] {
+function parseTimelineMilestonesPayload(raw: string): {
+  title: string;
+  target_date: string | null;
+  assignee: string | null;
+}[] {
   const trimmed = raw.trim();
   if (!trimmed) return [];
   let parsed: unknown;
@@ -27,7 +33,7 @@ function parseTimelineMilestonesPayload(raw: string): { title: string; target_da
     return [];
   }
   if (!Array.isArray(parsed)) return [];
-  const out: { title: string; target_date: string | null }[] = [];
+  const out: { title: string; target_date: string | null; assignee: string | null }[] = [];
   for (const item of parsed) {
     if (typeof item !== "object" || item === null) continue;
     const rec = item as Record<string, unknown>;
@@ -39,7 +45,9 @@ function parseTimelineMilestonesPayload(raw: string): { title: string; target_da
       const s = String(td).slice(0, 10);
       target_date = /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
     }
-    out.push({ title, target_date });
+    const assigneeRaw = String(rec.assignee ?? "").trim().slice(0, MAX_MILESTONE_ASSIGNEE);
+    const assignee = assigneeRaw.length > 0 ? assigneeRaw : null;
+    out.push({ title, target_date, assignee });
     if (out.length >= MAX_TIMELINE_MILESTONES) break;
   }
   return out;
@@ -136,6 +144,7 @@ export async function createTrackedProject(formData: FormData) {
         tracked_project_id: projectId,
         title: m.title,
         target_date: m.target_date,
+        assignee: m.assignee,
         sort_order,
       }))
     );
@@ -235,6 +244,9 @@ export async function createProjectTask(
 
   const tracked_project_id = String(formData.get("tracked_project_id") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
+  const assigneeRaw = String(formData.get("assignee") ?? "").trim().slice(0, MAX_TASK_ASSIGNEE);
+  const assignee = assigneeRaw.length > 0 ? assigneeRaw : null;
+  const due_date = parseOptionalDateField(formData, "due_date");
 
   if (!tracked_project_id || !title) {
     throw new Error("Task title is required.");
@@ -246,6 +258,8 @@ export async function createProjectTask(
       tracked_project_id,
       title,
       status: "todo",
+      assignee,
+      due_date,
     })
     .select("id, title, status, assignee, due_date, milestone_id, sort_order")
     .single();
@@ -253,6 +267,11 @@ export async function createProjectTask(
   if (error || !data) {
     throw new Error(error?.message ?? "Insert failed.");
   }
+
+  revalidatePath(`/projects/${tracked_project_id}/work`);
+  revalidatePath(`/projects/${tracked_project_id}`);
+  revalidatePath("/projects");
+  revalidatePath("/");
 
   return data;
 }
@@ -296,4 +315,7 @@ export async function updateTaskStatus(taskId: string, trackedProjectId: string,
   if (error) {
     throw new Error(error.message);
   }
+
+  revalidatePath(`/projects/${trackedProjectId}/work`);
+  revalidatePath(`/projects/${trackedProjectId}`);
 }

@@ -3,6 +3,7 @@ export type MilestoneForSummary = {
   target_date: string | null;
   completed_at: string | null;
   sort_order: number;
+  assignee?: string | null;
 };
 
 function formatShortDate(iso: string | null): string | null {
@@ -39,7 +40,9 @@ export function formatHomeTimelineSummary(
   if (next) {
     const title = next.title.length > 32 ? `${next.title.slice(0, 30)}…` : next.title;
     const when = next.target_date ? formatShortDate(next.target_date) : null;
-    bits.push(`Next: ${title}${when ? ` (${when})` : ""}`);
+    const who =
+      next.assignee && String(next.assignee).trim() ? ` — ${String(next.assignee).trim()}` : "";
+    bits.push(`Next: ${title}${when ? ` (${when})` : ""}${who}`);
   }
 
   if (bits.length === 0) return "—";

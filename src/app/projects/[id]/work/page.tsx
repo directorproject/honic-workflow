@@ -122,6 +122,7 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
           projectId={project.id}
           initialName={project.registered_clients?.name ?? ""}
           initialShareSubdomain={project.registered_clients?.share_subdomain ?? null}
+          initialPhone={project.registered_clients?.phone ?? null}
         />
       ) : null}
 
@@ -187,8 +188,8 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
         <section className="border-dash-border bg-dash-card rounded-2xl border p-5 shadow-sm">
           <h2 className="text-dash-foreground mb-1 text-base font-semibold">Timeline</h2>
           <p className="text-dash-muted-foreground mb-4 text-xs">
-            Milestones set at project creation. Dates and completion can be adjusted later via the database or a future
-            editor.
+            Milestones and who is assigned to each activity are set when the project is created. Dates and completion
+            can be adjusted later via the database or a future editor.
           </p>
           {milestones.length === 0 ? (
             <p className="text-dash-muted-foreground text-sm">
@@ -211,6 +212,11 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
                           ? `Target ${formatIsoDate(m.target_date) ?? m.target_date}`
                           : "No target date"}
                     </p>
+                    {m.assignee?.trim() ? (
+                      <p className="text-dash-muted-foreground mt-1 text-xs">
+                        Assigned to <span className="text-dash-foreground font-medium">{m.assignee.trim()}</span>
+                      </p>
+                    ) : null}
                   </div>
                 </li>
               ))}

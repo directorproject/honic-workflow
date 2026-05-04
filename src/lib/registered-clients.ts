@@ -7,6 +7,7 @@ type RegisteredRpcRow = {
   name: string;
   first_seen_at: string;
   last_seen_at: string;
+  phone?: string | null;
 };
 
 function mapRegisteredRpc(rows: RegisteredRpcRow[]): RegisteredClientRow[] {
@@ -17,6 +18,7 @@ function mapRegisteredRpc(rows: RegisteredRpcRow[]): RegisteredClientRow[] {
       name: r.name.trim(),
       firstSeenAt: r.first_seen_at,
       lastSeenAt: r.last_seen_at,
+      phone: typeof r.phone === "string" && r.phone.trim() ? r.phone.trim() : null,
     }));
 }
 
@@ -47,7 +49,7 @@ export async function fetchRegisteredClients(supabase: SupabaseClient): Promise<
   if (clients.length === 0) {
     const tbl = await supabase
       .from("registered_clients")
-      .select("id, name, first_seen_at, last_seen_at")
+      .select("id, name, first_seen_at, last_seen_at, phone")
       .order("last_seen_at", { ascending: false });
 
     if (tbl.error) {
@@ -60,6 +62,7 @@ export async function fetchRegisteredClients(supabase: SupabaseClient): Promise<
           name: r.name.trim(),
           firstSeenAt: r.first_seen_at,
           lastSeenAt: r.last_seen_at,
+          phone: typeof r.phone === "string" && r.phone.trim() ? r.phone.trim() : null,
         }));
       source = "registry_table";
     }

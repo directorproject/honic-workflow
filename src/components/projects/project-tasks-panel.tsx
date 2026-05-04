@@ -51,12 +51,16 @@ export function ProjectTasksPanel({
     const title = String(fd.get("title") ?? "").trim();
     if (!title) return;
 
+    const assignee = String(fd.get("assignee") ?? "").trim() || null;
+    const dueRaw = String(fd.get("due_date") ?? "").trim();
+    const due_date = /^\d{4}-\d{2}-\d{2}$/.test(dueRaw) ? dueRaw : null;
+
     const optimistic: ProjectTaskRow = {
       id: `temp-${Date.now()}`,
       title,
       status: "todo",
-      assignee: null,
-      due_date: null,
+      assignee,
+      due_date,
       milestone_id: null,
       sort_order: 0,
     };
@@ -75,26 +79,54 @@ export function ProjectTasksPanel({
   return (
     <div className="space-y-4">
       {!readOnly ? (
-        <form onSubmit={(e) => void onAddTask(e)} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <form onSubmit={(e) => void onAddTask(e)} className="space-y-2">
           <input type="hidden" name="tracked_project_id" value={projectId} />
-          <div className="min-w-0 flex-1">
-            <label htmlFor="task-title" className="text-dash-muted-foreground sr-only">
-              New task
-            </label>
-            <input
-              id="task-title"
-              name="title"
-              required
-              placeholder="New task…"
-              className="border-dash-border bg-dash-card text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2"
-            />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <div className="min-w-0 flex-1">
+              <label htmlFor="task-title" className="text-dash-muted-foreground mb-1 block text-[11px] font-medium">
+                Task
+              </label>
+              <input
+                id="task-title"
+                name="title"
+                required
+                placeholder="What needs to be done…"
+                className="border-dash-border bg-dash-card text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2"
+              />
+            </div>
+            <button
+              type="submit"
+              className="border-dash-border bg-dash-muted hover:bg-dash-border shrink-0 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors sm:mb-0.5"
+            >
+              Add task
+            </button>
           </div>
-          <button
-            type="submit"
-            className="border-dash-border bg-dash-muted hover:bg-dash-border rounded-lg border px-3 py-2 text-xs font-semibold transition-colors"
-          >
-            Add task
-          </button>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div>
+              <label htmlFor="task-assignee" className="text-dash-muted-foreground mb-1 block text-[11px] font-medium">
+                Assigned to <span className="font-normal opacity-80">(optional)</span>
+              </label>
+              <input
+                id="task-assignee"
+                name="assignee"
+                type="text"
+                autoComplete="name"
+                placeholder="Name"
+                className="border-dash-border bg-dash-card text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2"
+              />
+            </div>
+            <div>
+              <label htmlFor="task-due" className="text-dash-muted-foreground mb-1 block text-[11px] font-medium">
+                Due date <span className="font-normal opacity-80">(optional)</span>
+              </label>
+              <input
+                id="task-due"
+                name="due_date"
+                type="date"
+                className="border-dash-border bg-dash-card text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2"
+              />
+            </div>
+          </div>
         </form>
       ) : null}
 
@@ -107,8 +139,17 @@ export function ProjectTasksPanel({
               <div className="min-w-0">
                 <p className="text-dash-foreground font-medium">{t.title}</p>
                 <p className="text-dash-muted-foreground text-xs">
-                  {t.assignee ? `${t.assignee} · ` : ""}
-                  {t.due_date ? `Due ${t.due_date}` : "No due date"}
+                  {!t.assignee?.trim() && !t.due_date ? (
+                    "No assignee or due date"
+                  ) : (
+                    <>
+                      {t.assignee?.trim() ? (
+                        <span className="text-dash-foreground font-medium">{t.assignee.trim()}</span>
+                      ) : null}
+                      {t.assignee?.trim() && t.due_date ? <span> · </span> : null}
+                      {t.due_date ? <span>Due {t.due_date}</span> : null}
+                    </>
+                  )}
                 </p>
               </div>
               {readOnly ? (

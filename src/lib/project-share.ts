@@ -115,7 +115,7 @@ export async function resolveShareTokenWithClientSlug(
   const resolved = await resolveShareTokenToProjectId(token);
   if (!resolved.ok) return resolved;
 
-  const { project } = await loadProjectDetail(resolved.projectId);
+  const { project } = await loadProjectDetail(resolved.projectId, { includeRegisteredClientContact: false });
   if (!project) {
     return { ok: false, error: "This link is not valid or has been removed." };
   }

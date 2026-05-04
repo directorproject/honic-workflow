@@ -13,4 +13,5 @@ export type RegisteredClientRow = {
   name: string;
   firstSeenAt?: string | null;
   lastSeenAt?: string | null;
+  phone?: string | null;
 };

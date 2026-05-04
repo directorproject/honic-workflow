@@ -10,17 +10,11 @@ import { isDriveConfigured } from "@/lib/google-drive-server";
 import { loadProjectPipelineFilesForView } from "@/lib/project-pipeline-files";
 import { formatProjectType } from "@/lib/project-types";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
+import { ProjectReadOnlyTimelineCard } from "@/components/projects/project-read-only-timeline-card";
 import { loadProjectDetail, type TrackedProjectDetail } from "@/lib/projects-data";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-function formatIsoDate(iso: string | null): string | null {
-  if (!iso) return null;
-  const d = new Date(`${iso}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-}
 
 function ProjectSummaryNavLinks({ projectId }: { projectId: string }) {
   return (
@@ -94,6 +88,18 @@ export default async function ProjectDetailPage(props: { params: Promise<{ id: s
         <p className="text-dash-muted-foreground mb-4 text-sm">{error}</p>
       ) : null}
 
+      {project.registered_clients?.phone?.trim() ? (
+        <p className="text-dash-muted-foreground mb-4 text-sm">
+          <span className="text-dash-foreground font-medium">Client phone</span>{" "}
+          <a
+            href={`tel:${project.registered_clients.phone.trim().replace(/\s/g, "")}`}
+            className="text-dash-accent font-semibold underline-offset-2 hover:underline"
+          >
+            {project.registered_clients.phone.trim()}
+          </a>
+        </p>
+      ) : null}
+
       <div className="no-scrollbar -mx-1 mb-6 flex max-w-full flex-nowrap items-center gap-1.5 overflow-x-auto px-1 pb-0.5 text-[11px] font-medium capitalize [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0 sm:text-xs [&::-webkit-scrollbar]:hidden">
         <span className="border-dash-border shrink-0 rounded-full border px-2.5 py-1 sm:px-3">
           {project.status.replace(/_/g, " ")}
@@ -108,22 +114,7 @@ export default async function ProjectDetailPage(props: { params: Promise<{ id: s
         </span>
       </div>
 
-      {project.start_date || project.target_end_date ? (
-        <p className="text-dash-muted-foreground mb-6 text-sm">
-          {formatIsoDate(project.start_date) ? (
-            <span>
-              Start: <span className="text-dash-foreground font-medium">{formatIsoDate(project.start_date)}</span>
-            </span>
-          ) : null}
-          {project.start_date && project.target_end_date ? <span> · </span> : null}
-          {formatIsoDate(project.target_end_date) ? (
-            <span>
-              Target end:{" "}
-              <span className="text-dash-foreground font-medium">{formatIsoDate(project.target_end_date)}</span>
-            </span>
-          ) : null}
-        </p>
-      ) : null}
+      <ProjectReadOnlyTimelineCard startDate={project.start_date} targetEndDate={project.target_end_date} />
 
       {project.description ? (
         <p className="text-dash-muted-foreground mb-8 max-w-3xl text-sm leading-relaxed">{project.description}</p>
