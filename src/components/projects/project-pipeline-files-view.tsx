@@ -8,6 +8,15 @@ import { SharePreviewLink } from "@/components/share/share-preview-link";
 import { canPreviewInBrowser } from "@/lib/drive-preview-helpers";
 import type { ProjectPipelineActivityFiles } from "@/lib/project-pipeline-files";
 
+function Spinner({ label = "Loading..." }: { label?: string }) {
+  return (
+    <span className="inline-flex items-center gap-2 text-xs font-semibold">
+      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-dash-accent/30 border-t-dash-accent" aria-hidden />
+      {label}
+    </span>
+  );
+}
+
 function formatBytes(size: string | null): string {
   if (!size) return "—";
   const n = Number(size);
@@ -87,6 +96,14 @@ export function ProjectPipelineFilesViewSection({
     } catch {
       /* ignore storage quota errors */
     }
+  }
+
+  function beginPreviewLoad(fileId: string, activityKey: string) {
+    setPreviewLoadingId(fileId);
+    rememberUiState(activityKey);
+    window.setTimeout(() => {
+      setPreviewLoadingId((curr) => (curr === fileId ? null : curr));
+    }, 5000);
   }
 
   async function downloadWithProgress(fileId: string, fileName: string) {
@@ -222,40 +239,53 @@ export function ProjectPipelineFilesViewSection({
                             <p className="text-dash-foreground text-sm font-semibold leading-snug break-words">{f.name}</p>
                             <p className="text-dash-muted-foreground mt-1 text-xs tabular-nums">{formatBytes(f.size)}</p>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            {canPreviewInBrowser(f.mimeType, f.name) ? (
-                              sharePreview ? (
-                                <SharePreviewLink
-                                  href={previewHref(f.id)}
-                                  onClick={() => {
-                                    setPreviewLoadingId(f.id);
-                                    rememberUiState(a.key);
-                                  }}
-                                  className="border-dash-border bg-dash-accent/10 text-dash-accent-dim hover:bg-dash-accent/20 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
-                                >
-                                  {previewLoadingId === f.id ? "Opening..." : "Preview"}
-                                </SharePreviewLink>
-                              ) : (
-                                <Link
-                                  href={previewHref(f.id)}
-                                  onClick={() => {
-                                    setPreviewLoadingId(f.id);
-                                    rememberUiState(a.key);
-                                  }}
-                                  className="border-dash-border bg-dash-accent/10 text-dash-accent-dim hover:bg-dash-accent/20 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
-                                >
-                                  {previewLoadingId === f.id ? "Opening..." : "Preview"}
-                                </Link>
-                              )
-                            ) : null}
-                            <button
-                              type="button"
-                              onClick={() => void downloadWithProgress(f.id, f.name)}
-                              disabled={downloadState[f.id]?.loading}
-                              className="border-dash-border bg-dash-card text-dash-foreground hover:border-dash-accent/35 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                          <div className="border-dash-border bg-dash-muted/25 relative rounded-xl border p-2">
+                            <div
+                              className={`flex flex-wrap justify-center gap-2 transition ${previewLoadingId === f.id || downloadState[f.id]?.loading ? "pointer-events-none blur-[1px] opacity-65" : ""}`}
                             >
-                              {downloadState[f.id]?.loading ? "Downloading..." : "Download"}
-                            </button>
+                              {canPreviewInBrowser(f.mimeType, f.name) ? (
+                                sharePreview ? (
+                                  <SharePreviewLink
+                                    href={previewHref(f.id)}
+                                    onClick={() => beginPreviewLoad(f.id, a.key)}
+                                    className="border-dash-border bg-dash-accent/10 text-dash-accent-dim hover:bg-dash-accent/20 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                                  >
+                                    Preview
+                                  </SharePreviewLink>
+                                ) : (
+                                  <Link
+                                    href={previewHref(f.id)}
+                                    onClick={() => beginPreviewLoad(f.id, a.key)}
+                                    className="border-dash-border bg-dash-accent/10 text-dash-accent-dim hover:bg-dash-accent/20 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                                  >
+                                    Preview
+                                  </Link>
+                                )
+                              ) : null}
+                              <button
+                                type="button"
+                                onClick={() => void downloadWithProgress(f.id, f.name)}
+                                disabled={downloadState[f.id]?.loading}
+                                className="border-dash-border bg-dash-card text-dash-foreground hover:border-dash-accent/35 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                              >
+                                Download
+                              </button>
+                            </div>
+                            {previewLoadingId === f.id ? (
+                              <div className="absolute inset-0 flex items-center justify-center rounded-xl">
+                                <Spinner label="Opening preview..." />
+                              </div>
+                            ) : downloadState[f.id]?.loading ? (
+                              <div className="absolute inset-0 flex items-center justify-center rounded-xl">
+                                <Spinner
+                                  label={
+                                    downloadState[f.id]?.percent == null
+                                      ? "Downloading..."
+                                      : `Downloading ${downloadState[f.id]?.percent}%`
+                                  }
+                                />
+                              </div>
+                            ) : null}
                           </div>
                           {downloadState[f.id] ? (
                             <div className="space-y-1">
@@ -295,29 +325,26 @@ export function ProjectPipelineFilesViewSection({
                               {formatBytes(f.size)}
                             </td>
                             <td className="px-2 py-2.5 text-right">
-                              <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                              <div className="border-dash-border bg-dash-muted/25 relative ml-auto inline-flex rounded-lg border px-2 py-1.5">
+                                <div
+                                  className={`flex flex-wrap items-center justify-end gap-x-3 gap-y-1 transition ${previewLoadingId === f.id || downloadState[f.id]?.loading ? "pointer-events-none blur-[1px] opacity-65" : ""}`}
+                                >
                                 {canPreviewInBrowser(f.mimeType, f.name) ? (
                                   sharePreview ? (
                                     <SharePreviewLink
                                       href={previewHref(f.id)}
-                                      onClick={() => {
-                                        setPreviewLoadingId(f.id);
-                                        rememberUiState(a.key);
-                                      }}
+                                      onClick={() => beginPreviewLoad(f.id, a.key)}
                                       className="text-dash-accent hover:text-dash-accent-dim text-xs font-semibold underline-offset-2 hover:underline"
                                     >
-                                      {previewLoadingId === f.id ? "Opening..." : "Preview"}
+                                      Preview
                                     </SharePreviewLink>
                                   ) : (
                                     <Link
                                       href={previewHref(f.id)}
-                                      onClick={() => {
-                                        setPreviewLoadingId(f.id);
-                                        rememberUiState(a.key);
-                                      }}
+                                      onClick={() => beginPreviewLoad(f.id, a.key)}
                                       className="text-dash-accent hover:text-dash-accent-dim text-xs font-semibold underline-offset-2 hover:underline"
                                     >
-                                      {previewLoadingId === f.id ? "Opening..." : "Preview"}
+                                      Preview
                                     </Link>
                                   )
                                 ) : null}
@@ -331,6 +358,20 @@ export function ProjectPipelineFilesViewSection({
                                     ? `Downloading${downloadState[f.id]?.percent != null ? ` ${downloadState[f.id]?.percent}%` : "..."}`
                                     : "Download"}
                                 </button>
+                              </div>
+                                {previewLoadingId === f.id || downloadState[f.id]?.loading ? (
+                                  <div className="absolute inset-0 flex items-center justify-center rounded-lg">
+                                    <Spinner
+                                      label={
+                                        previewLoadingId === f.id
+                                          ? "Opening preview..."
+                                          : downloadState[f.id]?.percent == null
+                                            ? "Downloading..."
+                                            : `Downloading ${downloadState[f.id]?.percent}%`
+                                      }
+                                    />
+                                  </div>
+                                ) : null}
                               </div>
                             </td>
                           </tr>
