@@ -63,6 +63,10 @@ export function ProjectPipelineFilesViewSection({
   const [openActivityKey, setOpenActivityKey] = useState<string | null>(activities[0]?.key ?? null);
   const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
   const [downloadState, setDownloadState] = useState<Record<string, { loading: boolean; percent: number | null }>>({});
+  const activeDownload = useMemo(
+    () => Object.entries(downloadState).find(([, v]) => v.loading) ?? null,
+    [downloadState],
+  );
 
   const storageKey = useMemo(() => `pipelineFilesState:${pathname}:${sectionId ?? "default"}`, [pathname, sectionId]);
 
@@ -169,9 +173,6 @@ export function ProjectPipelineFilesViewSection({
         {shareToken ? (
           <>
             Use Preview to view image and video, or Download files. Everything here is for this project only.{" "}
-            <span className="text-dash-foreground font-medium">Pipeline documents</span> appears after{" "}
-            <span className="text-dash-foreground font-medium">Full project test</span>: optional folder in the project
-            Drive root (exact name) for specs and files that apply across steps.
           </>
         ) : (
           <>
@@ -240,9 +241,7 @@ export function ProjectPipelineFilesViewSection({
                             <p className="text-dash-muted-foreground mt-1 text-xs tabular-nums">{formatBytes(f.size)}</p>
                           </div>
                           <div className="border-dash-border bg-dash-muted/25 relative rounded-xl border p-2">
-                            <div
-                              className={`flex flex-wrap justify-center gap-2 transition ${previewLoadingId === f.id || downloadState[f.id]?.loading ? "pointer-events-none blur-[1px] opacity-65" : ""}`}
-                            >
+                            <div className="flex flex-wrap justify-center gap-2">
                               {canPreviewInBrowser(f.mimeType, f.name) ? (
                                 sharePreview ? (
                                   <SharePreviewLink
@@ -271,23 +270,8 @@ export function ProjectPipelineFilesViewSection({
                                 Download
                               </button>
                             </div>
-                            {previewLoadingId === f.id ? (
-                              <div className="absolute inset-0 flex items-center justify-center rounded-xl">
-                                <Spinner label="Opening preview..." />
-                              </div>
-                            ) : downloadState[f.id]?.loading ? (
-                              <div className="absolute inset-0 flex items-center justify-center rounded-xl">
-                                <Spinner
-                                  label={
-                                    downloadState[f.id]?.percent == null
-                                      ? "Downloading..."
-                                      : `Downloading ${downloadState[f.id]?.percent}%`
-                                  }
-                                />
-                              </div>
-                            ) : null}
                           </div>
-                          {downloadState[f.id] ? (
+                          {downloadState[f.id] && !downloadState[f.id]?.loading ? (
                             <div className="space-y-1">
                               <div className="bg-dash-muted h-1.5 w-full overflow-hidden rounded-full">
                                 <div
@@ -326,9 +310,7 @@ export function ProjectPipelineFilesViewSection({
                             </td>
                             <td className="px-2 py-2.5 text-right">
                               <div className="border-dash-border bg-dash-muted/25 relative ml-auto inline-flex rounded-lg border px-2 py-1.5">
-                                <div
-                                  className={`flex flex-wrap items-center justify-end gap-x-3 gap-y-1 transition ${previewLoadingId === f.id || downloadState[f.id]?.loading ? "pointer-events-none blur-[1px] opacity-65" : ""}`}
-                                >
+                                <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 transition">
                                 {canPreviewInBrowser(f.mimeType, f.name) ? (
                                   sharePreview ? (
                                     <SharePreviewLink
@@ -359,19 +341,6 @@ export function ProjectPipelineFilesViewSection({
                                     : "Download"}
                                 </button>
                               </div>
-                                {previewLoadingId === f.id || downloadState[f.id]?.loading ? (
-                                  <div className="absolute inset-0 flex items-center justify-center rounded-lg">
-                                    <Spinner
-                                      label={
-                                        previewLoadingId === f.id
-                                          ? "Opening preview..."
-                                          : downloadState[f.id]?.percent == null
-                                            ? "Downloading..."
-                                            : `Downloading ${downloadState[f.id]?.percent}%`
-                                      }
-                                    />
-                                  </div>
-                                ) : null}
                               </div>
                             </td>
                           </tr>
@@ -385,6 +354,24 @@ export function ProjectPipelineFilesViewSection({
           </details>
         ))}
       </div>
+      {previewLoadingId ? (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/30 backdrop-blur-[2px]">
+          <div className="border-dash-border bg-dash-card text-dash-foreground inline-flex items-center gap-3 rounded-2xl border px-5 py-4 shadow-xl">
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-dash-accent/30 border-t-dash-accent" aria-hidden />
+            <span className="text-sm font-semibold">Opening preview...</span>
+          </div>
+        </div>
+      ) : null}
+      {activeDownload ? (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/30 backdrop-blur-[2px]">
+          <div className="border-dash-border bg-dash-card text-dash-foreground inline-flex items-center gap-3 rounded-2xl border px-5 py-4 shadow-xl">
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-dash-accent/30 border-t-dash-accent" aria-hidden />
+            <span className="text-sm font-semibold">
+              {activeDownload[1].percent == null ? "Downloading..." : `Downloading ${activeDownload[1].percent}%`}
+            </span>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
