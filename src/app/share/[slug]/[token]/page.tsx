@@ -130,7 +130,7 @@ export default async function PublicShareProjectPage(props: {
               <SharePushToggle slug={slug} token={token} />
             </div>
 
-            <div className="no-scrollbar -mx-1 flex max-w-full flex-nowrap items-center gap-1.5 overflow-x-auto px-1 pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
+            <div className="no-scrollbar -mx-1 flex max-w-full flex-nowrap items-center justify-center gap-1.5 overflow-x-auto px-1 pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:justify-center sm:gap-2 sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
               <span
                 className={`inline-flex shrink-0 min-h-8 max-w-[min(100%,22rem)] items-center whitespace-normal rounded-full border px-2.5 py-1 text-center text-[11px] font-semibold capitalize leading-snug sm:min-h-9 sm:max-w-none sm:px-3 sm:text-sm ${statusChipClass[tone]}`}
               >
@@ -139,13 +139,13 @@ export default async function PublicShareProjectPage(props: {
               <span
                 className={
                   priorityHot
-                    ? "inline-flex shrink-0 min-h-8 max-w-[min(100%,22rem)] items-center whitespace-normal text-center text-[11px] font-semibold capitalize leading-snug text-red-600 sm:min-h-9 sm:max-w-none sm:text-xs sm:text-sm dark:text-red-400"
+                    ? "border-red-500/45 inline-flex shrink-0 min-h-8 max-w-[min(100%,22rem)] items-center justify-center whitespace-normal rounded-full border px-2.5 py-1 text-center text-[11px] font-semibold capitalize leading-snug text-red-600 sm:min-h-9 sm:max-w-none sm:px-3 sm:text-xs sm:text-sm dark:border-red-400/45 dark:text-red-400"
                     : "border-dash-border bg-dash-card/80 text-dash-foreground inline-flex shrink-0 min-h-8 max-w-[min(100%,22rem)] items-center whitespace-normal rounded-full border px-2.5 py-1 text-center text-[11px] font-medium capitalize leading-snug sm:min-h-9 sm:max-w-none sm:px-3 sm:text-xs sm:text-sm"
                 }
               >
                 {project.priority} priority
               </span>
-              <span className="border-dash-border bg-dash-card/80 text-dash-muted-foreground inline-flex shrink-0 min-h-8 max-w-[55vw] items-center truncate rounded-full border px-2.5 py-1 text-[11px] font-medium sm:max-w-none sm:min-h-9 sm:px-3 sm:text-xs sm:text-sm">
+              <span className="border-dash-border bg-dash-card/80 text-dash-muted-foreground inline-flex shrink-0 min-h-8 max-w-[55vw] items-center justify-center truncate rounded-full border px-2.5 py-1 text-center text-[11px] font-medium sm:max-w-none sm:min-h-9 sm:px-3 sm:text-xs sm:text-sm">
                 <span className="sm:hidden">{formatProjectType(project.project_type, { compact: true })}</span>
                 <span className="hidden sm:inline">{formatProjectType(project.project_type)}</span>
               </span>
