@@ -60,29 +60,30 @@ export function ProjectPipelineFilesViewSection({
 
   const bottomMargin = shareToken ? "mb-4 sm:mb-5" : "mb-10 sm:mb-12";
   const sharePreview = Boolean(shareToken && shareClientSlug);
-  const [openActivityKey, setOpenActivityKey] = useState<string | null>(activities[0]?.key ?? null);
+  const [openActivityKey, setOpenActivityKey] = useState<string | null>(null);
   const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
-  const [downloadState, setDownloadState] = useState<Record<string, { loading: boolean; percent: number | null }>>({});
-  const activeDownload = useMemo(
-    () => Object.entries(downloadState).find(([, v]) => v.loading) ?? null,
-    [downloadState],
-  );
+  const [downloadLoadingId, setDownloadLoadingId] = useState<string | null>(null);
 
   const storageKey = useMemo(() => `pipelineFilesState:${pathname}:${sectionId ?? "default"}`, [pathname, sectionId]);
 
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(storageKey);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as { openActivityKey?: string; scrollY?: number };
-      if (parsed.openActivityKey && activities.some((a) => a.key === parsed.openActivityKey)) {
-        setOpenActivityKey(parsed.openActivityKey);
+      if (raw) {
+        const parsed = JSON.parse(raw) as { openActivityKey?: string; scrollY?: number };
+        if (parsed.openActivityKey && activities.some((a) => a.key === parsed.openActivityKey)) {
+          setOpenActivityKey(parsed.openActivityKey);
+        } else if (activities[0]?.key) {
+          setOpenActivityKey(activities[0].key);
+        }
+        if (typeof parsed.scrollY === "number" && Number.isFinite(parsed.scrollY) && parsed.scrollY >= 0) {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => window.scrollTo({ top: parsed.scrollY, behavior: "auto" }));
+          });
+        }
+        return;
       }
-      if (typeof parsed.scrollY === "number" && Number.isFinite(parsed.scrollY) && parsed.scrollY >= 0) {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => window.scrollTo({ top: parsed.scrollY, behavior: "auto" }));
-        });
-      }
+      if (activities[0]?.key) setOpenActivityKey(activities[0].key);
     } catch {
       /* ignore storage parse errors */
     }
@@ -110,54 +111,22 @@ export function ProjectPipelineFilesViewSection({
     }, 5000);
   }
 
-  async function downloadWithProgress(fileId: string, fileName: string) {
-    setDownloadState((prev) => ({ ...prev, [fileId]: { loading: true, percent: 0 } }));
-    rememberUiState();
-    try {
-      const res = await fetch(downloadHref(fileId));
-      if (!res.ok) throw new Error("Download failed.");
+  function beginDownload(fileId: string, fileName: string, activityKey: string) {
+    setDownloadLoadingId(fileId);
+    rememberUiState(activityKey);
+    const a = document.createElement("a");
+    a.href = downloadHref(fileId);
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.setTimeout(() => setDownloadLoadingId((curr) => (curr === fileId ? null : curr)), 5000);
+  }
 
-      const total = Number(res.headers.get("content-length") ?? "0");
-      const reader = res.body?.getReader();
-      if (!reader) throw new Error("Download stream unavailable.");
-
-      const chunks: BlobPart[] = [];
-      let received = 0;
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (value) {
-          chunks.push(value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength));
-          received += value.length;
-          if (total > 0) {
-            const percent = Math.min(100, Math.round((received / total) * 100));
-            setDownloadState((prev) => ({ ...prev, [fileId]: { loading: true, percent } }));
-          } else {
-            setDownloadState((prev) => ({ ...prev, [fileId]: { loading: true, percent: null } }));
-          }
-        }
-      }
-
-      const blob = new Blob(chunks);
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(blobUrl);
-      setDownloadState((prev) => ({ ...prev, [fileId]: { loading: false, percent: 100 } }));
-      setTimeout(() => {
-        setDownloadState((prev) => {
-          const next = { ...prev };
-          delete next[fileId];
-          return next;
-        });
-      }, 500);
-    } catch {
-      setDownloadState((prev) => ({ ...prev, [fileId]: { loading: false, percent: null } }));
-    }
+  function toggleActivity(activityKey: string) {
+    const next = openActivityKey === activityKey ? null : activityKey;
+    setOpenActivityKey(next);
+    rememberUiState(next);
   }
 
   return (
@@ -194,19 +163,19 @@ export function ProjectPipelineFilesViewSection({
           <details
             key={a.key}
             open={openActivityKey === a.key}
-            onToggle={(e) => {
-              const isOpen = (e.currentTarget as HTMLDetailsElement).open;
-              const next = isOpen ? a.key : null;
-              setOpenActivityKey(next);
-              rememberUiState(next);
-            }}
             className={`group rounded-2xl border transition-colors ${
               openActivityKey === a.key
                 ? "border-emerald-500/45 bg-emerald-500/10"
                 : "border-dash-border bg-dash-muted/10 open:bg-dash-muted/25"
             }`}
           >
-            <summary className="text-dash-foreground flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors hover:bg-dash-muted/30 [&::-webkit-details-marker]:hidden">
+            <summary
+              onClick={(e) => {
+                e.preventDefault();
+                toggleActivity(a.key);
+              }}
+              className="text-dash-foreground flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors hover:bg-dash-muted/30 [&::-webkit-details-marker]:hidden"
+            >
               <span className="min-w-0">
                 <span className="block truncate">{a.label}</span>
                 <span className="text-dash-muted-foreground mt-0.5 block text-xs font-normal tabular-nums">
@@ -263,29 +232,13 @@ export function ProjectPipelineFilesViewSection({
                               ) : null}
                               <button
                                 type="button"
-                                onClick={() => void downloadWithProgress(f.id, f.name)}
-                                disabled={downloadState[f.id]?.loading}
+                                onClick={() => beginDownload(f.id, f.name, a.key)}
                                 className="border-dash-border bg-dash-card text-dash-foreground hover:border-dash-accent/35 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
                               >
                                 Download
                               </button>
                             </div>
                           </div>
-                          {downloadState[f.id] && !downloadState[f.id]?.loading ? (
-                            <div className="space-y-1">
-                              <div className="bg-dash-muted h-1.5 w-full overflow-hidden rounded-full">
-                                <div
-                                  className="bg-dash-accent h-full transition-all"
-                                  style={{ width: `${downloadState[f.id]?.percent ?? 35}%` }}
-                                />
-                              </div>
-                              <p className="text-dash-muted-foreground text-[11px]">
-                                {downloadState[f.id]?.percent == null
-                                  ? "Downloading..."
-                                  : `Downloading ${downloadState[f.id]?.percent}%`}
-                              </p>
-                            </div>
-                          ) : null}
                         </div>
                       </li>
                     ))}
@@ -332,13 +285,10 @@ export function ProjectPipelineFilesViewSection({
                                 ) : null}
                                 <button
                                   type="button"
-                                  onClick={() => void downloadWithProgress(f.id, f.name)}
-                                  disabled={downloadState[f.id]?.loading}
+                                  onClick={() => beginDownload(f.id, f.name, a.key)}
                                   className="text-dash-accent hover:text-dash-accent-dim text-xs font-semibold underline-offset-2 hover:underline"
                                 >
-                                  {downloadState[f.id]?.loading
-                                    ? `Downloading${downloadState[f.id]?.percent != null ? ` ${downloadState[f.id]?.percent}%` : "..."}`
-                                    : "Download"}
+                                  Download
                                 </button>
                               </div>
                               </div>
@@ -362,13 +312,11 @@ export function ProjectPipelineFilesViewSection({
           </div>
         </div>
       ) : null}
-      {activeDownload ? (
+      {downloadLoadingId ? (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/30 backdrop-blur-[2px]">
           <div className="border-dash-border bg-dash-card text-dash-foreground inline-flex items-center gap-3 rounded-2xl border px-5 py-4 shadow-xl">
             <span className="h-5 w-5 animate-spin rounded-full border-2 border-dash-accent/30 border-t-dash-accent" aria-hidden />
-            <span className="text-sm font-semibold">
-              {activeDownload[1].percent == null ? "Downloading..." : `Downloading ${activeDownload[1].percent}%`}
-            </span>
+            <span className="text-sm font-semibold">Downloading...</span>
           </div>
         </div>
       ) : null}

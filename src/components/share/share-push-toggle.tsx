@@ -16,6 +16,27 @@ type Props = {
   token: string;
 };
 
+function isIosLike(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent ?? "";
+  return /iPad|iPhone|iPod/i.test(ua);
+}
+
+function isStandaloneDisplayMode(): boolean {
+  if (typeof window === "undefined") return false;
+  const navStandalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+  const mediaStandalone = window.matchMedia?.("(display-mode: standalone)")?.matches === true;
+  return navStandalone || mediaStandalone;
+}
+
+async function waitForActiveServiceWorker(timeoutMs = 8000): Promise<ServiceWorkerRegistration> {
+  const readyPromise = navigator.serviceWorker.ready;
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    window.setTimeout(() => reject(new Error("Service worker activation timed out.")), timeoutMs),
+  );
+  return Promise.race([readyPromise, timeoutPromise]);
+}
+
 export function SharePushToggle({ slug, token }: Props) {
   const [supported, setSupported] = useState(false);
   const [enabled, setEnabled] = useState(false);
@@ -40,9 +61,24 @@ export function SharePushToggle({ slug, token }: Props) {
     setBusy(true);
     setMsg("");
     try {
+      if (isIosLike() && !isStandaloneDisplayMode()) {
+        throw new Error("On iPhone/iPad, open this page from Home Screen (Add to Home Screen) to enable push alerts.");
+      }
+
+      if (typeof Notification !== "undefined") {
+        if (Notification.permission === "denied") {
+          throw new Error("Notifications are blocked for this site. Enable them in browser settings.");
+        }
+        if (Notification.permission !== "granted") {
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") {
+            throw new Error("Notification permission not granted.");
+          }
+        }
+      }
+
       await navigator.serviceWorker.register("/share-push-sw.js");
-      // Ensure worker is active before subscribing (fixes "no active Service Worker").
-      const reg = await navigator.serviceWorker.ready;
+      const reg = await waitForActiveServiceWorker();
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource,
