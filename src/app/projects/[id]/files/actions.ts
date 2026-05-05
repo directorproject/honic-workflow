@@ -10,7 +10,7 @@ import {
 import {
   PIPELINE_DOCUMENTS_KEY,
   pipelineActivityUploadFolderLabel,
-} from "@/lib/project-pipeline-files";
+} from "@/lib/pipeline-activity-labels";
 import { notifyShareSubscribers } from "@/lib/share-push";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { WORKFLOW_STEPS } from "@/lib/workflow-checklist";

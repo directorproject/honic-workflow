@@ -13,7 +13,7 @@ import { canPreviewInBrowser } from "@/lib/drive-preview-helpers";
 import {
   PIPELINE_DOCUMENTS_FOLDER_NAME,
   PIPELINE_DOCUMENTS_KEY,
-} from "@/lib/project-pipeline-files";
+} from "@/lib/pipeline-activity-labels";
 import { WORKFLOW_STEPS, type WorkflowStepKey } from "@/lib/workflow-checklist";
 
 function UploadSubmitButton({ pending }: { pending: boolean }) {
@@ -81,9 +81,13 @@ export function ProjectDriveUploadForm({
   const stepDefault = WORKFLOW_STEPS.some((s) => s.key === defaultPipelineStep)
     ? defaultPipelineStep
     : "schematic_circuit";
+  const workflowOptions = WORKFLOW_STEPS.map((s) => ({ key: s.key, label: s.label }));
+  const fullTestIdx = workflowOptions.findIndex((s) => s.key === "full_project_test");
+  const insertAt = fullTestIdx >= 0 ? fullTestIdx + 1 : workflowOptions.length;
   const activityOptions = [
-    ...WORKFLOW_STEPS.map((s) => ({ key: s.key, label: s.label })),
-    { key: PIPELINE_DOCUMENTS_KEY, label: PIPELINE_DOCUMENTS_FOLDER_NAME },
+    ...workflowOptions.slice(0, insertAt),
+    { key: PIPELINE_DOCUMENTS_KEY, label: `${PIPELINE_DOCUMENTS_FOLDER_NAME} (cross-step docs)` },
+    ...workflowOptions.slice(insertAt),
   ];
 
   const activeState = mode === "upload" ? uploadState : attachState;

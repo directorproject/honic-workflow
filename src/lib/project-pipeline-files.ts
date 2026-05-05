@@ -1,15 +1,13 @@
 import { listDriveFolder, type DriveFileRow } from "@/lib/google-drive-server";
-import { WORKFLOW_STEPS, workflowStepUploadFolderLabel } from "@/lib/workflow-checklist";
+import {
+  PIPELINE_DOCUMENTS_FOLDER_NAME,
+  PIPELINE_DOCUMENTS_KEY,
+  pipelineActivityUploadFolderLabel,
+} from "@/lib/pipeline-activity-labels";
+import { WORKFLOW_STEPS } from "@/lib/workflow-checklist";
 
 /** Optional folder at the project Drive root; listed after “Full project test” in Files by pipeline activity. */
-export const PIPELINE_DOCUMENTS_FOLDER_NAME = "Pipeline documents";
-export const PIPELINE_DOCUMENTS_KEY = "pipeline_documents";
-
-/** Upload/move target key -> exact Drive subfolder label. */
-export function pipelineActivityUploadFolderLabel(key: string): string {
-  if (key === PIPELINE_DOCUMENTS_KEY) return PIPELINE_DOCUMENTS_FOLDER_NAME;
-  return workflowStepUploadFolderLabel(key);
-}
+export { PIPELINE_DOCUMENTS_FOLDER_NAME, PIPELINE_DOCUMENTS_KEY, pipelineActivityUploadFolderLabel };
 
 export type ProjectPipelineActivityFiles = {
   key: string;
@@ -35,7 +33,7 @@ export async function loadProjectPipelineFilesForView(
 
   const stepActivities: ProjectPipelineActivityFiles[] = await Promise.all(
     WORKFLOW_STEPS.map(async (step) => {
-      const folderName = workflowStepUploadFolderLabel(step.key);
+      const folderName = pipelineActivityUploadFolderLabel(step.key);
       const folder = childFolders.find((f) => f.name === folderName);
       if (!folder?.id) {
         return { key: step.key, label: step.label, folderId: null, files: [] };
