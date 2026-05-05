@@ -2,9 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
+import { useMediaQuery } from "@/components/dashboard/use-media-query";
+
+const STORAGE_PINNED = "dashSidebarPinned";
+const STORAGE_WIDTH = "dashSidebarWidth";
+
+type SidebarWidthKey = "narrow" | "default" | "wide";
+
+const SIDEBAR_WIDTH: Record<
+  SidebarWidthKey,
+  { aside: string; mainPad: string; label: string }
+> = {
+  narrow: { aside: "w-56", mainPad: "lg:pl-56", label: "Narrow" },
+  default: { aside: "w-64", mainPad: "lg:pl-64", label: "Default" },
+  wide: { aside: "w-72", mainPad: "lg:pl-72", label: "Wide" },
+};
 
 type NavItem = {
   href: string;
@@ -77,8 +92,57 @@ export function DashboardShell({
   /** Renders directly under the sticky page header (e.g. in-page shortcuts). */
   headerBelow?: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
+  const isLg = useMediaQuery("(min-width: 1024px)");
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [desktopPinned, setDesktopPinned] = useState(true);
+  const [hydrated, setHydrated] = useState(false);
+  const [widthKey, setWidthKey] = useState<SidebarWidthKey>("default");
   const pathname = usePathname();
+
+  const sidebarVisible = isLg ? desktopPinned : mobileDrawerOpen;
+  const width = SIDEBAR_WIDTH[widthKey];
+
+  useEffect(() => {
+    try {
+      const pinned = localStorage.getItem(STORAGE_PINNED);
+      if (pinned === "0") setDesktopPinned(false);
+      const w = localStorage.getItem(STORAGE_WIDTH);
+      if (w === "narrow" || w === "default" || w === "wide") setWidthKey(w);
+    } catch {
+      /* ignore */
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(STORAGE_PINNED, desktopPinned ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+  }, [desktopPinned, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(STORAGE_WIDTH, widthKey);
+    } catch {
+      /* ignore */
+    }
+  }, [widthKey, hydrated]);
+
+  function toggleSidebar() {
+    if (isLg) {
+      setDesktopPinned((p) => !p);
+    } else {
+      setMobileDrawerOpen((o) => !o);
+    }
+  }
+
+  function closeMobileDrawer() {
+    setMobileDrawerOpen(false);
+  }
 
   return (
     <div className="bg-dash-canvas text-dash-foreground flex min-h-screen">
@@ -86,18 +150,18 @@ export function DashboardShell({
         type="button"
         aria-label="Close menu"
         className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity lg:hidden ${
-          open ? "opacity-100" : "pointer-events-none opacity-0"
+          mobileDrawerOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
-        onClick={() => setOpen(false)}
+        onClick={closeMobileDrawer}
       />
 
       <aside
         id="dash-sidebar"
-        className={`border-dash-border bg-dash-sidebar text-dash-sidebar-muted fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r shadow-xl transition-transform ${
-          open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        className={`border-dash-border bg-dash-sidebar text-dash-sidebar-muted fixed inset-y-0 left-0 z-50 flex ${width.aside} flex-col border-r shadow-xl transition-transform duration-200 ease-out ${
+          sidebarVisible ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <CompanyBrandBar variant="compact" onNavigate={() => setOpen(false)} />
+        <CompanyBrandBar variant="compact" onNavigate={closeMobileDrawer} />
 
         <nav className="flex flex-1 flex-col gap-5 overflow-y-auto p-3" aria-label="Main navigation">
           {navSections.map((section) => (
@@ -112,7 +176,7 @@ export function DashboardShell({
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        onClick={() => setOpen(false)}
+                        onClick={closeMobileDrawer}
                         className={`block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                           active
                             ? "bg-dash-accent/20 text-cyan-100 ring-1 ring-cyan-500/30"
@@ -129,25 +193,59 @@ export function DashboardShell({
           ))}
         </nav>
 
-        <div className="border-dash-border text-dash-sidebar-muted mt-auto p-4 text-xs leading-relaxed border-t">
-          Clients from invoices → <span className="font-medium text-slate-200">registered_clients</span>. Projects in{" "}
-          <span className="font-medium text-slate-200">tracked_projects</span>.
+        <div className="border-dash-border text-dash-sidebar-muted mt-auto space-y-3 border-t p-4 text-xs leading-relaxed">
+          <div>
+            <p className="text-dash-sidebar-muted mb-1.5 px-0.5 text-[10px] font-semibold tracking-widest uppercase">
+              Sidebar width
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {(Object.keys(SIDEBAR_WIDTH) as SidebarWidthKey[]).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setWidthKey(key)}
+                  className={`rounded-md px-2 py-1 text-[11px] font-semibold transition-colors ${
+                    widthKey === key
+                      ? "bg-dash-accent/25 text-cyan-100 ring-1 ring-cyan-500/35"
+                      : "hover:bg-dash-sidebar-hover text-dash-sidebar-muted hover:text-slate-50"
+                  }`}
+                >
+                  {SIDEBAR_WIDTH[key].label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="text-dash-sidebar-muted/90">
+            Clients from invoices → <span className="font-medium text-slate-200">registered_clients</span>. Projects in{" "}
+            <span className="font-medium text-slate-200">tracked_projects</span>.
+          </p>
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col pl-0 lg:pl-64">
+      <div
+        className={`flex min-w-0 flex-1 flex-col pl-0 transition-[padding] duration-200 ease-out ${
+          isLg && desktopPinned ? width.mainPad : "lg:pl-0"
+        }`}
+      >
         <div className="border-dash-border bg-dash-header/90 supports-[backdrop-filter]:bg-dash-header/75 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
           <header className="flex items-center gap-4 px-4 py-3 lg:px-8">
             <button
               type="button"
-              className="hover:bg-dash-muted inline-flex rounded-lg p-2 lg:hidden"
-              aria-expanded={open}
+              className="hover:bg-dash-muted focus-visible:ring-dash-accent inline-flex rounded-lg p-2 focus-visible:ring-2 focus-visible:outline-none"
+              aria-expanded={sidebarVisible}
               aria-controls="dash-sidebar"
-              onClick={() => setOpen(true)}
+              aria-label={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
+              onClick={toggleSidebar}
             >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              </svg>
+              {sidebarVisible ? (
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5" />
+                </svg>
+              ) : (
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+              )}
             </button>
 
             <div className="min-w-0 flex-1">
