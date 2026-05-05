@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 
 import { SharePreviewLink } from "@/components/share/share-preview-link";
 import { canPreviewInBrowser } from "@/lib/drive-preview-helpers";
@@ -29,6 +33,7 @@ export function ProjectPipelineFilesViewSection({
   /** Anchor id for in-page navigation (e.g. public share page). */
   sectionId?: string;
 }) {
+  const pathname = usePathname();
   const encToken = shareToken ? encodeURIComponent(shareToken) : "";
   const encSlug = shareClientSlug ? encodeURIComponent(shareClientSlug) : "";
   const shareBase =
@@ -46,6 +51,93 @@ export function ProjectPipelineFilesViewSection({
 
   const bottomMargin = shareToken ? "mb-4 sm:mb-5" : "mb-10 sm:mb-12";
   const sharePreview = Boolean(shareToken && shareClientSlug);
+  const [openActivityKey, setOpenActivityKey] = useState<string | null>(activities[0]?.key ?? null);
+  const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
+  const [downloadState, setDownloadState] = useState<Record<string, { loading: boolean; percent: number | null }>>({});
+
+  const storageKey = useMemo(() => `pipelineFilesState:${pathname}:${sectionId ?? "default"}`, [pathname, sectionId]);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(storageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { openActivityKey?: string; scrollY?: number };
+      if (parsed.openActivityKey && activities.some((a) => a.key === parsed.openActivityKey)) {
+        setOpenActivityKey(parsed.openActivityKey);
+      }
+      if (typeof parsed.scrollY === "number" && Number.isFinite(parsed.scrollY) && parsed.scrollY >= 0) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => window.scrollTo({ top: parsed.scrollY, behavior: "auto" }));
+        });
+      }
+    } catch {
+      /* ignore storage parse errors */
+    }
+  }, [activities, storageKey]);
+
+  function rememberUiState(nextOpenActivityKey: string | null = openActivityKey) {
+    try {
+      sessionStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          openActivityKey: nextOpenActivityKey,
+          scrollY: window.scrollY,
+        }),
+      );
+    } catch {
+      /* ignore storage quota errors */
+    }
+  }
+
+  async function downloadWithProgress(fileId: string, fileName: string) {
+    setDownloadState((prev) => ({ ...prev, [fileId]: { loading: true, percent: 0 } }));
+    rememberUiState();
+    try {
+      const res = await fetch(downloadHref(fileId));
+      if (!res.ok) throw new Error("Download failed.");
+
+      const total = Number(res.headers.get("content-length") ?? "0");
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("Download stream unavailable.");
+
+      const chunks: BlobPart[] = [];
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          chunks.push(value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength));
+          received += value.length;
+          if (total > 0) {
+            const percent = Math.min(100, Math.round((received / total) * 100));
+            setDownloadState((prev) => ({ ...prev, [fileId]: { loading: true, percent } }));
+          } else {
+            setDownloadState((prev) => ({ ...prev, [fileId]: { loading: true, percent: null } }));
+          }
+        }
+      }
+
+      const blob = new Blob(chunks);
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+      setDownloadState((prev) => ({ ...prev, [fileId]: { loading: false, percent: 100 } }));
+      setTimeout(() => {
+        setDownloadState((prev) => {
+          const next = { ...prev };
+          delete next[fileId];
+          return next;
+        });
+      }, 500);
+    } catch {
+      setDownloadState((prev) => ({ ...prev, [fileId]: { loading: false, percent: null } }));
+    }
+  }
 
   return (
     <section
@@ -83,7 +175,18 @@ export function ProjectPipelineFilesViewSection({
         {activities.map((a) => (
           <details
             key={a.key}
-            className="border-dash-border group rounded-2xl border bg-dash-muted/10 open:bg-dash-muted/25 transition-colors"
+            open={openActivityKey === a.key}
+            onToggle={(e) => {
+              const isOpen = (e.currentTarget as HTMLDetailsElement).open;
+              const next = isOpen ? a.key : null;
+              setOpenActivityKey(next);
+              rememberUiState(next);
+            }}
+            className={`group rounded-2xl border transition-colors ${
+              openActivityKey === a.key
+                ? "border-emerald-500/45 bg-emerald-500/10"
+                : "border-dash-border bg-dash-muted/10 open:bg-dash-muted/25"
+            }`}
           >
             <summary className="text-dash-foreground flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors hover:bg-dash-muted/30 [&::-webkit-details-marker]:hidden">
               <span className="min-w-0">
@@ -124,27 +227,51 @@ export function ProjectPipelineFilesViewSection({
                               sharePreview ? (
                                 <SharePreviewLink
                                   href={previewHref(f.id)}
+                                  onClick={() => {
+                                    setPreviewLoadingId(f.id);
+                                    rememberUiState(a.key);
+                                  }}
                                   className="border-dash-border bg-dash-accent/10 text-dash-accent-dim hover:bg-dash-accent/20 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
                                 >
-                                  Preview
+                                  {previewLoadingId === f.id ? "Opening..." : "Preview"}
                                 </SharePreviewLink>
                               ) : (
                                 <Link
                                   href={previewHref(f.id)}
+                                  onClick={() => {
+                                    setPreviewLoadingId(f.id);
+                                    rememberUiState(a.key);
+                                  }}
                                   className="border-dash-border bg-dash-accent/10 text-dash-accent-dim hover:bg-dash-accent/20 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
                                 >
-                                  Preview
+                                  {previewLoadingId === f.id ? "Opening..." : "Preview"}
                                 </Link>
                               )
                             ) : null}
-                            <a
-                              href={downloadHref(f.id)}
-                              download={f.name}
+                            <button
+                              type="button"
+                              onClick={() => void downloadWithProgress(f.id, f.name)}
+                              disabled={downloadState[f.id]?.loading}
                               className="border-dash-border bg-dash-card text-dash-foreground hover:border-dash-accent/35 focus-visible:ring-dash-accent inline-flex min-h-11 min-w-[6.5rem] flex-1 items-center justify-center rounded-xl border text-center text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
                             >
-                              Download
-                            </a>
+                              {downloadState[f.id]?.loading ? "Downloading..." : "Download"}
+                            </button>
                           </div>
+                          {downloadState[f.id] ? (
+                            <div className="space-y-1">
+                              <div className="bg-dash-muted h-1.5 w-full overflow-hidden rounded-full">
+                                <div
+                                  className="bg-dash-accent h-full transition-all"
+                                  style={{ width: `${downloadState[f.id]?.percent ?? 35}%` }}
+                                />
+                              </div>
+                              <p className="text-dash-muted-foreground text-[11px]">
+                                {downloadState[f.id]?.percent == null
+                                  ? "Downloading..."
+                                  : `Downloading ${downloadState[f.id]?.percent}%`}
+                              </p>
+                            </div>
+                          ) : null}
                         </div>
                       </li>
                     ))}
@@ -173,26 +300,37 @@ export function ProjectPipelineFilesViewSection({
                                   sharePreview ? (
                                     <SharePreviewLink
                                       href={previewHref(f.id)}
+                                      onClick={() => {
+                                        setPreviewLoadingId(f.id);
+                                        rememberUiState(a.key);
+                                      }}
                                       className="text-dash-accent hover:text-dash-accent-dim text-xs font-semibold underline-offset-2 hover:underline"
                                     >
-                                      Preview
+                                      {previewLoadingId === f.id ? "Opening..." : "Preview"}
                                     </SharePreviewLink>
                                   ) : (
                                     <Link
                                       href={previewHref(f.id)}
+                                      onClick={() => {
+                                        setPreviewLoadingId(f.id);
+                                        rememberUiState(a.key);
+                                      }}
                                       className="text-dash-accent hover:text-dash-accent-dim text-xs font-semibold underline-offset-2 hover:underline"
                                     >
-                                      Preview
+                                      {previewLoadingId === f.id ? "Opening..." : "Preview"}
                                     </Link>
                                   )
                                 ) : null}
-                                <a
-                                  href={downloadHref(f.id)}
-                                  download={f.name}
+                                <button
+                                  type="button"
+                                  onClick={() => void downloadWithProgress(f.id, f.name)}
+                                  disabled={downloadState[f.id]?.loading}
                                   className="text-dash-accent hover:text-dash-accent-dim text-xs font-semibold underline-offset-2 hover:underline"
                                 >
-                                  Download
-                                </a>
+                                  {downloadState[f.id]?.loading
+                                    ? `Downloading${downloadState[f.id]?.percent != null ? ` ${downloadState[f.id]?.percent}%` : "..."}`
+                                    : "Download"}
+                                </button>
                               </div>
                             </td>
                           </tr>

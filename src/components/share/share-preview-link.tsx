@@ -21,13 +21,23 @@ export function SharePreviewLink({
   href,
   className,
   children,
+  onClick,
 }: {
   href: string;
   className?: string;
   children: ReactNode;
+  onClick?: () => void;
 }) {
   return (
-    <Link href={href} className={className} scroll={false} onClick={rememberScrollForReturn}>
+    <Link
+      href={href}
+      className={className}
+      scroll={false}
+      onClick={() => {
+        rememberScrollForReturn();
+        onClick?.();
+      }}
+    >
       {children}
     </Link>
   );
