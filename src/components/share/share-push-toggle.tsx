@@ -40,7 +40,9 @@ export function SharePushToggle({ slug, token }: Props) {
     setBusy(true);
     setMsg("");
     try {
-      const reg = await navigator.serviceWorker.register("/share-push-sw.js");
+      await navigator.serviceWorker.register("/share-push-sw.js");
+      // Ensure worker is active before subscribing (fixes "no active Service Worker").
+      const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource,
