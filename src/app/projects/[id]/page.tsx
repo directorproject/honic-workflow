@@ -10,6 +10,7 @@ import { isDriveConfigured } from "@/lib/google-drive-server";
 import { loadProjectPipelineFilesForView } from "@/lib/project-pipeline-files";
 import { formatProjectType } from "@/lib/project-types";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
+import { isHighProjectPriority } from "@/lib/project-priority";
 import { ProjectReadOnlyTimelineCard } from "@/components/projects/project-read-only-timeline-card";
 import { ProjectLoadFailureNotice } from "@/components/projects/project-load-failure-notice";
 import {
@@ -76,6 +77,7 @@ export default async function ProjectDetailPage(props: { params: Promise<{ id: s
   }
 
   const connected = isDashboardRegistryOk(dash.banner);
+  const priorityHot = isHighProjectPriority(project.priority);
   const statusDotClass = connected
     ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.55)]"
     : "bg-amber-500";
@@ -112,7 +114,13 @@ export default async function ProjectDetailPage(props: { params: Promise<{ id: s
         <span className="border-dash-border max-w-[min(100%,20rem)] shrink-0 whitespace-normal rounded-full border px-2.5 py-1 text-center capitalize leading-snug sm:max-w-none sm:px-3">
           {project.status.replace(/_/g, " ")}
         </span>
-        <span className="border-dash-border max-w-[min(100%,20rem)] shrink-0 whitespace-normal rounded-full border px-2.5 py-1 text-center capitalize leading-snug sm:max-w-none sm:px-3">
+        <span
+          className={
+            priorityHot
+              ? "max-w-[min(100%,20rem)] shrink-0 whitespace-normal text-center text-xs font-semibold capitalize leading-snug text-red-600 sm:max-w-none dark:text-red-400"
+              : "border-dash-border max-w-[min(100%,20rem)] shrink-0 whitespace-normal rounded-full border px-2.5 py-1 text-center capitalize leading-snug sm:max-w-none sm:px-3"
+          }
+        >
           {project.priority} priority
         </span>
         <span className="border-dash-border max-w-[55vw] shrink-0 truncate rounded-full border px-2.5 py-1 sm:max-w-none sm:px-3">
@@ -124,7 +132,15 @@ export default async function ProjectDetailPage(props: { params: Promise<{ id: s
       <ProjectReadOnlyTimelineCard startDate={project.start_date} targetEndDate={project.target_end_date} />
 
       {project.description ? (
-        <p className="text-dash-muted-foreground mb-8 max-w-3xl text-sm leading-relaxed">{project.description}</p>
+        <p
+          className={
+            priorityHot
+              ? "mb-8 max-w-3xl text-sm font-medium leading-relaxed text-red-600 dark:text-red-400"
+              : "text-dash-muted-foreground mb-8 max-w-3xl text-sm leading-relaxed"
+          }
+        >
+          {project.description}
+        </p>
       ) : null}
 
       <section

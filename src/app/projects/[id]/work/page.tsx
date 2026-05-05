@@ -10,6 +10,7 @@ import { loadDashboardData } from "@/lib/dashboard-data";
 import type { WorkflowProjectRow } from "@/lib/home-workflow-data";
 import { formatProjectType } from "@/lib/project-types";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
+import { isHighProjectPriority } from "@/lib/project-priority";
 import { getPublicSiteBaseUrl } from "@/app/projects/[id]/share-actions";
 import { RegisteredClientEditor } from "@/components/projects/registered-client-editor";
 import { ProjectShareLinkPanel } from "@/components/projects/project-share-link-panel";
@@ -57,6 +58,7 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
   }
 
   const connected = isDashboardRegistryOk(dash.banner);
+  const priorityHot = isHighProjectPriority(project.priority);
   const statusDotClass = connected
     ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.55)]"
     : "bg-amber-500";
@@ -95,7 +97,13 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
         <span className="border-dash-border max-w-[min(100%,20rem)] shrink-0 whitespace-normal rounded-full border px-2.5 py-1 text-center capitalize leading-snug sm:max-w-none sm:px-3">
           {project.status.replace(/_/g, " ")}
         </span>
-        <span className="border-dash-border max-w-[min(100%,20rem)] shrink-0 whitespace-normal rounded-full border px-2.5 py-1 text-center capitalize leading-snug sm:max-w-none sm:px-3">
+        <span
+          className={
+            priorityHot
+              ? "max-w-[min(100%,20rem)] shrink-0 whitespace-normal text-center text-xs font-semibold capitalize leading-snug text-red-600 sm:max-w-none dark:text-red-400"
+              : "border-dash-border max-w-[min(100%,20rem)] shrink-0 whitespace-normal rounded-full border px-2.5 py-1 text-center capitalize leading-snug sm:max-w-none sm:px-3"
+          }
+        >
           {project.priority} priority
         </span>
         <span className="border-dash-border max-w-[55vw] shrink-0 truncate rounded-full border px-2.5 py-1 sm:max-w-none sm:px-3">
@@ -122,7 +130,15 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
       ) : null}
 
       {project.description ? (
-        <p className="text-dash-muted-foreground mb-8 max-w-3xl text-sm leading-relaxed">{project.description}</p>
+        <p
+          className={
+            priorityHot
+              ? "mb-8 max-w-3xl text-sm font-medium leading-relaxed text-red-600 dark:text-red-400"
+              : "text-dash-muted-foreground mb-8 max-w-3xl text-sm leading-relaxed"
+          }
+        >
+          {project.description}
+        </p>
       ) : null}
 
       {project.registered_client_id ? (

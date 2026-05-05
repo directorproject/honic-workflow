@@ -10,6 +10,7 @@ import { resolveShareTokenWithClientSlug } from "@/lib/project-share";
 import { loadProjectDetail, type TrackedProjectDetail } from "@/lib/projects-data";
 import { shareLinkPathClientSlug } from "@/lib/share-link-origin";
 import { ProjectReadOnlyTimelineCard } from "@/components/projects/project-read-only-timeline-card";
+import { isHighProjectPriority } from "@/lib/project-priority";
 import { workflowStepCounts } from "@/lib/workflow-checklist";
 
 export const dynamic = "force-dynamic";
@@ -27,11 +28,6 @@ function toWorkflowRow(project: TrackedProjectDetail): WorkflowProjectRow {
     registered_clients: project.registered_clients,
     timeline_summary: "—",
   };
-}
-
-function isHighSharePriority(priority: string): boolean {
-  const p = priority.toLowerCase();
-  return p === "high" || p === "critical";
 }
 
 function statusTone(status: string): "emerald" | "amber" | "sky" | "slate" {
@@ -100,7 +96,7 @@ export default async function PublicShareProjectPage(props: {
   const ringR = 15.5;
   const ringC = 2 * Math.PI * ringR;
   const ringOffset = ringC * (1 - pct / 100);
-  const priorityHot = isHighSharePriority(project.priority);
+  const priorityHot = isHighProjectPriority(project.priority);
 
   return (
     <>
@@ -141,7 +137,7 @@ export default async function PublicShareProjectPage(props: {
               <span
                 className={
                   priorityHot
-                    ? "inline-flex shrink-0 min-h-8 max-w-[min(100%,22rem)] items-center whitespace-normal rounded-full border border-rose-400/80 bg-gradient-to-r from-red-600 via-rose-600 to-red-600 px-2.5 py-1 text-center text-[11px] font-semibold capitalize leading-snug text-white shadow-lg shadow-red-900/30 ring-2 ring-rose-300/60 sm:min-h-9 sm:max-w-none sm:px-3 sm:text-xs sm:text-sm dark:border-rose-400/50 dark:from-red-500 dark:via-rose-500 dark:to-red-600 dark:ring-rose-400/40"
+                    ? "inline-flex shrink-0 min-h-8 max-w-[min(100%,22rem)] items-center whitespace-normal text-center text-[11px] font-semibold capitalize leading-snug text-red-600 sm:min-h-9 sm:max-w-none sm:text-xs sm:text-sm dark:text-red-400"
                     : "border-dash-border bg-dash-card/80 text-dash-foreground inline-flex shrink-0 min-h-8 max-w-[min(100%,22rem)] items-center whitespace-normal rounded-full border px-2.5 py-1 text-center text-[11px] font-medium capitalize leading-snug sm:min-h-9 sm:max-w-none sm:px-3 sm:text-xs sm:text-sm"
                 }
               >
@@ -156,17 +152,15 @@ export default async function PublicShareProjectPage(props: {
             <ProjectReadOnlyTimelineCard startDate={project.start_date} targetEndDate={project.target_end_date} />
 
             {project.description ? (
-              priorityHot ? (
-                <div className="max-w-2xl rounded-2xl border border-red-400/45 bg-gradient-to-br from-red-50 via-rose-50 to-red-100/95 p-4 shadow-[0_0_28px_-6px_rgba(220,38,38,0.4)] sm:p-5 dark:border-rose-500/50 dark:from-red-950/60 dark:via-rose-950/50 dark:to-red-950/40 dark:shadow-[0_0_32px_-8px_rgba(244,63,94,0.35)]">
-                  <p className="text-[13px] font-medium leading-relaxed text-red-950 sm:text-base dark:text-rose-50">
-                    {project.description}
-                  </p>
-                </div>
-              ) : (
-                <p className="text-dash-muted-foreground max-w-2xl text-sm leading-relaxed sm:text-base">
-                  {project.description}
-                </p>
-              )
+              <p
+                className={
+                  priorityHot
+                    ? "max-w-2xl text-[13px] font-medium leading-relaxed text-red-600 sm:text-base dark:text-red-400"
+                    : "text-dash-muted-foreground max-w-2xl text-sm leading-relaxed sm:text-base"
+                }
+              >
+                {project.description}
+              </p>
             ) : null}
           </div>
 
