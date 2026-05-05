@@ -7,9 +7,13 @@ import {
   moveDriveFileIntoPipelineFolder,
   uploadFileToParentFolder,
 } from "@/lib/google-drive-server";
+import {
+  PIPELINE_DOCUMENTS_KEY,
+  pipelineActivityUploadFolderLabel,
+} from "@/lib/project-pipeline-files";
 import { notifyShareSubscribers } from "@/lib/share-push";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
-import { WORKFLOW_STEPS, workflowStepUploadFolderLabel } from "@/lib/workflow-checklist";
+import { WORKFLOW_STEPS } from "@/lib/workflow-checklist";
 
 const MAX_PROJECT_DRIVE_FILES_PER_SUBMIT = 25;
 
@@ -47,11 +51,11 @@ export async function uploadProjectFileAction(
   }
 
   const rawStep = String(formData.get("pipeline_step") ?? "").trim();
-  const allowed = new Set<string>(WORKFLOW_STEPS.map((s) => s.key));
+  const allowed = new Set<string>([...WORKFLOW_STEPS.map((s) => s.key), PIPELINE_DOCUMENTS_KEY]);
   if (!allowed.has(rawStep)) {
     return { ok: false, message: "Choose which pipeline activity this file is for." };
   }
-  const pipelineStepLabel = workflowStepUploadFolderLabel(rawStep);
+  const pipelineStepLabel = pipelineActivityUploadFolderLabel(rawStep);
 
   const files = formData.getAll("file").filter((f): f is File => f instanceof File);
   if (files.length === 0) {
@@ -130,11 +134,11 @@ export async function assignExistingProjectFileAction(
   }
 
   const rawStep = String(formData.get("pipeline_step") ?? "").trim();
-  const allowed = new Set<string>(WORKFLOW_STEPS.map((s) => s.key));
+  const allowed = new Set<string>([...WORKFLOW_STEPS.map((s) => s.key), PIPELINE_DOCUMENTS_KEY]);
   if (!allowed.has(rawStep)) {
     return { ok: false, message: "Choose which pipeline activity this file is for." };
   }
-  const pipelineStepLabel = workflowStepUploadFolderLabel(rawStep);
+  const pipelineStepLabel = pipelineActivityUploadFolderLabel(rawStep);
 
   const rawIds = formData.getAll("existing_drive_file_id").map((v) => String(v).trim()).filter(Boolean);
   const fileIds = [...new Set(rawIds)];

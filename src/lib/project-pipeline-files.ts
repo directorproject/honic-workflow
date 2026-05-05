@@ -3,6 +3,13 @@ import { WORKFLOW_STEPS, workflowStepUploadFolderLabel } from "@/lib/workflow-ch
 
 /** Optional folder at the project Drive root; listed after “Full project test” in Files by pipeline activity. */
 export const PIPELINE_DOCUMENTS_FOLDER_NAME = "Pipeline documents";
+export const PIPELINE_DOCUMENTS_KEY = "pipeline_documents";
+
+/** Upload/move target key -> exact Drive subfolder label. */
+export function pipelineActivityUploadFolderLabel(key: string): string {
+  if (key === PIPELINE_DOCUMENTS_KEY) return PIPELINE_DOCUMENTS_FOLDER_NAME;
+  return workflowStepUploadFolderLabel(key);
+}
 
 export type ProjectPipelineActivityFiles = {
   key: string;
@@ -44,7 +51,7 @@ export async function loadProjectPipelineFilesForView(
 
   const docsFolder = childFolders.find((f) => f.name === PIPELINE_DOCUMENTS_FOLDER_NAME);
   let pipelineDocuments: ProjectPipelineActivityFiles = {
-    key: "pipeline_documents",
+    key: PIPELINE_DOCUMENTS_KEY,
     label: PIPELINE_DOCUMENTS_FOLDER_NAME,
     folderId: docsFolder?.id ?? null,
     files: [],

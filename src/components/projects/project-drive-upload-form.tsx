@@ -10,6 +10,10 @@ import {
 } from "@/app/projects/[id]/files/actions";
 import { ProjectDriveBrowser } from "@/components/projects/project-drive-browser";
 import { canPreviewInBrowser } from "@/lib/drive-preview-helpers";
+import {
+  PIPELINE_DOCUMENTS_FOLDER_NAME,
+  PIPELINE_DOCUMENTS_KEY,
+} from "@/lib/project-pipeline-files";
 import { WORKFLOW_STEPS, type WorkflowStepKey } from "@/lib/workflow-checklist";
 
 function UploadSubmitButton({ pending }: { pending: boolean }) {
@@ -77,6 +81,10 @@ export function ProjectDriveUploadForm({
   const stepDefault = WORKFLOW_STEPS.some((s) => s.key === defaultPipelineStep)
     ? defaultPipelineStep
     : "schematic_circuit";
+  const activityOptions = [
+    ...WORKFLOW_STEPS.map((s) => ({ key: s.key, label: s.label })),
+    { key: PIPELINE_DOCUMENTS_KEY, label: PIPELINE_DOCUMENTS_FOLDER_NAME },
+  ];
 
   const activeState = mode === "upload" ? uploadState : attachState;
 
@@ -127,7 +135,7 @@ export function ProjectDriveUploadForm({
               defaultValue={stepDefault}
               className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 mb-1 w-full max-w-lg rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2"
             >
-              {WORKFLOW_STEPS.map((s) => (
+              {activityOptions.map((s) => (
                 <option key={s.key} value={s.key}>
                   {s.label}
                 </option>
@@ -181,7 +189,7 @@ export function ProjectDriveUploadForm({
               defaultValue={stepDefault}
               className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 mb-1 w-full max-w-lg rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2"
             >
-              {WORKFLOW_STEPS.map((s) => (
+              {activityOptions.map((s) => (
                 <option key={s.key} value={s.key}>
                   {s.label}
                 </option>
