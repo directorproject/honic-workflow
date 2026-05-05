@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { notifyShareSubscribers } from "@/lib/share-push";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { WORKFLOW_STEPS, type WorkflowStepKey, type WorkflowStepStatus } from "@/lib/workflow-checklist";
 
@@ -58,4 +59,12 @@ export async function updateWorkflowStep(
   revalidatePath("/projects");
   revalidatePath(`/projects/${projectId}`);
   revalidatePath(`/projects/${projectId}/work`);
+
+  const stepLabel = WORKFLOW_STEPS.find((s) => s.key === stepKey)?.label ?? stepKey;
+  const statusLabel = status.replace(/_/g, " ");
+  await notifyShareSubscribers({
+    trackedProjectId: projectId,
+    title: "Project activity updated",
+    body: `${stepLabel}: ${statusLabel}`,
+  });
 }

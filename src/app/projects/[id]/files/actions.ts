@@ -7,6 +7,7 @@ import {
   moveDriveFileIntoPipelineFolder,
   uploadFileToParentFolder,
 } from "@/lib/google-drive-server";
+import { notifyShareSubscribers } from "@/lib/share-push";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { WORKFLOW_STEPS, workflowStepUploadFolderLabel } from "@/lib/workflow-checklist";
 
@@ -92,6 +93,11 @@ export async function uploadProjectFileAction(
 
   revalidatePath(`/projects/${projectId}/files`);
   revalidatePath(`/projects/${projectId}/work`);
+  await notifyShareSubscribers({
+    trackedProjectId: projectId,
+    title: "New file uploaded",
+    body: `${items.length} file(s) added in ${pipelineStepLabel}.`,
+  });
   return {
     ok: true,
     kind: "upload" as const,
@@ -166,6 +172,11 @@ export async function assignExistingProjectFileAction(
   revalidatePath(`/projects/${projectId}/files`);
   revalidatePath(`/projects/${projectId}/work`);
   revalidatePath(`/projects/${projectId}`);
+  await notifyShareSubscribers({
+    trackedProjectId: projectId,
+    title: "Project file moved",
+    body: `${items.length} file(s) assigned to ${pipelineStepLabel}.`,
+  });
   return {
     ok: true,
     kind: "attach" as const,

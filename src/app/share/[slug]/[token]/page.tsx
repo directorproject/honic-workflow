@@ -11,6 +11,7 @@ import { loadProjectDetail, type TrackedProjectDetail } from "@/lib/projects-dat
 import { shareLinkPathClientSlug } from "@/lib/share-link-origin";
 import { ProjectReadOnlyTimelineCard } from "@/components/projects/project-read-only-timeline-card";
 import { isHighProjectPriority } from "@/lib/project-priority";
+import { SharePushToggle } from "@/components/share/share-push-toggle";
 import { workflowStepCounts } from "@/lib/workflow-checklist";
 
 export const dynamic = "force-dynamic";
@@ -126,6 +127,7 @@ export default async function PublicShareProjectPage(props: {
                 <span className="hidden sm:inline">·</span>
                 <span>Updates when our team publishes changes.</span>
               </p>
+              <SharePushToggle slug={slug} token={token} />
             </div>
 
             <div className="no-scrollbar -mx-1 flex max-w-full flex-nowrap items-center gap-1.5 overflow-x-auto px-1 pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
