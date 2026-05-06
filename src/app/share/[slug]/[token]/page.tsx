@@ -11,6 +11,7 @@ import { loadProjectDetail, type TrackedProjectDetail } from "@/lib/projects-dat
 import { shareLinkPathClientSlug } from "@/lib/share-link-origin";
 import { ProjectReadOnlyTimelineCard } from "@/components/projects/project-read-only-timeline-card";
 import { isHighProjectPriority } from "@/lib/project-priority";
+import { ShareClientReferencesCard } from "@/components/share/share-client-references-card";
 import { SharePushToggle } from "@/components/share/share-push-toggle";
 import { workflowStepCounts } from "@/lib/workflow-checklist";
 
@@ -65,6 +66,9 @@ function SectionJumpPills() {
       </a>
       <a href="#share-files" className={pill}>
         Access files
+      </a>
+      <a href="#share-references" className={pill}>
+        References
       </a>
     </nav>
   );
@@ -260,6 +264,8 @@ export default async function PublicShareProjectPage(props: {
           sectionId="share-files"
         />
       ) : null}
+
+      <ShareClientReferencesCard notes={project.share_research_notes} linksRaw={project.share_research_links} />
 
     </>
   );

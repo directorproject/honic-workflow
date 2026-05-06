@@ -18,6 +18,8 @@ import { buildShareLinkOrigin, shareLinkPathClientSlug } from "@/lib/share-link-
 import { isDriveConfigured } from "@/lib/google-drive-server";
 import { listShareLinksForProject } from "@/lib/project-share";
 import { ProjectLoadFailureNotice } from "@/components/projects/project-load-failure-notice";
+import { ProjectShareReferencesForm } from "@/components/projects/project-share-references-form";
+import { normalizeShareResearchLinks } from "@/lib/share-client-references";
 import {
   loadProjectDetail,
   PROJECT_DETAIL_NOT_FOUND_MESSAGE,
@@ -159,6 +161,12 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
         existingLinks={shareLinks}
         shareLinkOrigin={shareLinkOrigin}
         shareClientSlug={shareClientSlug}
+      />
+
+      <ProjectShareReferencesForm
+        projectId={project.id}
+        initialNotes={project.share_research_notes}
+        initialLinks={normalizeShareResearchLinks(project.share_research_links)}
       />
 
       <section

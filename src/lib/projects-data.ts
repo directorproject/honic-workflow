@@ -1,9 +1,10 @@
 import type { RegisteredClientRow } from "@/lib/dashboard-types";
-import { getSupabaseAdminClient } from "@/lib/supabase-server";
-import { normalizeRegisteredClientJoin } from "@/lib/supabase-relations";
 
 /** Returned when `tracked_projects` has no row for the given id (and the query itself succeeded). */
 export const PROJECT_DETAIL_NOT_FOUND_MESSAGE = "Project not found.";
+import { fetchRegisteredClients } from "@/lib/registered-clients";
+import { getSupabaseAdminClient } from "@/lib/supabase-server";
+import { normalizeRegisteredClientJoin } from "@/lib/supabase-relations";
 
 export type TrackedProjectListRow = {
   id: string;
@@ -30,6 +31,9 @@ export type TrackedProjectDetail = {
   registered_client_id: string;
   /** Google Drive folder for uploads / files (under GOOGLE_DRIVE_FOLDER_ID). */
   google_drive_folder_id: string | null;
+  /** Shown read-only on public share links; edited from Manage (work). */
+  share_research_notes: string | null;
+  share_research_links: unknown;
   registered_clients: { name: string; share_subdomain?: string | null; phone?: string | null } | null;
 };
 
@@ -134,7 +138,7 @@ export async function loadProjectDetail(
   const { data: proj, error: pErr } = await supabase
     .from("tracked_projects")
     .select(
-      `id, title, description, status, priority, project_type, workflow_checklist, start_date, target_end_date, updated_at, registered_client_id, google_drive_folder_id, ${registeredClientsSelect}`
+      `id, title, description, status, priority, project_type, workflow_checklist, start_date, target_end_date, updated_at, registered_client_id, google_drive_folder_id, share_research_notes, share_research_links, ${registeredClientsSelect}`
     )
     .eq("id", projectId)
     .maybeSingle();
@@ -162,8 +166,13 @@ export async function loadProjectDetail(
 
   const errMsg = mErr?.message ?? tErr?.message ?? null;
 
+  const base = proj as unknown as TrackedProjectDetail;
+  const shareNotes = (proj as { share_research_notes?: string | null }).share_research_notes ?? null;
+  const shareLinks = (proj as { share_research_links?: unknown }).share_research_links ?? [];
   const project: TrackedProjectDetail = {
-    ...(proj as unknown as TrackedProjectDetail),
+    ...base,
+    share_research_notes: shareNotes,
+    share_research_links: shareLinks,
     registered_clients: normalizeRegisteredClientJoin(
       (proj as { registered_clients: unknown }).registered_clients
     ),
@@ -186,28 +195,10 @@ export async function loadClientsForProjectForms(): Promise<{
     return { clients: [], error: "Database not configured." };
   }
 
-  const { data, error } = await supabase
-    .from("registered_clients")
-    .select("id, name, phone, share_subdomain")
-    .order("last_seen_at", { ascending: false });
-
-  if (error) {
-    return { clients: [], error: error.message };
+  const { clients, hints } = await fetchRegisteredClients(supabase);
+  if (clients.length === 0 && hints.length > 0) {
+    return { clients: [], error: hints[0] ?? "No registered clients." };
   }
-
-  const clients: RegisteredClientRow[] = (data ?? [])
-    .filter((r) => typeof r.name === "string" && r.name.trim())
-    .map((r) => {
-      const rawSub = r.share_subdomain;
-      const shareSubdomain =
-        typeof rawSub === "string" && rawSub.trim() ? rawSub.trim().toLowerCase() : null;
-      return {
-        id: r.id as string,
-        name: String(r.name).trim(),
-        phone: typeof r.phone === "string" && r.phone.trim() ? r.phone.trim() : null,
-        shareSubdomain,
-      };
-    });
 
   return { clients, error: null };
 }
