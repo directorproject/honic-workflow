@@ -200,5 +200,20 @@ export async function loadClientsForProjectForms(): Promise<{
     return { clients: [], error: hints[0] ?? "No registered clients." };
   }
 
-  return { clients, error: null };
+  const { data: usedClientRows, error: usedClientErr } = await supabase
+    .from("tracked_projects")
+    .select("registered_client_id");
+
+  if (usedClientErr) {
+    return { clients: [], error: usedClientErr.message };
+  }
+
+  const usedClientIds = new Set(
+    (usedClientRows ?? [])
+      .map((row) => row.registered_client_id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0)
+  );
+
+  const availableClients = clients.filter((client) => !usedClientIds.has(client.id));
+  return { clients: availableClients, error: null };
 }

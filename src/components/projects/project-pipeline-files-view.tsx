@@ -197,7 +197,7 @@ export function ProjectPipelineFilesViewSection({
               ) : a.files.length === 0 ? (
                 <p className="text-dash-muted-foreground px-1 py-3 text-sm">
                   No files in this activity folder yet
-                  {!a.folderId ? " (folder appears after first upload or attach from Manage / Files)" : ""}.
+                  {!a.folderId ? " (folder appears after being uploaded or attached)" : ""}.
                 </p>
               ) : (
                 <>

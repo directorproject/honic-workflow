@@ -1,4 +1,4 @@
-import { hasShareClientReferencesContent, normalizeShareResearchLinks } from "@/lib/share-client-references";
+import { normalizeShareResearchLinks } from "@/lib/share-client-references";
 
 export function ShareClientReferencesCard({
   notes,
@@ -10,7 +10,6 @@ export function ShareClientReferencesCard({
   sectionId?: string;
 }) {
   const links = normalizeShareResearchLinks(linksRaw);
-  if (!hasShareClientReferencesContent(notes, links)) return null;
 
   return (
     <section
@@ -22,8 +21,8 @@ export function ShareClientReferencesCard({
         Reference materials from our research
       </h2>
       <p className="text-dash-muted-foreground mb-5 max-w-3xl text-sm leading-relaxed sm:text-base">
-        Below are documents and links we distilled during source-find for this project. We hope they help you find
-        stronger references and data for your own documentation.
+        Any documents and links we share from source-find will appear here. We hope they help you find stronger
+        references and data for your own documentation.
       </p>
 
       {notes?.trim() ? (
