@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { createTrackedProject } from "@/app/projects/actions";
@@ -34,25 +33,6 @@ export function NewProjectForm({
 }) {
   const defaultClient =
     initialClientId && clients.some((c) => c.id === initialClientId) ? initialClientId : "";
-  const initialRow = defaultClient ? clients.find((c) => c.id === defaultClient) : undefined;
-
-  const [clientId, setClientId] = useState(defaultClient);
-  const [clientName, setClientName] = useState(initialRow?.name ?? "");
-  const [clientPhone, setClientPhone] = useState(initialRow?.phone ?? "");
-  const [clientShareSubdomain, setClientShareSubdomain] = useState(initialRow?.shareSubdomain ?? "");
-
-  useEffect(() => {
-    const row = clients.find((c) => c.id === clientId);
-    if (row) {
-      setClientName(row.name);
-      setClientPhone(row.phone ?? "");
-      setClientShareSubdomain(row.shareSubdomain ?? "");
-    } else {
-      setClientName("");
-      setClientPhone("");
-      setClientShareSubdomain("");
-    }
-  }, [clientId]);
 
   return (
     <form action={createTrackedProject} className="space-y-6">
@@ -78,9 +58,8 @@ export function NewProjectForm({
                 id="registered_client_id"
                 name="registered_client_id"
                 required
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
                 className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2"
+                defaultValue={defaultClient || ""}
               >
                 <option value="" disabled>
                   Select a client…
@@ -91,60 +70,6 @@ export function NewProjectForm({
                   </option>
                 ))}
               </select>
-              <p className="text-dash-muted-foreground mt-2 text-xs leading-relaxed">
-                After you pick a client, you can edit their title, phone, and share label below. Those values are saved
-                on the client record when you create the project.
-              </p>
-            </div>
-
-            <div>
-              <label htmlFor="registered_client_name" className="text-dash-muted-foreground mb-1 block text-sm font-medium">
-                Client title <span className="text-red-600 dark:text-red-400">*</span>
-              </label>
-              <input
-                id="registered_client_name"
-                name="registered_client_name"
-                required
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-                autoComplete="organization"
-                className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2"
-              />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="registered_client_phone" className="text-dash-muted-foreground mb-1 block text-sm font-medium">
-                  Phone <span className="font-normal opacity-70">(optional)</span>
-                </label>
-                <input
-                  id="registered_client_phone"
-                  name="registered_client_phone"
-                  type="tel"
-                  value={clientPhone}
-                  onChange={(e) => setClientPhone(e.target.value)}
-                  autoComplete="tel"
-                  placeholder="e.g. +1 234 567 8900"
-                  className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="registered_client_share_subdomain"
-                  className="text-dash-muted-foreground mb-1 block text-sm font-medium"
-                >
-                  Share subdomain label <span className="font-normal opacity-70">(optional)</span>
-                </label>
-                <input
-                  id="registered_client_share_subdomain"
-                  name="registered_client_share_subdomain"
-                  value={clientShareSubdomain}
-                  onChange={(e) => setClientShareSubdomain(e.target.value.toLowerCase())}
-                  autoComplete="off"
-                  placeholder="e.g. acme-api"
-                  className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2.5 font-mono text-sm outline-none focus:ring-2"
-                />
-              </div>
             </div>
 
             <div>

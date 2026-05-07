@@ -78,27 +78,6 @@ export async function createTrackedProject(formData: FormData) {
     throw new Error("Registered client and project title are required.");
   }
 
-  const clientName = String(formData.get("registered_client_name") ?? "").trim();
-  if (!clientName) {
-    throw new Error("Client title is required.");
-  }
-  const phoneRaw = String(formData.get("registered_client_phone") ?? "").trim();
-  const clientPhone = phoneRaw.length > 0 ? phoneRaw : null;
-  const shareRaw = String(formData.get("registered_client_share_subdomain") ?? "").trim();
-  const clientShareSubdomain = shareRaw.length > 0 ? shareRaw.toLowerCase() : null;
-
-  const { error: rcErr } = await supabase
-    .from("registered_clients")
-    .update({ name: clientName, phone: clientPhone, share_subdomain: clientShareSubdomain })
-    .eq("id", registered_client_id);
-
-  if (rcErr) {
-    if (rcErr.code === "23505") {
-      throw new Error("That client name is already used by another client. Change the client title or pick a different client.");
-    }
-    throw new Error(rcErr.message);
-  }
-
   const skipDrive = String(formData.get("drive_skip") ?? "").trim() === "1";
   let google_drive_folder_id: string | null = null;
 
