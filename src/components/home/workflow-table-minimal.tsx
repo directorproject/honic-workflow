@@ -98,6 +98,12 @@ export function WorkflowTableMinimal({ projects }: { projects: WorkflowProjectRo
                         View
                       </Link>
                       <Link
+                        href={`/projects/${p.id}/plan`}
+                        className="border-dash-border bg-dash-muted hover:bg-dash-border inline-flex rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors"
+                      >
+                        Plans
+                      </Link>
+                      <Link
                         href={`/projects/${p.id}/work#activity-checklist`}
                         className="bg-dash-accent text-slate-950 hover:bg-dash-accent-dim inline-flex rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
                       >
@@ -117,9 +123,10 @@ export function WorkflowTableMinimal({ projects }: { projects: WorkflowProjectRo
           steps). <span className="text-dash-foreground font-medium">Timeline</span> is the schedule: start/target dates
           and milestones (named checkpoints you plan to hit, often with target dates).{" "}
           <span className="text-dash-foreground font-medium">View</span> opens a read-only summary;{" "}
-          <span className="text-dash-foreground font-medium">Manage</span> opens pipeline steps, milestones, extra tasks,
-          and controls for
-          that project. <span className="text-dash-foreground font-medium">Weighted %</span> treats each step as 0–100%:
+          <span className="text-dash-foreground font-medium">Plans</span> builds a daily and weekly outline from
+          milestones; <span className="text-dash-foreground font-medium">Manage</span> opens pipeline steps, milestones,
+          extra tasks, and controls for that project.{" "}
+          <span className="text-dash-foreground font-medium">Weighted %</span> treats each step as 0–100%:
           done and out-of-scope count full; in progress counts half. Raw counts still show fully done vs steps we
           deliver.
         </p>

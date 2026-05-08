@@ -131,6 +131,12 @@ export default async function ProjectsPage(props: {
                         View
                       </Link>
                       <Link
+                        href={`/projects/${p.id}/plan`}
+                        className="border-dash-border bg-dash-muted hover:bg-dash-border inline-flex rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-colors"
+                      >
+                        Plans
+                      </Link>
+                      <Link
                         href={`/projects/${p.id}/work`}
                         className="bg-dash-accent text-slate-950 hover:bg-dash-accent-dim inline-flex rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors"
                       >

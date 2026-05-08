@@ -89,6 +89,13 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
         <Link href="/projects" className="text-dash-accent font-semibold underline-offset-2 hover:underline">
           All projects
         </Link>
+        <span className="text-dash-border hidden sm:inline">|</span>
+        <Link
+          href={`/projects/${project.id}/plan`}
+          className="text-dash-accent font-semibold underline-offset-2 hover:underline"
+        >
+          Plans (daily / weekly)
+        </Link>
       </p>
 
       {error ? (
@@ -277,6 +284,9 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
         </Link>
         <Link href="/" className="text-dash-accent font-semibold underline-offset-2 hover:underline">
           Home
+        </Link>
+        <Link href={`/projects/${project.id}/plan`} className="text-dash-accent font-semibold underline-offset-2 hover:underline">
+          Plans
         </Link>
       </p>
     </DashboardShell>
