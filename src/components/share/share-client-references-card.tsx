@@ -21,8 +21,8 @@ export function ShareClientReferencesCard({
         Reference materials from our research
       </h2>
       <p className="text-dash-muted-foreground mb-5 max-w-3xl text-sm leading-relaxed sm:text-base">
-        Any documents and links we share from source-find will appear here. We hope they help you find stronger
-        references and data for your own documentation.
+        Below are documents and links we distilled during source-find for this project. We hope they help you find
+        stronger references and data for your own documentation.
       </p>
 
       {notes?.trim() ? (
