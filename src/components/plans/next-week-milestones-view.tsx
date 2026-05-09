@@ -1,44 +1,57 @@
 import Link from "next/link";
 
 import type { PlansMilestoneRow } from "@/lib/next-week-milestones-data";
+import { projectStatusUploadFolderLabel } from "@/lib/project-types";
 
-function dayLabel(isoDate: string): string {
-  const d = new Date(`${isoDate}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return isoDate;
-  return d.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+function formatTargetCell(iso: string): string {
+  const d = new Date(`${iso}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 }
 
-function MilestoneCardBody({ m }: { m: PlansMilestoneRow }) {
-  return (
-    <div className="hover:bg-dash-muted/30 px-5 py-4 transition-colors">
-      <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-4">
-        <p className="text-dash-foreground min-w-0 flex-1 font-medium leading-snug">{m.title}</p>
-        <div className="text-dash-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-          <span className="font-medium">{m.clientName ?? "Client"}</span>
-          <span className="hidden sm:inline">·</span>
-          <Link
-            href={`/projects/${m.projectId}`}
-            className="text-dash-accent hover:text-dash-accent-dim font-semibold underline-offset-2 hover:underline"
-          >
-            {m.projectTitle}
-          </Link>
-        </div>
-      </div>
-      {m.assignee?.trim() ? (
-        <p className="text-dash-muted-foreground mt-2 text-xs">
-          Assigned to <span className="text-dash-foreground font-medium">{m.assignee.trim()}</span>
-        </p>
-      ) : null}
-      <p className="mt-2">
-        <Link
-          href={`/projects/${m.projectId}/work`}
-          className="text-dash-accent text-xs font-semibold underline-offset-2 hover:underline"
-        >
-          Manage this project →
-        </Link>
-      </p>
-    </div>
-  );
+function weekDayLabels(
+  weekMonday: Date,
+  todayIso: string
+): { iso: string; short: string; num: string; isToday: boolean }[] {
+  const out: { iso: string; short: string; num: string; isToday: boolean }[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekMonday);
+    d.setDate(d.getDate() + i);
+    const y = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, "0");
+    const da = String(d.getDate()).padStart(2, "0");
+    const iso = `${y}-${mo}-${da}`;
+    out.push({
+      iso,
+      short: d.toLocaleDateString(undefined, { weekday: "narrow" }),
+      num: String(d.getDate()),
+      isToday: iso === todayIso,
+    });
+  }
+  return out;
+}
+
+function milestoneWorkStatus(
+  m: PlansMilestoneRow,
+  todayIso: string
+): { label: string; className: string } {
+  if (m.target_date < todayIso) {
+    return {
+      label: "Overdue",
+      className:
+        "border-amber-500/50 bg-amber-500/15 text-amber-900 dark:border-amber-400/40 dark:text-amber-100",
+    };
+  }
+  if (m.target_date === todayIso) {
+    return {
+      label: "Due today",
+      className: "border-dash-accent/45 bg-dash-accent/15 text-dash-foreground",
+    };
+  }
+  return {
+    label: "Scheduled",
+    className: "border-dash-border bg-dash-muted/40 text-dash-muted-foreground",
+  };
 }
 
 export function PlansMilestonesView({
@@ -46,100 +59,163 @@ export function PlansMilestonesView({
   overdue,
   weekHeading,
   weekMonday,
+  todayIso,
 }: {
   thisWeek: PlansMilestoneRow[];
   overdue: PlansMilestoneRow[];
   weekHeading: string;
   weekMonday: Date;
+  todayIso: string;
 }) {
-  const byDay = new Map<string, PlansMilestoneRow[]>();
-  for (const m of thisWeek) {
-    const list = byDay.get(m.target_date) ?? [];
-    list.push(m);
-    byDay.set(m.target_date, list);
-  }
+  const days = weekDayLabels(weekMonday, todayIso);
+  const rows = [...overdue, ...thisWeek].sort((a, b) => a.target_date.localeCompare(b.target_date));
 
-  const days: { iso: string }[] = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(weekMonday);
-    d.setDate(d.getDate() + i);
-    const y = d.getFullYear();
-    const mo = String(d.getMonth() + 1).padStart(2, "0");
-    const da = String(d.getDate()).padStart(2, "0");
-    days.push({ iso: `${y}-${mo}-${da}` });
-  }
-
-  const nothingScheduled = thisWeek.length === 0 && overdue.length === 0;
+  const nothingScheduled = rows.length === 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <header className="border-dash-border bg-dash-card rounded-2xl border p-5 shadow-sm sm:p-6">
         <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">Week of {weekHeading}</h2>
         <p className="text-dash-muted-foreground mt-2 max-w-3xl text-sm leading-relaxed">
-          Pending milestones with a target date in this calendar week (Monday–Sunday, local time), across every project,
-          plus overdue items whose target date has passed. Completed milestones are hidden. Edit dates on each
-          project&apos;s Manage page.
+          Timeline-style board: each row is one milestone. The coloured dot sits on its target day (this calendar week).
+          Older overdue items won&apos;t show a dot unless their target still falls inside this week. Milestone status is
+          open work on that date; project status is the overall project state from the registry.
         </p>
       </header>
-
-      {overdue.length > 0 ? (
-        <section
-          aria-labelledby="overdue-milestones-heading"
-          className="border-amber-500/40 bg-amber-500/10 rounded-2xl border px-4 py-4 sm:px-5"
-        >
-          <h3 id="overdue-milestones-heading" className="text-dash-foreground text-base font-semibold">
-            Overdue targets ({overdue.length})
-          </h3>
-          <p className="text-dash-muted-foreground mt-1 text-sm">
-            Still pending with a target date before today — reschedule or complete them under Manage → Timeline.
-          </p>
-          <ul className="divide-dash-border mt-4 divide-y overflow-hidden rounded-xl border border-amber-500/25 bg-dash-card/80">
-            {overdue.map((m) => (
-              <li key={m.milestoneId}>
-                <p className="text-dash-muted-foreground bg-dash-muted/20 px-5 pt-3 pb-1 text-[11px] font-medium uppercase tabular-nums">
-                  Target{" "}
-                  {new Date(`${m.target_date}T12:00:00`).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </p>
-                <MilestoneCardBody m={m} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
 
       {nothingScheduled ? (
         <div className="border-dash-border bg-dash-muted/20 text-dash-muted-foreground rounded-2xl border border-dashed px-6 py-14 text-center text-sm">
           No dated pending milestones for this week and nothing overdue. Add target dates under{" "}
           <span className="text-dash-foreground font-medium">Manage → Timeline</span> on any project.
         </div>
-      ) : thisWeek.length === 0 ? (
-        <div className="border-dash-border bg-dash-muted/20 text-dash-muted-foreground rounded-2xl border border-dashed px-6 py-10 text-center text-sm">
-          No pending milestones have targets in this calendar week. Overdue items still appear above when present.
-        </div>
       ) : (
-        <div className="space-y-6">
-          {days.map(({ iso }) => {
-            const rows = byDay.get(iso);
-            if (!rows?.length) return null;
-            return (
-              <section key={iso} aria-labelledby={`day-${iso}`} className="border-dash-border bg-dash-card rounded-2xl border shadow-sm">
-                <h3 id={`day-${iso}`} className="border-dash-border text-dash-foreground border-b px-5 py-3 text-base font-semibold">
-                  {dayLabel(iso)}
-                </h3>
-                <ul className="divide-dash-border divide-y">
-                  {rows.map((m) => (
-                    <li key={m.milestoneId}>
-                      <MilestoneCardBody m={m} />
-                    </li>
+        <div className="border-dash-border bg-dash-card overflow-hidden rounded-2xl border shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="divide-dash-border text-dash-foreground min-w-[78rem] w-full divide-y text-left text-sm">
+              <thead className="bg-dash-muted/80">
+                <tr className="text-dash-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                  <th scope="col" className="text-dash-foreground w-[9.5rem] px-3 py-3 align-bottom whitespace-nowrap">
+                    When (deadline)
+                  </th>
+                  {days.map((d) => (
+                    <th
+                      key={d.iso}
+                      scope="col"
+                      className={`w-10 px-1 py-3 text-center align-bottom font-semibold ${
+                        d.isToday ? "text-dash-accent bg-dash-accent/10" : ""
+                      }`}
+                      title={d.iso}
+                    >
+                      <span className="block">{d.short}</span>
+                      <span className="text-[10px] font-normal tabular-nums opacity-80">{d.num}</span>
+                    </th>
                   ))}
-                </ul>
-              </section>
-            );
-          })}
+                  <th scope="col" className="min-w-[7rem] px-3 py-3 align-bottom">
+                    Client
+                  </th>
+                  <th scope="col" className="min-w-[8rem] px-3 py-3 align-bottom">
+                    Project
+                  </th>
+                  <th scope="col" className="min-w-[11rem] px-3 py-3 align-bottom">
+                    Milestone / task
+                  </th>
+                  <th scope="col" className="min-w-[7rem] px-3 py-3 align-bottom">
+                    Assigned
+                  </th>
+                  <th scope="col" className="min-w-[8rem] px-3 py-3 align-bottom">
+                    Milestone status
+                  </th>
+                  <th scope="col" className="min-w-[8rem] px-3 py-3 align-bottom">
+                    Project status
+                  </th>
+                  <th scope="col" className="w-[5rem] px-3 py-3 align-bottom text-center">
+                    Edit
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-dash-border divide-y">
+                {rows.map((m) => {
+                  const wf = milestoneWorkStatus(m, todayIso);
+                  const projLabel = projectStatusUploadFolderLabel(m.projectStatus);
+                  const targetFmt = formatTargetCell(m.target_date);
+                  return (
+                    <tr key={m.milestoneId} className="hover:bg-dash-muted/35 transition-colors">
+                      <td className="text-dash-foreground px-3 py-3 align-middle text-xs tabular-nums whitespace-nowrap">
+                        <span className="font-semibold">{targetFmt}</span>
+                        <span className="text-dash-muted-foreground block text-[10px] font-normal normal-case">
+                          → {targetFmt} <span className="opacity-70">(deadline)</span>
+                        </span>
+                      </td>
+                      {days.map((d) => {
+                        const hit = d.iso === m.target_date;
+                        return (
+                          <td
+                            key={`${m.milestoneId}-${d.iso}`}
+                            className={`border-dash-border px-0 py-2 text-center align-middle ${
+                              d.isToday ? "border-x border-dash-accent/25 bg-dash-accent/5" : ""
+                            }`}
+                          >
+                            {hit ? (
+                              <span
+                                className={`mx-auto block h-3 w-3 rounded-full shadow-sm ${
+                                  m.target_date < todayIso
+                                    ? "bg-amber-500 ring-2 ring-amber-500/40"
+                                    : m.target_date === todayIso
+                                      ? "bg-dash-accent ring-2 ring-dash-accent/35"
+                                      : "bg-sky-500/90 ring-2 ring-sky-400/30 dark:bg-sky-400"
+                                }`}
+                                title={`Target ${m.target_date}`}
+                              />
+                            ) : (
+                              <span className="text-dash-muted-foreground/35 block text-[10px]">·</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                      <td className="text-dash-muted-foreground px-3 py-3 align-middle text-xs">{m.clientName ?? "—"}</td>
+                      <td className="px-3 py-3 align-middle">
+                        <Link
+                          href={`/projects/${m.projectId}`}
+                          className="text-dash-accent hover:text-dash-accent-dim font-semibold underline-offset-2 hover:underline"
+                        >
+                          {m.projectTitle}
+                        </Link>
+                      </td>
+                      <td className="text-dash-foreground px-3 py-3 align-middle font-medium">{m.title}</td>
+                      <td className="text-dash-muted-foreground px-3 py-3 align-middle text-xs">
+                        {m.assignee?.trim() ? m.assignee.trim() : "—"}
+                      </td>
+                      <td className="px-3 py-3 align-middle">
+                        <span
+                          className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize ${wf.className}`}
+                        >
+                          {wf.label}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 align-middle">
+                        <span className="border-dash-border text-dash-muted-foreground inline-flex rounded-full border bg-dash-muted/30 px-2 py-0.5 text-[11px] font-medium capitalize">
+                          {projLabel}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 align-middle text-center">
+                        <Link
+                          href={`/projects/${m.projectId}/work`}
+                          className="text-dash-accent text-[11px] font-semibold underline-offset-2 hover:underline"
+                        >
+                          Manage
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-dash-muted-foreground border-dash-border border-t px-4 py-3 text-xs leading-relaxed">
+            Dots mark the milestone <span className="text-dash-foreground font-medium">target date</span> inside this week.
+            Use <span className="text-dash-foreground font-medium">Manage → Timeline</span> on each project to update dates,
+            assignees, or completions (completed milestones disappear here).
+          </p>
         </div>
       )}
     </div>

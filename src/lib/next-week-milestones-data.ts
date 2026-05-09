@@ -9,6 +9,7 @@ export type PlansMilestoneRow = {
   sort_order: number;
   projectId: string;
   projectTitle: string;
+  projectStatus: string;
   registered_client_id: string;
   clientName: string | null;
 };
@@ -84,6 +85,7 @@ function mapRowToPlansMilestone(row: MilestoneQueryRow, registeredClientId?: str
   ) as {
     id: string;
     title: string;
+    status: string;
     registered_client_id: string;
     registered_clients: unknown;
   } | null;
@@ -100,6 +102,7 @@ function mapRowToPlansMilestone(row: MilestoneQueryRow, registeredClientId?: str
     sort_order: row.sort_order,
     projectId: proj.id,
     projectTitle: proj.title,
+    projectStatus: proj.status ?? "planning",
     registered_client_id: proj.registered_client_id,
     clientName: clientJoin?.name ?? null,
   };
@@ -115,6 +118,7 @@ const milestoneSelect = `
       tracked_projects (
         id,
         title,
+        status,
         registered_client_id,
         registered_clients ( name )
       )

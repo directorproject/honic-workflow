@@ -110,6 +110,7 @@ export default async function PlansPage(props: {
             overdue={overdue}
             weekHeading={weekHeading}
             weekMonday={weekMonday}
+            todayIso={todayIso}
           />
         </>
       )}
