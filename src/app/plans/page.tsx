@@ -2,14 +2,30 @@ import Link from "next/link";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { PlansMilestonesView } from "@/components/plans/next-week-milestones-view";
+import { PlansWeekCalendarJump } from "@/components/plans/plans-week-calendar-jump";
+import { PlansWeekSummary } from "@/components/plans/plans-week-summary";
 import { PlansWeekNav } from "@/components/plans/plans-week-nav";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
-import { clampWeekOffset, loadPlansBoardData } from "@/lib/next-week-milestones-data";
+import { clampWeekOffset, loadPlansBoardData, type PlansMilestoneRow } from "@/lib/next-week-milestones-data";
 import { buildPlansUrl } from "@/lib/plans-url";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+function summarizeWeekly(rows: PlansMilestoneRow[], todayIso: string) {
+  let pending = 0;
+  let inProgress = 0;
+  let blocked = 0;
+  let overdueCalendar = 0;
+  for (const m of rows) {
+    if (m.work_status === "pending") pending += 1;
+    else if (m.work_status === "in_progress") inProgress += 1;
+    else if (m.work_status === "blocked") blocked += 1;
+    if (m.target_date < todayIso) overdueCalendar += 1;
+  }
+  return { total: rows.length, pending, inProgress, blocked, overdueCalendar };
+}
 
 export default async function PlansPage(props: {
   searchParams?: Promise<{ client?: string; week?: string }>;
@@ -32,18 +48,35 @@ export default async function PlansPage(props: {
   const filteredClientName =
     clientFilter && dash.clients.find((c) => c.id === clientFilter)?.name;
 
-  const totalListed = inWeek.length + overdue.length;
+  const rowsCombined = [...overdue, ...inWeek];
+  const summary = summarizeWeekly(rowsCombined, todayIso);
 
   const shellTitle = weekOffset === 0 ? "This week — milestones" : "Week view — milestones";
   const shellSubtitle =
-    weekOffset === 0
-      ? "Timeline for the current calendar week, overdue items, and workflow status."
-      : `Browsing ${weekOffset > 0 ? "a future" : "a past"} calendar week (${weekOffset > 0 ? "+" : ""}${weekOffset}).`;
+    "Weekly snapshot below · browse weeks or jump from the calendar · workflow is edited under Manage → Timeline.";
 
   return (
     <DashboardShell title={shellTitle} subtitle={shellSubtitle} statusDotClass={statusDotClass}>
-      <div className="mb-6 space-y-4">
-        <PlansWeekNav weekOffset={weekOffset} clientFilter={clientFilter} />
+      <div className="mb-6 flex flex-col gap-4">
+        <div className="flex flex-wrap items-stretch gap-3 lg:flex-nowrap lg:items-end">
+          <div className="shrink-0">
+            <PlansWeekNav weekOffset={weekOffset} clientFilter={clientFilter} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <PlansWeekCalendarJump clientFilter={clientFilter} weekMondayIso={startIso} />
+          </div>
+        </div>
+
+        <PlansWeekSummary
+          weekHeading={weekHeading}
+          startIso={startIso}
+          endIso={endIso}
+          total={summary.total}
+          pending={summary.pending}
+          inProgress={summary.inProgress}
+          blocked={summary.blocked}
+          overdueCalendar={summary.overdueCalendar}
+        />
 
         <div className="flex flex-wrap items-end justify-between gap-4">
           <form action="/plans" method="get" className="flex flex-wrap items-end gap-3">
@@ -114,12 +147,12 @@ export default async function PlansPage(props: {
             {" → "}
             <span className="text-dash-foreground font-medium">{endIso}</span>
             {" · "}today <span className="text-dash-foreground font-medium">{todayIso}</span>
+            {" · offset "}
+            <span className="text-dash-foreground font-medium">{weekOffset}</span>
             {" · "}
-            <span className="text-dash-foreground font-medium">{totalListed}</span> listed{" "}
-            <span className="opacity-80">
-              ({inWeek.length} in range
-              {weekOffset === 0 && overdue.length > 0 ? ` · ${overdue.length} overdue` : ""})
-            </span>
+            <span className="text-dash-foreground font-medium">{summary.total}</span> open in table (
+            {inWeek.length} in range
+            {weekOffset === 0 && overdue.length > 0 ? ` · ${overdue.length} overdue list` : ""})
           </p>
           <PlansMilestonesView
             inWeek={inWeek}

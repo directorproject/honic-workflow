@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 import type { PlansMilestoneRow } from "@/lib/next-week-milestones-data";
-import { MilestoneWorkStatusSelect } from "@/components/plans/milestone-work-status-select";
+import type { MilestoneWorkStatusValue } from "@/lib/milestone-work-status";
+import { milestoneWorkStatusLabel } from "@/lib/milestone-work-status";
 import { projectStatusUploadFolderLabel } from "@/lib/project-types";
 
 function formatTargetCell(iso: string): string {
@@ -47,6 +48,23 @@ function dotClasses(m: PlansMilestoneRow, todayIso: string): string {
   return "bg-sky-500/90 ring-2 ring-sky-400/30 dark:bg-sky-400";
 }
 
+function workflowReadOnlyBadge(status: MilestoneWorkStatusValue) {
+  const label = milestoneWorkStatusLabel(status);
+  const map: Record<MilestoneWorkStatusValue, string> = {
+    pending: "border-dash-border bg-dash-muted/40 text-dash-muted-foreground",
+    in_progress: "border-violet-500/45 bg-violet-500/15 text-violet-950 dark:text-violet-100",
+    blocked: "border-slate-500/45 bg-slate-500/15 text-slate-900 dark:text-slate-100",
+    done: "border-emerald-500/45 bg-emerald-500/15 text-emerald-950 dark:text-emerald-100",
+  };
+  return (
+    <span
+      className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize ${map[status]}`}
+    >
+      {label}
+    </span>
+  );
+}
+
 export function PlansMilestonesView({
   inWeek,
   overdue,
@@ -69,20 +87,12 @@ export function PlansMilestonesView({
 
   return (
     <div className="space-y-6">
-      <header className="border-dash-border bg-dash-card rounded-2xl border p-5 shadow-sm sm:p-6">
-        <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">Week of {weekHeading}</h2>
-        <p className="text-dash-muted-foreground mt-2 max-w-3xl text-sm leading-relaxed">
-          Timeline board for the selected calendar week. Use{" "}
-          <span className="text-dash-foreground font-medium">Previous / Next week</span> to browse past or upcoming
-          targets (still open). The dot marks the milestone deadline in this week&apos;s columns; choose workflow status
-          (pending, in progress, blocked, done) per row —{" "}
-          <span className="text-dash-foreground font-medium">Done</span> marks complete and removes the row after refresh.
-          {weekOffset === 0 ? (
-            <>
-              {" "}
-              <span className="text-dash-foreground font-medium">Overdue</span> lists open milestones dated before today.
-            </>
-          ) : null}
+      <header className="border-dash-border bg-dash-card rounded-2xl border px-4 py-3 shadow-sm sm:px-5">
+        <h2 className="text-dash-foreground text-base font-semibold tracking-tight">Week of {weekHeading}</h2>
+        <p className="text-dash-muted-foreground mt-1 max-w-3xl text-xs leading-relaxed">
+          Read-only board: set workflow on each project&apos;s{" "}
+          <span className="text-dash-foreground font-medium">Manage → Timeline</span>. Dots show deadlines in the columns
+          above.{weekOffset === 0 ? " When viewing this week, rows dated before today also appear in the overdue bucket." : ""}
         </p>
       </header>
 
@@ -183,7 +193,7 @@ export function PlansMilestonesView({
                         {m.assignee?.trim() ? m.assignee.trim() : "—"}
                       </td>
                       <td className="px-3 py-3 align-middle">
-                        <MilestoneWorkStatusSelect milestoneId={m.milestoneId} value={m.work_status} />
+                        {workflowReadOnlyBadge(m.work_status)}
                         <p className="text-dash-muted-foreground mt-1 text-[10px] leading-snug">{calendarDueHint(m, todayIso)}</p>
                       </td>
                       <td className="px-3 py-3 align-middle">
@@ -206,9 +216,9 @@ export function PlansMilestonesView({
             </table>
           </div>
           <p className="text-dash-muted-foreground border-dash-border border-t px-4 py-3 text-xs leading-relaxed">
-            Dots mark the milestone <span className="text-dash-foreground font-medium">deadline</span> within the week
-            columns shown. Workflow status is saved immediately; <span className="text-dash-foreground font-medium">Done</span>{" "}
-            sets completion on the milestone.
+            Dots mark each milestone <span className="text-dash-foreground font-medium">deadline</span> in this week&apos;s
+            columns. Change workflow or mark done from{" "}
+            <span className="text-dash-foreground font-medium">Manage → Timeline</span> on the project.
           </p>
         </div>
       )}

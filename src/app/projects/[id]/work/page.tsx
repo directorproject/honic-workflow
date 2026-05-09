@@ -19,7 +19,9 @@ import { isDriveConfigured } from "@/lib/google-drive-server";
 import { listShareLinksForProject } from "@/lib/project-share";
 import { ProjectLoadFailureNotice } from "@/components/projects/project-load-failure-notice";
 import { ProjectShareReferencesForm } from "@/components/projects/project-share-references-form";
+import { MilestoneWorkStatusSelect } from "@/components/plans/milestone-work-status-select";
 import { normalizeShareResearchLinks } from "@/lib/share-client-references";
+import { normalizeMilestoneWorkStatus } from "@/lib/milestone-work-status";
 import {
   loadProjectDetail,
   PROJECT_DETAIL_NOT_FOUND_MESSAGE,
@@ -224,8 +226,10 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
         <section className="border-dash-border bg-dash-card rounded-2xl border p-5 shadow-sm">
           <h2 className="text-dash-foreground mb-1 text-base font-semibold">Timeline</h2>
           <p className="text-dash-muted-foreground mb-4 text-xs">
-            Milestones can be added when you create the project or anytime here. Each can have a target date and someone
-            assigned. Completion dates are not editable in the UI yet.
+            Milestones can be added when you create the project or anytime here. Set target date, assignee, and{" "}
+            <span className="text-dash-foreground font-medium">workflow status</span> (pending, in progress, blocked,
+            done). Done marks complete; statuses show read-only on the <span className="text-dash-foreground font-medium">Plans</span>{" "}
+            page for the week that contains the target date.
           </p>
           {milestones.length === 0 ? (
             <p className="text-dash-muted-foreground mb-1 text-sm">No milestones yet — add one below.</p>
@@ -251,6 +255,21 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
                         Assigned to <span className="text-dash-foreground font-medium">{m.assignee.trim()}</span>
                       </p>
                     ) : null}
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="text-dash-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+                        Workflow
+                      </span>
+                      {m.completed_at ? (
+                        <span className="border-dash-border text-dash-muted-foreground inline-flex rounded-full border bg-dash-muted/30 px-2 py-0.5 text-[11px] font-semibold">
+                          Done
+                        </span>
+                      ) : (
+                        <MilestoneWorkStatusSelect
+                          milestoneId={m.id}
+                          value={normalizeMilestoneWorkStatus(m.work_status)}
+                        />
+                      )}
+                    </div>
                   </div>
                 </li>
               ))}

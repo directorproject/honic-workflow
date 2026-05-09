@@ -85,6 +85,18 @@ export function clampWeekOffset(raw: number): number {
   return Math.min(52, Math.max(-52, Math.trunc(raw)));
 }
 
+/** Week offset vs “this week” for the ISO calendar date whose week should be shown (any day in that week). */
+export function weekOffsetForContainingIsoDate(selectedIsoDate: string, now = new Date()): number {
+  const trimmed = String(selectedIsoDate ?? "").trim();
+  if (!trimmed) return 0;
+  const picked = new Date(`${trimmed}T12:00:00`);
+  if (Number.isNaN(picked.getTime())) return 0;
+  const baseMondayMs = getThisCalendarWeekIsoRange(now).monday.getTime();
+  const pickedMondayMs = mondayOfWeekContaining(picked).getTime();
+  const msWeek = 7 * 24 * 60 * 60 * 1000;
+  return clampWeekOffset(Math.round((pickedMondayMs - baseMondayMs) / msWeek));
+}
+
 type MilestoneQueryRow = {
   id: string;
   title: string;
