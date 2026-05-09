@@ -55,7 +55,9 @@ function effectiveDotColumnIso(targetIso: string): string {
 
 function calendarDueHint(m: PlansMilestoneRow, todayIso: string): string {
   if (m.work_status === "done") return "Calendar: completed";
-  if (m.target_date < todayIso) return "Calendar: overdue";
+  if (m.target_date < todayIso) {
+    return `Manage timeline: ${milestoneWorkStatusLabel(m.work_status)}`;
+  }
   if (m.target_date === todayIso) return "Calendar: due today";
   return "Calendar: upcoming";
 }
@@ -70,6 +72,15 @@ function dotClasses(m: PlansMilestoneRow, todayIso: string): string {
 }
 
 function workflowReadOnlyBadge(m: PlansMilestoneRow, todayIso: string) {
+  const overdueCal = m.target_date < todayIso && m.work_status !== "done";
+  if (overdueCal) {
+    return (
+      <span className="inline-flex rounded-full border border-amber-600/55 bg-amber-400/45 px-2 py-0.5 text-[11px] font-semibold text-amber-950 shadow-sm dark:border-amber-500/50 dark:bg-amber-500/30 dark:text-amber-50">
+        Overdue
+      </span>
+    );
+  }
+
   const status = m.work_status;
   const label = milestoneWorkStatusLabel(status);
   const map: Record<MilestoneWorkStatusValue, string> = {
@@ -78,12 +89,8 @@ function workflowReadOnlyBadge(m: PlansMilestoneRow, todayIso: string) {
     blocked: "border-slate-500/45 bg-slate-500/15 text-slate-900 dark:text-slate-100",
     done: "border-emerald-500/45 bg-emerald-500/15 text-emerald-950 dark:text-emerald-100",
   };
-  const overdueCal = m.target_date < todayIso && m.work_status !== "done";
-  const overdueExtra = overdueCal ? " border-amber-500/70 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.45)]" : "";
   return (
-    <span
-      className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize ${map[status]}${overdueExtra}`}
-    >
+    <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize ${map[status]}`}>
       {label}
     </span>
   );

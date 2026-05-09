@@ -165,12 +165,6 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
         shareClientSlug={shareClientSlug}
       />
 
-      <ProjectShareReferencesForm
-        projectId={project.id}
-        initialNotes={project.share_research_notes}
-        initialLinks={normalizeShareResearchLinks(project.share_research_links)}
-      />
-
       <section
         id="activity-checklist"
         className="border-dash-border bg-dash-card mb-10 scroll-mt-28 rounded-2xl border p-5 shadow-sm sm:p-6"
@@ -285,6 +279,14 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
           </p>
           <ProjectTasksPanel projectId={project.id} tasks={tasks} />
         </section>
+      </div>
+
+      <div className="mt-10">
+        <ProjectShareReferencesForm
+          projectId={project.id}
+          initialNotes={project.share_research_notes}
+          initialLinks={normalizeShareResearchLinks(project.share_research_links)}
+        />
       </div>
 
       <p className="text-dash-muted-foreground mt-10 flex flex-wrap gap-4 text-xs">
