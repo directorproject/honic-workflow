@@ -31,7 +31,8 @@ export async function ProjectLoadFailureNotice({ message }: { message: string })
           or a new app version expects columns that are not in your database yet. Run pending SQL files from the repo’s{" "}
           <code className="text-dash-foreground">supabase/</code> folder (for example{" "}
           <code className="text-dash-foreground">014_registered_clients_phone.sql</code> and{" "}
-          <code className="text-dash-foreground">015_project_milestones_assignee.sql</code>) in the Supabase SQL editor,
+          <code className="text-dash-foreground">015_project_milestones_assignee.sql</code>,{" "}
+          <code className="text-dash-foreground">018_project_milestones_work_status.sql</code>) in the Supabase SQL editor,
           then reload.
         </p>
         <Link

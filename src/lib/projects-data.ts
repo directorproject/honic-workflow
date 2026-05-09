@@ -44,6 +44,8 @@ export type ProjectMilestoneRow = {
   sort_order: number;
   completed_at: string | null;
   assignee: string | null;
+  /** Plans-board lifecycle; run `018_project_milestones_work_status.sql` if missing. */
+  work_status?: string | null;
 };
 
 export type ProjectTaskRow = {
@@ -154,7 +156,7 @@ export async function loadProjectDetail(
 
   const { data: ms, error: mErr } = await supabase
     .from("project_milestones")
-    .select("id, title, target_date, sort_order, completed_at, assignee")
+    .select("id, title, target_date, sort_order, completed_at, assignee, work_status")
     .eq("tracked_project_id", projectId)
     .order("sort_order", { ascending: true });
 

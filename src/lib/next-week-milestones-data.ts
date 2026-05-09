@@ -1,4 +1,5 @@
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
+import { normalizeMilestoneWorkStatus } from "@/lib/milestone-work-status";
 import { normalizeRegisteredClientJoin } from "@/lib/supabase-relations";
 
 export type PlansMilestoneRow = {
@@ -12,6 +13,7 @@ export type PlansMilestoneRow = {
   projectStatus: string;
   registered_client_id: string;
   clientName: string | null;
+  work_status: ReturnType<typeof normalizeMilestoneWorkStatus>;
 };
 
 function startOfLocalDay(d: Date): Date {
@@ -20,7 +22,6 @@ function startOfLocalDay(d: Date): Date {
   return x;
 }
 
-/** Monday-start week containing `day` (local). */
 function mondayOfWeekContaining(day: Date): Date {
   const d = startOfLocalDay(day);
   const dow = d.getDay();
@@ -42,9 +43,6 @@ function toIsoDateLocal(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-/**
- * Current calendar week (Mon–Sun) containing `now` (local).
- */
 export function getThisCalendarWeekIsoRange(now = new Date()): {
   startIso: string;
   endIso: string;
@@ -68,6 +66,25 @@ export function formatWeekRangeHeading(monday: Date, sunday: Date): string {
   return `${a}–${b}`;
 }
 
+/** Shift the calendar week that contains `now` by `weekOffset` (negative = past weeks). */
+export function getCalendarWeekRangeByOffset(weekOffset: number, now = new Date()) {
+  const baseMonday = getThisCalendarWeekIsoRange(now).monday;
+  const monday = addDays(baseMonday, weekOffset * 7);
+  const sunday = addDays(monday, 6);
+  return {
+    monday,
+    sunday,
+    startIso: toIsoDateLocal(monday),
+    endIso: toIsoDateLocal(sunday),
+    weekHeading: formatWeekRangeHeading(monday, sunday),
+  };
+}
+
+export function clampWeekOffset(raw: number): number {
+  if (!Number.isFinite(raw)) return 0;
+  return Math.min(52, Math.max(-52, Math.trunc(raw)));
+}
+
 type MilestoneQueryRow = {
   id: string;
   title: string;
@@ -75,6 +92,7 @@ type MilestoneQueryRow = {
   assignee: string | null;
   sort_order: number;
   tracked_project_id: string;
+  work_status?: string | null;
   tracked_projects: unknown;
 };
 
@@ -105,6 +123,7 @@ function mapRowToPlansMilestone(row: MilestoneQueryRow, registeredClientId?: str
     projectStatus: proj.status ?? "planning",
     registered_client_id: proj.registered_client_id,
     clientName: clientJoin?.name ?? null,
+    work_status: normalizeMilestoneWorkStatus(row.work_status),
   };
 }
 
@@ -114,6 +133,7 @@ const milestoneSelect = `
       target_date,
       assignee,
       sort_order,
+      work_status,
       tracked_project_id,
       tracked_projects (
         id,
@@ -124,80 +144,108 @@ const milestoneSelect = `
       )
     `;
 
-export async function loadThisWeekAndOverdueMilestones(registeredClientId?: string): Promise<{
-  thisWeek: PlansMilestoneRow[];
+export async function loadPlansBoardData(options: {
+  registeredClientId?: string;
+  weekOffset: number;
+}): Promise<{
+  inWeek: PlansMilestoneRow[];
   overdue: PlansMilestoneRow[];
   weekHeading: string;
   startIso: string;
   endIso: string;
   todayIso: string;
   weekMonday: Date;
+  weekOffset: number;
   error: string | null;
 }> {
+  const weekOffset = clampWeekOffset(options.weekOffset);
+
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return {
-      thisWeek: [],
+      inWeek: [],
       overdue: [],
       weekHeading: "",
       startIso: "",
       endIso: "",
       todayIso: "",
       weekMonday: new Date(0),
+      weekOffset,
       error: "Database not configured.",
     };
   }
 
   const today = startOfLocalDay(new Date());
   const todayIso = toIsoDateLocal(today);
-  const { startIso, endIso, monday, sunday } = getThisCalendarWeekIsoRange();
-  const weekHeading = formatWeekRangeHeading(monday, sunday);
+  const { monday, startIso, endIso, weekHeading } = getCalendarWeekRangeByOffset(weekOffset);
 
-  const [weekRes, overdueRes] = await Promise.all([
-    supabase
-      .from("project_milestones")
-      .select(milestoneSelect)
-      .gte("target_date", startIso)
-      .lte("target_date", endIso)
-      .is("completed_at", null)
-      .order("target_date", { ascending: true })
-      .order("sort_order", { ascending: true }),
-    supabase
-      .from("project_milestones")
-      .select(milestoneSelect)
-      .lt("target_date", todayIso)
-      .not("target_date", "is", null)
-      .is("completed_at", null)
-      .order("target_date", { ascending: true })
-      .order("sort_order", { ascending: true }),
-  ]);
+  const weekPromise = supabase
+    .from("project_milestones")
+    .select(milestoneSelect)
+    .gte("target_date", startIso)
+    .lte("target_date", endIso)
+    .is("completed_at", null)
+    .order("target_date", { ascending: true })
+    .order("sort_order", { ascending: true });
 
-  const errMsg = weekRes.error?.message ?? overdueRes.error?.message ?? null;
+  const overduePromise =
+    weekOffset === 0
+      ? supabase
+          .from("project_milestones")
+          .select(milestoneSelect)
+          .lt("target_date", todayIso)
+          .not("target_date", "is", null)
+          .is("completed_at", null)
+          .order("target_date", { ascending: true })
+          .order("sort_order", { ascending: true })
+      : Promise.resolve({ data: [] as unknown[], error: null as null });
+
+  const [weekRes, overdueRes] = await Promise.all([weekPromise, overduePromise]);
+
+  const errMsg = weekRes.error?.message ?? (overdueRes as { error?: { message?: string } }).error?.message ?? null;
   if (errMsg) {
     return {
-      thisWeek: [],
+      inWeek: [],
       overdue: [],
       weekHeading,
       startIso,
       endIso,
       todayIso,
       weekMonday: monday,
+      weekOffset,
       error: errMsg,
     };
   }
 
-  /** In-range Mon–Sun, but only targets from today forward (earlier days appear under overdue only). */
-  const thisWeek: PlansMilestoneRow[] = [];
+  const inWeekAll: PlansMilestoneRow[] = [];
   for (const row of weekRes.data ?? []) {
-    const m = mapRowToPlansMilestone(row as MilestoneQueryRow, registeredClientId);
-    if (m && m.target_date >= todayIso) thisWeek.push(m);
+    const m = mapRowToPlansMilestone(row as MilestoneQueryRow, options.registeredClientId);
+    if (!m) continue;
+    if (weekOffset === 0) {
+      if (m.target_date >= todayIso) inWeekAll.push(m);
+    } else {
+      inWeekAll.push(m);
+    }
   }
 
   const overdue: PlansMilestoneRow[] = [];
-  for (const row of overdueRes.data ?? []) {
-    const m = mapRowToPlansMilestone(row as MilestoneQueryRow, registeredClientId);
-    if (m) overdue.push(m);
+  if (weekOffset === 0) {
+    for (const row of (overdueRes as { data?: unknown[] }).data ?? []) {
+      const m = mapRowToPlansMilestone(row as MilestoneQueryRow, options.registeredClientId);
+      if (m) overdue.push(m);
+    }
   }
 
-  return { thisWeek, overdue, weekHeading, startIso, endIso, todayIso, weekMonday: monday, error: null };
+  return {
+    inWeek: inWeekAll,
+    overdue,
+    weekHeading,
+    startIso,
+    endIso,
+    todayIso,
+    weekMonday: monday,
+    weekOffset,
+    error: null,
+  };
 }
+

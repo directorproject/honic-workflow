@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import type { PlansMilestoneRow } from "@/lib/next-week-milestones-data";
+import { MilestoneWorkStatusSelect } from "@/components/plans/milestone-work-status-select";
 import { projectStatusUploadFolderLabel } from "@/lib/project-types";
 
 function formatTargetCell(iso: string): string {
@@ -31,44 +32,38 @@ function weekDayLabels(
   return out;
 }
 
-function milestoneWorkStatus(
-  m: PlansMilestoneRow,
-  todayIso: string
-): { label: string; className: string } {
-  if (m.target_date < todayIso) {
-    return {
-      label: "Overdue",
-      className:
-        "border-amber-500/50 bg-amber-500/15 text-amber-900 dark:border-amber-400/40 dark:text-amber-100",
-    };
-  }
-  if (m.target_date === todayIso) {
-    return {
-      label: "Due today",
-      className: "border-dash-accent/45 bg-dash-accent/15 text-dash-foreground",
-    };
-  }
-  return {
-    label: "Scheduled",
-    className: "border-dash-border bg-dash-muted/40 text-dash-muted-foreground",
-  };
+/** Calendar hint vs today (independent of workflow dropdown). */
+function calendarDueHint(m: PlansMilestoneRow, todayIso: string): string {
+  if (m.target_date < todayIso) return "Calendar: overdue";
+  if (m.target_date === todayIso) return "Calendar: due today";
+  return "Calendar: upcoming";
+}
+
+function dotClasses(m: PlansMilestoneRow, todayIso: string): string {
+  if (m.work_status === "blocked") return "bg-slate-500 ring-2 ring-slate-400/35";
+  if (m.work_status === "in_progress") return "bg-violet-500 ring-2 ring-violet-400/40 dark:bg-violet-400";
+  if (m.target_date < todayIso) return "bg-amber-500 ring-2 ring-amber-500/40";
+  if (m.target_date === todayIso) return "bg-dash-accent ring-2 ring-dash-accent/35";
+  return "bg-sky-500/90 ring-2 ring-sky-400/30 dark:bg-sky-400";
 }
 
 export function PlansMilestonesView({
-  thisWeek,
+  inWeek,
   overdue,
   weekHeading,
   weekMonday,
   todayIso,
+  weekOffset,
 }: {
-  thisWeek: PlansMilestoneRow[];
+  inWeek: PlansMilestoneRow[];
   overdue: PlansMilestoneRow[];
   weekHeading: string;
   weekMonday: Date;
   todayIso: string;
+  weekOffset: number;
 }) {
   const days = weekDayLabels(weekMonday, todayIso);
-  const rows = [...overdue, ...thisWeek].sort((a, b) => a.target_date.localeCompare(b.target_date));
+  const rows = [...overdue, ...inWeek].sort((a, b) => a.target_date.localeCompare(b.target_date));
 
   const nothingScheduled = rows.length === 0;
 
@@ -77,21 +72,30 @@ export function PlansMilestonesView({
       <header className="border-dash-border bg-dash-card rounded-2xl border p-5 shadow-sm sm:p-6">
         <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">Week of {weekHeading}</h2>
         <p className="text-dash-muted-foreground mt-2 max-w-3xl text-sm leading-relaxed">
-          Timeline-style board: each row is one milestone. The coloured dot sits on its target day (this calendar week).
-          Older overdue items won&apos;t show a dot unless their target still falls inside this week. Milestone status is
-          open work on that date; project status is the overall project state from the registry.
+          Timeline board for the selected calendar week. Use{" "}
+          <span className="text-dash-foreground font-medium">Previous / Next week</span> to browse past or upcoming
+          targets (still open). The dot marks the milestone deadline in this week&apos;s columns; choose workflow status
+          (pending, in progress, blocked, done) per row —{" "}
+          <span className="text-dash-foreground font-medium">Done</span> marks complete and removes the row after refresh.
+          {weekOffset === 0 ? (
+            <>
+              {" "}
+              <span className="text-dash-foreground font-medium">Overdue</span> lists open milestones dated before today.
+            </>
+          ) : null}
         </p>
       </header>
 
       {nothingScheduled ? (
         <div className="border-dash-border bg-dash-muted/20 text-dash-muted-foreground rounded-2xl border border-dashed px-6 py-14 text-center text-sm">
-          No dated pending milestones for this week and nothing overdue. Add target dates under{" "}
-          <span className="text-dash-foreground font-medium">Manage → Timeline</span> on any project.
+          No open milestones match this week
+          {weekOffset !== 0 ? " (try another week or clear filters)" : ""}. Add target dates under{" "}
+          <span className="text-dash-foreground font-medium">Manage → Timeline</span>, or pick another week above.
         </div>
       ) : (
         <div className="border-dash-border bg-dash-card overflow-hidden rounded-2xl border shadow-sm">
           <div className="overflow-x-auto">
-            <table className="divide-dash-border text-dash-foreground min-w-[78rem] w-full divide-y text-left text-sm">
+            <table className="divide-dash-border text-dash-foreground min-w-[82rem] w-full divide-y text-left text-sm">
               <thead className="bg-dash-muted/80">
                 <tr className="text-dash-muted-foreground text-xs font-semibold tracking-wide uppercase">
                   <th scope="col" className="text-dash-foreground w-[9.5rem] px-3 py-3 align-bottom whitespace-nowrap">
@@ -122,8 +126,8 @@ export function PlansMilestonesView({
                   <th scope="col" className="min-w-[7rem] px-3 py-3 align-bottom">
                     Assigned
                   </th>
-                  <th scope="col" className="min-w-[8rem] px-3 py-3 align-bottom">
-                    Milestone status
+                  <th scope="col" className="min-w-[10rem] px-3 py-3 align-bottom">
+                    Workflow status
                   </th>
                   <th scope="col" className="min-w-[8rem] px-3 py-3 align-bottom">
                     Project status
@@ -135,7 +139,6 @@ export function PlansMilestonesView({
               </thead>
               <tbody className="divide-dash-border divide-y">
                 {rows.map((m) => {
-                  const wf = milestoneWorkStatus(m, todayIso);
                   const projLabel = projectStatusUploadFolderLabel(m.projectStatus);
                   const targetFmt = formatTargetCell(m.target_date);
                   return (
@@ -157,13 +160,7 @@ export function PlansMilestonesView({
                           >
                             {hit ? (
                               <span
-                                className={`mx-auto block h-3 w-3 rounded-full shadow-sm ${
-                                  m.target_date < todayIso
-                                    ? "bg-amber-500 ring-2 ring-amber-500/40"
-                                    : m.target_date === todayIso
-                                      ? "bg-dash-accent ring-2 ring-dash-accent/35"
-                                      : "bg-sky-500/90 ring-2 ring-sky-400/30 dark:bg-sky-400"
-                                }`}
+                                className={`mx-auto block h-3 w-3 rounded-full shadow-sm ${dotClasses(m, todayIso)}`}
                                 title={`Target ${m.target_date}`}
                               />
                             ) : (
@@ -186,11 +183,8 @@ export function PlansMilestonesView({
                         {m.assignee?.trim() ? m.assignee.trim() : "—"}
                       </td>
                       <td className="px-3 py-3 align-middle">
-                        <span
-                          className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold capitalize ${wf.className}`}
-                        >
-                          {wf.label}
-                        </span>
+                        <MilestoneWorkStatusSelect milestoneId={m.milestoneId} value={m.work_status} />
+                        <p className="text-dash-muted-foreground mt-1 text-[10px] leading-snug">{calendarDueHint(m, todayIso)}</p>
                       </td>
                       <td className="px-3 py-3 align-middle">
                         <span className="border-dash-border text-dash-muted-foreground inline-flex rounded-full border bg-dash-muted/30 px-2 py-0.5 text-[11px] font-medium capitalize">
@@ -212,9 +206,9 @@ export function PlansMilestonesView({
             </table>
           </div>
           <p className="text-dash-muted-foreground border-dash-border border-t px-4 py-3 text-xs leading-relaxed">
-            Dots mark the milestone <span className="text-dash-foreground font-medium">target date</span> inside this week.
-            Use <span className="text-dash-foreground font-medium">Manage → Timeline</span> on each project to update dates,
-            assignees, or completions (completed milestones disappear here).
+            Dots mark the milestone <span className="text-dash-foreground font-medium">deadline</span> within the week
+            columns shown. Workflow status is saved immediately; <span className="text-dash-foreground font-medium">Done</span>{" "}
+            sets completion on the milestone.
           </p>
         </div>
       )}

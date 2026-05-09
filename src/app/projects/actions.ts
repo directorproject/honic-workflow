@@ -328,7 +328,7 @@ export async function addProjectMilestone(formData: FormData): Promise<ProjectMi
       assignee,
       sort_order,
     })
-    .select("id, title, target_date, sort_order, completed_at, assignee")
+    .select("id, title, target_date, sort_order, completed_at, assignee, work_status")
     .single();
 
   if (error || !data) {
