@@ -69,7 +69,7 @@ export default async function ProjectsPage(props: {
             href="/plans"
             className="border-dash-border bg-dash-muted hover:bg-dash-border inline-flex rounded-xl border px-4 py-2 text-sm font-semibold transition-colors"
           >
-            Next week milestones
+            This week milestones
           </Link>
           <Link
             href={clientFilter ? `/projects/new?client=${encodeURIComponent(clientFilter)}` : "/projects/new"}

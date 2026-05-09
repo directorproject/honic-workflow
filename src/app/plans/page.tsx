@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { NextWeekMilestonesView } from "@/components/plans/next-week-milestones-view";
+import { PlansMilestonesView } from "@/components/plans/next-week-milestones-view";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
-import { loadNextWeekMilestones } from "@/lib/next-week-milestones-data";
+import { loadThisWeekAndOverdueMilestones } from "@/lib/next-week-milestones-data";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,9 +16,8 @@ export default async function PlansPage(props: {
   const clientFilter = typeof sp.client === "string" ? sp.client.trim() : "";
 
   const dash = await loadDashboardData();
-  const { milestones, weekHeading, startIso, endIso, error } = await loadNextWeekMilestones(
-    clientFilter || undefined
-  );
+  const { thisWeek, overdue, weekHeading, startIso, endIso, todayIso, weekMonday, error } =
+    await loadThisWeekAndOverdueMilestones(clientFilter || undefined);
 
   const connected = isDashboardRegistryOk(dash.banner);
   const statusDotClass = connected
@@ -28,10 +27,12 @@ export default async function PlansPage(props: {
   const filteredClientName =
     clientFilter && dash.clients.find((c) => c.id === clientFilter)?.name;
 
+  const totalListed = thisWeek.length + overdue.length;
+
   return (
     <DashboardShell
-      title="Next week — milestones"
-      subtitle="All projects with timeline targets in the upcoming calendar week."
+      title="This week — milestones"
+      subtitle="Timeline targets in the current calendar week (and overdue), across all projects."
       statusDotClass={statusDotClass}
     >
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
@@ -93,14 +94,23 @@ export default async function PlansPage(props: {
       ) : (
         <>
           <p className="text-dash-muted-foreground mb-6 text-xs tabular-nums">
-            Range <span className="text-dash-foreground font-medium">{startIso}</span>
+            Week <span className="text-dash-foreground font-medium">{startIso}</span>
             {" → "}
             <span className="text-dash-foreground font-medium">{endIso}</span>
+            {" · "}today <span className="text-dash-foreground font-medium">{todayIso}</span>
             {" · "}
-            <span className="text-dash-foreground font-medium">{milestones.length}</span> milestone
-            {milestones.length === 1 ? "" : "s"}
+            <span className="text-dash-foreground font-medium">{totalListed}</span> listed{" "}
+            <span className="opacity-80">
+              ({thisWeek.length} this week
+              {overdue.length > 0 ? ` · ${overdue.length} overdue` : ""})
+            </span>
           </p>
-          <NextWeekMilestonesView milestones={milestones} weekHeading={weekHeading} />
+          <PlansMilestonesView
+            thisWeek={thisWeek}
+            overdue={overdue}
+            weekHeading={weekHeading}
+            weekMonday={weekMonday}
+          />
         </>
       )}
 

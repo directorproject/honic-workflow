@@ -62,9 +62,10 @@ export default async function DashboardPage() {
             not ours to finish); <span className="font-medium text-dash-foreground">Timeline</span> shows dates and
             milestones. View for read-only summary; Manage to edit pipeline, milestones, and extra tasks.{" "}
             <Link href="/plans" className="text-dash-accent font-semibold underline-offset-2 hover:underline">
-              Next week milestones
+              This week milestones
             </Link>{" "}
-            lists dated milestones for the upcoming week across all projects (optional client filter).
+            lists dated pending milestones for the current week plus overdue items across all projects (optional client
+            filter).
           </p>
         </div>
         <WorkflowTableMinimal projects={projects} />
@@ -78,7 +79,7 @@ export default async function DashboardPage() {
         </Link>
         {" · "}
         <Link href="/plans" className="text-dash-accent font-medium underline-offset-2 hover:underline">
-          Next week milestones
+          This week milestones
         </Link>
         {" · "}
         <Link href="/about" className="text-dash-accent font-medium underline-offset-2 hover:underline">

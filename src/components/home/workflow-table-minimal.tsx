@@ -120,9 +120,9 @@ export function WorkflowTableMinimal({ projects }: { projects: WorkflowProjectRo
           <span className="text-dash-foreground font-medium">Manage</span> opens pipeline steps, milestones, extra tasks,
           and controls for that project. Use{" "}
           <Link href="/plans" className="text-dash-accent font-semibold underline-offset-2 hover:underline">
-            Next week milestones
+            This week milestones
           </Link>{" "}
-          to see every project&apos;s dated milestones for the upcoming week.{" "}
+          to see every project&apos;s dated milestones for the current week (and overdue targets).{" "}
           <span className="text-dash-foreground font-medium">Weighted %</span> treats each step as 0–100%:
           done and out-of-scope count full; in progress counts half. Raw counts still show fully done vs steps we
           deliver.
