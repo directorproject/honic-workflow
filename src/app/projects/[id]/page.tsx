@@ -40,12 +40,6 @@ function ProjectSummaryNavLinks({ projectId }: { projectId: string }) {
       >
         Manage progress & milestones
       </Link>
-      <Link
-        href={`/projects/${projectId}/plan`}
-        className="text-dash-accent font-semibold underline-offset-2 hover:underline"
-      >
-        Plans (daily / weekly)
-      </Link>
       <Link href="/projects" className="text-dash-accent font-semibold underline-offset-2 hover:underline">
         ← All projects
       </Link>

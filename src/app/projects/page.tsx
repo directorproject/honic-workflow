@@ -64,12 +64,20 @@ export default async function ProjectsPage(props: {
             </p>
           )}
         </div>
-        <Link
-          href={clientFilter ? `/projects/new?client=${encodeURIComponent(clientFilter)}` : "/projects/new"}
-          className="bg-dash-accent text-slate-950 hover:bg-dash-accent-dim inline-flex rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
-        >
-          New project
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/plans"
+            className="border-dash-border bg-dash-muted hover:bg-dash-border inline-flex rounded-xl border px-4 py-2 text-sm font-semibold transition-colors"
+          >
+            Next week milestones
+          </Link>
+          <Link
+            href={clientFilter ? `/projects/new?client=${encodeURIComponent(clientFilter)}` : "/projects/new"}
+            className="bg-dash-accent text-slate-950 hover:bg-dash-accent-dim inline-flex rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+          >
+            New project
+          </Link>
+        </div>
       </div>
 
       {error ? (
@@ -129,12 +137,6 @@ export default async function ProjectsPage(props: {
                         className="border-dash-border bg-dash-muted hover:bg-dash-border inline-flex rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-colors"
                       >
                         View
-                      </Link>
-                      <Link
-                        href={`/projects/${p.id}/plan`}
-                        className="border-dash-border bg-dash-muted hover:bg-dash-border inline-flex rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-colors"
-                      >
-                        Plans
                       </Link>
                       <Link
                         href={`/projects/${p.id}/work`}
