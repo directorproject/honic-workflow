@@ -1,6 +1,7 @@
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { normalizeMilestoneWorkStatus } from "@/lib/milestone-work-status";
 import { normalizeRegisteredClientJoin } from "@/lib/supabase-relations";
+import { workflowStepCounts } from "@/lib/workflow-checklist";
 
 export type PlansMilestoneRow = {
   milestoneId: string;
@@ -8,9 +9,12 @@ export type PlansMilestoneRow = {
   target_date: string;
   assignee: string | null;
   sort_order: number;
+  completed_at: string | null;
   projectId: string;
   projectTitle: string;
   projectStatus: string;
+  /** Pipeline checklist weighted % (0–100). */
+  pipelineWeightedPercent: number;
   registered_client_id: string;
   clientName: string | null;
   work_status: ReturnType<typeof normalizeMilestoneWorkStatus>;
@@ -104,6 +108,7 @@ type MilestoneQueryRow = {
   assignee: string | null;
   sort_order: number;
   tracked_project_id: string;
+  completed_at?: string | null;
   work_status?: string | null;
   tracked_projects: unknown;
 };
@@ -116,6 +121,7 @@ function mapRowToPlansMilestone(row: MilestoneQueryRow, registeredClientId?: str
     id: string;
     title: string;
     status: string;
+    workflow_checklist: unknown;
     registered_client_id: string;
     registered_clients: unknown;
   } | null;
@@ -124,18 +130,25 @@ function mapRowToPlansMilestone(row: MilestoneQueryRow, registeredClientId?: str
   const clientJoin = normalizeRegisteredClientJoin(proj.registered_clients);
   if (registeredClientId && proj.registered_client_id !== registeredClientId) return null;
 
+  const completed_at = row.completed_at ?? null;
+  const work_status = completed_at ? ("done" as const) : normalizeMilestoneWorkStatus(row.work_status);
+
+  const pipelineWeightedPercent = workflowStepCounts(proj.workflow_checklist ?? null).weightedPercent;
+
   return {
     milestoneId: row.id,
     title: row.title,
     target_date: row.target_date,
     assignee: row.assignee,
     sort_order: row.sort_order,
+    completed_at,
     projectId: proj.id,
     projectTitle: proj.title,
     projectStatus: proj.status ?? "planning",
+    pipelineWeightedPercent,
     registered_client_id: proj.registered_client_id,
     clientName: clientJoin?.name ?? null,
-    work_status: normalizeMilestoneWorkStatus(row.work_status),
+    work_status,
   };
 }
 
@@ -145,12 +158,14 @@ const milestoneSelect = `
       target_date,
       assignee,
       sort_order,
+      completed_at,
       work_status,
       tracked_project_id,
       tracked_projects (
         id,
         title,
         status,
+        workflow_checklist,
         registered_client_id,
         registered_clients ( name )
       )
@@ -160,8 +175,7 @@ export async function loadPlansBoardData(options: {
   registeredClientId?: string;
   weekOffset: number;
 }): Promise<{
-  inWeek: PlansMilestoneRow[];
-  overdue: PlansMilestoneRow[];
+  rows: PlansMilestoneRow[];
   weekHeading: string;
   startIso: string;
   endIso: string;
@@ -175,8 +189,7 @@ export async function loadPlansBoardData(options: {
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return {
-      inWeek: [],
-      overdue: [],
+      rows: [],
       weekHeading: "",
       startIso: "",
       endIso: "",
@@ -191,66 +204,70 @@ export async function loadPlansBoardData(options: {
   const todayIso = toIsoDateLocal(today);
   const { monday, startIso, endIso, weekHeading } = getCalendarWeekRangeByOffset(weekOffset);
 
-  const weekPromise = supabase
+  const weekRes = await supabase
     .from("project_milestones")
     .select(milestoneSelect)
     .gte("target_date", startIso)
     .lte("target_date", endIso)
-    .is("completed_at", null)
     .order("target_date", { ascending: true })
     .order("sort_order", { ascending: true });
 
-  const overduePromise =
-    weekOffset === 0
-      ? supabase
-          .from("project_milestones")
-          .select(milestoneSelect)
-          .lt("target_date", todayIso)
-          .not("target_date", "is", null)
-          .is("completed_at", null)
-          .order("target_date", { ascending: true })
-          .order("sort_order", { ascending: true })
-      : Promise.resolve({ data: [] as unknown[], error: null as null });
-
-  const [weekRes, overdueRes] = await Promise.all([weekPromise, overduePromise]);
-
-  const errMsg = weekRes.error?.message ?? (overdueRes as { error?: { message?: string } }).error?.message ?? null;
-  if (errMsg) {
+  if (weekRes.error) {
     return {
-      inWeek: [],
-      overdue: [],
+      rows: [],
       weekHeading,
       startIso,
       endIso,
       todayIso,
       weekMonday: monday,
       weekOffset,
-      error: errMsg,
+      error: weekRes.error.message,
     };
   }
 
-  const inWeekAll: PlansMilestoneRow[] = [];
+  const merged = new Map<string, PlansMilestoneRow>();
+
   for (const row of weekRes.data ?? []) {
     const m = mapRowToPlansMilestone(row as MilestoneQueryRow, options.registeredClientId);
-    if (!m) continue;
-    if (weekOffset === 0) {
-      if (m.target_date >= todayIso) inWeekAll.push(m);
-    } else {
-      inWeekAll.push(m);
+    if (m) merged.set(m.milestoneId, m);
+  }
+
+  if (weekOffset === 0) {
+    const overdueRes = await supabase
+      .from("project_milestones")
+      .select(milestoneSelect)
+      .lt("target_date", todayIso)
+      .not("target_date", "is", null)
+      .is("completed_at", null)
+      .order("target_date", { ascending: true })
+      .order("sort_order", { ascending: true });
+
+    if (overdueRes.error) {
+      return {
+        rows: [],
+        weekHeading,
+        startIso,
+        endIso,
+        todayIso,
+        weekMonday: monday,
+        weekOffset,
+        error: overdueRes.error.message,
+      };
+    }
+
+    for (const row of overdueRes.data ?? []) {
+      const m = mapRowToPlansMilestone(row as MilestoneQueryRow, options.registeredClientId);
+      if (m && !merged.has(m.milestoneId)) merged.set(m.milestoneId, m);
     }
   }
 
-  const overdue: PlansMilestoneRow[] = [];
-  if (weekOffset === 0) {
-    for (const row of (overdueRes as { data?: unknown[] }).data ?? []) {
-      const m = mapRowToPlansMilestone(row as MilestoneQueryRow, options.registeredClientId);
-      if (m) overdue.push(m);
-    }
-  }
+  const rows = Array.from(merged.values()).sort((a, b) => {
+    const d = a.target_date.localeCompare(b.target_date);
+    return d !== 0 ? d : a.sort_order - b.sort_order;
+  });
 
   return {
-    inWeek: inWeekAll,
-    overdue,
+    rows,
     weekHeading,
     startIso,
     endIso,
@@ -260,4 +277,3 @@ export async function loadPlansBoardData(options: {
     error: null,
   };
 }
-

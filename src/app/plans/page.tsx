@@ -14,17 +14,19 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 function summarizeWeekly(rows: PlansMilestoneRow[], todayIso: string) {
+  let done = 0;
   let pending = 0;
   let inProgress = 0;
   let blocked = 0;
   let overdueCalendar = 0;
   for (const m of rows) {
-    if (m.work_status === "pending") pending += 1;
+    if (m.work_status === "done") done += 1;
+    else if (m.work_status === "pending") pending += 1;
     else if (m.work_status === "in_progress") inProgress += 1;
     else if (m.work_status === "blocked") blocked += 1;
     if (m.target_date < todayIso) overdueCalendar += 1;
   }
-  return { total: rows.length, pending, inProgress, blocked, overdueCalendar };
+  return { total: rows.length, done, pending, inProgress, blocked, overdueCalendar };
 }
 
 export default async function PlansPage(props: {
@@ -35,7 +37,7 @@ export default async function PlansPage(props: {
   const weekOffset = clampWeekOffset(Number.parseInt(String(sp.week ?? ""), 10));
 
   const dash = await loadDashboardData();
-  const { inWeek, overdue, weekHeading, startIso, endIso, todayIso, weekMonday, error } = await loadPlansBoardData({
+  const { rows, weekHeading, startIso, endIso, todayIso, weekMonday, error } = await loadPlansBoardData({
     registeredClientId: clientFilter || undefined,
     weekOffset,
   });
@@ -48,8 +50,7 @@ export default async function PlansPage(props: {
   const filteredClientName =
     clientFilter && dash.clients.find((c) => c.id === clientFilter)?.name;
 
-  const rowsCombined = [...overdue, ...inWeek];
-  const summary = summarizeWeekly(rowsCombined, todayIso);
+  const summary = summarizeWeekly(rows, todayIso);
 
   const shellTitle = weekOffset === 0 ? "This week — milestones" : "Week view — milestones";
   const shellSubtitle =
@@ -72,6 +73,7 @@ export default async function PlansPage(props: {
           startIso={startIso}
           endIso={endIso}
           total={summary.total}
+          done={summary.done}
           pending={summary.pending}
           inProgress={summary.inProgress}
           blocked={summary.blocked}
@@ -136,8 +138,10 @@ export default async function PlansPage(props: {
           <p className="font-medium">Could not load milestones.</p>
           <p className="mt-1 opacity-90">{error}</p>
           <p className="text-dash-muted-foreground mt-2 text-xs">
-            If this mentions <code className="text-dash-foreground">work_status</code>, run{" "}
-            <code className="text-dash-foreground">supabase/018_project_milestones_work_status.sql</code> in Supabase.
+            If this mentions <code className="text-dash-foreground">work_status</code> or{" "}
+            <code className="text-dash-foreground">workflow_checklist</code>, run pending SQL from{" "}
+            <code className="text-dash-foreground">supabase/</code> (including{" "}
+            <code className="text-dash-foreground">018_project_milestones_work_status.sql</code>) in Supabase.
           </p>
         </div>
       ) : (
@@ -150,18 +154,10 @@ export default async function PlansPage(props: {
             {" · offset "}
             <span className="text-dash-foreground font-medium">{weekOffset}</span>
             {" · "}
-            <span className="text-dash-foreground font-medium">{summary.total}</span> open in table (
-            {inWeek.length} in range
-            {weekOffset === 0 && overdue.length > 0 ? ` · ${overdue.length} overdue list` : ""})
+            <span className="text-dash-foreground font-medium">{summary.total}</span> rows (
+            <span className="text-dash-foreground font-medium">{summary.done}</span> done)
           </p>
-          <PlansMilestonesView
-            inWeek={inWeek}
-            overdue={overdue}
-            weekHeading={weekHeading}
-            weekMonday={weekMonday}
-            todayIso={todayIso}
-            weekOffset={weekOffset}
-          />
+          <PlansMilestonesView rows={rows} weekHeading={weekHeading} weekMonday={weekMonday} todayIso={todayIso} />
         </>
       )}
 

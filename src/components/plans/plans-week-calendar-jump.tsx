@@ -39,7 +39,7 @@ export function PlansWeekCalendarJump({
           className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2"
         />
         <p className="text-dash-muted-foreground mt-1 text-[10px] leading-snug">
-          Pick any day in the week you want; we align to Monday–Sunday for that week.
+          Pick any day in the week you want. The board shows Mon–Sat columns; Sunday deadlines appear on Saturday.
         </p>
       </div>
       <button
