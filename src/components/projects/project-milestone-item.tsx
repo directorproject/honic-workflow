@@ -29,7 +29,7 @@ export function ProjectMilestoneItem({
   const [message, setMessage] = useState<string | null>(null);
 
   const titleOptions = useMemo(() => {
-    const labels = WORKFLOW_STEPS.map((s) => s.label);
+    const labels: string[] = WORKFLOW_STEPS.map((s) => s.label);
     if (milestone.title && !labels.includes(milestone.title)) {
       return [milestone.title, ...labels];
     }
