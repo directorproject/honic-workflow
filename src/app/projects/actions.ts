@@ -20,6 +20,14 @@ function parseOptionalDateField(formData: FormData, key: string): string | null 
   return v;
 }
 
+function revalidateMilestonePaths(trackedProjectId: string) {
+  revalidatePath(`/projects/${trackedProjectId}/work`);
+  revalidatePath(`/projects/${trackedProjectId}`);
+  revalidatePath("/projects");
+  revalidatePath("/plans");
+  revalidatePath("/");
+}
+
 function parseTimelineMilestonesPayload(raw: string): {
   title: string;
   target_date: string | null;
@@ -335,12 +343,63 @@ export async function addProjectMilestone(formData: FormData): Promise<ProjectMi
     throw new Error(error?.message ?? "Insert failed.");
   }
 
-  revalidatePath(`/projects/${tracked_project_id}/work`);
-  revalidatePath(`/projects/${tracked_project_id}`);
-  revalidatePath("/projects");
-  revalidatePath("/");
+  revalidateMilestonePaths(tracked_project_id);
 
   return data as ProjectMilestoneRow;
+}
+
+export async function updateProjectMilestone(formData: FormData): Promise<void> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) {
+    throw new Error("Database not configured.");
+  }
+
+  const milestoneId = String(formData.get("milestone_id") ?? "").trim();
+  const tracked_project_id = String(formData.get("tracked_project_id") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim().slice(0, MAX_MILESTONE_TITLE);
+  const target_date = parseOptionalDateField(formData, "target_date");
+
+  if (!milestoneId || !tracked_project_id || !title) {
+    throw new Error("Milestone id, project id, and title are required.");
+  }
+
+  const { error } = await supabase
+    .from("project_milestones")
+    .update({ title, target_date })
+    .eq("id", milestoneId)
+    .eq("tracked_project_id", tracked_project_id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidateMilestonePaths(tracked_project_id);
+}
+
+export async function deleteProjectMilestone(formData: FormData): Promise<void> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) {
+    throw new Error("Database not configured.");
+  }
+
+  const milestoneId = String(formData.get("milestone_id") ?? "").trim();
+  const tracked_project_id = String(formData.get("tracked_project_id") ?? "").trim();
+
+  if (!milestoneId || !tracked_project_id) {
+    throw new Error("Missing milestone or project.");
+  }
+
+  const { error } = await supabase
+    .from("project_milestones")
+    .delete()
+    .eq("id", milestoneId)
+    .eq("tracked_project_id", tracked_project_id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidateMilestonePaths(tracked_project_id);
 }
 
 export async function deleteTrackedProject(formData: FormData) {

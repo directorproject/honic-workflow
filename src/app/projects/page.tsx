@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { RegisteredClientsTable } from "@/components/dashboard/invoice-names-table";
 import { DeleteTrackedProjectButton } from "@/components/projects/delete-tracked-project-button";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
@@ -153,6 +154,17 @@ export default async function ProjectsPage(props: {
           </tbody>
         </table>
       </div>
+
+      <section className="mt-12 space-y-4">
+        <div>
+          <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">Registered clients</h2>
+          <p className="text-dash-muted-foreground mt-1 text-sm">
+            Names synced from invoices. Deleting the last invoice for a name removes it here unless a tracked project
+            still uses that client. You can also remove orphan names manually.
+          </p>
+        </div>
+        <RegisteredClientsTable rows={dash.clients} />
+      </section>
 
       <p className="text-dash-muted-foreground mt-8 text-center text-xs">
         <Link href="/" className="text-dash-accent font-medium underline-offset-2 hover:underline">

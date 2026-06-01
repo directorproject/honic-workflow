@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { PlansMilestoneDoneCheckbox } from "@/components/plans/plans-milestone-done-checkbox";
 import type { PlansMilestoneRow } from "@/lib/next-week-milestones-data";
 import type { MilestoneWorkStatusValue } from "@/lib/milestone-work-status";
 import { milestoneWorkStatusLabel } from "@/lib/milestone-work-status";
@@ -120,9 +121,9 @@ export function PlansMilestonesView({
       <header className="border-dash-border bg-dash-card rounded-2xl border px-4 py-3 shadow-sm sm:px-5">
         <h2 className="text-dash-foreground text-base font-semibold tracking-tight">Week of {weekHeading}</h2>
         <p className="text-dash-muted-foreground mt-1 max-w-3xl text-xs leading-relaxed">
-          Read-only: workflow on <span className="text-dash-foreground font-medium">Manage → Timeline</span>. Includes done
-          milestones. Grid is <span className="text-dash-foreground font-medium">Mon–Sat</span>; a dot on Saturday can mean a true Saturday deadline or a{" "}
-          <span className="text-dash-foreground font-medium">Sunday</span> deadline mapped into that column.
+          Check <span className="text-dash-foreground font-medium">Done</span> to save completion (syncs to Manage → Timeline). Other workflow
+          statuses are edited on Manage. Grid is <span className="text-dash-foreground font-medium">Mon–Sat</span>; a dot on Saturday can mean a true
+          Saturday deadline or a <span className="text-dash-foreground font-medium">Sunday</span> deadline mapped into that column.
         </p>
       </header>
 
@@ -171,8 +172,11 @@ export function PlansMilestonesView({
                   <th scope="col" className="min-w-[10rem] px-3 py-3 align-bottom">
                     Pipeline % · stage
                   </th>
+                  <th scope="col" className="w-[3.5rem] px-2 py-3 align-bottom text-center">
+                    Done
+                  </th>
                   <th scope="col" className="w-[5rem] px-3 py-3 align-bottom text-center">
-                    Edit
+                    Manage
                   </th>
                 </tr>
               </thead>
@@ -182,6 +186,7 @@ export function PlansMilestonesView({
                   const targetFmt = formatTargetCell(m.target_date);
                   const columnIso = effectiveDotColumnIso(m.target_date);
                   const sundayMapped = columnIso !== m.target_date;
+                  const isDone = m.work_status === "done";
                   return (
                     <tr key={m.milestoneId} className="hover:bg-dash-muted/35 transition-colors">
                       <td className="text-dash-foreground px-3 py-3 align-middle text-xs tabular-nums whitespace-nowrap">
@@ -242,6 +247,9 @@ export function PlansMilestonesView({
                           {projLabel}
                         </span>
                       </td>
+                      <td className="px-2 py-3 align-middle text-center">
+                        <PlansMilestoneDoneCheckbox milestoneId={m.milestoneId} done={isDone} />
+                      </td>
                       <td className="px-3 py-3 align-middle text-center">
                         <Link
                           href={`/projects/${m.projectId}/work`}
@@ -257,9 +265,9 @@ export function PlansMilestonesView({
             </table>
           </div>
           <p className="text-dash-muted-foreground border-dash-border border-t px-4 py-3 text-xs leading-relaxed">
-            Done milestones stay listed. Update workflow from{" "}
-            <span className="text-dash-foreground font-medium">Manage → Timeline</span>. Pipeline % uses the project checklist
-            weights (same idea as the home activity table).
+            Done milestones stay listed. Use the Done checkbox or{" "}
+            <span className="text-dash-foreground font-medium">Manage → Timeline</span> for full workflow. Pipeline % uses the
+            project checklist weights (same idea as the home activity table).
           </p>
         </div>
       )}

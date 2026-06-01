@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { DeleteRegisteredClientButton } from "@/components/dashboard/delete-registered-client-button";
 import type { RegisteredClientRow } from "@/lib/dashboard-types";
 
 export type { RegisteredClientRow };
@@ -81,12 +82,13 @@ export function RegisteredClientsTable({ rows }: { rows: RegisteredClientRow[] }
                 <th className="px-5 py-3.5 whitespace-nowrap">First seen</th>
                 <th className="px-5 py-3.5 whitespace-nowrap">Last activity</th>
                 <th className="px-5 py-3.5 whitespace-nowrap text-right">Tracking</th>
+                <th className="px-5 py-3.5 whitespace-nowrap text-right">Remove</th>
               </tr>
             </thead>
             <tbody className="divide-dash-border divide-y">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-dash-muted-foreground px-5 py-14 text-center text-sm">
+                  <td colSpan={5} className="text-dash-muted-foreground px-5 py-14 text-center text-sm">
                     No clients match your search.
                   </td>
                 </tr>
@@ -112,6 +114,13 @@ export function RegisteredClientsTable({ rows }: { rows: RegisteredClientRow[] }
                         <span className="text-dash-muted-foreground text-xs" title="Needs UUID from registered_clients">
                           —
                         </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      {UUID_RE.test(row.id) ? (
+                        <DeleteRegisteredClientButton clientId={row.id} clientName={row.name} />
+                      ) : (
+                        <span className="text-dash-muted-foreground text-xs">—</span>
                       )}
                     </td>
                   </tr>

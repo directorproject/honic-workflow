@@ -19,9 +19,8 @@ import { isDriveConfigured } from "@/lib/google-drive-server";
 import { listShareLinksForProject } from "@/lib/project-share";
 import { ProjectLoadFailureNotice } from "@/components/projects/project-load-failure-notice";
 import { ProjectShareReferencesForm } from "@/components/projects/project-share-references-form";
-import { MilestoneWorkStatusSelect } from "@/components/plans/milestone-work-status-select";
+import { ProjectMilestoneItem } from "@/components/projects/project-milestone-item";
 import { normalizeShareResearchLinks } from "@/lib/share-client-references";
-import { normalizeMilestoneWorkStatus } from "@/lib/milestone-work-status";
 import {
   loadProjectDetail,
   PROJECT_DETAIL_NOT_FOUND_MESSAGE,
@@ -220,52 +219,16 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
         <section className="border-dash-border bg-dash-card rounded-2xl border p-5 shadow-sm">
           <h2 className="text-dash-foreground mb-1 text-base font-semibold">Timeline</h2>
           <p className="text-dash-muted-foreground mb-4 text-xs">
-            Milestones can be added when you create the project or anytime here. Set target date, assignee, and{" "}
-            <span className="text-dash-foreground font-medium">workflow status</span> (pending, in progress, blocked,
-            done). Done marks complete; statuses show read-only on the <span className="text-dash-foreground font-medium">Plans</span>{" "}
-            page for the week that contains the target date.
+            Add milestones here or when creating a project. Use <span className="text-dash-foreground font-medium">Edit name &amp; date</span>{" "}
+            or <span className="text-dash-foreground font-medium">Delete</span> on each row. Set workflow status below (or mark done from the{" "}
+            <span className="text-dash-foreground font-medium">Plans</span> page checkbox).
           </p>
           {milestones.length === 0 ? (
             <p className="text-dash-muted-foreground mb-1 text-sm">No milestones yet — add one below.</p>
           ) : (
             <ul className="relative space-y-0 pl-1 text-sm before:absolute before:top-2 before:bottom-2 before:left-[7px] before:w-px before:bg-dash-border">
               {milestones.map((m) => (
-                <li key={m.id} className="relative flex gap-3 pb-5 last:pb-0">
-                  <span
-                    className="bg-dash-accent mt-1.5 h-2 w-2 shrink-0 rounded-full ring-2 ring-dash-card"
-                    aria-hidden
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-dash-foreground font-medium">{m.title}</p>
-                    <p className="text-dash-muted-foreground mt-0.5 text-xs tabular-nums">
-                      {m.completed_at
-                        ? `Completed ${new Date(m.completed_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`
-                        : m.target_date
-                          ? `Target ${formatIsoDate(m.target_date) ?? m.target_date}`
-                          : "No target date"}
-                    </p>
-                    {m.assignee?.trim() ? (
-                      <p className="text-dash-muted-foreground mt-1 text-xs">
-                        Assigned to <span className="text-dash-foreground font-medium">{m.assignee.trim()}</span>
-                      </p>
-                    ) : null}
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span className="text-dash-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
-                        Workflow
-                      </span>
-                      {m.completed_at ? (
-                        <span className="border-dash-border text-dash-muted-foreground inline-flex rounded-full border bg-dash-muted/30 px-2 py-0.5 text-[11px] font-semibold">
-                          Done
-                        </span>
-                      ) : (
-                        <MilestoneWorkStatusSelect
-                          milestoneId={m.id}
-                          value={normalizeMilestoneWorkStatus(m.work_status)}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </li>
+                <ProjectMilestoneItem key={m.id} projectId={project.id} milestone={m} />
               ))}
             </ul>
           )}
