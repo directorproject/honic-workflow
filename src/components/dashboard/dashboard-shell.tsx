@@ -57,6 +57,11 @@ const navSections: NavSection[] = [
         label: "This week milestones",
         isActive: (p) => p === "/plans" || p.startsWith("/plans/"),
       },
+      {
+        href: "/clients",
+        label: "Manage clients",
+        isActive: (p) => p === "/clients" || p.startsWith("/clients/"),
+      },
     ],
   },
   {

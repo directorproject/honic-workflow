@@ -8,6 +8,9 @@ type RegisteredRpcRow = {
   first_seen_at: string;
   last_seen_at: string;
   phone?: string | null;
+  is_hidden?: boolean | null;
+  is_blocked?: boolean | null;
+  blocked_reason?: string | null;
 };
 
 function mapRegisteredRpc(rows: RegisteredRpcRow[]): RegisteredClientRow[] {
@@ -19,6 +22,9 @@ function mapRegisteredRpc(rows: RegisteredRpcRow[]): RegisteredClientRow[] {
       firstSeenAt: r.first_seen_at,
       lastSeenAt: r.last_seen_at,
       phone: typeof r.phone === "string" && r.phone.trim() ? r.phone.trim() : null,
+      isHidden: Boolean(r.is_hidden),
+      isBlocked: Boolean(r.is_blocked),
+      blockedReason: typeof r.blocked_reason === "string" && r.blocked_reason.trim() ? r.blocked_reason.trim() : null,
     }));
 }
 
@@ -49,7 +55,9 @@ export async function fetchRegisteredClients(supabase: SupabaseClient): Promise<
   if (clients.length === 0) {
     const tbl = await supabase
       .from("registered_clients")
-      .select("id, name, first_seen_at, last_seen_at, phone")
+      .select("id, name, first_seen_at, last_seen_at, phone, is_hidden, is_blocked, blocked_reason")
+      .eq("is_hidden", false)
+      .eq("is_blocked", false)
       .order("last_seen_at", { ascending: false });
 
     if (tbl.error) {
@@ -63,6 +71,9 @@ export async function fetchRegisteredClients(supabase: SupabaseClient): Promise<
           firstSeenAt: r.first_seen_at,
           lastSeenAt: r.last_seen_at,
           phone: typeof r.phone === "string" && r.phone.trim() ? r.phone.trim() : null,
+          isHidden: Boolean(r.is_hidden),
+          isBlocked: Boolean(r.is_blocked),
+          blockedReason: typeof r.blocked_reason === "string" && r.blocked_reason.trim() ? r.blocked_reason.trim() : null,
         }));
       source = "registry_table";
     }

@@ -14,4 +14,7 @@ export type RegisteredClientRow = {
   firstSeenAt?: string | null;
   lastSeenAt?: string | null;
   phone?: string | null;
+  isHidden?: boolean;
+  isBlocked?: boolean;
+  blockedReason?: string | null;
 };
