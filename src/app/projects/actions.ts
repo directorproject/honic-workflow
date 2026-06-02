@@ -358,6 +358,8 @@ export async function updateProjectMilestone(formData: FormData): Promise<void> 
   const tracked_project_id = String(formData.get("tracked_project_id") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim().slice(0, MAX_MILESTONE_TITLE);
   const target_date = parseOptionalDateField(formData, "target_date");
+  const assigneeRaw = String(formData.get("assignee") ?? "").trim().slice(0, MAX_MILESTONE_ASSIGNEE);
+  const assignee = assigneeRaw.length > 0 ? assigneeRaw : null;
 
   if (!milestoneId || !tracked_project_id || !title) {
     throw new Error("Milestone id, project id, and title are required.");
@@ -365,7 +367,7 @@ export async function updateProjectMilestone(formData: FormData): Promise<void> 
 
   const { error } = await supabase
     .from("project_milestones")
-    .update({ title, target_date })
+    .update({ title, target_date, assignee })
     .eq("id", milestoneId)
     .eq("tracked_project_id", tracked_project_id);
 

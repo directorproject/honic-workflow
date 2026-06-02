@@ -219,8 +219,8 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
         <section className="border-dash-border bg-dash-card rounded-2xl border p-5 shadow-sm">
           <h2 className="text-dash-foreground mb-1 text-base font-semibold">Timeline</h2>
           <p className="text-dash-muted-foreground mb-4 text-xs">
-            Add milestones here or when creating a project. Use <span className="text-dash-foreground font-medium">Edit name &amp; date</span>{" "}
-            or <span className="text-dash-foreground font-medium">Delete</span> on each row. Set workflow status below (or mark done from the{" "}
+            Add milestones here or when creating a project. Use <span className="text-dash-foreground font-medium">Edit milestone</span>{" "}
+            for name, date, and assignee, or <span className="text-dash-foreground font-medium">Delete</span> on each row. Set workflow status below (or mark done from the{" "}
             <span className="text-dash-foreground font-medium">Plans</span> page checkbox).
           </p>
           {milestones.length === 0 ? (

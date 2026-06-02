@@ -110,21 +110,41 @@ export function ProjectMilestoneItem({
                 ))}
               </select>
             </div>
-            <div>
-              <label
-                htmlFor={`ms-date-${milestone.id}`}
-                className="text-dash-muted-foreground mb-1 block text-[11px] font-medium"
-              >
-                Target date
-              </label>
-              <input
-                id={`ms-date-${milestone.id}`}
-                name="target_date"
-                type="date"
-                disabled={pending}
-                defaultValue={milestone.target_date ?? ""}
-                className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 disabled:opacity-50"
-              />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label
+                  htmlFor={`ms-date-${milestone.id}`}
+                  className="text-dash-muted-foreground mb-1 block text-[11px] font-medium"
+                >
+                  Target date
+                </label>
+                <input
+                  id={`ms-date-${milestone.id}`}
+                  name="target_date"
+                  type="date"
+                  disabled={pending}
+                  defaultValue={milestone.target_date ?? ""}
+                  className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 disabled:opacity-50"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor={`ms-assignee-${milestone.id}`}
+                  className="text-dash-muted-foreground mb-1 block text-[11px] font-medium"
+                >
+                  Assigned to <span className="font-normal opacity-80">(optional)</span>
+                </label>
+                <input
+                  id={`ms-assignee-${milestone.id}`}
+                  name="assignee"
+                  type="text"
+                  disabled={pending}
+                  defaultValue={milestone.assignee ?? ""}
+                  placeholder="Name"
+                  autoComplete="name"
+                  className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 disabled:opacity-50"
+                />
+              </div>
             </div>
             {message ? (
               <p className="text-red-600 dark:text-red-300 text-xs" role="alert">
@@ -189,7 +209,7 @@ export function ProjectMilestoneItem({
                 onClick={() => setEditing(true)}
                 className="text-dash-accent text-xs font-semibold underline-offset-2 hover:underline disabled:opacity-50"
               >
-                Edit name & date
+                Edit milestone
               </button>
               <button
                 type="button"
