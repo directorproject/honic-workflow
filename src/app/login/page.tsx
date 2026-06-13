@@ -1,10 +1,5 @@
 import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
 import { LoginForm } from "@/components/auth/login-form";
-import {
-  AUTH_OPERATOR_EMAIL_DOMAIN,
-  AUTH_OPERATOR_USERNAME,
-  defaultOperatorEmail,
-} from "@/lib/auth-credentials";
 import { internalAppHostname } from "@/lib/auth-internal-host";
 
 export const dynamic = "force-dynamic";
@@ -30,12 +25,6 @@ export default async function LoginPage(props: { searchParams?: Promise<{ next?:
           <div className="mt-6">
             <LoginForm nextPath={nextPath} />
           </div>
-          <p className="text-dash-muted-foreground mt-6 text-xs leading-relaxed">
-            First deploy: create the operator in Supabase (Auth → Users) or run{" "}
-            <code className="text-dash-foreground">npm run auth:ensure-operator</code> with{" "}
-            <code className="text-dash-foreground">SUPABASE_SERVICE_ROLE_KEY</code> set. Email domain:{" "}
-            <code className="text-dash-foreground">{AUTH_OPERATOR_EMAIL_DOMAIN}</code>.
-          </p>
         </div>
       </div>
     </main>

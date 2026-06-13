@@ -4,7 +4,6 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { signInAction, type SignInState } from "@/app/login/actions";
-import { AUTH_OPERATOR_DEFAULT_PASSWORD, AUTH_OPERATOR_USERNAME } from "@/lib/auth-credentials";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -35,7 +34,6 @@ export function LoginForm({ nextPath }: { nextPath: string }) {
           type="text"
           required
           autoComplete="username"
-          defaultValue={AUTH_OPERATOR_USERNAME}
           className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2"
         />
       </div>
@@ -49,7 +47,6 @@ export function LoginForm({ nextPath }: { nextPath: string }) {
           type="password"
           required
           autoComplete="current-password"
-          defaultValue={AUTH_OPERATOR_DEFAULT_PASSWORD}
           className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2"
         />
       </div>
