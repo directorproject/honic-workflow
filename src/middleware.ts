@@ -1,6 +1,12 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import {
+  internalAppHostname,
+  isPublicOnExternalHost,
+  requestHostname,
+  requiresInternalAuth,
+} from "@/lib/auth-internal-host";
 import { isPublicAppPath } from "@/lib/auth-public-paths";
 import { updateSession } from "@/lib/supabase/middleware";
 
@@ -16,11 +22,6 @@ function shareOnlyHostname(): string | null {
   }
 }
 
-function requestHostname(request: NextRequest): string {
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? "";
-  return host.split(":")[0]?.toLowerCase() ?? "";
-}
-
 function isAllowedOnShareHost(pathname: string): boolean {
   if (pathname.startsWith("/_next/")) return true;
   if (pathname === "/share" || pathname.startsWith("/share/")) return true;
@@ -31,15 +32,26 @@ function isAllowedOnShareHost(pathname: string): boolean {
 }
 
 /**
- * Share-only host: only public share routes.
- * Main app host: Supabase session required except public paths (share, login, assets).
+ * Auth is required only on the internal dashboard host (NEXT_PUBLIC_APP_URL / localhost).
+ * Share hosts and client share subdomains stay public — no login on shared links.
  */
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const shareHost = shareOnlyHostname();
+  const hostname = requestHostname(request);
 
-  if (shareHost && requestHostname(request) === shareHost) {
+  if (shareHost && hostname === shareHost) {
     if (isAllowedOnShareHost(pathname)) {
+      return NextResponse.next();
+    }
+    return new NextResponse("Not found.", {
+      status: 404,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
+
+  if (!requiresInternalAuth(request)) {
+    if (isPublicOnExternalHost(pathname)) {
       return NextResponse.next();
     }
     return new NextResponse("Not found.", {
@@ -52,8 +64,7 @@ export async function middleware(request: NextRequest) {
 
   if (isPublicAppPath(pathname)) {
     if (user && pathname === "/login") {
-      const home = new URL("/", request.url);
-      return NextResponse.redirect(home);
+      return NextResponse.redirect(new URL("/", request.url));
     }
     return supabaseResponse;
   }
@@ -70,7 +81,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|logo.jpg).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|robots.txt|logo.jpg).*)"],
 };

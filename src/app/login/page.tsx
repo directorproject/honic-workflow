@@ -1,6 +1,11 @@
 import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
 import { LoginForm } from "@/components/auth/login-form";
-import { AUTH_OPERATOR_EMAIL_DOMAIN, AUTH_OPERATOR_USERNAME, defaultOperatorEmail } from "@/lib/auth-credentials";
+import {
+  AUTH_OPERATOR_EMAIL_DOMAIN,
+  AUTH_OPERATOR_USERNAME,
+  defaultOperatorEmail,
+} from "@/lib/auth-credentials";
+import { internalAppHostname } from "@/lib/auth-internal-host";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +23,9 @@ export default async function LoginPage(props: { searchParams?: Promise<{ next?:
         <div className="border-dash-border bg-dash-card w-full max-w-md rounded-2xl border p-6 shadow-sm sm:p-8">
           <h1 className="text-xl font-semibold tracking-tight">Sign in</h1>
           <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
-            Internal workflow dashboard. Uses Supabase Auth (
-            <span className="text-dash-foreground font-medium">{AUTH_OPERATOR_USERNAME}</span> →{" "}
-            <span className="font-mono text-xs">{defaultOperatorEmail()}</span>).
+            Internal workflow on{" "}
+            <span className="text-dash-foreground font-medium">{internalAppHostname() ?? "this host"}</span> only.
+            Client share links stay public without login.
           </p>
           <div className="mt-6">
             <LoginForm nextPath={nextPath} />
