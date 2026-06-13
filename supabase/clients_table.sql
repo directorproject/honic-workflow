@@ -7,6 +7,7 @@
 --   015_registered_clients_invoice_rename.sql — rename on invoice edit (not duplicate client)
 --   019_registered_clients_prune_on_invoice_delete.sql — delete registry when last invoice gone (+ RPC)
 --   020_registered_clients_visibility_and_blocking.sql — hide/block flags + filtered dashboard RPC
+--   021_auth_operator_user.sql — Supabase Auth operator setup notes (inova / hapinova)
 --   006_project_tracking.sql — tracked_projects, milestones, tasks
 --   007_workflow_checklist.sql — workflow_checklist JSON on tracked_projects
 --   008_project_types.sql — FYP / research / product prototype / product / MVP types

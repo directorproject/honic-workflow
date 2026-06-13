@@ -1,0 +1,23 @@
+-- Supabase Auth: default internal operator (email/password).
+-- Auth users live in auth.users — create via Dashboard or npm script, not plain INSERT here.
+--
+-- Default credentials (after setup):
+--   Username: inova  →  email: inova@inova.local
+--   Password: hapinova
+--
+-- One-time setup (from project folder, with .env.local loaded):
+--   npm run auth:ensure-operator
+--
+-- Or Supabase Dashboard → Authentication → Users → Add user:
+--   Email: inova@inova.local
+--   Password: hapinova
+--   Auto confirm: yes
+--
+-- Enable Email provider: Authentication → Providers → Email (enabled).
+--
+-- Site URL (Authentication → URL configuration):
+--   Production: https://your-app-domain.com
+--   Redirect URLs: https://your-app-domain.com/auth/callback
+--                    http://localhost:3000/auth/callback
+
+comment on schema public is 'Workflow app; internal routes require Supabase Auth session (see 021).';

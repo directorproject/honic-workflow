@@ -266,6 +266,14 @@ export function DashboardShell({
             <div className="hidden items-center gap-2 sm:flex">
               <span className={`h-2 w-2 rounded-full ${statusDotClass}`} aria-hidden />
               <span className="text-dash-muted-foreground text-xs font-medium">Live data</span>
+              <form action="/auth/signout" method="post" className="ml-2">
+                <button
+                  type="submit"
+                  className="text-dash-muted-foreground hover:text-dash-foreground text-xs font-semibold underline-offset-2 hover:underline"
+                >
+                  Sign out
+                </button>
+              </form>
             </div>
           </header>
 

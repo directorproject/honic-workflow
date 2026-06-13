@@ -6,9 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "auth:ensure-operator": "node scripts/ensure-operator-user.mjs"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.105.1",
     "googleapis": "^171.4.0",
     "next": "16.2.4",

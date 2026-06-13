@@ -1,6 +1,9 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { isPublicAppPath } from "@/lib/auth-public-paths";
+import { updateSession } from "@/lib/supabase/middleware";
+
 /** Hostname for strict “share-only” routing (from NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN). */
 function shareOnlyHostname(): string | null {
   const raw = process.env.NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN?.trim();
@@ -28,34 +31,46 @@ function isAllowedOnShareHost(pathname: string): boolean {
 }
 
 /**
- * When NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN is set, that hostname may only serve share routes
- * and assets those pages need — not /projects, /api/google, etc.
+ * Share-only host: only public share routes.
+ * Main app host: Supabase session required except public paths (share, login, assets).
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
   const shareHost = shareOnlyHostname();
-  if (!shareHost) {
-    return NextResponse.next();
+
+  if (shareHost && requestHostname(request) === shareHost) {
+    if (isAllowedOnShareHost(pathname)) {
+      return NextResponse.next();
+    }
+    return new NextResponse("Not found.", {
+      status: 404,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
   }
 
-  if (requestHostname(request) !== shareHost) {
-    return NextResponse.next();
+  const { supabaseResponse, user } = await updateSession(request);
+
+  if (isPublicAppPath(pathname)) {
+    if (user && pathname === "/login") {
+      const home = new URL("/", request.url);
+      return NextResponse.redirect(home);
+    }
+    return supabaseResponse;
   }
 
-  if (isAllowedOnShareHost(request.nextUrl.pathname)) {
-    return NextResponse.next();
+  if (!user) {
+    const loginUrl = new URL("/login", request.url);
+    if (pathname !== "/") {
+      loginUrl.searchParams.set("next", pathname);
+    }
+    return NextResponse.redirect(loginUrl);
   }
 
-  return new NextResponse("Not found.", {
-    status: 404,
-    headers: { "Content-Type": "text/plain; charset=utf-8" },
-  });
+  return supabaseResponse;
 }
 
 export const config = {
   matcher: [
-    /*
-     * Skip middleware for immutable static assets (still allowed on share host if requested).
-     */
     "/((?!_next/static|_next/image|favicon.ico|robots.txt|logo.jpg).*)",
   ],
 };
