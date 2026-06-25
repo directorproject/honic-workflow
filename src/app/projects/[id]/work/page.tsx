@@ -175,7 +175,10 @@ export default async function ProjectWorkPage(props: { params: Promise<{ id: str
         <p className="text-dash-muted-foreground mb-5 text-sm">
           Update each step from schematic through handoff (saved immediately). Use <span className="text-dash-foreground font-medium">Outside our scope</span>{" "}
           when your team does not deliver that step (another party provides it)—those steps are skipped for completion,
-          not treated as pending work. A progress bar below shows live counts;{" "}
+          not treated as pending work. When every step through <span className="text-dash-foreground font-medium">Full project test</span>{" "}
+          is done, the project moves to <Link href="/client-side" className="text-dash-accent font-medium underline-offset-2 hover:underline">Client side</Link>;
+          at <span className="text-dash-foreground font-medium">100%</span> it becomes <span className="text-dash-foreground font-medium">Completed</span>.
+          A progress bar below shows live counts;{" "}
           <span className="text-dash-foreground font-medium">View summary page →</span> opens the read-only overview.
         </p>
         <WorkflowChecklistFull projects={[toWorkflowRow(project)]} />
