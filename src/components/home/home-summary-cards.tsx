@@ -24,7 +24,7 @@ function Card({
 
 export function HomeSummaryCards({ s }: { s: HomeWorkflowSummaries }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-7">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-8">
       <Card label="Total clients" value={s.totalClients} hint="Registered names" accent="" />
       <Card label="Total projects" value={s.totalProjects} hint="All tracked" accent="" />
       <Card
@@ -32,6 +32,12 @@ export function HomeSummaryCards({ s }: { s: HomeWorkflowSummaries }) {
         value={s.completedProjects}
         hint="Project status"
         accent="ring-1 ring-emerald-500/25"
+      />
+      <Card
+        label="Client side"
+        value={s.clientSideProjects}
+        hint="Awaiting client"
+        accent="ring-1 ring-violet-500/20"
       />
       <Card
         label="Incomplete"

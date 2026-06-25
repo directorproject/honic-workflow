@@ -29,7 +29,9 @@ export default async function ProjectsPage(props: {
   const clientFilter = typeof sp.client === "string" ? sp.client.trim() : "";
 
   const dash = await loadDashboardData();
-  const { projects, error } = await loadProjectsList(clientFilter || undefined);
+  const { projects, error } = await loadProjectsList(clientFilter || undefined, {
+    excludeStatuses: ["client_side", "completed"],
+  });
 
   const connected = statusTone(dash.banner);
   const statusDotClass = connected
@@ -66,6 +68,12 @@ export default async function ProjectsPage(props: {
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/client-side"
+            className="border-dash-border bg-dash-muted hover:bg-dash-border inline-flex rounded-xl border px-4 py-2 text-sm font-semibold transition-colors"
+          >
+            Client side
+          </Link>
           <Link
             href="/plans"
             className="border-dash-border bg-dash-muted hover:bg-dash-border inline-flex rounded-xl border px-4 py-2 text-sm font-semibold transition-colors"

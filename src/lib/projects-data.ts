@@ -14,6 +14,7 @@ export type TrackedProjectListRow = {
   project_type: string;
   updated_at: string;
   registered_client_id: string;
+  workflow_checklist?: unknown;
   registered_clients: { name: string; share_subdomain?: string | null; phone?: string | null } | null;
 };
 
@@ -58,7 +59,10 @@ export type ProjectTaskRow = {
   sort_order: number;
 };
 
-export async function loadProjectsList(clientId?: string): Promise<{
+export async function loadProjectsList(
+  clientId?: string,
+  options?: { status?: string | string[]; excludeStatuses?: string[] },
+): Promise<{
   projects: TrackedProjectListRow[];
   error: string | null;
 }> {
@@ -70,12 +74,21 @@ export async function loadProjectsList(clientId?: string): Promise<{
   let q = supabase
     .from("tracked_projects")
     .select(
-      "id, title, status, priority, project_type, updated_at, registered_client_id, registered_clients ( name )"
+      "id, title, status, priority, project_type, updated_at, registered_client_id, workflow_checklist, registered_clients ( name )"
     )
     .order("updated_at", { ascending: false });
 
   if (clientId) {
     q = q.eq("registered_client_id", clientId);
+  }
+
+  if (options?.status) {
+    const statuses = Array.isArray(options.status) ? options.status : [options.status];
+    q = q.in("status", statuses);
+  } else if (options?.excludeStatuses?.length) {
+    for (const s of options.excludeStatuses) {
+      q = q.neq("status", s);
+    }
   }
 
   const { data, error } = await q;
@@ -94,6 +107,7 @@ export async function loadProjectsList(clientId?: string): Promise<{
       updated_at: string;
       registered_client_id: string;
       registered_clients: unknown;
+      workflow_checklist?: unknown;
     };
     return {
       id: r.id,
@@ -103,6 +117,7 @@ export async function loadProjectsList(clientId?: string): Promise<{
       project_type: r.project_type,
       updated_at: r.updated_at,
       registered_client_id: r.registered_client_id,
+      workflow_checklist: r.workflow_checklist,
       registered_clients: normalizeRegisteredClientJoin(r.registered_clients),
     };
   });

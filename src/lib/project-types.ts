@@ -8,6 +8,7 @@ export const PROJECT_STATUSES = [
   { value: "prototype_phase", label: "Prototype phase" },
   { value: "testing", label: "Testing" },
   { value: "on_hold", label: "On hold" },
+  { value: "client_side", label: "Client side" },
   { value: "completed", label: "Completed" },
 ] as const;
 

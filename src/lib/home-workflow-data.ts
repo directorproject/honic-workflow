@@ -21,6 +21,7 @@ export type HomeWorkflowSummaries = {
   totalClients: number;
   totalProjects: number;
   completedProjects: number;
+  clientSideProjects: number;
   incompleteProjects: number;
   criticalProjects: number;
   onHoldProjects: number;
@@ -39,6 +40,7 @@ export async function loadHomeWorkflowPage(): Promise<{
     totalClients: 0,
     totalProjects: 0,
     completedProjects: 0,
+    clientSideProjects: 0,
     incompleteProjects: 0,
     criticalProjects: 0,
     onHoldProjects: 0,
@@ -130,22 +132,28 @@ export async function loadHomeWorkflowPage(): Promise<{
     };
   });
 
+  const pipelineProjects = projects.filter(
+    (p) => p.status !== "client_side" && p.status !== "completed",
+  );
+
   const totalProjects = projects.length;
   const completedProjects = projects.filter((p) => p.status === "completed").length;
+  const clientSideProjects = projects.filter((p) => p.status === "client_side").length;
   const incompleteProjects = totalProjects - completedProjects;
   const criticalProjects = projects.filter((p) => p.priority === "critical").length;
   const onHoldProjects = projects.filter((p) => p.status === "on_hold").length;
-  const activeProjects = projects.filter((p) =>
-    ["planning", "active", "prototype_phase", "testing"].includes(p.status)
+  const activeProjects = pipelineProjects.filter((p) =>
+    ["planning", "active", "prototype_phase", "testing"].includes(p.status),
   ).length;
 
   return {
     banner,
-    projects,
+    projects: pipelineProjects,
     summaries: {
       totalClients: clients.length,
       totalProjects,
       completedProjects,
+      clientSideProjects,
       incompleteProjects,
       criticalProjects,
       onHoldProjects,

@@ -21,6 +21,11 @@ export const WORKFLOW_STEPS = [
 
 export type WorkflowStepKey = (typeof WORKFLOW_STEPS)[number]["key"];
 
+/** Pipeline steps through Full project test (inclusive) — our delivery before client handoff. */
+export const WORKFLOW_KEYS_THROUGH_FULL_PROJECT_TEST: WorkflowStepKey[] = WORKFLOW_STEPS.filter(
+  (s) => s.key !== "client_check" && s.key !== "give_to_client",
+).map((s) => s.key);
+
 /** Drive uploads use this label as the subfolder name under the project folder. */
 export function workflowStepUploadFolderLabel(key: string): string {
   const row = WORKFLOW_STEPS.find((s) => s.key === key);
@@ -96,4 +101,37 @@ export function workflowStepCounts(raw: unknown): {
   const addressed = done + notProvided;
   const weightedPercent = total ? Math.min(100, Math.round((weightedPoints / total) * 100)) : 0;
   return { done, inProgress, notProvided, total, inScopeTotal, addressed, weightedPoints, weightedPercent };
+}
+
+function stepIsAddressed(status: WorkflowStepStatus): boolean {
+  return status === "done" || status === "not_provided";
+}
+
+/** True when every step through Full project test is done or outside our scope. */
+export function isThroughFullProjectTestComplete(raw: unknown): boolean {
+  const checklist = normalizeWorkflowChecklist(raw);
+  return WORKFLOW_KEYS_THROUGH_FULL_PROJECT_TEST.every((key) =>
+    stepIsAddressed(checklist[key] ?? "pending"),
+  );
+}
+
+/** null = keep current status */
+export type ProjectStatusFromPipeline = "client_side" | "completed" | "active" | null;
+
+/** Suggested tracked_projects.status from pipeline checklist. */
+export function resolveProjectStatusFromPipeline(
+  raw: unknown,
+  currentStatus: string,
+): ProjectStatusFromPipeline {
+  const counts = workflowStepCounts(raw);
+  if (counts.weightedPercent >= 100) {
+    return "completed";
+  }
+  if (isThroughFullProjectTestComplete(raw)) {
+    return "client_side";
+  }
+  if (currentStatus === "completed" || currentStatus === "client_side") {
+    return "active";
+  }
+  return null;
 }
