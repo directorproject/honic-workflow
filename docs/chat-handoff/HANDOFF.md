@@ -22,7 +22,8 @@ Read this first. The full conversation is in `full-chat.md` (same folder, secret
 ### Done
 
 - **Title documents** (all in `docs/`):
-  - `Electronic-Components-Testing-Kit.docx`: simple doc for title 9 (client MATUTU). An edited copy without the ASCII front-panel box is `docs/_edited.docx`. It still needs to replace the original once the original is closed in Word.
+  - `Electronic-Components-Testing-Kit.docx`: simple doc for title 9 (client MATUTU), with the ASCII front-panel box removed.
+  - `Honic-Setup-Guide.pdf/.docx`: how to set up a new PC with Git, Supabase, Google Drive, Vercel, and Cursor.
   - `New-Solution-Titles-BENG22ETE.pdf`: 5 reworked ETE titles.
   - `ETE-Hardware-Topics-from-BENG22COE.pdf/.xlsx`, `ETE-Topics-New-Titles.pdf`, `ETE-Topics-Original-Titles.pdf`: 10 ETE hardware topics from the COE list.
   - `Topic-1-Solar-Phone-Charging-Kiosk.pdf`: technical doc for topic 1.
@@ -97,7 +98,7 @@ Read this first. The full conversation is in `full-chat.md` (same folder, secret
 
 ## Other open items
 
-- Swap `docs/_edited.docx` into `docs/Electronic-Components-Testing-Kit.docx` once Word has closed the original. Lock file: `docs/~$ectronic-Components-Testing-Kit.docx`.
+- All work up to 31 Oct 2026 is committed and pushed to GitHub `main` (commit 7053825). Not committed on purpose: `docs.rar` (user's older archive) and `scripts/_tmp-titles-pdf.py`.
 - User was advised to reset the Supabase database password, which appeared in chat, and to delete the access token when done (supabase.com/dashboard/account/tokens).
 - `scripts/_tmp-titles-pdf.py` existed before this work; don't delete it without asking.
 - Pre-existing lint error in `src/components/dashboard/dashboard-shell.tsx` (react-hooks/set-state-in-effect); left as is.
