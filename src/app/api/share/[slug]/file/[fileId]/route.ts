@@ -8,9 +8,10 @@ export const runtime = "nodejs";
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ token: string; fileId: string }> },
+  context: { params: Promise<{ slug: string; fileId: string }> },
 ) {
-  const { token, fileId: rawId } = await context.params;
+  // The first segment is the share token; it is named `slug` to share the folder with /api/share/[slug]/[token].
+  const { slug: token, fileId: rawId } = await context.params;
   const fileId = decodeURIComponent(rawId);
 
   const resolved = await resolveShareTokenToProjectId(token);

@@ -1,6 +1,7 @@
 /** Routes that do not require a Supabase session (main app host). */
 export function isPublicAppPath(pathname: string): boolean {
   if (pathname === "/login") return true;
+  if (pathname === "/portal" || pathname.startsWith("/portal/")) return true;
   if (pathname.startsWith("/auth/")) return true;
   if (pathname === "/share" || pathname.startsWith("/share/")) return true;
   if (pathname.startsWith("/api/share/")) return true;
