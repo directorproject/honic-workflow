@@ -5,12 +5,34 @@ export const PAYMENT_PROVIDER = "simulated";
 
 export const PAYMENT_NETWORKS = ["M-Pesa", "Mixx by Yas (Tigo Pesa)", "Airtel Money", "HaloPesa"] as const;
 
-export const YEARS_OF_STUDY = [
-  "Year 1 (NTA Level 7)",
-  "Year 2 (NTA Level 7)",
-  "Year 3 (NTA Level 8)",
-  "Year 4 (NTA Level 8)",
+export const YEARS_OF_STUDY = ["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"] as const;
+
+export const STUDY_LEVELS = [
+  { value: "ordinary_diploma", label: "Ordinary Diploma" },
+  { value: "bachelor", label: "Bachelor's degree" },
+  { value: "masters", label: "Master's degree" },
+  { value: "other", label: "Other" },
 ] as const;
+
+export type StudyLevel = (typeof STUDY_LEVELS)[number]["value"];
+
+export const PROJECT_CATEGORIES = [
+  { value: "fyp", label: "Final Year Project (FYP)" },
+  { value: "research", label: "Research project" },
+  { value: "innovation", label: "Innovation project" },
+] as const;
+
+export type ProjectCategory = (typeof PROJECT_CATEGORIES)[number]["value"];
+
+export function studyLevelLabel(level: string | null, levelOther?: string | null): string | null {
+  if (!level) return null;
+  if (level === "other") return levelOther?.trim() || "Other";
+  return STUDY_LEVELS.find((l) => l.value === level)?.label ?? null;
+}
+
+export function projectCategoryLabel(category: string | null): string | null {
+  return PROJECT_CATEGORIES.find((c) => c.value === category)?.label ?? null;
+}
 
 export const DEFAULT_INSTITUTION = "Dar es Salaam Institute of Technology (DIT)";
 

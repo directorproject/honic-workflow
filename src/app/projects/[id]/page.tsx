@@ -15,6 +15,7 @@ import { ProjectReadOnlyTimelineCard } from "@/components/projects/project-read-
 import { ProjectLoadFailureNotice } from "@/components/projects/project-load-failure-notice";
 import { StudentAccountCard, type LinkedStudent } from "@/components/projects/student-account-card";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
+import { describeStudy } from "@/lib/title-bank";
 import {
   loadProjectDetail,
   PROJECT_DETAIL_NOT_FOUND_MESSAGE,
@@ -71,12 +72,17 @@ async function loadLinkedStudent(projectId: string): Promise<LinkedStudent | nul
   if (!supabase) return null;
   const { data } = await supabase
     .from("student_profiles")
-    .select("user_id, full_name, reg_no")
+    .select("user_id, full_name, reg_no, study_level, study_level_other, project_category, year_of_study")
     .eq("tracked_project_id", projectId)
     .maybeSingle();
   if (!data) return null;
   const { data: u } = await supabase.auth.admin.getUserById(String(data.user_id));
-  return { fullName: String(data.full_name), regNo: data.reg_no ? String(data.reg_no) : null, email: u?.user?.email ?? null };
+  return {
+    fullName: String(data.full_name),
+    regNo: data.reg_no ? String(data.reg_no) : null,
+    study: describeStudy(data),
+    email: u?.user?.email ?? null,
+  };
 }
 
 export default async function ProjectDetailPage(props: { params: Promise<{ id: string }> }) {

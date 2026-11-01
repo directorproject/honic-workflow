@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 
 import { linkStudentAccountAction, unlinkStudentAccountAction } from "@/app/projects/[id]/student-account-actions";
 
-export type LinkedStudent = { fullName: string; regNo: string | null; email: string | null };
+export type LinkedStudent = { fullName: string; regNo: string | null; study: string | null; email: string | null };
 
 export function StudentAccountCard({ projectId, student }: { projectId: string; student: LinkedStudent | null }) {
   const router = useRouter();
@@ -35,7 +35,7 @@ export function StudentAccountCard({ projectId, student }: { projectId: string; 
       {student ? (
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
           <span className="text-dash-foreground font-semibold">{student.fullName}</span>
-          <span className="text-dash-muted-foreground">{[student.regNo, student.email].filter(Boolean).join(" · ")}</span>
+          <span className="text-dash-muted-foreground">{[student.study, student.regNo, student.email].filter(Boolean).join(" · ")}</span>
           <button
             type="button"
             disabled={pending}

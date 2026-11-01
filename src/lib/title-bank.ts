@@ -1,4 +1,20 @@
+import { projectCategoryLabel, studyLevelLabel } from "@/lib/portal/config";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
+
+export function describeStudy(p: {
+  study_level?: unknown;
+  study_level_other?: unknown;
+  project_category?: unknown;
+  year_of_study?: unknown;
+}): string | null {
+  const s = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  const parts = [
+    studyLevelLabel(s(p.study_level), s(p.study_level_other)),
+    projectCategoryLabel(s(p.project_category)),
+    s(p.year_of_study),
+  ].filter(Boolean);
+  return parts.length ? parts.join(" · ") : null;
+}
 
 export type LastYearProject = {
   id: string;
@@ -20,6 +36,8 @@ export type TitleStudent = {
   fullName: string;
   regNo: string | null;
   phone: string;
+  /** Level of study, project type and year, for example "Bachelor's degree · Research project · Year 3". */
+  study: string | null;
   trackedProjectId: string | null;
 };
 
@@ -87,7 +105,7 @@ export async function loadTitleBank(): Promise<TitleBankData> {
   if (studentIds.length > 0) {
     const { data: profs } = await supabase
       .from("student_profiles")
-      .select("user_id, full_name, reg_no, phone, tracked_project_id")
+      .select("user_id, full_name, reg_no, phone, study_level, study_level_other, project_category, year_of_study, tracked_project_id")
       .in("user_id", studentIds);
     for (const p of profs ?? []) {
       students.set(String(p.user_id), {
@@ -95,6 +113,7 @@ export async function loadTitleBank(): Promise<TitleBankData> {
         fullName: String(p.full_name),
         regNo: p.reg_no ? String(p.reg_no) : null,
         phone: String(p.phone),
+        study: describeStudy(p),
         trackedProjectId: p.tracked_project_id ? String(p.tracked_project_id) : null,
       });
     }

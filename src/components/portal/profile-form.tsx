@@ -11,9 +11,50 @@ import {
   INSTITUTIONS,
   OTHER_COURSE_CODE,
   OTHER_OPTION,
+  PROJECT_CATEGORIES,
+  STUDY_LEVELS,
   YEARS_OF_STUDY,
 } from "@/lib/portal/config";
 import type { Course, StudentProfile } from "@/lib/portal/data";
+
+function ChoiceChips({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly { value: string; label: string }[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="sm:col-span-2" role="radiogroup" aria-label={label}>
+      <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">{label}</span>
+      <div className="flex flex-wrap gap-2">
+        {options.map((o) => {
+          const active = o.value === value;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => onChange(o.value)}
+              className={`rounded-xl border px-3.5 py-2 text-sm font-medium transition-colors ${
+                active
+                  ? "border-dash-accent bg-dash-accent/15 text-dash-foreground ring-dash-accent/30 ring-2"
+                  : "border-dash-border bg-dash-muted/30 text-dash-muted-foreground hover:border-dash-accent/50 hover:text-dash-foreground"
+              }`}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export function ProfileForm({
   courses,
@@ -34,6 +75,8 @@ export function ProfileForm({
   const institutionListed = (INSTITUTIONS as readonly string[]).includes(savedInstitution);
   const [institutionChoice, setInstitutionChoice] = useState(institutionListed ? savedInstitution : OTHER_OPTION);
   const [courseChoice, setCourseChoice] = useState(profile?.courseCode ?? courses[0]?.code ?? "");
+  const [studyLevel, setStudyLevel] = useState(profile?.studyLevel ?? "");
+  const [projectCategory, setProjectCategory] = useState(profile?.projectCategory ?? "");
 
   const listedCourses = courses.filter((c) => c.code !== OTHER_COURSE_CODE);
 
@@ -44,6 +87,8 @@ export function ProfileForm({
           e.preventDefault();
           const fd = new FormData(e.currentTarget);
           const get = (k: string) => String(fd.get(k) ?? "");
+          if (!studyLevel) return setStatus({ ok: false, message: "Choose your level of study." });
+          if (!projectCategory) return setStatus({ ok: false, message: "Choose your project type." });
           setStatus(null);
           startTransition(async () => {
             const res = await portalSaveProfileAction({
@@ -52,6 +97,9 @@ export function ProfileForm({
               institution: institutionChoice === OTHER_OPTION ? get("institutionOther") : institutionChoice,
               courseCode: courseChoice,
               courseOther: courseChoice === OTHER_COURSE_CODE ? get("courseOther") : "",
+              studyLevel,
+              studyLevelOther: studyLevel === "other" ? get("studyLevelOther") : "",
+              projectCategory,
               yearOfStudy: get("yearOfStudy"),
               academicYear: get("academicYear"),
               partner: get("partner"),
@@ -119,8 +167,30 @@ export function ProfileForm({
           </Field>
         ) : null}
 
-        <Field label="Year of study *">
-          <select name="yearOfStudy" required className={INPUT} defaultValue={profile?.yearOfStudy ?? YEARS_OF_STUDY[3]}>
+        <ChoiceChips label="Level of study *" options={STUDY_LEVELS} value={studyLevel} onChange={setStudyLevel} />
+        {studyLevel === "other" ? (
+          <Field label="Your level of study *" wide>
+            <input
+              name="studyLevelOther"
+              required
+              maxLength={80}
+              placeholder="e.g. Certificate, Higher Diploma, PhD"
+              className={INPUT}
+              defaultValue={profile?.studyLevelOther ?? ""}
+            />
+          </Field>
+        ) : null}
+
+        <ChoiceChips
+          label="Project type *"
+          options={PROJECT_CATEGORIES}
+          value={projectCategory}
+          onChange={setProjectCategory}
+        />
+
+        <Field label="Year of study (optional)">
+          <select name="yearOfStudy" className={INPUT} defaultValue={profile?.yearOfStudy ?? ""}>
+            <option value="">Not specified</option>
             {YEARS_OF_STUDY.map((y) => (
               <option key={y}>{y}</option>
             ))}

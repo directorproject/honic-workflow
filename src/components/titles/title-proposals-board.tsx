@@ -260,7 +260,7 @@ export function TitleProposalsBoard({
                   <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-sky-500/30 bg-sky-500/5 px-3 py-2 text-xs">
                     <span className="text-dash-foreground font-semibold">Student: {p.student.fullName}</span>
                     <span className="text-dash-muted-foreground">
-                      {[p.student.regNo, p.student.phone].filter(Boolean).join(" · ")}
+                      {[p.student.study, p.student.regNo, p.student.phone].filter(Boolean).join(" · ")}
                     </span>
                     {p.student.trackedProjectId ? (
                       <Link

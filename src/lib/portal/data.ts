@@ -13,7 +13,10 @@ export type StudentProfile = {
   institution: string;
   courseCode: string;
   courseOther: string | null;
-  yearOfStudy: string;
+  studyLevel: string | null;
+  studyLevelOther: string | null;
+  projectCategory: string | null;
+  yearOfStudy: string | null;
   academicYear: string;
   partner: string | null;
   trackedProjectId: string | null;
@@ -142,7 +145,10 @@ export async function loadPortalState(): Promise<PortalState> {
     institution: String(p.institution),
     courseCode: String(p.course_code),
     courseOther: p.course_other ? String(p.course_other) : null,
-    yearOfStudy: String(p.year_of_study),
+    studyLevel: p.study_level ? String(p.study_level) : null,
+    studyLevelOther: p.study_level_other ? String(p.study_level_other) : null,
+    projectCategory: p.project_category ? String(p.project_category) : null,
+    yearOfStudy: p.year_of_study ? String(p.year_of_study) : null,
     academicYear: String(p.academic_year),
     partner: p.partner ? String(p.partner) : null,
     trackedProjectId: p.tracked_project_id ? String(p.tracked_project_id) : null,

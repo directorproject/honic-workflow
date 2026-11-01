@@ -10,6 +10,8 @@ import {
   OTHER_COURSE_CODE,
   PAYMENT_NETWORKS,
   PAYMENT_PROVIDER,
+  PROJECT_CATEGORIES,
+  STUDY_LEVELS,
   TITLE_CHANGE_FEE_TSH,
   YEARS_OF_STUDY,
 } from "@/lib/portal/config";
@@ -122,6 +124,9 @@ export type ProfileInput = {
   institution: string;
   courseCode: string;
   courseOther: string;
+  studyLevel: string;
+  studyLevelOther: string;
+  projectCategory: string;
   yearOfStudy: string;
   academicYear: string;
   partner: string;
@@ -131,13 +136,17 @@ export async function portalSaveProfileAction(input: ProfileInput): Promise<Port
   try {
     const { user, db } = await requireStudent();
     const courseCode = clean(input.courseCode, 12).toUpperCase();
+    const studyLevel = clean(input.studyLevel, 30);
     const row = {
       full_name: clean(input.fullName, 120),
       phone: clean(input.phone, 30),
       institution: clean(input.institution, 160),
       course_code: courseCode,
       course_other: courseCode === OTHER_COURSE_CODE ? clean(input.courseOther, 120) || null : null,
-      year_of_study: clean(input.yearOfStudy, 60),
+      study_level: studyLevel,
+      study_level_other: studyLevel === "other" ? clean(input.studyLevelOther, 80) || null : null,
+      project_category: clean(input.projectCategory, 30),
+      year_of_study: clean(input.yearOfStudy, 60) || null,
       academic_year: clean(input.academicYear, 20),
       partner: clean(input.partner, 160) || null,
     };
@@ -147,8 +156,17 @@ export async function portalSaveProfileAction(input: ProfileInput): Promise<Port
     if (courseCode === OTHER_COURSE_CODE && !row.course_other) {
       return { ok: false, message: "Type the name of your course." };
     }
-    if (!(YEARS_OF_STUDY as readonly string[]).includes(row.year_of_study)) {
-      return { ok: false, message: "Choose your year of study." };
+    if (!STUDY_LEVELS.some((l) => l.value === row.study_level)) {
+      return { ok: false, message: "Choose your level of study." };
+    }
+    if (row.study_level === "other" && !row.study_level_other) {
+      return { ok: false, message: "Type your level of study." };
+    }
+    if (!PROJECT_CATEGORIES.some((c) => c.value === row.project_category)) {
+      return { ok: false, message: "Choose your project type." };
+    }
+    if (row.year_of_study && !(YEARS_OF_STUDY as readonly string[]).includes(row.year_of_study)) {
+      return { ok: false, message: "Choose a year of study from the list." };
     }
     const { data: course } = await db.from("courses").select("code").eq("code", row.course_code).eq("is_active", true).maybeSingle();
     if (!course) return { ok: false, message: "Choose your course." };
