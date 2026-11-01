@@ -235,7 +235,7 @@ export function DashboardShell({
             </div>
           </div>
           <p className="text-dash-sidebar-muted/90">
-            Clients from invoices → <span className="font-medium text-slate-200">registered_clients</span>. Projects in{" "}
+            Clients in <span className="font-medium text-slate-200">registered_clients</span>. Projects in{" "}
             <span className="font-medium text-slate-200">tracked_projects</span>.
           </p>
         </div>

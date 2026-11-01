@@ -59,9 +59,37 @@ Read this first. The full conversation is in `full-chat.md` (same folder, secret
   - body: `{"query": "..."}`
   - header: `Authorization: Bearer <token>`
   - Read the token from `.env.local`; never print it.
-- The `SUPABASE_DB_URL` line has a wrong password. Direct DB login fails. Ignore it or delete it.
 - Direct host `db.<ref>.supabase.co` is IPv6-only and doesn't work on this network.
 - Project ref `qobobocldfjhdkpjyuuq`, region `ca-central-1`, pooler `aws-1-ca-central-1.pooler.supabase.com`.
+
+## Database move (1 Nov 2026): IN PROGRESS
+
+The old Supabase project `qobobocldfjhdkpjyuuq` is shared with the Honic online shop (45 tables, 31 shop customer logins). The dashboard and the future student portal moved to their own project `fpzpcsiczzmwppgmoeem` (eu-central-1). The two are fully isolated: the dashboard no longer reads anything from the shop. Clients are added by hand on /clients ("Add client").
+
+Done:
+- Schema: `supabase/v2/001_dashboard_baseline.sql` applied to the new project. It has 8 tables. RLS is on everywhere with no anon/authenticated policies; the app only uses the service role.
+- The old shared-DB migrations moved to `supabase/legacy-shared-db/` (history only).
+- Data copied with IDs kept, and count + checksum verified for every table. Backup JSON is in `E:\honic\backups\dashboard-tables-2026-11-01\`.
+- The staff user `inova@inova.local` was copied with the same password and `app_metadata.role = "staff"`. The old project's staff user also got the role.
+- New project auth: site URL https://inova.honiccompany.com, sign-up disabled.
+- Code:
+  - Staff-only access: `src/lib/auth-staff.ts`, checked in `src/middleware.ts` and `src/app/login/actions.ts`.
+  - Add-client form (`src/components/clients/add-registered-client-form.tsx`).
+  - Shop invoice sync removed.
+  - Unused files removed: invoice-stat-cards, kpi-grid, stat-cards, supabase/browser, docs.rar, scripts/_tmp-titles-pdf.py.
+- `.env.local` on this PC points at the new project. The old values are kept as `OLD_*` for rollback. Each Supabase access token only works on one project: `SUPABASE_ACCESS_TOKEN` is the old one and `NEW_SUPABASE_ACCESS_TOKEN` the new one.
+
+Remaining:
+1. Cutover:
+   1. Run `python scripts/_tmp-copy-data.py --resync`. This empties the new tables and copies fresh data, because the live site still writes to the old DB.
+   2. User sets these Vercel env vars to the new project, then redeploys: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+   3. Test the live site.
+2. After the live site is confirmed (user approved):
+   - Back up, then drop the 10 dashboard tables (8 + sample `clients`/`projects`) from the old shop project.
+   - Drop the 9 dashboard functions and the `trg_invoices_sync_registered_client` trigger on `invoices`. Keep `invoices`.
+   - Delete the `inova@inova.local` login there.
+   - Shop backup tables (`orders_backup`, `order_items_backup`, `profiles_backup`) stay; the shop maintainer decides.
+3. Then remove `OLD_*` and `SUPABASE_ACCESS_TOKEN` from `.env.local`, delete `scripts/_tmp-*.py`, and update `docs/Honic-Setup-Guide` (it still names the old project).
 
 ## Decisions made for the real student portal
 

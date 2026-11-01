@@ -74,7 +74,7 @@ export async function loadHomeWorkflowPage(): Promise<{
 
   if (error) {
     const msg = error.message.includes("workflow_checklist")
-      ? `${error.message} Run supabase/007_workflow_checklist.sql to add the checklist column.`
+      ? `${error.message} Run supabase/v2/001_dashboard_baseline.sql to add the checklist column.`
       : error.message;
     return {
       banner: {

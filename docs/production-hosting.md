@@ -55,7 +55,7 @@ With **`NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN`** set, **middleware** (`src/middleware.
 
 **Option B — per-client wildcard hosts (`{name}-api.honiccompany.com`):**
 
-1. Run **`supabase/012_registered_clients_share_subdomain.sql`** in the Supabase SQL editor (optional column + uniqueness).
+1. Run **`supabase/v2/001_dashboard_baseline.sql`** in the Supabase SQL editor (optional column + uniqueness).
 2. In Cloudflare add **`*.honiccompany.com`** to Vercel’s target (and add the wildcard under **Vercel → Domains**).
 3. Omit **`NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN`** and set:
 

@@ -1,5 +1,5 @@
 /**
- * Must stay in sync with `tracked_projects.status` check constraint (see supabase/006_project_tracking.sql).
+ * Must stay in sync with `tracked_projects.status` check constraint (see supabase/v2/001_dashboard_baseline.sql).
  * Folder names under the project Drive folder use `label` when sorting uploads by status.
  */
 export const PROJECT_STATUSES = [
@@ -20,7 +20,7 @@ export function projectStatusUploadFolderLabel(value: string): string {
 }
 
 /**
- * Must stay in sync with `tracked_projects.project_type` check constraint (see supabase/008_project_types.sql).
+ * Must stay in sync with `tracked_projects.project_type` check constraint (see supabase/v2/001_dashboard_baseline.sql).
  */
 export const PROJECT_TYPES = [
   { value: "student_fyp", label: "Student final year project (FYP)" },

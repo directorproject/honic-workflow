@@ -28,10 +28,7 @@ function mapRegisteredRpc(rows: RegisteredRpcRow[]): RegisteredClientRow[] {
     }));
 }
 
-/**
- * Loads clients only from registered_clients (RPC + table).
- * Does not query invoices.
- */
+/** Loads clients from registered_clients (RPC, then table as fallback). */
 export async function fetchRegisteredClients(supabase: SupabaseClient): Promise<{
   clients: RegisteredClientRow[];
   hints: string[];

@@ -132,7 +132,7 @@ export function RegisteredClientAdminTable({ rows }: { rows: RegisteredClientRow
                           type="button"
                           disabled={busy}
                           onClick={() => {
-                            if (!window.confirm(`Delete "${row.name}"? This only works if no invoices/projects use it.`)) {
+                            if (!window.confirm(`Delete "${row.name}"? This only works if no tracked project uses it.`)) {
                               return;
                             }
                             runFor(row.id, () => deleteRegisteredClientFromManageAction(row.id));

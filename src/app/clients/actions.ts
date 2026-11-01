@@ -12,6 +12,25 @@ function revalidateClientPages() {
   revalidatePath("/");
 }
 
+export async function createRegisteredClientAction(name: string, phone: string | null = null) {
+  const clean = String(name ?? "").replace(/\s+/g, " ").trim().slice(0, 200);
+  if (!clean) throw new Error("Enter the client name.");
+  const cleanPhone = String(phone ?? "").trim().slice(0, 40);
+
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) throw new Error("Database not configured.");
+
+  const { error } = await supabase
+    .from("registered_clients")
+    .insert({ name: clean, phone: cleanPhone.length > 0 ? cleanPhone : null });
+  if (error) {
+    if (error.code === "23505") throw new Error(`A client named "${clean}" already exists.`);
+    throw new Error(error.message);
+  }
+
+  revalidateClientPages();
+}
+
 export async function setRegisteredClientHiddenAction(clientId: string, hidden: boolean) {
   const id = String(clientId ?? "").trim();
   if (!id) throw new Error("Missing client id.");

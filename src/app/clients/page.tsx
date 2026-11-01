@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { AddRegisteredClientForm } from "@/components/clients/add-registered-client-form";
 import { RegisteredClientAdminTable } from "@/components/clients/registered-client-admin-table";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
@@ -46,7 +47,7 @@ export default async function ManageRegisteredClientsPage() {
   return (
     <DashboardShell
       title="Manage registered clients"
-      subtitle="Hide, block, or delete clients in the invoice-derived registry."
+      subtitle="Add, hide, block, or delete clients."
       statusDotClass={statusDotClass}
     >
       <div className="mb-5">
@@ -54,6 +55,8 @@ export default async function ManageRegisteredClientsPage() {
           Hidden or blocked clients are excluded from dashboards and new-project client selectors.
         </p>
       </div>
+
+      <AddRegisteredClientForm />
 
       {error ? (
         <div
@@ -63,9 +66,9 @@ export default async function ManageRegisteredClientsPage() {
           <p className="font-medium">Could not load full client admin view.</p>
           <p className="mt-1">{error}</p>
           <p className="mt-2 text-xs">
-            If this mentions <code className="text-dash-foreground">is_hidden</code> or{" "}
-            <code className="text-dash-foreground">is_blocked</code>, run{" "}
-            <code className="text-dash-foreground">supabase/020_registered_clients_visibility_and_blocking.sql</code>.
+            If a table or column is missing, run{" "}
+            <code className="text-dash-foreground">supabase/v2/001_dashboard_baseline.sql</code> in the Supabase SQL
+            editor.
           </p>
         </div>
       ) : null}

@@ -8,6 +8,7 @@ import {
   requiresInternalAuth,
 } from "@/lib/auth-internal-host";
 import { isPublicAppPath } from "@/lib/auth-public-paths";
+import { isStaffUser } from "@/lib/auth-staff";
 import { updateSession } from "@/lib/supabase/middleware";
 
 /** Hostname for strict “share-only” routing (from NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN). */
@@ -61,15 +62,16 @@ export async function middleware(request: NextRequest) {
   }
 
   const { supabaseResponse, user } = await updateSession(request);
+  const staff = isStaffUser(user);
 
   if (isPublicAppPath(pathname)) {
-    if (user && pathname === "/login") {
+    if (staff && pathname === "/login") {
       return NextResponse.redirect(new URL("/", request.url));
     }
     return supabaseResponse;
   }
 
-  if (!user) {
+  if (!staff) {
     const loginUrl = new URL("/login", request.url);
     if (pathname !== "/") {
       loginUrl.searchParams.set("next", pathname);

@@ -28,7 +28,7 @@ export default async function NewProjectPage(props: {
   return (
     <DashboardShell
       title="New project"
-      subtitle="Link work to a registered client from your invoice-derived registry."
+      subtitle="Link work to a registered client. Add new clients on Manage clients."
       statusDotClass={statusDotClass}
     >
       {error ? (

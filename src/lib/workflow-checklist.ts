@@ -1,4 +1,4 @@
-/** Matches supabase/007_workflow_checklist.sql JSON keys */
+/** Matches supabase/v2/001_dashboard_baseline.sql JSON keys */
 
 /**
  * `not_provided`: Outside our scope — still counts as full credit in **weighted** pipeline % (same as done).

@@ -97,7 +97,7 @@ export default async function ProjectsPage(props: {
           <p className="font-medium">Could not load projects.</p>
           <p className="mt-1 opacity-90">{error}</p>
           <p className="text-dash-muted-foreground mt-2 text-xs">
-            Run <code className="text-dash-foreground">supabase/006_project_tracking.sql</code> if this table does not
+            Run <code className="text-dash-foreground">supabase/v2/001_dashboard_baseline.sql</code> if this table does not
             exist yet.
           </p>
         </div>
@@ -167,8 +167,7 @@ export default async function ProjectsPage(props: {
         <div>
           <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">Registered clients</h2>
           <p className="text-dash-muted-foreground mt-1 text-sm">
-            Names synced from invoices. Deleting the last invoice for a name removes it here unless a tracked project
-            still uses that client. You can also remove orphan names manually.
+            Add new clients on Manage clients. A client can be deleted only when no tracked project uses it.
           </p>
         </div>
         <RegisteredClientsTable rows={dash.clients} />

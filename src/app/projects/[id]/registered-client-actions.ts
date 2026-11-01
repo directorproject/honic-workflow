@@ -88,7 +88,7 @@ export async function updateRegisteredClientForProjectAction(
       return {
         ok: false,
         message:
-          `${projectErr.message} Run supabase/010_project_type_constraint_fix.sql if your database check is out of date.`,
+          `${projectErr.message} Run supabase/v2/001_dashboard_baseline.sql if your database check is out of date.`,
       };
     }
     return { ok: false, message: projectErr.message };

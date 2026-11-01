@@ -141,7 +141,7 @@ export async function createTrackedProject(formData: FormData) {
     let msg = error.message;
     if (msg.includes("tracked_projects_project_type_check")) {
       msg +=
-        " Your Supabase `tracked_projects.project_type` check is out of date. Open Supabase → SQL Editor and run `supabase/010_project_type_constraint_fix.sql` from this repo, then try again.";
+        " Your Supabase `tracked_projects.project_type` check is out of date. Open Supabase → SQL Editor and run `supabase/v2/001_dashboard_baseline.sql` from this repo, then try again.";
     }
     throw new Error(msg);
   }

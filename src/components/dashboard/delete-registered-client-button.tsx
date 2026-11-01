@@ -28,13 +28,13 @@ export function DeleteRegisteredClientButton({
         title={
           state?.ok === false
             ? state.message
-            : `Remove ${clientName} from registered clients (only if no invoices or projects)`
+            : `Remove ${clientName} from registered clients (only if no tracked project uses it)`
         }
         className="text-dash-muted-foreground hover:text-red-600 disabled:opacity-50 dark:hover:text-red-400 text-xs font-semibold transition-colors"
         onClick={(e) => {
           if (
             !window.confirm(
-              `Remove "${clientName}" from registered clients? This only works if no invoice and no tracked project uses this name.`,
+              `Remove "${clientName}" from registered clients? This only works if no tracked project uses this client.`,
             )
           ) {
             e.preventDefault();

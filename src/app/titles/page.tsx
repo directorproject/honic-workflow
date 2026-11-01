@@ -33,8 +33,8 @@ export default async function ProjectTitlesPage() {
           <p className="mt-1">{error}</p>
           <p className="mt-2 text-xs">
             If the tables are missing, run{" "}
-            <code className="text-dash-foreground">supabase/024_project_title_bank.sql</code> in the Supabase SQL
-            editor. It creates the tables and loads the titles from the Excel lists.
+            <code className="text-dash-foreground">supabase/v2/001_dashboard_baseline.sql</code> in the Supabase SQL
+            editor to create them.
           </p>
         </div>
       ) : null}

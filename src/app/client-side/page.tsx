@@ -58,7 +58,7 @@ export default async function ClientSideProjectsPage() {
           <p className="mt-1 opacity-90">{error}</p>
           <p className="text-dash-muted-foreground mt-2 text-xs">
             If status <code className="text-dash-foreground">client_side</code> is unknown, run{" "}
-            <code className="text-dash-foreground">supabase/022_client_side_project_status.sql</code>.
+            <code className="text-dash-foreground">supabase/v2/001_dashboard_baseline.sql</code>.
           </p>
         </div>
       ) : null}
