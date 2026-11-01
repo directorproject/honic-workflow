@@ -158,11 +158,13 @@ export function TitleProposalsBoard({
           <label>
             <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">Course *</span>
             <select name="courseCode" required className={INPUT} defaultValue={courses[0]?.code}>
-              {courses.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.code} · {c.name}
-                </option>
-              ))}
+              {courses
+                .filter((c) => c.code !== "OTHER")
+                .map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.code} · {c.name}
+                  </option>
+                ))}
             </select>
           </label>
           <label>
@@ -240,7 +242,7 @@ export function TitleProposalsBoard({
                   <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-sky-500/30 bg-sky-500/5 px-3 py-2 text-xs">
                     <span className="text-dash-foreground font-semibold">Student: {p.student.fullName}</span>
                     <span className="text-dash-muted-foreground">
-                      {p.student.regNo} · {p.student.phone}
+                      {[p.student.regNo, p.student.phone].filter(Boolean).join(" · ")}
                     </span>
                     {p.student.trackedProjectId ? (
                       <Link

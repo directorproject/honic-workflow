@@ -8,10 +8,11 @@ export type Course = { code: string; name: string };
 
 export type StudentProfile = {
   fullName: string;
-  regNo: string;
+  regNo: string | null;
   phone: string;
   institution: string;
   courseCode: string;
+  courseOther: string | null;
   yearOfStudy: string;
   academicYear: string;
   partner: string | null;
@@ -94,10 +95,11 @@ export async function loadPortalState(): Promise<PortalState> {
 
   const profile: StudentProfile = {
     fullName: String(p.full_name),
-    regNo: String(p.reg_no),
+    regNo: p.reg_no ? String(p.reg_no) : null,
     phone: String(p.phone),
     institution: String(p.institution),
     courseCode: String(p.course_code),
+    courseOther: p.course_other ? String(p.course_other) : null,
     yearOfStudy: String(p.year_of_study),
     academicYear: String(p.academic_year),
     partner: p.partner ? String(p.partner) : null,

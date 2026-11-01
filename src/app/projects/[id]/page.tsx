@@ -76,7 +76,7 @@ async function loadLinkedStudent(projectId: string): Promise<LinkedStudent | nul
     .maybeSingle();
   if (!data) return null;
   const { data: u } = await supabase.auth.admin.getUserById(String(data.user_id));
-  return { fullName: String(data.full_name), regNo: String(data.reg_no), email: u?.user?.email ?? null };
+  return { fullName: String(data.full_name), regNo: data.reg_no ? String(data.reg_no) : null, email: u?.user?.email ?? null };
 }
 
 export default async function ProjectDetailPage(props: { params: Promise<{ id: string }> }) {

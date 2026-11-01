@@ -13,3 +13,49 @@ export const YEARS_OF_STUDY = [
 ] as const;
 
 export const DEFAULT_INSTITUTION = "Dar es Salaam Institute of Technology (DIT)";
+
+/** Select value meaning "the student types the value"; never stored. */
+export const OTHER_OPTION = "__other__";
+
+/** Course code used when the student types a course that is not in the list. */
+export const OTHER_COURSE_CODE = "OTHER";
+
+/** Tanzanian universities and colleges whose students do project and research work. */
+export const INSTITUTIONS = [
+  "Dar es Salaam Institute of Technology (DIT)",
+  "University of Dar es Salaam (UDSM)",
+  "Ardhi University (ARU)",
+  "Arusha Technical College (ATC)",
+  "Catholic University of Health and Allied Sciences (CUHAS)",
+  "College of Business Education (CBE)",
+  "Dar es Salaam Maritime Institute (DMI)",
+  "Dar es Salaam University College of Education (DUCE)",
+  "Institute of Accountancy Arusha (IAA)",
+  "Institute of Finance Management (IFM)",
+  "Institute of Rural Development Planning (IRDP)",
+  "Institute of Social Work (ISW)",
+  "Kampala International University in Tanzania (KIUT)",
+  "Karume Institute of Science and Technology (KIST)",
+  "Kilimanjaro Christian Medical University College (KCMUCo)",
+  "Mbeya University of Science and Technology (MUST)",
+  "Mkwawa University College of Education (MUCE)",
+  "Moshi Co-operative University (MoCU)",
+  "Mount Meru University (MMU)",
+  "Muhimbili University of Health and Allied Sciences (MUHAS)",
+  "Mwalimu Nyerere Memorial Academy (MNMA)",
+  "Mzumbe University (MU)",
+  "National Institute of Transport (NIT)",
+  "Nelson Mandela African Institution of Science and Technology (NM-AIST)",
+  "Open University of Tanzania (OUT)",
+  "Ruaha Catholic University (RUCU)",
+  "Sokoine University of Agriculture (SUA)",
+  "St. Augustine University of Tanzania (SAUT)",
+  "St. Joseph University in Tanzania (SJUIT)",
+  "State University of Zanzibar (SUZA)",
+  "Tanzania Institute of Accountancy (TIA)",
+  "Tumaini University Makumira (TUMA)",
+  "University of Dodoma (UDOM)",
+  "University of Iringa (UoI)",
+  "Vocational Education and Training Authority (VETA)",
+  "Water Institute (WI)",
+] as const;

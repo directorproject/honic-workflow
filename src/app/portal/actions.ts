@@ -6,7 +6,13 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { isStaffUser } from "@/lib/auth-staff";
-import { PAYMENT_NETWORKS, PAYMENT_PROVIDER, TITLE_CHANGE_FEE_TSH, YEARS_OF_STUDY } from "@/lib/portal/config";
+import {
+  OTHER_COURSE_CODE,
+  PAYMENT_NETWORKS,
+  PAYMENT_PROVIDER,
+  TITLE_CHANGE_FEE_TSH,
+  YEARS_OF_STUDY,
+} from "@/lib/portal/config";
 import { getPortalUser } from "@/lib/portal/data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
@@ -112,10 +118,10 @@ export async function portalUpdatePasswordAction(password: string): Promise<Port
 
 export type ProfileInput = {
   fullName: string;
-  regNo: string;
   phone: string;
   institution: string;
   courseCode: string;
+  courseOther: string;
   yearOfStudy: string;
   academicYear: string;
   partner: string;
@@ -124,18 +130,22 @@ export type ProfileInput = {
 export async function portalSaveProfileAction(input: ProfileInput): Promise<PortalResult> {
   try {
     const { user, db } = await requireStudent();
+    const courseCode = clean(input.courseCode, 12).toUpperCase();
     const row = {
       full_name: clean(input.fullName, 120),
-      reg_no: clean(input.regNo, 40).toUpperCase(),
       phone: clean(input.phone, 30),
       institution: clean(input.institution, 160),
-      course_code: clean(input.courseCode, 12).toUpperCase(),
+      course_code: courseCode,
+      course_other: courseCode === OTHER_COURSE_CODE ? clean(input.courseOther, 120) || null : null,
       year_of_study: clean(input.yearOfStudy, 60),
       academic_year: clean(input.academicYear, 20),
       partner: clean(input.partner, 160) || null,
     };
-    if (!row.full_name || !row.reg_no || !row.phone || !row.institution || !row.academic_year) {
+    if (!row.full_name || !row.phone || !row.institution || !row.academic_year) {
       return { ok: false, message: "Fill in all required fields." };
+    }
+    if (courseCode === OTHER_COURSE_CODE && !row.course_other) {
+      return { ok: false, message: "Type the name of your course." };
     }
     if (!(YEARS_OF_STUDY as readonly string[]).includes(row.year_of_study)) {
       return { ok: false, message: "Choose your year of study." };
@@ -152,10 +162,7 @@ export async function portalSaveProfileAction(input: ProfileInput): Promise<Port
     const { error } = await db
       .from("student_profiles")
       .upsert({ user_id: user.id, ...row, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
-    if (error) {
-      if (error.code === "23505") return { ok: false, message: "This registration number is already registered." };
-      return { ok: false, message: error.message };
-    }
+    if (error) return { ok: false, message: error.message };
     revalidatePath("/portal");
     return { ok: true };
   } catch (err) {

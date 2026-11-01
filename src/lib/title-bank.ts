@@ -18,7 +18,7 @@ export type TitleProposalStatus = (typeof TITLE_PROPOSAL_STATUSES)[number];
 export type TitleStudent = {
   userId: string;
   fullName: string;
-  regNo: string;
+  regNo: string | null;
   phone: string;
   trackedProjectId: string | null;
 };
@@ -92,7 +92,7 @@ export async function loadTitleBank(): Promise<TitleBankData> {
       students.set(String(p.user_id), {
         userId: String(p.user_id),
         fullName: String(p.full_name),
-        regNo: String(p.reg_no),
+        regNo: p.reg_no ? String(p.reg_no) : null,
         phone: String(p.phone),
         trackedProjectId: p.tracked_project_id ? String(p.tracked_project_id) : null,
       });

@@ -77,7 +77,7 @@ export default async function PortalPage(props: {
     content = (
       <TitlePicker
         titles={state.availableTitles}
-        courseCode={profile.courseCode}
+        courseCode={profile.courseOther ?? profile.courseCode}
         hasCredit={state.hasSelectedBefore && profile.changeCredits > 0}
       />
     );
@@ -100,7 +100,7 @@ export default async function PortalPage(props: {
               <p className="text-dash-foreground font-semibold">{profile?.fullName ?? user.email}</p>
               {profile ? (
                 <p className="text-dash-muted-foreground">
-                  {profile.regNo} · {profile.courseCode} · {user.email}
+                  {[profile.regNo, profile.courseOther ?? profile.courseCode, user.email].filter(Boolean).join(" · ")}
                 </p>
               ) : null}
             </div>

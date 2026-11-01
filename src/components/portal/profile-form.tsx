@@ -5,7 +5,13 @@ import { useState, useTransition } from "react";
 
 import { portalSaveProfileAction, type PortalResult } from "@/app/portal/actions";
 import { Card, Field, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
-import { DEFAULT_INSTITUTION, YEARS_OF_STUDY } from "@/lib/portal/config";
+import {
+  DEFAULT_INSTITUTION,
+  INSTITUTIONS,
+  OTHER_COURSE_CODE,
+  OTHER_OPTION,
+  YEARS_OF_STUDY,
+} from "@/lib/portal/config";
 import type { Course, StudentProfile } from "@/lib/portal/data";
 
 export function ProfileForm({
@@ -23,11 +29,15 @@ export function ProfileForm({
   const [status, setStatus] = useState<PortalResult | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const savedInstitution = profile?.institution ?? DEFAULT_INSTITUTION;
+  const institutionListed = (INSTITUTIONS as readonly string[]).includes(savedInstitution);
+  const [institutionChoice, setInstitutionChoice] = useState(institutionListed ? savedInstitution : OTHER_OPTION);
+  const [courseChoice, setCourseChoice] = useState(profile?.courseCode ?? courses[0]?.code ?? "");
+
+  const listedCourses = courses.filter((c) => c.code !== OTHER_COURSE_CODE);
+
   return (
-    <Card
-      title={profile ? "Edit your details" : "Your details"}
-      subtitle="We show you only the titles for your course."
-    >
+    <Card title={profile ? "Edit your details" : "Your details"} subtitle="We show you only the titles for your course.">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -37,10 +47,10 @@ export function ProfileForm({
           startTransition(async () => {
             const res = await portalSaveProfileAction({
               fullName: get("fullName"),
-              regNo: get("regNo"),
               phone: get("phone"),
-              institution: get("institution"),
-              courseCode: get("courseCode"),
+              institution: institutionChoice === OTHER_OPTION ? get("institutionOther") : institutionChoice,
+              courseCode: courseChoice,
+              courseOther: courseChoice === OTHER_COURSE_CODE ? get("courseOther") : "",
               yearOfStudy: get("yearOfStudy"),
               academicYear: get("academicYear"),
               partner: get("partner"),
@@ -51,27 +61,59 @@ export function ProfileForm({
         }}
         className="grid gap-3 sm:grid-cols-2"
       >
-        <Field label="Full name *" wide>
+        <Field label="Full name *">
           <input name="fullName" required maxLength={120} className={INPUT} defaultValue={profile?.fullName ?? suggestedName ?? ""} />
-        </Field>
-        <Field label="Registration number *">
-          <input name="regNo" required maxLength={40} className={INPUT} defaultValue={profile?.regNo} />
         </Field>
         <Field label="Phone (mobile money) *">
           <input name="phone" required maxLength={30} placeholder="07XX XXX XXX" className={INPUT} defaultValue={profile?.phone} />
         </Field>
-        <Field label="Institution *">
-          <input name="institution" required maxLength={160} className={INPUT} defaultValue={profile?.institution ?? DEFAULT_INSTITUTION} />
+
+        <Field label="Institution *" wide>
+          <select required className={INPUT} value={institutionChoice} onChange={(e) => setInstitutionChoice(e.target.value)}>
+            {INSTITUTIONS.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+            <option value={OTHER_OPTION}>Other (type it)</option>
+          </select>
         </Field>
-        <Field label="Course *">
-          <select name="courseCode" required className={INPUT} defaultValue={profile?.courseCode ?? courses[0]?.code}>
-            {courses.map((c) => (
+        {institutionChoice === OTHER_OPTION ? (
+          <Field label="Your institution *" wide>
+            <input
+              name="institutionOther"
+              required
+              maxLength={160}
+              placeholder="Full name of your university or college"
+              className={INPUT}
+              defaultValue={institutionListed ? "" : savedInstitution}
+            />
+          </Field>
+        ) : null}
+
+        <Field label="Course *" wide>
+          <select required className={INPUT} value={courseChoice} onChange={(e) => setCourseChoice(e.target.value)}>
+            {listedCourses.map((c) => (
               <option key={c.code} value={c.code}>
                 {c.name} ({c.code})
               </option>
             ))}
+            <option value={OTHER_COURSE_CODE}>Other (type it)</option>
           </select>
         </Field>
+        {courseChoice === OTHER_COURSE_CODE ? (
+          <Field label="Your course *" wide>
+            <input
+              name="courseOther"
+              required
+              maxLength={120}
+              placeholder="Full name of your course"
+              className={INPUT}
+              defaultValue={profile?.courseOther ?? ""}
+            />
+          </Field>
+        ) : null}
+
         <Field label="Year of study *">
           <select name="yearOfStudy" required className={INPUT} defaultValue={profile?.yearOfStudy ?? YEARS_OF_STUDY[3]}>
             {YEARS_OF_STUDY.map((y) => (
@@ -83,7 +125,7 @@ export function ProfileForm({
           <input name="academicYear" required maxLength={20} placeholder="2026/2027" className={INPUT} defaultValue={profile?.academicYear ?? "2026/2027"} />
         </Field>
         <Field label="Group partner (optional)" wide>
-          <input name="partner" maxLength={160} placeholder="Name and registration number" className={INPUT} defaultValue={profile?.partner ?? ""} />
+          <input name="partner" maxLength={160} placeholder="Partner's name" className={INPUT} defaultValue={profile?.partner ?? ""} />
         </Field>
         <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
           {cancelHref ? (
