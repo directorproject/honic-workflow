@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { escapeHtml, sendEmail } from "@/lib/email";
+import { sendEmail } from "@/lib/email";
+import { brandedEmail } from "@/lib/email-layout";
 import { sendWebPush } from "@/lib/web-push-server";
 
 export function portalOrigin(): string {
@@ -52,9 +53,13 @@ export async function notifyWorkspaceMembers(
         if (!email) return;
         const { data: p } = await db.from("student_profiles").select("full_name").eq("user_id", id).maybeSingle();
         const name = String(p?.full_name ?? "").split(" ")[0] || "there";
-        const text = `Hello ${name},\n\n${params.message}\n\nProject: ${project}\nOpen your portal: ${url}\n\nHonic Company Limited · Innovation and Research Department`;
-        const html = `<p>Hello ${escapeHtml(name)},</p><p>${escapeHtml(params.message).replace(/\n/g, "<br>")}</p><p><strong>Project:</strong> ${escapeHtml(project)}</p><p><a href="${escapeHtml(url)}">Open your portal</a></p><p style="color:#64748b">Honic Company Limited · Innovation and Research Department</p>`;
-        const sent = await sendEmail({ to: email, subject: params.subject, text, html });
+        const mail = brandedEmail({
+          greeting: `Hello ${name},`,
+          paragraphs: [params.message, `Project: ${project}`],
+          button: { label: "Open your portal", url },
+          footnote: "You get these emails because you are in a project team on the Honic student portal.",
+        });
+        const sent = await sendEmail({ to: email, subject: params.subject, ...mail });
         if (!sent.ok) console.error("notifyWorkspaceMembers:", sent.error);
       }),
     ]);

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "auth:ensure-operator": "node scripts/ensure-operator-user.mjs",
-    "db:migrate": "node scripts/db-migrate.mjs"
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "email:setup": "node scripts/setup-auth-email.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

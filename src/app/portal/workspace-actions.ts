@@ -9,7 +9,8 @@ import { MAX_UPLOAD_BYTES, STORAGE_BUCKET, formatTsh } from "@/lib/workspace/con
 import { addDays, defaultEndDate, formatDateTime, isIsoDate, todayIso } from "@/lib/workspace/dates";
 import { notifyWorkspaceMembers, portalOrigin } from "@/lib/workspace/notify";
 import { buildPlan, DEFAULT_DEFENCE_CHECKS, DEFAULT_DEFENCE_QUESTIONS, DEFAULT_DOCUMENTS } from "@/lib/workspace/templates";
-import { escapeHtml, sendEmail } from "@/lib/email";
+import { sendEmail } from "@/lib/email";
+import { brandedEmail } from "@/lib/email-layout";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
 export type ActionResult<T = undefined> = { ok: true; message?: string; data?: T } | { ok: false; message: string };
@@ -626,12 +627,16 @@ export async function inviteMemberAction(workspaceId: string, email: string): Pr
     const { data: ws } = await actor.db.from("portal_workspaces").select("name").eq("id", actor.workspaceId).single();
     const projectName = String(ws?.name ?? "a project");
     const link = `${portalOrigin()}/portal/join/${token}`;
-    const sent = await sendEmail({
-      to: e,
-      subject: `${actor.name} invited you to a project on Honic`,
-      text: `${actor.name} invited you to join the project "${projectName}" on the Honic student portal.\n\nCreate an account or sign in with this email, then open: ${link}\n\nHonic Company Limited · Innovation and Research Department`,
-      html: `<p>${escapeHtml(actor.name)} invited you to join the project <strong>${escapeHtml(projectName)}</strong> on the Honic student portal.</p><p>Create an account or sign in with this email, then open the link:</p><p><a href="${escapeHtml(link)}">Join the project</a></p><p style="color:#64748b">Honic Company Limited · Innovation and Research Department</p>`,
+    const mail = brandedEmail({
+      greeting: "Hello,",
+      paragraphs: [
+        `${actor.name} invited you to join the project "${projectName}" on the Honic student portal.`,
+        "Create an account or sign in with this email address, then open the invitation.",
+      ],
+      button: { label: "Join the project", url: link },
+      footnote: "If you did not expect this invitation, you can ignore this email.",
     });
+    const sent = await sendEmail({ to: e, subject: `${actor.name} invited you to a project on Honic`, ...mail });
     await logActivity(actor.db, actor.workspaceId, actor.name, `invited ${e}`);
     refresh(actor.workspaceId);
     return {

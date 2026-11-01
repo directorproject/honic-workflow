@@ -1,4 +1,5 @@
-import { escapeHtml, sendEmail } from "@/lib/email";
+import { sendEmail } from "@/lib/email";
+import { brandedEmail } from "@/lib/email-layout";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
 function portalUrl(): string {
@@ -32,10 +33,12 @@ export async function notifyLinkedStudent(params: { trackedProjectId: string; su
     const name = String(profile.full_name ?? "").split(" ")[0] || "there";
     const link = portalUrl();
 
-    const text = `Hello ${name},\n\n${params.message}\n\nProject: ${title}\nOpen your portal: ${link}\n\nHonic Company Limited · Innovation and Research Department`;
-    const html = `<p>Hello ${escapeHtml(name)},</p><p>${escapeHtml(params.message)}</p><p><strong>Project:</strong> ${escapeHtml(title)}</p><p><a href="${escapeHtml(link)}">Open your portal</a></p><p style="color:#64748b">Honic Company Limited · Innovation and Research Department</p>`;
-
-    const sent = await sendEmail({ to: email, subject: params.subject, text, html });
+    const mail = brandedEmail({
+      greeting: `Hello ${name},`,
+      paragraphs: [params.message, `Project: ${title}`],
+      button: { label: "See your project", url: link },
+    });
+    const sent = await sendEmail({ to: email, subject: params.subject, ...mail });
     if (!sent.ok) console.error("notifyLinkedStudent:", sent.error);
   } catch (err) {
     console.error("notifyLinkedStudent:", err);
