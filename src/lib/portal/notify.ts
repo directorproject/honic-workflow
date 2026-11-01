@@ -3,7 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
 function portalUrl(): string {
   const origin = (process.env.NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN || process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/$/, "");
-  return `${origin}/portal?tab=project`;
+  return `${origin}/portal?tab=progress`;
 }
 
 /** Emails the student whose portal account is linked to this project. Never throws. */

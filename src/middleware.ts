@@ -33,6 +33,7 @@ function isAllowedOnShareHost(pathname: string): boolean {
   if (pathname.startsWith("/api/share/")) return true;
   if (isPortalPath(pathname)) return true;
   if (pathname === "/share-push-sw.js") return true;
+  if (pathname === "/portal.webmanifest" || pathname.startsWith("/portal-icon-") || pathname.startsWith("/templates/")) return true;
   if (pathname === "/favicon.ico" || pathname === "/robots.txt" || pathname === "/logo.jpg") return true;
   return false;
 }

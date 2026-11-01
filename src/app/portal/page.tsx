@@ -7,16 +7,23 @@ import { PortalAuth } from "@/components/portal/portal-auth";
 import { ProfileForm } from "@/components/portal/profile-form";
 import { TitlePicker } from "@/components/portal/title-picker";
 import { ProjectShareView } from "@/components/share/project-share-view";
-import { loadPortalState } from "@/lib/portal/data";
+import { StartWorkspace } from "@/components/workspace/start-workspace";
+import { WorkspaceView } from "@/components/workspace/workspace-view";
+import { loadPortalState, type PortalState } from "@/lib/portal/data";
 import { createProjectShareLink } from "@/lib/project-share";
 import { loadProjectDetail } from "@/lib/projects-data";
 import { shareLinkPathClientSlug } from "@/lib/share-link-origin";
+import { getSupabaseAdminClient } from "@/lib/supabase-server";
+import { findMembership } from "@/lib/workspace/access";
+import { loadWorkspaceBundle } from "@/lib/workspace/load";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export const metadata = {
   title: "Student portal · Honic Company Limited",
+  manifest: "/portal.webmanifest",
+  appleWebApp: { capable: true, title: "Honic portal", statusBarStyle: "default" as const },
 };
 
 export default async function PortalPage(props: {
@@ -25,8 +32,8 @@ export default async function PortalPage(props: {
   const sp = props.searchParams ? await props.searchParams : {};
   const state = await loadPortalState();
   const { user, profile } = state;
-  const linked = Boolean(profile?.trackedProjectId);
-  const tab = linked && sp.tab !== "title" ? "project" : "title";
+  const db = getSupabaseAdminClient();
+  let wide = false;
 
   let content: React.ReactNode;
   if (!user) {
@@ -48,7 +55,7 @@ export default async function PortalPage(props: {
       <div className="border-dash-border bg-dash-card flex flex-wrap items-center gap-3 rounded-2xl border p-5 text-sm">
         <p>
           This is a staff account. Staff use{" "}
-          <a className="text-dash-accent font-semibold" href="https://inova.honiccompany.com">
+          <a className="text-dash-accent font-semibold" href="https://inova.honiccompany.com/students">
             inova.honiccompany.com
           </a>
           .
@@ -69,38 +76,68 @@ export default async function PortalPage(props: {
         suggestedName={user.suggestedName}
       />
     );
-  } else if (tab === "project" && profile.trackedProjectId) {
-    content = await renderMyProject(profile.trackedProjectId);
-  } else if (state.myTitle) {
-    content = <MyTitleCard title={state.myTitle} phone={profile.phone} projectStarted={linked} />;
   } else {
-    content = (
-      <TitlePicker
-        titles={state.availableTitles}
-        courses={state.courses}
-        hasCredit={state.hasSelectedBefore && profile.changeCredits > 0}
-      />
-    );
-  }
+    const membership = db ? await findMembership(db, user.id) : null;
+    const bundle = membership && db ? await loadWorkspaceBundle(db, membership.workspaceId) : null;
+    const linked = Boolean(profile.trackedProjectId);
 
-  const tabClass = (active: boolean) =>
-    active
-      ? "bg-dash-accent rounded-full px-4 py-1.5 text-sm font-semibold text-white"
-      : "border-dash-border bg-dash-card text-dash-muted-foreground hover:bg-dash-muted rounded-full border px-4 py-1.5 text-sm font-semibold";
+    if (bundle) {
+      wide = true;
+      const tab = sp.tab ?? "home";
+      content = (
+        <WorkspaceView
+          bundle={bundle}
+          viewer={{ kind: "student", userId: user.id, name: profile.fullName, canEdit: true }}
+          tab={tab}
+          basePath="/portal"
+          printBase="/portal/print"
+          exportBase="/api/portal/export"
+          fileBase="/api/portal/files"
+          extra={{
+            title: titleSection(state, linked),
+            progress: linked ? (tab === "progress" ? await renderHonicProgress(profile.trackedProjectId!) : <span />) : undefined,
+          }}
+        />
+      );
+    } else {
+      wide = sp.tab === "progress" && linked;
+      const invites = db ? await loadInvitesFor(db, user.email) : [];
+      content =
+        sp.tab === "progress" && linked ? (
+          await renderHonicProgress(profile.trackedProjectId!)
+        ) : (
+          <div className="space-y-6">
+            {linked ? (
+              <Link
+                href="/portal?tab=progress"
+                className="border-dash-border bg-dash-card block rounded-2xl border px-4 py-3 text-sm font-semibold"
+              >
+                Honic has started your project. See Honic progress →
+              </Link>
+            ) : null}
+            <StartWorkspace suggestedName={state.myTitle?.title ?? ""} category={profile.projectCategory} invites={invites} />
+            <div>
+              <h2 className="text-dash-foreground mb-3 text-base font-semibold">Project title</h2>
+              {titleSection(state, linked)}
+            </div>
+          </div>
+        );
+    }
+  }
 
   return (
     <main className="bg-dash-canvas text-dash-foreground flex min-h-screen flex-col">
       <div className="border-dash-border bg-dash-canvas/95 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
         <CompanyBrandBar variant="full" />
       </div>
-      <div className={`mx-auto w-full px-4 py-8 sm:px-6 ${tab === "project" ? "max-w-6xl" : "max-w-3xl"}`}>
+      <div className={`mx-auto w-full px-4 py-6 sm:px-6 ${wide ? "max-w-7xl" : "max-w-3xl"}`}>
         {user && !state.isStaff ? (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm">
               <p className="text-dash-foreground font-semibold">{profile?.fullName ?? user.email}</p>
               {profile ? (
                 <p className="text-dash-muted-foreground">
-                  {[profile.regNo, profile.courseOther ?? profile.courseCode, user.email].filter(Boolean).join(" · ")}
+                  {[profile.courseOther ?? profile.courseCode, profile.institution, user.email].filter(Boolean).join(" · ")}
                 </p>
               ) : null}
             </div>
@@ -118,25 +155,42 @@ export default async function PortalPage(props: {
             </div>
           </div>
         ) : null}
-
-        {linked && profile && sp.edit !== "1" ? (
-          <nav className="mb-6 flex gap-2" aria-label="Portal sections">
-            <Link href="/portal?tab=project" className={tabClass(tab === "project")}>
-              My project
-            </Link>
-            <Link href="/portal?tab=title" className={tabClass(tab === "title")}>
-              My title
-            </Link>
-          </nav>
-        ) : null}
-
         {content}
       </div>
     </main>
   );
 }
 
-async function renderMyProject(projectId: string) {
+function titleSection(state: PortalState, linked: boolean) {
+  const { profile } = state;
+  if (!profile) return null;
+  if (state.myTitle) return <MyTitleCard title={state.myTitle} phone={profile.phone} projectStarted={linked} />;
+  return <TitlePicker titles={state.availableTitles} courses={state.courses} hasCredit={state.hasSelectedBefore && profile.changeCredits > 0} />;
+}
+
+async function loadInvitesFor(db: NonNullable<ReturnType<typeof getSupabaseAdminClient>>, email: string) {
+  if (!email) return [];
+  const { data } = await db
+    .from("portal_workspace_invites")
+    .select("token, invited_by, portal_workspaces(name)")
+    .ilike("email", email)
+    .is("accepted_at", null);
+  const rows = data ?? [];
+  const inviterIds = [...new Set(rows.map((r) => r.invited_by).filter(Boolean))] as string[];
+  const { data: names } = inviterIds.length
+    ? await db.from("student_profiles").select("user_id, full_name").in("user_id", inviterIds)
+    : { data: [] as { user_id: string; full_name: string }[] };
+  return rows.map((r) => {
+    const ws = (Array.isArray(r.portal_workspaces) ? r.portal_workspaces[0] : r.portal_workspaces) as { name?: string } | null;
+    return {
+      token: String(r.token),
+      projectName: String(ws?.name ?? "A project"),
+      invitedBy: String((names ?? []).find((n) => n.user_id === r.invited_by)?.full_name ?? "Your partner"),
+    };
+  });
+}
+
+async function renderHonicProgress(projectId: string) {
   const { project, error } = await loadProjectDetail(projectId, { includeRegisteredClientContact: false });
   if (!project) {
     return <p className="text-dash-muted-foreground text-sm">Your project is not available right now. Please try again later.</p>;
@@ -152,7 +206,7 @@ async function renderMyProject(projectId: string) {
       error={error}
       slug={shareLinkPathClientSlug(project.registered_clients)}
       token={link.token}
-      badge="Your project"
+      badge="Honic progress"
     />
   );
 }

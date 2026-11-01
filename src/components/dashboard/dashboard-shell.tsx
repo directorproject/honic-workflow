@@ -75,6 +75,17 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    title: "Students",
+    items: [
+      {
+        href: "/students",
+        label: "Student workspaces",
+        isActive: (p) => p === "/students" || (p.startsWith("/students/") && !p.startsWith("/students/deadlines")),
+      },
+      { href: "/students/deadlines", label: "Shared deadlines" },
+    ],
+  },
+  {
     title: "Google Drive",
     items: [
       {

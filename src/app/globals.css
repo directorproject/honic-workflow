@@ -71,6 +71,19 @@ select option {
   color: var(--dash-foreground);
 }
 
+/* Printable workspace reports are always light, whatever the device theme. */
+.ws-print {
+  --dash-canvas: #f1f5f9;
+  --dash-foreground: #0f172a;
+  --dash-muted-foreground: #64748b;
+  --dash-card: #ffffff;
+  --dash-border: #e2e8f0;
+  --dash-muted: #f1f5f9;
+  color-scheme: light;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

@@ -1,0 +1,16 @@
+{
+  "name": "Honic student portal",
+  "short_name": "Honic portal",
+  "description": "Plan, organise and follow your student project with Honic Company Limited.",
+  "id": "/portal",
+  "start_url": "/portal",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#0e7490",
+  "icons": [
+    { "src": "/portal-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/portal-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/portal-icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
