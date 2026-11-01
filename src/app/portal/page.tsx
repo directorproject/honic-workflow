@@ -77,7 +77,7 @@ export default async function PortalPage(props: {
     content = (
       <TitlePicker
         titles={state.availableTitles}
-        courseCode={profile.courseOther ?? profile.courseCode}
+        courses={state.courses}
         hasCredit={state.hasSelectedBefore && profile.changeCredits > 0}
       />
     );

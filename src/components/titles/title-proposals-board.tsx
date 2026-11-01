@@ -10,6 +10,7 @@ import {
   deleteTitleProposalAction,
   setTitleProposalStatusAction,
 } from "@/app/titles/actions";
+import { INSTITUTIONS } from "@/lib/portal/config";
 import type { TitleProposal, TitleProposalStatus } from "@/lib/title-bank";
 
 type ActionState = { type: "ok" | "error"; message: string } | null;
@@ -101,6 +102,7 @@ export function TitleProposalsBoard({
         await createTitleProposalAction({
           title: String(fd.get("title") ?? ""),
           courseCode: String(fd.get("courseCode") ?? ""),
+          institution: String(fd.get("institution") ?? ""),
           originalTitle: String(fd.get("originalTitle") ?? ""),
           originRef: String(fd.get("originRef") ?? ""),
           summary: String(fd.get("summary") ?? ""),
@@ -167,6 +169,17 @@ export function TitleProposalsBoard({
                 ))}
             </select>
           </label>
+          <label className="sm:col-span-2">
+            <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">Institution</span>
+            <select name="institution" className={INPUT} defaultValue="">
+              <option value="">Any institution</option>
+              {INSTITUTIONS.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </label>
           <label>
             <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">Original title</span>
             <input name="originalTitle" maxLength={300} className={INPUT} placeholder="Leave empty for a new idea" />
@@ -226,6 +239,11 @@ export function TitleProposalsBoard({
                   {p.courseCode ? (
                     <span className="bg-dash-accent/10 text-dash-accent inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold">
                       {p.courseCode}
+                    </span>
+                  ) : null}
+                  {p.institution ? (
+                    <span className="border-dash-border text-dash-muted-foreground inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold">
+                      {p.institution}
                     </span>
                   ) : null}
                   {p.originRef ? (

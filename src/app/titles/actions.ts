@@ -158,6 +158,7 @@ export async function createCourseAction(code: string, name: string) {
 export type NewTitleProposalInput = {
   title: string;
   courseCode?: string | null;
+  institution?: string | null;
   originalTitle?: string | null;
   originRef?: string | null;
   summary?: string | null;
@@ -174,6 +175,7 @@ export async function createTitleProposalAction(input: NewTitleProposalInput) {
     .insert({
       title,
       course_code: text(input.courseCode, 12)?.toUpperCase() ?? null,
+      institution: text(input.institution, 160),
       batch: "Added on dashboard",
       original_title: text(input.originalTitle, 300),
       origin_ref: text(input.originRef, 100) ?? "New idea",

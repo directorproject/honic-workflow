@@ -37,7 +37,7 @@ export function ProfileForm({
   const listedCourses = courses.filter((c) => c.code !== OTHER_COURSE_CODE);
 
   return (
-    <Card title={profile ? "Edit your details" : "Your details"} subtitle="We show you only the titles for your course.">
+    <Card title={profile ? "Edit your details" : "Your details"} subtitle="Your course and institution help us put the best titles for you first.">
       <form
         onSubmit={(e) => {
           e.preventDefault();

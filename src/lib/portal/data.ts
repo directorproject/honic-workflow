@@ -26,7 +26,46 @@ export type PortalTitle = {
   summary: string | null;
   hardware: string | null;
   communication: string | null;
+  courseCode: string | null;
+  institution: string | null;
+  /** True for the top matches on the student's course and institution. */
+  recommended: boolean;
 };
+
+/** How many best-matching titles are pinned to the top before the rest are mixed. */
+const RECOMMENDED_LIMIT = 20;
+
+function hashString(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/**
+ * Top: titles matching the student's course and institution (both first, then course, then institution),
+ * capped at RECOMMENDED_LIMIT. Below: everything else in a mixed order that stays stable for the student.
+ */
+function rankTitles(titles: PortalTitle[], profile: StudentProfile, seed: string): PortalTitle[] {
+  const course = profile.courseCode;
+  const inst = profile.institution.toLowerCase();
+  const score = (t: PortalTitle) =>
+    (t.courseCode && t.courseCode === course ? 2 : 0) + (t.institution && t.institution.toLowerCase() === inst ? 1 : 0);
+
+  const matched = titles
+    .filter((t) => score(t) > 0)
+    .sort((a, b) => score(b) - score(a) || a.title.localeCompare(b.title));
+  const top = matched.slice(0, RECOMMENDED_LIMIT).map((t) => ({ ...t, recommended: true }));
+  const topIds = new Set(top.map((t) => t.id));
+  const rest = titles
+    .filter((t) => !topIds.has(t.id))
+    .map((t) => ({ t, k: hashString(`${seed}:${t.id}`) }))
+    .sort((a, b) => a.k - b.k)
+    .map(({ t }) => ({ ...t, recommended: false }));
+  return [...top, ...rest];
+}
 
 export type PortalState = {
   user: { id: string; email: string; suggestedName: string | null } | null;
@@ -56,6 +95,9 @@ function toTitle(r: Record<string, unknown>): PortalTitle {
     summary: s(r.summary),
     hardware: s(r.hardware),
     communication: s(r.communication),
+    courseCode: s(r.course_code),
+    institution: s(r.institution),
+    recommended: false,
   };
 }
 
@@ -107,17 +149,11 @@ export async function loadPortalState(): Promise<PortalState> {
     changeCredits: Number(p.change_credits ?? 0),
   };
 
-  const cols = "id, title, summary, hardware, communication";
+  const cols = "id, title, summary, hardware, communication, course_code, institution";
   const [mine, prior, available] = await Promise.all([
     db.from("title_proposals").select(cols).eq("selected_by", user.id).maybeSingle(),
     db.from("title_selections").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-    db
-      .from("title_proposals")
-      .select(cols)
-      .eq("status", "available")
-      .is("selected_by", null)
-      .eq("course_code", profile.courseCode)
-      .order("title", { ascending: true }),
+    db.from("title_proposals").select(cols).eq("status", "available").is("selected_by", null),
   ]);
 
   return {
@@ -125,6 +161,6 @@ export async function loadPortalState(): Promise<PortalState> {
     profile,
     myTitle: mine.data ? toTitle(mine.data) : null,
     hasSelectedBefore: (prior.count ?? 0) > 0,
-    availableTitles: (available.data ?? []).map(toTitle),
+    availableTitles: rankTitles((available.data ?? []).map(toTitle), profile, user.id),
   };
 }

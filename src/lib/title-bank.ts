@@ -26,6 +26,7 @@ export type TitleStudent = {
 export type TitleProposal = {
   id: string;
   courseCode: string | null;
+  institution: string | null;
   student: TitleStudent | null;
   batch: string | null;
   originRef: string | null;
@@ -73,7 +74,7 @@ export async function loadTitleBank(): Promise<TitleBankData> {
     supabase
       .from("title_proposals")
       .select(
-        "id, course_code, selected_by, batch, origin_ref, original_title, title, summary, hardware, communication, status, assigned_to, assigned_at, notes, created_at",
+        "id, course_code, institution, selected_by, batch, origin_ref, original_title, title, summary, hardware, communication, status, assigned_to, assigned_at, notes, created_at",
       )
       .order("created_at", { ascending: true }),
     supabase.from("courses").select("code, name").eq("is_active", true).order("sort_order").order("code"),
@@ -114,6 +115,7 @@ export async function loadTitleBank(): Promise<TitleBankData> {
   const proposals: TitleProposal[] = (tp.data ?? []).map((r) => ({
     id: String(r.id),
     courseCode: str(r.course_code),
+    institution: str(r.institution),
     student: r.selected_by ? (students.get(String(r.selected_by)) ?? null) : null,
     batch: str(r.batch),
     originRef: str(r.origin_ref),
