@@ -1,0 +1,35 @@
+---
+description: Apply Supabase migrations and deploy to Vercel after every change, without asking
+alwaysApply: true
+---
+
+# Database updates and deploys
+
+The user wants every finished change applied and live without being asked. After a change works locally:
+
+1. **Database change needed?** Add a new file `supabase/v2/NNN_short_name.sql` (next number, never edit an applied file).
+   Write it to be re-runnable (`if not exists`, `drop ... if exists`, `on conflict do nothing`), then run:
+
+   ```powershell
+   npm run db:migrate            # applies pending files, records them in ops.schema_migrations
+   npm run db:migrate -- --status
+   ```
+
+2. **Check:** `npx tsc --noEmit -p .` and `npx eslint <changed files>` (ignore stale `.next/types` errors).
+3. **Deploy:** `git add -A`, `git commit -m "<what changed>"`, `git push origin main`. Vercel deploys `main`
+   automatically to inova.honiccompany.com and share.honiccompany.com.
+4. **Report** what changed, that the migration ran, and the commit.
+
+Run the migration before pushing code that depends on it, so the live site never reads columns that do not exist yet.
+
+## Secrets
+
+- `SUPABASE_ACCESS_TOKEN` (sbp_...) lives only in `.env.tools.local`. Keep it there; do not delete it or ask for it again.
+- Never print secret values, never copy the token into `.env.local` (it is imported into Vercel), and never commit `.env*` files.
+- Data-only fixes (inserts, deletes of test rows) can use the service role key from `.env.local` with Python `urllib`;
+  PowerShell `Invoke-RestMethod` is rejected by Supabase as a browser.
+
+## Projects
+
+- Dashboard and student portal: Supabase project `fpzpcsiczzmwppgmoeem` (the only one `db:migrate` touches).
+- Old shop database `qobobocldfjhdkpjyuuq` is separate; never change it from this repo.
