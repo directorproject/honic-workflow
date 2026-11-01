@@ -56,6 +56,21 @@
   }
 }
 
+:root {
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+select option {
+  background-color: var(--dash-card);
+  color: var(--dash-foreground);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

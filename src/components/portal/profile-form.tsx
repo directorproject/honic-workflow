@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 
 import { portalSaveProfileAction, type PortalResult } from "@/app/portal/actions";
 import { Card, Field, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
+import { SearchSelect } from "@/components/portal/search-select";
 import {
   DEFAULT_INSTITUTION,
   INSTITUTIONS,
@@ -69,14 +70,16 @@ export function ProfileForm({
         </Field>
 
         <Field label="Institution *" wide>
-          <select required className={INPUT} value={institutionChoice} onChange={(e) => setInstitutionChoice(e.target.value)}>
-            {INSTITUTIONS.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-            <option value={OTHER_OPTION}>Other (type it)</option>
-          </select>
+          <SearchSelect
+            value={institutionChoice}
+            onChange={setInstitutionChoice}
+            searchPlaceholder="Search institution, e.g. UDSM or Mbeya"
+            emptyText="Not in the list? Choose Other (type it)."
+            options={[
+              ...INSTITUTIONS.map((name) => ({ value: name, label: name })),
+              { value: OTHER_OPTION, label: "Other (type it)" },
+            ]}
+          />
         </Field>
         {institutionChoice === OTHER_OPTION ? (
           <Field label="Your institution *" wide>
@@ -92,14 +95,16 @@ export function ProfileForm({
         ) : null}
 
         <Field label="Course *" wide>
-          <select required className={INPUT} value={courseChoice} onChange={(e) => setCourseChoice(e.target.value)}>
-            {listedCourses.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name} ({c.code})
-              </option>
-            ))}
-            <option value={OTHER_COURSE_CODE}>Other (type it)</option>
-          </select>
+          <SearchSelect
+            value={courseChoice}
+            onChange={setCourseChoice}
+            searchPlaceholder="Search course, e.g. Electrical or ETE"
+            emptyText="Not in the list? Choose Other (type it)."
+            options={[
+              ...listedCourses.map((c) => ({ value: c.code, label: c.name, hint: c.code })),
+              { value: OTHER_COURSE_CODE, label: "Other (type it)" },
+            ]}
+          />
         </Field>
         {courseChoice === OTHER_COURSE_CODE ? (
           <Field label="Your course *" wide>
