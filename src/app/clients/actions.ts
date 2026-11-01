@@ -90,9 +90,6 @@ export async function deleteRegisteredClientFromManageAction(clientId: string) {
     revalidateClientPages();
     return;
   }
-  if (result.error === "has_invoices") {
-    throw new Error("Cannot delete: invoices still use this name.");
-  }
   if (result.error === "has_projects") {
     throw new Error(`Cannot delete: ${result.project_count ?? 1} project(s) still use this client.`);
   }

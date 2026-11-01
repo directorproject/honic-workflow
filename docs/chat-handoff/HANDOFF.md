@@ -52,44 +52,27 @@ Read this first. The full conversation is in `full-chat.md` (same folder, secret
   - Flow: create account → details → titles for course → select → pay TSh 10,000 to change.
   - `/portal` was added to `src/lib/auth-public-paths.ts`.
 
-### Database access for the assistant
+## Database (done 1 Nov 2026)
 
-- `.env.local` has `SUPABASE_ACCESS_TOKEN` (Supabase personal access token). Use it to run SQL through the Management API:
-  - `POST https://api.supabase.com/v1/projects/qobobocldfjhdkpjyuuq/database/query`
-  - body: `{"query": "..."}`
-  - header: `Authorization: Bearer <token>`
-  - Read the token from `.env.local`; never print it.
-- Direct host `db.<ref>.supabase.co` is IPv6-only and doesn't work on this network.
-- Project ref `qobobocldfjhdkpjyuuq`, region `ca-central-1`, pooler `aws-1-ca-central-1.pooler.supabase.com`.
+The dashboard (and the future student portal) has its own Supabase project, fully isolated from the Honic online shop.
 
-## Database move (1 Nov 2026): IN PROGRESS
+| | Dashboard project | Shop project (not ours) |
+|---|---|---|
+| Ref | `fpzpcsiczzmwppgmoeem` (eu-central-1) | `qobobocldfjhdkpjyuuq` (ca-central-1) |
+| Used by | inova.honiccompany.com + share.honiccompany.com (live since 1 Nov 2026) | Honic online shop only |
+| Contents | 8 tables: registered_clients, tracked_projects, project_milestones, project_tasks, project_share_links, project_share_push_subscriptions, last_year_projects, title_proposals; 1 login (inova, staff) | 35 shop tables, 31 customer logins, invoices. All dashboard tables, functions, triggers and the inova login were removed. |
 
-The old Supabase project `qobobocldfjhdkpjyuuq` is shared with the Honic online shop (45 tables, 31 shop customer logins). The dashboard and the future student portal moved to their own project `fpzpcsiczzmwppgmoeem` (eu-central-1). The two are fully isolated: the dashboard no longer reads anything from the shop. Clients are added by hand on /clients ("Add client").
-
-Done:
-- Schema: `supabase/v2/001_dashboard_baseline.sql` applied to the new project. It has 8 tables. RLS is on everywhere with no anon/authenticated policies; the app only uses the service role.
-- The old shared-DB migrations moved to `supabase/legacy-shared-db/` (history only).
-- Data copied with IDs kept, and count + checksum verified for every table. Backup JSON is in `E:\honic\backups\dashboard-tables-2026-11-01\`.
-- The staff user `inova@inova.local` was copied with the same password and `app_metadata.role = "staff"`. The old project's staff user also got the role.
-- New project auth: site URL https://inova.honiccompany.com, sign-up disabled.
-- Code:
-  - Staff-only access: `src/lib/auth-staff.ts`, checked in `src/middleware.ts` and `src/app/login/actions.ts`.
-  - Add-client form (`src/components/clients/add-registered-client-form.tsx`).
-  - Shop invoice sync removed.
-  - Unused files removed: invoice-stat-cards, kpi-grid, stat-cards, supabase/browser, docs.rar, scripts/_tmp-titles-pdf.py.
-- `.env.local` on this PC points at the new project. The old values are kept as `OLD_*` for rollback. Each Supabase access token only works on one project: `SUPABASE_ACCESS_TOKEN` is the old one and `NEW_SUPABASE_ACCESS_TOKEN` the new one.
-
-Remaining:
-1. Cutover:
-   1. Run `python scripts/_tmp-copy-data.py --resync`. This empties the new tables and copies fresh data, because the live site still writes to the old DB.
-   2. User sets these Vercel env vars to the new project, then redeploys: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
-   3. Test the live site.
-2. After the live site is confirmed (user approved):
-   - Back up, then drop the 10 dashboard tables (8 + sample `clients`/`projects`) from the old shop project.
-   - Drop the 9 dashboard functions and the `trg_invoices_sync_registered_client` trigger on `invoices`. Keep `invoices`.
-   - Delete the `inova@inova.local` login there.
-   - Shop backup tables (`orders_backup`, `order_items_backup`, `profiles_backup`) stay; the shop maintainer decides.
-3. Then remove `OLD_*` and `SUPABASE_ACCESS_TOKEN` from `.env.local`, delete `scripts/_tmp-*.py`, and update `docs/Honic-Setup-Guide` (it still names the old project).
+- Schema: `supabase/v2/001_dashboard_baseline.sql`. RLS is on for every table with no anon/authenticated policies; the app only uses the service role (secret key) on the server. Public sign-up is disabled.
+- Staff-only access: `src/lib/auth-staff.ts` (app_metadata.role = "staff"), checked in `src/middleware.ts` and the login action. `npm run auth:ensure-operator` creates a staff user or grants the role (AUTH_OPERATOR_EMAIL / AUTH_OPERATOR_PASSWORD).
+- Clients are added by hand on /clients (Add client). There is no link to shop invoices any more.
+- `supabase/legacy-shared-db/` is history only; `099_remove_dashboard_from_shop_db.sql` records the cleanup that was run on the shop project.
+- `.env.local` has the 13 app settings and is identical to Vercel's variables (imported 1 Nov 2026). `.env.example` is the same layout with empty values.
+- Backups (outside the repo) are in `E:\honic\backups\`:
+  - `dashboard-tables-2026-11-01*`
+  - `shop-db-dashboard-final-2026-11-01` (tables, function definitions, old login)
+  - `env-local-before-cleanup-2026-11-01.txt`
+- To run SQL from Cursor: the user creates a Supabase personal access token for `fpzpcsiczzmwppgmoeem`. Use it with `POST https://api.supabase.com/v1/projects/fpzpcsiczzmwppgmoeem/database/query` and body `{"query": "..."}`. Never print the token, never put it in `.env.local` or Vercel, and ask the user to delete it afterwards. The earlier tokens were removed from this PC.
+- The direct host `db.<ref>.supabase.co` is IPv6-only and doesn't work on the office network; use the Management API or the Session pooler.
 
 ## Decisions made for the real student portal
 
@@ -126,9 +109,9 @@ Remaining:
 
 ## Other open items
 
-- All work up to 31 Oct 2026 is committed and pushed to GitHub `main` (commit 7053825). Not committed on purpose: `docs.rar` (user's older archive) and `scripts/_tmp-titles-pdf.py`.
-- User was advised to reset the Supabase database password, which appeared in chat, and to delete the access token when done (supabase.com/dashboard/account/tokens).
-- `scripts/_tmp-titles-pdf.py` existed before this work; don't delete it without asking.
+- All work is committed and pushed to GitHub `main`. `docs.rar` and `scripts/_tmp-titles-pdf.py` were deleted at the user's request (1 Nov 2026).
+- User was advised to delete the two Supabase personal access tokens used for the move (supabase.com/dashboard/account/tokens), and to reset the shop project's database password, which appeared in chat.
+- Vercel flags some variables "Needs Attention"; marking them Sensitive is optional.
 - Pre-existing lint error in `src/components/dashboard/dashboard-shell.tsx` (react-hooks/set-state-in-effect); left as is.
 
 ## Conventions and gotchas

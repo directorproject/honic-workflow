@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { RegisteredClientsTable } from "@/components/dashboard/invoice-names-table";
+import { RegisteredClientsTable } from "@/components/dashboard/registered-clients-table";
 import { DeleteTrackedProjectButton } from "@/components/projects/delete-tracked-project-button";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";

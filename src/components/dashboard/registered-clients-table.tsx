@@ -40,11 +40,11 @@ export function RegisteredClientsTable({ rows }: { rows: RegisteredClientRow[] }
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative max-w-md flex-1">
-          <label htmlFor="invoice-client-search" className="sr-only">
+          <label htmlFor="registered-client-search" className="sr-only">
             Search registered clients
           </label>
           <input
-            id="invoice-client-search"
+            id="registered-client-search"
             type="search"
             placeholder="Search by name or date…"
             value={query}
@@ -135,4 +135,3 @@ export function RegisteredClientsTable({ rows }: { rows: RegisteredClientRow[] }
 }
 
 /** @deprecated Use RegisteredClientsTable */
-export const InvoiceNamesTable = RegisteredClientsTable;

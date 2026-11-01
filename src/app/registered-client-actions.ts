@@ -35,12 +35,6 @@ export async function deleteRegisteredClientAction(
 
   const result = (data ?? {}) as DeleteRpcResult;
   if (!result.ok) {
-    if (result.error === "has_invoices") {
-      return {
-        ok: false,
-        message: "Cannot delete: an invoice still uses this client name. Delete those invoices first.",
-      };
-    }
     if (result.error === "has_projects") {
       const n = typeof result.project_count === "number" ? result.project_count : 1;
       return {

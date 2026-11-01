@@ -1,8 +1,10 @@
 /**
- * Create default operator user for Supabase Auth (email/password).
+ * Create (or grant staff access to) an operator user for Supabase Auth (email/password).
+ * Only accounts with app_metadata.role = "staff" can sign in to the dashboard.
  * Loads .env.local / .env from project root (same as Next.js).
  *
  *   npm run auth:ensure-operator
+ *   AUTH_OPERATOR_EMAIL=name@inova.local AUTH_OPERATOR_PASSWORD=... npm run auth:ensure-operator
  */
 import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -56,28 +58,35 @@ const supabase = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const { data: list, error: listErr } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-if (listErr) {
-  console.error("listUsers failed:", listErr.message);
-  process.exit(1);
+async function ensureOperator() {
+  const { data: list, error: listErr } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+  if (listErr) throw new Error(`listUsers failed: ${listErr.message}`);
+
+  const existing = (list.users ?? []).find((u) => u.email?.toLowerCase() === email.toLowerCase());
+  if (existing) {
+    if (existing.app_metadata?.role === "staff") return `Operator already exists with staff access: ${email}`;
+    const { error } = await supabase.auth.admin.updateUserById(existing.id, {
+      app_metadata: { ...existing.app_metadata, role: "staff" },
+    });
+    if (error) throw new Error(`updateUserById failed: ${error.message}`);
+    return `Gave staff access to existing operator: ${email}`;
+  }
+
+  const { data, error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { username: email.split("@")[0] },
+    app_metadata: { role: "staff" },
+  });
+  if (error) throw new Error(`createUser failed: ${error.message}`);
+  return `Created operator ${data.user?.email ?? email}`;
 }
 
-const exists = (list.users ?? []).some((u) => u.email?.toLowerCase() === email.toLowerCase());
-if (exists) {
-  console.log(`Operator already exists: ${email}`);
-  process.exit(0);
+// Set exitCode instead of calling process.exit(): exiting while fetch sockets close crashes Node on Windows.
+try {
+  console.log(await ensureOperator());
+} catch (err) {
+  console.error(err instanceof Error ? err.message : err);
+  process.exitCode = 1;
 }
-
-const { data, error } = await supabase.auth.admin.createUser({
-  email,
-  password,
-  email_confirm: true,
-  user_metadata: { username: "inova", role: "operator" },
-});
-
-if (error) {
-  console.error("createUser failed:", error.message);
-  process.exit(1);
-}
-
-console.log(`Created operator ${data.user?.email ?? email}`);
