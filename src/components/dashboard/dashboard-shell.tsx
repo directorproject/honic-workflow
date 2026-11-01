@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
+import { AcademicYearSelect } from "@/components/dashboard/academic-year-select";
 import { useMediaQuery } from "@/components/dashboard/use-media-query";
 
 const STORAGE_PINNED = "dashSidebarPinned";
@@ -270,6 +271,10 @@ export function DashboardShell({
             <div className="min-w-0 flex-1">
               <h1 className="text-dash-foreground truncate text-lg font-semibold tracking-tight sm:text-xl">{title}</h1>
               <p className="text-dash-muted-foreground truncate text-sm">{subtitle}</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <AcademicYearSelect />
             </div>
 
             <div className="hidden items-center gap-2 sm:flex">

@@ -114,6 +114,13 @@ The dashboard (and the future student portal) has its own Supabase project, full
   - Once SMTP is set, switch the confirmation and recovery email templates to `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email|recovery` so links work on any device. The callback already supports this. Until then, a confirmation opened on another device shows "email confirmed, sign in".
 - **Tested end to end locally (1 Nov 2026):** sign in, details, select, simulated pay, re-pick, staff Create project, linked "My project" view. The test data was removed afterwards.
 
+## Working-year filter (dashboard)
+
+- The working year runs from 30 Sep to 29 Sep (EAT). A "Year" selector in the dashboard header defaults to the current year (2026/2027 from 30 Sep 2026); older years and "All years" load only when chosen.
+- The selection is stored in the `honic_academic_year` cookie. Logic: `src/lib/academic-year.ts` (+ `academic-year-server.ts`), UI: `src/components/dashboard/academic-year-select.tsx`.
+- Filters `tracked_projects.created_at` on the home summary and table (`home-workflow-data.ts`), `/projects` and `/client-side` (`loadProjectsList`), and the counts (`dashboard-data.ts`). It doesn't filter clients, titles, the weekly milestones page, or project detail pages.
+- All 27 projects that existed on 1 Nov 2026 were created May–Jul 2026, so they're in 2025/2026.
+
 ## Decisions made for the real student portal
 
 | Topic | Decision |

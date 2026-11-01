@@ -1,3 +1,5 @@
+import { filterByAcademicYear } from "@/lib/academic-year";
+import { getSelectedAcademicYear } from "@/lib/academic-year-server";
 import type { DashboardBanner } from "@/lib/dashboard-types";
 import { bannerForRegistry, fetchRegisteredClients } from "@/lib/registered-clients";
 import { getSupabaseAdminClient, hasSupabaseServiceRoleEnv } from "@/lib/supabase-server";
@@ -65,12 +67,14 @@ export async function loadHomeWorkflowPage(): Promise<{
     usingServiceRole,
   });
 
-  const { data: rawProjects, error } = await supabase
-    .from("tracked_projects")
-    .select(
-      "id, title, status, priority, project_type, workflow_checklist, start_date, target_end_date, registered_client_id, registered_clients ( name ), project_milestones ( title, target_date, completed_at, sort_order, assignee )"
-    )
-    .order("updated_at", { ascending: false });
+  const { data: rawProjects, error } = await filterByAcademicYear(
+    supabase
+      .from("tracked_projects")
+      .select(
+        "id, title, status, priority, project_type, workflow_checklist, start_date, target_end_date, registered_client_id, registered_clients ( name ), project_milestones ( title, target_date, completed_at, sort_order, assignee )"
+      ),
+    await getSelectedAcademicYear(),
+  ).order("updated_at", { ascending: false });
 
   if (error) {
     const msg = error.message.includes("workflow_checklist")

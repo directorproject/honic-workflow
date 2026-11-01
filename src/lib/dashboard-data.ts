@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { filterByAcademicYear, type AcademicYearSelection } from "@/lib/academic-year";
+import { getSelectedAcademicYear } from "@/lib/academic-year-server";
 import type { DashboardBanner, RegisteredClientRow } from "@/lib/dashboard-types";
 import { bannerForRegistry, fetchRegisteredClients } from "@/lib/registered-clients";
 import { getSupabaseAdminClient, hasSupabaseServiceRoleEnv } from "@/lib/supabase-server";
@@ -11,7 +13,10 @@ function startOfUtcMonth(): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1, 0, 0, 0, 0));
 }
 
-async function fetchTrackingCounts(supabase: SupabaseClient): Promise<{
+async function fetchTrackingCounts(
+  supabase: SupabaseClient,
+  year: AcademicYearSelection,
+): Promise<{
   totalProjects: number | null;
   activeProjects: number | null;
   openTasks: number | null;
@@ -20,25 +25,33 @@ async function fetchTrackingCounts(supabase: SupabaseClient): Promise<{
   let activeProjects: number | null = null;
   let openTasks: number | null = null;
 
-  const total = await supabase
-    .from("tracked_projects")
-    .select("*", { count: "exact", head: true });
+  const total = await filterByAcademicYear(
+    supabase.from("tracked_projects").select("*", { count: "exact", head: true }),
+    year,
+  );
   if (!total.error && typeof total.count === "number") {
     totalProjects = total.count;
   }
 
-  const active = await supabase
-    .from("tracked_projects")
-    .select("*", { count: "exact", head: true })
-    .in("status", ["planning", "active", "prototype_phase", "testing"]);
+  const active = await filterByAcademicYear(
+    supabase
+      .from("tracked_projects")
+      .select("*", { count: "exact", head: true })
+      .in("status", ["planning", "active", "prototype_phase", "testing"]),
+    year,
+  );
   if (!active.error && typeof active.count === "number") {
     activeProjects = active.count;
   }
 
-  const tasks = await supabase
-    .from("project_tasks")
-    .select("*", { count: "exact", head: true })
-    .neq("status", "done");
+  const tasks = await filterByAcademicYear(
+    supabase
+      .from("project_tasks")
+      .select("id, tracked_projects!inner(created_at)", { count: "exact", head: true })
+      .neq("status", "done"),
+    year,
+    "tracked_projects.created_at",
+  );
   if (!tasks.error && typeof tasks.count === "number") {
     openTasks = tasks.count;
   }
@@ -79,7 +92,7 @@ export async function loadDashboardData(): Promise<{
     usingServiceRole,
   });
 
-  const counts = await fetchTrackingCounts(supabase);
+  const counts = await fetchTrackingCounts(supabase, await getSelectedAcademicYear());
 
   const monthStart = startOfUtcMonth();
   const registryNewThisMonth = clients.filter((c) => {

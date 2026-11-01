@@ -1,3 +1,5 @@
+import { filterByAcademicYear } from "@/lib/academic-year";
+import { getSelectedAcademicYear } from "@/lib/academic-year-server";
 import type { RegisteredClientRow } from "@/lib/dashboard-types";
 
 /** Returned when `tracked_projects` has no row for the given id (and the query itself succeeded). */
@@ -71,12 +73,14 @@ export async function loadProjectsList(
     return { projects: [], error: "Database not configured." };
   }
 
-  let q = supabase
-    .from("tracked_projects")
-    .select(
-      "id, title, status, priority, project_type, updated_at, registered_client_id, workflow_checklist, registered_clients ( name )"
-    )
-    .order("updated_at", { ascending: false });
+  let q = filterByAcademicYear(
+    supabase
+      .from("tracked_projects")
+      .select(
+        "id, title, status, priority, project_type, updated_at, registered_client_id, workflow_checklist, registered_clients ( name )"
+      ),
+    await getSelectedAcademicYear(),
+  ).order("updated_at", { ascending: false });
 
   if (clientId) {
     q = q.eq("registered_client_id", clientId);
