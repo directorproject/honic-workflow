@@ -42,7 +42,7 @@ export default async function PortalPage(props: {
       : sp.auth_error
         ? { ok: false, message: "That link is invalid or has expired. Please try again." }
         : null;
-    content = <PortalAuth initialStatus={initial} />;
+    content = <PortalAuth initialStatus={initial} googleEnabled={process.env.PORTAL_GOOGLE_SIGNIN === "true"} />;
   } else if (state.isStaff) {
     content = (
       <div className="border-dash-border bg-dash-card flex flex-wrap items-center gap-3 rounded-2xl border p-5 text-sm">
@@ -61,7 +61,14 @@ export default async function PortalPage(props: {
       </div>
     );
   } else if (!profile || sp.edit === "1") {
-    content = <ProfileForm courses={state.courses} profile={profile} cancelHref={profile ? "/portal" : undefined} />;
+    content = (
+      <ProfileForm
+        courses={state.courses}
+        profile={profile}
+        cancelHref={profile ? "/portal" : undefined}
+        suggestedName={user.suggestedName}
+      />
+    );
   } else if (tab === "project" && profile.trackedProjectId) {
     content = await renderMyProject(profile.trackedProjectId);
   } else if (state.myTitle) {

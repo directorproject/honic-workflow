@@ -74,6 +74,18 @@ export async function portalSignInAction(email: string, password: string): Promi
   return { ok: true };
 }
 
+export async function portalGoogleSignInAction(): Promise<PortalResult> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${await requestOrigin()}/portal/auth/callback`, skipBrowserRedirect: true },
+  });
+  if (error || !data.url) {
+    return { ok: false, message: error?.message ?? "Google sign-in is not available right now." };
+  }
+  redirect(data.url);
+}
+
 export async function portalSignOutAction(): Promise<void> {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();

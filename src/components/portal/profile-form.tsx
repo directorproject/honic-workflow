@@ -12,10 +12,12 @@ export function ProfileForm({
   courses,
   profile,
   cancelHref,
+  suggestedName,
 }: {
   courses: Course[];
   profile: StudentProfile | null;
   cancelHref?: string;
+  suggestedName?: string | null;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<PortalResult | null>(null);
@@ -50,7 +52,7 @@ export function ProfileForm({
         className="grid gap-3 sm:grid-cols-2"
       >
         <Field label="Full name *" wide>
-          <input name="fullName" required maxLength={120} className={INPUT} defaultValue={profile?.fullName} />
+          <input name="fullName" required maxLength={120} className={INPUT} defaultValue={profile?.fullName ?? suggestedName ?? ""} />
         </Field>
         <Field label="Registration number *">
           <input name="regNo" required maxLength={40} className={INPUT} defaultValue={profile?.regNo} />

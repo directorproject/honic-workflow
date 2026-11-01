@@ -28,7 +28,7 @@ export type PortalTitle = {
 };
 
 export type PortalState = {
-  user: { id: string; email: string } | null;
+  user: { id: string; email: string; suggestedName: string | null } | null;
   isStaff: boolean;
   profile: StudentProfile | null;
   courses: Course[];
@@ -79,7 +79,13 @@ export async function loadPortalState(): Promise<PortalState> {
   };
   if (!user) return empty;
 
-  const base = { ...empty, user: { id: user.id, email: user.email ?? "" }, isStaff: isStaffUser(user) };
+  const meta = (user.user_metadata ?? {}) as { full_name?: unknown; name?: unknown };
+  const suggestedName = [meta.full_name, meta.name].find((v): v is string => typeof v === "string" && v.trim() !== "") ?? null;
+  const base = {
+    ...empty,
+    user: { id: user.id, email: user.email ?? "", suggestedName },
+    isStaff: isStaffUser(user),
+  };
   const db = getSupabaseAdminClient();
   if (!db || base.isStaff) return base;
 
