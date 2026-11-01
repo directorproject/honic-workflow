@@ -80,6 +80,15 @@ The dashboard (and the future student portal) has its own Supabase project, full
 - Student sessions use cookies on the share host only, separate from staff cookies on inova. Portal APIs should go under `/api/portal/` (already allowed on the share host).
 - When building real sign-up, add `https://share.honiccompany.com/**` to Supabase > Authentication > URL Configuration > Redirect URLs, and re-enable sign-up (disabled now). Students must never get `app_metadata.role = "staff"`.
 
+## Portal accounts: two stages (decided 1 Nov 2026)
+
+- People without an account keep using share links, unchanged.
+- **Stage 1, title:** a student signs up on share.honiccompany.com/portal (students only: name, reg no, course, year required). They pick one title for their course; changing costs TSh 10,000.
+- **Stage 2, project:** the account is linked to a tracked project, so the portal shows the "My project" tab (the same content as the share page: checklist, files, references) next to the "My title" tab. Nothing disappears.
+- **Linking:** both ways. It happens automatically when staff create a project from a student's selected title, and staff can also link by email on the project page. One project per account.
+- **Notifications:** email the student when staff publish an update on their linked project. This needs an email provider (not configured yet).
+- **Security:** a student only sees their own linked project (enforced by RLS), and never gets the staff role.
+
 ## Decisions made for the real student portal
 
 | Topic | Decision |
