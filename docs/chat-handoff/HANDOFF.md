@@ -74,6 +74,14 @@ The dashboard (and the future student portal) has its own Supabase project, full
 - To run SQL from Cursor: the user creates a Supabase personal access token for `fpzpcsiczzmwppgmoeem`. Use it with `POST https://api.supabase.com/v1/projects/fpzpcsiczzmwppgmoeem/database/query` and body `{"query": "..."}`. Never print the token, never put it in `.env.local` or Vercel, and ask the user to delete it afterwards. The earlier tokens were removed from this PC.
 - The direct host `db.<ref>.supabase.co` is IPv6-only and doesn't work on the office network; use the Management API or the Session pooler.
 
+## Student portal host
+
+- The student portal is served on **share.honiccompany.com/portal**. `src/middleware.ts` allows `/portal` on the share host, redirects the share host's root `/` to `/portal`, and redirects `inova.honiccompany.com/portal` to the share host. Student sessions therefore never share cookies with staff sessions on inova.
+- When the real portal is built, it needs the following:
+  - Add `https://share.honiccompany.com/**` to Supabase Auth > URL Configuration > Redirect URLs for project `fpzpcsiczzmwppgmoeem`, for email verification links.
+  - Re-enable sign-up only in a controlled way.
+  - Give students a role other than staff, so they can never pass the dashboard's staff check.
+
 ## Decisions made for the real student portal
 
 | Topic | Decision |
