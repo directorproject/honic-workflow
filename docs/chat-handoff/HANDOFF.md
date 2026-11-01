@@ -89,6 +89,31 @@ The dashboard (and the future student portal) has its own Supabase project, full
 - **Notifications:** email the student when staff publish an update on their linked project. This needs an email provider (not configured yet).
 - **Security:** a student only sees their own linked project (enforced by RLS), and never gets the staff role.
 
+## Student portal: BUILT (1 Nov 2026)
+
+- **Database:** `supabase/v2/002_student_portal.sql` is applied.
+  - Tables: `courses` (ETE, COE), `student_profiles`, `title_selections`, `title_change_payments`.
+  - `title_proposals` gained `course_code` and `selected_by`.
+  - Locked functions: `portal_select_title` and `portal_pay_for_change` (service role only).
+- **Portal code:**
+  - Pages: `src/app/portal/page.tsx`, the email-link callback `portal/auth/callback/route.ts` and `portal/reset`.
+  - Actions: `src/app/portal/actions.ts`.
+  - Components: `src/components/portal/*`; data and settings: `src/lib/portal/{data,config,notify}.ts`.
+- **"My project" tab:** reuses `src/components/share/project-share-view.tsx`, the same view as share links.
+- **Dashboard:**
+  - `/titles` shows each title's course and the student who picked it, has "Create project" (creates the project and links the account) and an Add-course form.
+  - Release on `/titles` frees the title and gives the student a free re-pick.
+  - Each project page has a "Student portal account" box to link or unlink by email.
+- **Payments:** simulated (`PAYMENT_PROVIDER = "simulated"` in `src/lib/portal/config.ts`). Payments are recorded in `title_change_payments` with reference `SIM-...`. To go live, replace the simulated step in `portalPayForChangeAction` with a real provider (for example AzamPay) and its callback.
+- **Emails:**
+  - `src/lib/email.ts` sends through Resend once `RESEND_API_KEY` and `EMAIL_FROM` are set. Until then it's skipped.
+  - The student gets an email when linked and on every pipeline-step change (`src/app/actions/workflow.ts`).
+- **Supabase Auth:**
+  - Sign-up is enabled, and the redirect URLs include share, inova and localhost.
+  - Built-in email is limited to about 2 per hour, so connect Resend SMTP before launch.
+  - Once SMTP is set, switch the confirmation and recovery email templates to `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email|recovery` so links work on any device. The callback already supports this. Until then, a confirmation opened on another device shows "email confirmed, sign in".
+- **Tested end to end locally (1 Nov 2026):** sign in, details, select, simulated pay, re-pick, staff Create project, linked "My project" view. The test data was removed afterwards.
+
 ## Decisions made for the real student portal
 
 | Topic | Decision |

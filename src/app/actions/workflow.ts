@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { notifyLinkedStudent } from "@/lib/portal/notify";
 import { notifyShareSubscribers } from "@/lib/share-push";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import {
@@ -88,5 +89,10 @@ export async function updateWorkflowStep(
     trackedProjectId: projectId,
     title: "Project activity updated",
     body: notifyBody,
+  });
+  await notifyLinkedStudent({
+    trackedProjectId: projectId,
+    subject: "Your project has a new update",
+    message: `Our team updated your project. ${notifyBody}.`,
   });
 }

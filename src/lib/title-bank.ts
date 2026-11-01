@@ -15,8 +15,18 @@ export type LastYearProject = {
 export const TITLE_PROPOSAL_STATUSES = ["available", "reserved", "assigned", "dropped"] as const;
 export type TitleProposalStatus = (typeof TITLE_PROPOSAL_STATUSES)[number];
 
+export type TitleStudent = {
+  userId: string;
+  fullName: string;
+  regNo: string;
+  phone: string;
+  trackedProjectId: string | null;
+};
+
 export type TitleProposal = {
   id: string;
+  courseCode: string | null;
+  student: TitleStudent | null;
   batch: string | null;
   originRef: string | null;
   originalTitle: string | null;
@@ -34,6 +44,7 @@ export type TitleProposal = {
 export type TitleBankData = {
   lastYear: LastYearProject[];
   proposals: TitleProposal[];
+  courses: { code: string; name: string }[];
   error: string | null;
 };
 
@@ -50,9 +61,9 @@ function toStatus(v: unknown): TitleProposalStatus {
 
 export async function loadTitleBank(): Promise<TitleBankData> {
   const supabase = getSupabaseAdminClient();
-  if (!supabase) return { lastYear: [], proposals: [], error: "Database not configured." };
+  if (!supabase) return { lastYear: [], proposals: [], courses: [], error: "Database not configured." };
 
-  const [ly, tp] = await Promise.all([
+  const [ly, tp, cs] = await Promise.all([
     supabase
       .from("last_year_projects")
       .select("id, programme, source, panel, serial_no, reg_no, student_name, title, supervisor")
@@ -62,12 +73,31 @@ export async function loadTitleBank(): Promise<TitleBankData> {
     supabase
       .from("title_proposals")
       .select(
-        "id, batch, origin_ref, original_title, title, summary, hardware, communication, status, assigned_to, assigned_at, notes, created_at",
+        "id, course_code, selected_by, batch, origin_ref, original_title, title, summary, hardware, communication, status, assigned_to, assigned_at, notes, created_at",
       )
       .order("created_at", { ascending: true }),
+    supabase.from("courses").select("code, name").eq("is_active", true).order("sort_order").order("code"),
   ]);
 
-  const error = ly.error?.message ?? tp.error?.message ?? null;
+  const error = ly.error?.message ?? tp.error?.message ?? cs.error?.message ?? null;
+
+  const studentIds = (tp.data ?? []).map((r) => r.selected_by).filter((v): v is string => typeof v === "string");
+  const students = new Map<string, TitleStudent>();
+  if (studentIds.length > 0) {
+    const { data: profs } = await supabase
+      .from("student_profiles")
+      .select("user_id, full_name, reg_no, phone, tracked_project_id")
+      .in("user_id", studentIds);
+    for (const p of profs ?? []) {
+      students.set(String(p.user_id), {
+        userId: String(p.user_id),
+        fullName: String(p.full_name),
+        regNo: String(p.reg_no),
+        phone: String(p.phone),
+        trackedProjectId: p.tracked_project_id ? String(p.tracked_project_id) : null,
+      });
+    }
+  }
 
   const lastYear: LastYearProject[] = (ly.data ?? []).map((r) => ({
     id: String(r.id),
@@ -83,6 +113,8 @@ export async function loadTitleBank(): Promise<TitleBankData> {
 
   const proposals: TitleProposal[] = (tp.data ?? []).map((r) => ({
     id: String(r.id),
+    courseCode: str(r.course_code),
+    student: r.selected_by ? (students.get(String(r.selected_by)) ?? null) : null,
     batch: str(r.batch),
     originRef: str(r.origin_ref),
     originalTitle: str(r.original_title),
@@ -97,5 +129,7 @@ export async function loadTitleBank(): Promise<TitleBankData> {
     createdAt: String(r.created_at ?? ""),
   }));
 
-  return { lastYear, proposals, error };
+  const courses = (cs.data ?? []).map((c) => ({ code: String(c.code), name: String(c.name) }));
+
+  return { lastYear, proposals, courses, error };
 }

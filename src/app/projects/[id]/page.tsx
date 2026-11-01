@@ -13,6 +13,8 @@ import { isDashboardRegistryOk } from "@/lib/dashboard-types";
 import { isHighProjectPriority } from "@/lib/project-priority";
 import { ProjectReadOnlyTimelineCard } from "@/components/projects/project-read-only-timeline-card";
 import { ProjectLoadFailureNotice } from "@/components/projects/project-load-failure-notice";
+import { StudentAccountCard, type LinkedStudent } from "@/components/projects/student-account-card";
+import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import {
   loadProjectDetail,
   PROJECT_DETAIL_NOT_FOUND_MESSAGE,
@@ -62,6 +64,19 @@ function toWorkflowRow(project: TrackedProjectDetail): WorkflowProjectRow {
     registered_clients: project.registered_clients,
     timeline_summary: "—",
   };
+}
+
+async function loadLinkedStudent(projectId: string): Promise<LinkedStudent | null> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return null;
+  const { data } = await supabase
+    .from("student_profiles")
+    .select("user_id, full_name, reg_no")
+    .eq("tracked_project_id", projectId)
+    .maybeSingle();
+  if (!data) return null;
+  const { data: u } = await supabase.auth.admin.getUserById(String(data.user_id));
+  return { fullName: String(data.full_name), regNo: String(data.reg_no), email: u?.user?.email ?? null };
 }
 
 export default async function ProjectDetailPage(props: { params: Promise<{ id: string }> }) {
@@ -130,6 +145,8 @@ export default async function ProjectDetailPage(props: { params: Promise<{ id: s
       </div>
 
       <ProjectReadOnlyTimelineCard startDate={project.start_date} targetEndDate={project.target_end_date} />
+
+      <StudentAccountCard projectId={project.id} student={await loadLinkedStudent(project.id)} />
 
       {project.description ? (
         <p

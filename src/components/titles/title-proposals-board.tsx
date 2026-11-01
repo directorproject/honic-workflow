@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 import {
+  createProjectFromTitleAction,
   createTitleProposalAction,
   deleteTitleProposalAction,
   setTitleProposalStatusAction,
@@ -34,7 +36,13 @@ const INPUT =
 const BTN =
   "border-dash-border bg-dash-muted hover:bg-dash-border rounded-lg border px-2.5 py-1 text-xs font-semibold disabled:opacity-50";
 
-export function TitleProposalsBoard({ proposals }: { proposals: TitleProposal[] }) {
+export function TitleProposalsBoard({
+  proposals,
+  courses,
+}: {
+  proposals: TitleProposal[];
+  courses: { code: string; name: string }[];
+}) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("available");
   const [query, setQuery] = useState("");
@@ -92,6 +100,7 @@ export function TitleProposalsBoard({ proposals }: { proposals: TitleProposal[] 
       async () => {
         await createTitleProposalAction({
           title: String(fd.get("title") ?? ""),
+          courseCode: String(fd.get("courseCode") ?? ""),
           originalTitle: String(fd.get("originalTitle") ?? ""),
           originRef: String(fd.get("originRef") ?? ""),
           summary: String(fd.get("summary") ?? ""),
@@ -142,9 +151,19 @@ export function TitleProposalsBoard({ proposals }: { proposals: TitleProposal[] 
           }}
           className="border-dash-border bg-dash-card grid gap-3 rounded-2xl border p-4 shadow-sm sm:grid-cols-2"
         >
-          <label className="sm:col-span-2">
+          <label>
             <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">New title *</span>
             <input name="title" required maxLength={300} className={INPUT} />
+          </label>
+          <label>
+            <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">Course *</span>
+            <select name="courseCode" required className={INPUT} defaultValue={courses[0]?.code}>
+              {courses.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.code} · {c.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
             <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">Original title</span>
@@ -202,6 +221,11 @@ export function TitleProposalsBoard({ proposals }: { proposals: TitleProposal[] 
                     {STATUS_LABEL[p.status]}
                     {p.assignedTo && (p.status === "reserved" || p.status === "assigned") ? ` · ${p.assignedTo}` : ""}
                   </span>
+                  {p.courseCode ? (
+                    <span className="bg-dash-accent/10 text-dash-accent inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold">
+                      {p.courseCode}
+                    </span>
+                  ) : null}
                   {p.originRef ? (
                     <span className="border-dash-border text-dash-muted-foreground inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold">
                       {p.originRef}
@@ -212,6 +236,37 @@ export function TitleProposalsBoard({ proposals }: { proposals: TitleProposal[] 
 
                 <p className="text-dash-foreground mt-2 font-semibold leading-snug">{p.title}</p>
                 <p className="text-dash-muted-foreground mt-1 text-xs">Original title: {p.originalTitle ?? "None"}</p>
+                {p.student ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-sky-500/30 bg-sky-500/5 px-3 py-2 text-xs">
+                    <span className="text-dash-foreground font-semibold">Student: {p.student.fullName}</span>
+                    <span className="text-dash-muted-foreground">
+                      {p.student.regNo} · {p.student.phone}
+                    </span>
+                    {p.student.trackedProjectId ? (
+                      <Link
+                        href={`/projects/${p.student.trackedProjectId}`}
+                        className="text-dash-accent ml-auto font-semibold underline-offset-2 hover:underline"
+                      >
+                        Open project
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={isPending && pendingId === p.id}
+                        onClick={() => {
+                          if (!window.confirm(`Create a project for ${p.student?.fullName} and link their portal account?`)) return;
+                          run(p.id, async () => {
+                            const projectId = await createProjectFromTitleAction(p.id);
+                            router.push(`/projects/${projectId}`);
+                          }, "Project created and linked.");
+                        }}
+                        className="bg-dash-accent ml-auto rounded-lg px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-50"
+                      >
+                        Create project
+                      </button>
+                    )}
+                  </div>
+                ) : null}
 
                 {p.summary || p.hardware || p.communication ? (
                   <details className="mt-2 text-sm">

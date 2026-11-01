@@ -1,4 +1,5 @@
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { AddCourseForm } from "@/components/titles/add-course-form";
 import { LastYearProjectsTable } from "@/components/titles/last-year-projects-table";
 import { TitleProposalsBoard } from "@/components/titles/title-proposals-board";
 import { loadDashboardData } from "@/lib/dashboard-data";
@@ -50,9 +51,14 @@ export default async function ProjectTitlesPage() {
       <section className="mb-10">
         <h2 className="text-dash-foreground text-base font-semibold tracking-tight">New titles for selection</h2>
         <p className="text-dash-muted-foreground mt-1 mb-4 text-sm">
-          Reserve a title for someone, assign it to a student or team, or release it back to the list.
+          Students pick available titles for their course on share.honiccompany.com/portal. Use Create project on a
+          student&apos;s title to start their project and link their portal account. Release gives the title back to the
+          list and lets the student choose again for free.
         </p>
-        <TitleProposalsBoard proposals={proposals} />
+        <div className="mb-4">
+          <AddCourseForm courses={bank.courses} />
+        </div>
+        <TitleProposalsBoard proposals={proposals} courses={bank.courses} />
       </section>
 
       <section>
