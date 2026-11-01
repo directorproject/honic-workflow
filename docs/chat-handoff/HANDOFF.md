@@ -76,11 +76,9 @@ The dashboard (and the future student portal) has its own Supabase project, full
 
 ## Student portal host
 
-- The student portal is served on **share.honiccompany.com/portal**. `src/middleware.ts` allows `/portal` on the share host, redirects the share host's root `/` to `/portal`, and redirects `inova.honiccompany.com/portal` to the share host. Student sessions therefore never share cookies with staff sessions on inova.
-- When the real portal is built, it needs the following:
-  - Add `https://share.honiccompany.com/**` to Supabase Auth > URL Configuration > Redirect URLs for project `fpzpcsiczzmwppgmoeem`, for email verification links.
-  - Re-enable sign-up only in a controlled way.
-  - Give students a role other than staff, so they can never pass the dashboard's staff check.
+- The portal lives on **https://share.honiccompany.com/portal**. `share.honiccompany.com/` redirects there, and `inova.honiccompany.com/portal` redirects to the share host. The rules are in `src/middleware.ts` (`isPortalPath`).
+- Student sessions use cookies on the share host only, separate from staff cookies on inova. Portal APIs should go under `/api/portal/` (already allowed on the share host).
+- When building real sign-up, add `https://share.honiccompany.com/**` to Supabase > Authentication > URL Configuration > Redirect URLs, and re-enable sign-up (disabled now). Students must never get `app_metadata.role = "staff"`.
 
 ## Decisions made for the real student portal
 

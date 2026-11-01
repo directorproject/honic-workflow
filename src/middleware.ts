@@ -24,14 +24,14 @@ function shareOnlyHostname(): string | null {
 }
 
 function isPortalPath(pathname: string): boolean {
-  return pathname === "/portal" || pathname.startsWith("/portal/");
+  return pathname === "/portal" || pathname.startsWith("/portal/") || pathname.startsWith("/api/portal/");
 }
 
 function isAllowedOnShareHost(pathname: string): boolean {
   if (pathname.startsWith("/_next/")) return true;
   if (pathname === "/share" || pathname.startsWith("/share/")) return true;
-  if (isPortalPath(pathname)) return true;
   if (pathname.startsWith("/api/share/")) return true;
+  if (isPortalPath(pathname)) return true;
   if (pathname === "/share-push-sw.js") return true;
   if (pathname === "/favicon.ico" || pathname === "/robots.txt" || pathname === "/logo.jpg") return true;
   return false;
@@ -40,7 +40,7 @@ function isAllowedOnShareHost(pathname: string): boolean {
 /**
  * Auth is required only on the internal dashboard host (NEXT_PUBLIC_APP_URL / localhost).
  * Share hosts and client share subdomains stay public — no login on shared links.
- * The share host also serves the student title portal (/portal); its root redirects there.
+ * The student title portal (/portal) lives on the share host; the dashboard host redirects there.
  */
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -50,6 +50,10 @@ export async function middleware(request: NextRequest) {
   if (shareHost && hostname === shareHost) {
     if (pathname === "/") {
       return NextResponse.redirect(new URL("/portal", request.url));
+    }
+    if (isPortalPath(pathname)) {
+      const { supabaseResponse } = await updateSession(request);
+      return supabaseResponse;
     }
     if (isAllowedOnShareHost(pathname)) {
       return NextResponse.next();
@@ -70,8 +74,7 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  // The student portal lives on the share host so student sessions never mix with staff sessions.
-  if (shareHost && hostname === internalAppHostname() && isPortalPath(pathname)) {
+  if (shareHost && isPortalPath(pathname) && hostname === internalAppHostname()) {
     const target = new URL(request.nextUrl.pathname + request.nextUrl.search, `https://${shareHost}`);
     return NextResponse.redirect(target);
   }
