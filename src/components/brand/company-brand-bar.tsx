@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+
 const TAGLINE = "Innovations and research";
 
 /**
@@ -12,12 +14,14 @@ export function CompanyBrandBar({
   variant = "full",
   onNavigate,
   endContent,
+  showThemeToggle = true,
 }: {
   variant?: "full" | "compact";
   /** e.g. close mobile drawer when the home link is used */
   onNavigate?: () => void;
   /** Extra block on the right (e.g. share page notice); `full` variant only. */
   endContent?: ReactNode;
+  showThemeToggle?: boolean;
 }) {
   if (variant === "compact") {
     return (
@@ -47,12 +51,12 @@ export function CompanyBrandBar({
   }
 
   return (
-    <div className="border-dash-border bg-white dark:bg-dash-card border-b">
+    <div className="border-dash-border bg-dash-card border-b">
       <div
         className={`mx-auto flex max-w-7xl px-4 py-3 sm:px-6 lg:px-8 ${
           endContent
             ? "flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
-            : "items-center gap-4 sm:gap-6"
+            : "items-center justify-between gap-4 sm:gap-6"
         }`}
       >
         <div className="flex min-w-0 items-center gap-4 sm:gap-6">
@@ -70,19 +74,22 @@ export function CompanyBrandBar({
             <div className="bg-[#0c4a6e] dark:bg-dash-accent mt-1.5 h-1 w-full max-w-[5.5rem] rounded-sm sm:max-w-[6.5rem]" />
           </div>
           <div className="min-w-0 py-0.5">
-            <p className="text-[#0f172a] dark:text-dash-foreground text-base font-bold tracking-tight sm:text-lg">
+            <p className="text-dash-foreground text-base font-bold tracking-tight sm:text-lg">
               Honic Company Limited
             </p>
-            <p className="text-slate-600 dark:text-dash-muted-foreground mt-0.5 text-[10px] font-semibold tracking-[0.2em] uppercase sm:text-xs">
+            <p className="text-dash-muted-foreground mt-0.5 text-[10px] font-semibold tracking-[0.2em] uppercase sm:text-xs">
               {TAGLINE}
             </p>
           </div>
         </div>
-        {endContent ? (
-          <div className="border-dash-border hidden min-w-0 flex-col gap-1 border-t pt-3 sm:flex sm:max-w-md sm:border-t-0 sm:border-l sm:pl-6 sm:pt-0 lg:max-w-xl">
-            {endContent}
-          </div>
-        ) : null}
+        <div className="flex shrink-0 items-center gap-3">
+          {endContent ? (
+            <div className="border-dash-border hidden min-w-0 flex-col gap-1 border-t pt-3 sm:flex sm:max-w-md sm:border-t-0 sm:border-l sm:pl-6 sm:pt-0 lg:max-w-xl">
+              {endContent}
+            </div>
+          ) : null}
+          {showThemeToggle ? <ThemeToggle /> : null}
+        </div>
       </div>
     </div>
   );

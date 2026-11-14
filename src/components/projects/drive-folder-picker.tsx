@@ -41,7 +41,9 @@ export function DriveFolderPicker({
   }, [parentIdForFetch]);
 
   useEffect(() => {
-    void load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [load]);
 
   const currentFolderId =

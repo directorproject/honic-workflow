@@ -31,7 +31,8 @@ export function RegisteredClientsTable({ rows }: { rows: RegisteredClientRow[] }
     const q = query.trim().toLowerCase();
     if (!q) return rows;
     return rows.filter((r) => {
-      const hay = `${r.name} ${r.lastSeenAt ?? ""} ${r.firstSeenAt ?? ""}`.toLowerCase();
+      const titles = (r.titles ?? []).map((t) => t.title).join(" ");
+      const hay = `${r.name} ${titles} ${r.lastSeenAt ?? ""} ${r.firstSeenAt ?? ""}`.toLowerCase();
       return hay.includes(q);
     });
   }, [query, rows]);
@@ -46,7 +47,7 @@ export function RegisteredClientsTable({ rows }: { rows: RegisteredClientRow[] }
           <input
             id="registered-client-search"
             type="search"
-            placeholder="Search by name or date…"
+            placeholder="Search by name, title, or date…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="border-dash-border bg-dash-card text-dash-foreground placeholder:text-dash-muted-foreground focus:ring-dash-accent/25 w-full rounded-xl border py-2.5 pr-3 pl-10 text-sm shadow-sm outline-none focus:ring-2"
@@ -79,6 +80,7 @@ export function RegisteredClientsTable({ rows }: { rows: RegisteredClientRow[] }
             <thead className="bg-dash-muted/80">
               <tr className="text-dash-muted-foreground text-left text-xs font-semibold tracking-wide uppercase">
                 <th className="px-5 py-3.5">Registered name</th>
+                <th className="px-5 py-3.5">Title</th>
                 <th className="px-5 py-3.5 whitespace-nowrap">First seen</th>
                 <th className="px-5 py-3.5 whitespace-nowrap">Last activity</th>
                 <th className="px-5 py-3.5 whitespace-nowrap text-right">Tracking</th>
@@ -88,14 +90,38 @@ export function RegisteredClientsTable({ rows }: { rows: RegisteredClientRow[] }
             <tbody className="divide-dash-border divide-y">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-dash-muted-foreground px-5 py-14 text-center text-sm">
-                    No clients match your search.
+                  <td colSpan={6} className="text-dash-muted-foreground px-5 py-14 text-center text-sm">
+                    {rows.length === 0
+                      ? "No project-invoice clients in this working year."
+                      : "No clients match your search."}
                   </td>
                 </tr>
               ) : (
                 filtered.map((row) => (
                   <tr key={row.id} className="hover:bg-dash-muted/50 transition-colors">
                     <td className="text-dash-foreground px-5 py-3.5 font-medium">{row.name}</td>
+                    <td className="px-5 py-3.5">
+                      {(row.titles ?? []).length === 0 ? (
+                        <span className="text-dash-muted-foreground">—</span>
+                      ) : (
+                        <ul className="space-y-1">
+                          {(row.titles ?? []).map((title) => (
+                            <li key={title.id}>
+                              {title.projectId ? (
+                                <Link
+                                  href={`/projects/${title.projectId}`}
+                                  className="text-dash-foreground font-medium underline-offset-2 hover:underline"
+                                >
+                                  {title.title}
+                                </Link>
+                              ) : (
+                                <span className="text-dash-foreground">{title.title}</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </td>
                     <td className="text-dash-muted-foreground px-5 py-3.5 whitespace-nowrap tabular-nums">
                       {formatTs(row.firstSeenAt)}
                     </td>

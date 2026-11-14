@@ -192,31 +192,42 @@ export const PLAN_TEMPLATES: Record<string, { label: string; phases: TemplatePha
   },
 };
 
+/** One full document by default. Partials are split from pages later, not pre-made chapter rows. */
 export const DEFAULT_DOCUMENTS: Record<string, string[]> = {
-  fyp: [
-    "Project proposal",
-    "Chapter 1: Introduction",
-    "Chapter 2: Literature review",
-    "Chapter 3: Methodology and design",
-    "Chapter 4: Results and discussion",
-    "Chapter 5: Conclusion and recommendations",
-    "Final report",
-    "Presentation slides",
-  ],
-  research: [
-    "Research proposal",
-    "Research permit or ethics approval",
-    "Data collection tools",
-    "Chapter 1: Introduction",
-    "Chapter 2: Literature review",
-    "Chapter 3: Methodology",
-    "Chapter 4: Findings and discussion",
-    "Chapter 5: Conclusion",
-    "Final report",
-    "Presentation slides",
-  ],
-  innovation: ["Concept note", "Design document", "Test report", "Business model", "Innovation report", "Pitch deck"],
+  fyp: ["Report"],
+  research: ["Report"],
+  innovation: ["Report"],
 };
+
+/** Old seeded chapter rows we remove when empty (no file uploaded). */
+export const LEGACY_SECTION_DOC_NAMES = new Set([
+  "Project proposal",
+  "Chapter 1: Introduction",
+  "Chapter 2: Literature review",
+  "Chapter 3: Methodology and design",
+  "Chapter 3: Methodology",
+  "Chapter 4: Results and discussion",
+  "Chapter 4: Findings and discussion",
+  "Chapter 5: Conclusion and recommendations",
+  "Chapter 5: Conclusion",
+  "Final report",
+  "Presentation slides",
+  "Research proposal",
+  "Research permit or ethics approval",
+  "Data collection tools",
+  "Concept note",
+  "Design document",
+  "Test report",
+  "Business model",
+  "Innovation report",
+  "Pitch deck",
+]);
+
+export function isLegacyEmptySectionName(name: string): boolean {
+  const n = name.trim();
+  if (LEGACY_SECTION_DOC_NAMES.has(n)) return true;
+  return /^chapter\s+\d+/i.test(n);
+}
 
 export const DEFAULT_DEFENCE_CHECKS = [
   "Slides ready (problem, objectives, method, results, conclusion)",

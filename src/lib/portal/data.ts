@@ -21,6 +21,9 @@ export type StudentProfile = {
   partner: string | null;
   trackedProjectId: string | null;
   changeCredits: number;
+  /** Active desk membership end (ISO). Null / past = free mode. */
+  deskExpiresAt: string | null;
+  deskPlan: string | null;
 };
 
 export type PortalTitle = {
@@ -33,6 +36,8 @@ export type PortalTitle = {
   institution: string | null;
   /** True for the top matches on the student's course and institution. */
   recommended: boolean;
+  /** Hidden from same institution/course/level peers (paid or plan free hide). */
+  hiddenFromPeers?: boolean;
 };
 
 /** How many best-matching titles are pinned to the top before the rest are mixed. */
@@ -51,7 +56,7 @@ function hashString(s: string): number {
  * Top: titles matching the student's course and institution (both first, then course, then institution),
  * capped at RECOMMENDED_LIMIT. Below: everything else in a mixed order that stays stable for the student.
  */
-function rankTitles(titles: PortalTitle[], profile: StudentProfile, seed: string): PortalTitle[] {
+export function rankTitles(titles: PortalTitle[], profile: StudentProfile, seed: string): PortalTitle[] {
   const course = profile.courseCode;
   const inst = profile.institution.toLowerCase();
   const score = (t: PortalTitle) =>
@@ -153,6 +158,8 @@ export async function loadPortalState(): Promise<PortalState> {
     partner: p.partner ? String(p.partner) : null,
     trackedProjectId: p.tracked_project_id ? String(p.tracked_project_id) : null,
     changeCredits: Number(p.change_credits ?? 0),
+    deskExpiresAt: p.desk_expires_at ? String(p.desk_expires_at) : null,
+    deskPlan: p.desk_plan ? String(p.desk_plan) : null,
   };
 
   const cols = "id, title, summary, hardware, communication, course_code, institution";

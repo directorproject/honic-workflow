@@ -17,7 +17,7 @@ export function getSharePublicOriginFromEnv(): string {
 
 /**
  * Parent domain for per-client share hosts (no protocol, no leading dot).
- * Example: honiccompany.com → https://hosea-api.honiccompany.com/share/…
+ * Example: honiccompany.com → https://acme-labs.honiccompany.com/share/…
  */
 export function getShareParentDomainFromEnv(): string {
   return (process.env.NEXT_PUBLIC_SHARE_PARENT_DOMAIN ?? "")

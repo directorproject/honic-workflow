@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StatusBanner } from "@/components/dashboard/status-banner";
+import { HomeStudentsPanel } from "@/components/home/home-students-panel";
 import { HomeSummaryCards } from "@/components/home/home-summary-cards";
 import { WorkflowTableMinimal } from "@/components/home/workflow-table-minimal";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
@@ -19,7 +20,7 @@ export default async function DashboardPage() {
   return (
     <DashboardShell
       title="Project workflow"
-      subtitle="Summary table on home · full checklist on each project."
+      subtitle="Project pipeline on home. Students, title requests, and Help desk chat are in the portal system below."
       statusDotClass={statusDotClass}
     >
       <StatusBanner banner={banner} />
@@ -29,7 +30,7 @@ export default async function DashboardPage() {
           <div>
             <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">Summary</h2>
             <p className="text-dash-muted-foreground text-sm">
-              Registry size, delivery status, and pipeline at a glance.
+              Counts for the selected working year. Client side is listed last.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -52,6 +53,8 @@ export default async function DashboardPage() {
         <HomeSummaryCards s={summaries} />
       </section>
 
+      <HomeStudentsPanel />
+
       <section id="workflow" className="mt-10 scroll-mt-28 space-y-4">
         <div>
           <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">Activity overview</h2>
@@ -72,7 +75,17 @@ export default async function DashboardPage() {
       </section>
 
       <footer className="text-dash-muted-foreground mt-12 border-t border-dashed border-slate-300/60 pt-8 text-center text-xs dark:border-slate-600/60">
-        <span className="font-medium text-slate-600 dark:text-slate-400">tracked_projects.workflow_checklist</span>
+        <Link href="/users" className="text-dash-accent font-medium underline-offset-2 hover:underline">
+          Registered users
+        </Link>
+        {" · "}
+        <Link href="/users/requests" className="text-dash-accent font-medium underline-offset-2 hover:underline">
+          Requested titles
+        </Link>
+        {" · "}
+        <Link href="/students/help-desk" className="text-dash-accent font-medium underline-offset-2 hover:underline">
+          Help desk
+        </Link>
         {" · "}
         <Link href="/projects" className="text-dash-accent font-medium underline-offset-2 hover:underline">
           Project list
@@ -80,10 +93,6 @@ export default async function DashboardPage() {
         {" · "}
         <Link href="/plans" className="text-dash-accent font-medium underline-offset-2 hover:underline">
           This week milestones
-        </Link>
-        {" · "}
-        <Link href="/about" className="text-dash-accent font-medium underline-offset-2 hover:underline">
-          About
         </Link>
       </footer>
     </DashboardShell>

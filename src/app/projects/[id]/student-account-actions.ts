@@ -2,14 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 
-import { isStaffUser } from "@/lib/auth-staff";
+import { isStaffUser, requireStaffActor } from "@/lib/auth-staff";
 import { notifyLinkedStudent } from "@/lib/portal/notify";
 import { createProjectShareLink } from "@/lib/project-share";
-import { getSupabaseAdminClient } from "@/lib/supabase-server";
+import { getSupabaseServiceRoleClient } from "@/lib/supabase-server";
 
 function db() {
-  const supabase = getSupabaseAdminClient();
-  if (!supabase) throw new Error("Database not configured.");
+  const supabase = getSupabaseServiceRoleClient();
+  if (!supabase) throw new Error("Secure database access is not configured.");
   return supabase;
 }
 
@@ -26,6 +26,7 @@ async function findUserIdByEmail(email: string) {
 }
 
 export async function linkStudentAccountAction(projectId: string, email: string) {
+  await requireStaffActor();
   const id = String(projectId ?? "").trim();
   const e = String(email ?? "").trim().toLowerCase();
   if (!id) throw new Error("Missing project id.");
@@ -70,6 +71,7 @@ export async function linkStudentAccountAction(projectId: string, email: string)
 }
 
 export async function unlinkStudentAccountAction(projectId: string) {
+  await requireStaffActor();
   const id = String(projectId ?? "").trim();
   if (!id) throw new Error("Missing project id.");
   const { error } = await db()

@@ -8,8 +8,17 @@ import {
   createProjectFromTitleAction,
   createTitleProposalAction,
   deleteTitleProposalAction,
+  importTitleProposalsAction,
   setTitleProposalStatusAction,
+  type NewTitleProposalInput,
 } from "@/app/titles/actions";
+import {
+  academicYearLabel,
+  academicYearOf,
+  isInAcademicYear,
+  selectableAcademicYears,
+  type AcademicYearSelection,
+} from "@/lib/academic-year";
 import { INSTITUTIONS } from "@/lib/portal/config";
 import type { TitleProposal, TitleProposalStatus } from "@/lib/title-bank";
 
@@ -37,37 +46,76 @@ const INPUT =
 const BTN =
   "border-dash-border bg-dash-muted hover:bg-dash-border rounded-lg border px-2.5 py-1 text-xs font-semibold disabled:opacity-50";
 
+type AddMode = "one" | "paste" | "file" | null;
+
 export function TitleProposalsBoard({
   proposals,
   courses,
+  selectedYear,
 }: {
   proposals: TitleProposal[];
   courses: { code: string; name: string }[];
+  selectedYear: AcademicYearSelection;
 }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("available");
+  const [year, setYear] = useState<AcademicYearSelection>(selectedYear);
+  const [institution, setInstitution] = useState("all");
+  const [course, setCourse] = useState("all");
   const [query, setQuery] = useState("");
+  const [hideStudent, setHideStudent] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [status, setStatus] = useState<ActionState>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [addMode, setAddMode] = useState<AddMode>(null);
+  const [paste, setPaste] = useState("");
+  const [fileName, setFileName] = useState("");
+  const [fileRows, setFileRows] = useState<NewTitleProposalInput[]>([]);
   const [isPending, startTransition] = useTransition();
 
-  const counts = useMemo(() => {
-    const c: Record<Filter, number> = { all: proposals.length, available: 0, reserved: 0, assigned: 0, dropped: 0 };
-    for (const p of proposals) c[p.status] += 1;
-    return c;
+  const years = useMemo(() => {
+    const found = new Set(selectableAcademicYears());
+    for (const proposal of proposals) {
+      if (!proposal.createdAt) continue;
+      const date = new Date(proposal.createdAt);
+      if (!Number.isNaN(date.getTime())) found.add(academicYearOf(date));
+    }
+    if (typeof selectedYear === "number") found.add(selectedYear);
+    return [...found].sort((a, b) => b - a);
+  }, [proposals, selectedYear]);
+
+  const institutions = useMemo(() => {
+    const found = new Set<string>(INSTITUTIONS);
+    for (const proposal of proposals) if (proposal.institution) found.add(proposal.institution);
+    return [...found].sort((a, b) => a.localeCompare(b));
   }, [proposals]);
+
+  const narrowed = useMemo(
+    () =>
+      proposals.filter((p) => {
+        if (!isInAcademicYear(p.createdAt, year)) return false;
+        if (institution !== "all" && (p.institution ?? "") !== institution) return false;
+        if (course !== "all" && (p.courseCode ?? "") !== course) return false;
+        return true;
+      }),
+    [proposals, year, institution, course],
+  );
+
+  const counts = useMemo(() => {
+    const c: Record<Filter, number> = { all: narrowed.length, available: 0, reserved: 0, assigned: 0, dropped: 0 };
+    for (const p of narrowed) c[p.status] += 1;
+    return c;
+  }, [narrowed]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return proposals.filter((p) => {
+    return narrowed.filter((p) => {
       if (filter !== "all" && p.status !== filter) return false;
       if (!q) return true;
-      return [p.title, p.originalTitle, p.originRef, p.batch, p.assignedTo, p.summary]
+      return [p.title, p.originalTitle, p.originRef, p.batch, p.assignedTo, p.institution, p.courseCode, p.summary]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(q));
     });
-  }, [proposals, filter, query]);
+  }, [narrowed, filter, query]);
 
   function run(id: string, action: () => Promise<void>, okMessage = "Saved.") {
     setPendingId(id);
@@ -110,10 +158,37 @@ export function TitleProposalsBoard({
           communication: String(fd.get("communication") ?? ""),
         });
         form.reset();
-        setShowForm(false);
+        setAddMode(null);
       },
       "Title added.",
     );
+  }
+
+  function importRows(rows: NewTitleProposalInput[], courseCode: string, institutionName: string) {
+    const prepared = rows
+      .map((row) => ({
+        ...row,
+        courseCode: row.courseCode || courseCode,
+        institution: row.institution || institutionName,
+      }))
+      .filter((row) => row.title.trim());
+    setPendingId("import");
+    setStatus(null);
+    startTransition(async () => {
+      try {
+        const added = await importTitleProposalsAction(prepared);
+        setStatus({ type: "ok", message: added === 1 ? "1 title added." : `${added} titles added.` });
+        setAddMode(null);
+        setPaste("");
+        setFileName("");
+        setFileRows([]);
+      } catch (err) {
+        setStatus({ type: "error", message: err instanceof Error ? err.message : "Import failed." });
+      } finally {
+        setPendingId(null);
+        router.refresh();
+      }
+    });
   }
 
   return (
@@ -140,12 +215,72 @@ export function TitleProposalsBoard({
           placeholder="Search titles, origin, or name"
           className={`${INPUT} ml-auto max-w-xs py-1.5`}
         />
-        <button type="button" onClick={() => setShowForm((v) => !v)} className={`${BTN} py-1.5`}>
-          {showForm ? "Close form" : "Add new title"}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="text-dash-muted-foreground flex items-center gap-2 text-xs font-semibold">
+          Year
+          <select
+            value={year === "all" ? "all" : String(year)}
+            onChange={(e) => setYear(e.target.value === "all" ? "all" : Number(e.target.value))}
+            className="border-dash-border bg-dash-card text-dash-foreground rounded-full border px-3 py-1 text-xs font-semibold"
+          >
+            <option value="all">All years</option>
+            {years.map((value) => (
+              <option key={value} value={value}>
+                {academicYearLabel(value)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-dash-muted-foreground flex items-center gap-2 text-xs font-semibold">
+          Institution
+          <select
+            value={institution}
+            onChange={(e) => setInstitution(e.target.value)}
+            className="border-dash-border bg-dash-card text-dash-foreground max-w-[16rem] rounded-full border px-3 py-1 text-xs font-semibold"
+          >
+            <option value="all">All institutions</option>
+            {institutions.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-dash-muted-foreground flex items-center gap-2 text-xs font-semibold">
+          Course
+          <select
+            value={course}
+            onChange={(e) => setCourse(e.target.value)}
+            className="border-dash-border bg-dash-card text-dash-foreground rounded-full border px-3 py-1 text-xs font-semibold"
+          >
+            <option value="all">All courses</option>
+            {courses
+              .filter((item) => item.code !== "OTHER")
+              .map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.code} · {item.name}
+                </option>
+              ))}
+          </select>
+        </label>
+        <label className="text-dash-muted-foreground flex items-center gap-1.5 text-xs font-semibold">
+          <input type="checkbox" checked={hideStudent} onChange={(e) => setHideStudent(e.target.checked)} />
+          Hide student name
+        </label>
+        <button type="button" onClick={() => setAddMode(addMode === "one" ? null : "one")} className={`${BTN} py-1.5`}>
+          Add one title
+        </button>
+        <button type="button" onClick={() => setAddMode(addMode === "paste" ? null : "paste")} className={`${BTN} py-1.5`}>
+          Paste a list
+        </button>
+        <button type="button" onClick={() => setAddMode(addMode === "file" ? null : "file")} className={`${BTN} py-1.5`}>
+          Import a file
         </button>
       </div>
 
-      {showForm ? (
+      {addMode === "one" ? (
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -212,6 +347,37 @@ export function TitleProposalsBoard({
         </form>
       ) : null}
 
+      {addMode === "paste" || addMode === "file" ? (
+        <BulkAdd
+          mode={addMode}
+          courses={courses}
+          paste={paste}
+          fileName={fileName}
+          fileCount={fileRows.length}
+          busy={isPending && pendingId === "import"}
+          onPaste={setPaste}
+          onFile={(name, rows) => {
+            setFileName(name);
+            setFileRows(rows);
+          }}
+          onSubmit={(courseCode, institutionName) => {
+            if (addMode === "paste") {
+              importRows(
+                paste
+                  .split(/\r?\n/)
+                  .map((line) => line.trim())
+                  .filter(Boolean)
+                  .map((title) => ({ title })),
+                courseCode,
+                institutionName,
+              );
+              return;
+            }
+            importRows(fileRows, courseCode, institutionName);
+          }}
+        />
+      ) : null}
+
       {status ? (
         <p
           role="status"
@@ -234,7 +400,7 @@ export function TitleProposalsBoard({
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${STATUS_BADGE[p.status]}`}>
                     {STATUS_LABEL[p.status]}
-                    {p.assignedTo && (p.status === "reserved" || p.status === "assigned") ? ` · ${p.assignedTo}` : ""}
+                    {!hideStudent && p.assignedTo && (p.status === "reserved" || p.status === "assigned") ? ` · ${p.assignedTo}` : ""}
                   </span>
                   {p.courseCode ? (
                     <span className="bg-dash-accent/10 text-dash-accent inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold">
@@ -256,7 +422,7 @@ export function TitleProposalsBoard({
 
                 <p className="text-dash-foreground mt-2 font-semibold leading-snug">{p.title}</p>
                 <p className="text-dash-muted-foreground mt-1 text-xs">Original title: {p.originalTitle ?? "None"}</p>
-                {p.student ? (
+                {p.student && !hideStudent ? (
                   <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-sky-500/30 bg-sky-500/5 px-3 py-2 text-xs">
                     <span className="text-dash-foreground font-semibold">Student: {p.student.fullName}</span>
                     <span className="text-dash-muted-foreground">
@@ -352,6 +518,159 @@ export function TitleProposalsBoard({
       )}
     </div>
   );
+}
+
+function BulkAdd({
+  mode,
+  courses,
+  paste,
+  fileName,
+  fileCount,
+  busy,
+  onPaste,
+  onFile,
+  onSubmit,
+}: {
+  mode: "paste" | "file";
+  courses: { code: string; name: string }[];
+  paste: string;
+  fileName: string;
+  fileCount: number;
+  busy: boolean;
+  onPaste: (value: string) => void;
+  onFile: (name: string, rows: NewTitleProposalInput[]) => void;
+  onSubmit: (courseCode: string, institutionName: string) => void;
+}) {
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        onSubmit(String(fd.get("courseCode") ?? ""), String(fd.get("institution") ?? ""));
+      }}
+      className="border-dash-border bg-dash-card grid gap-3 rounded-2xl border p-4 shadow-sm"
+    >
+      <p className="text-dash-muted-foreground text-sm">
+        {mode === "paste"
+          ? "Paste one title on each line. The course and institution below are used for every line."
+          : "Use a CSV or text file. A header row can name title, course, institution, original title, and origin. One title per line also works."}
+      </p>
+      {mode === "paste" ? (
+        <textarea
+          value={paste}
+          onChange={(e) => onPaste(e.target.value)}
+          rows={6}
+          required
+          placeholder={"Smart water meter\nClinic queue display"}
+          className={INPUT}
+        />
+      ) : (
+        <label className="text-dash-muted-foreground text-sm">
+          <input
+            type="file"
+            accept=".csv,.txt,text/csv,text/plain"
+            required={fileCount === 0}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              onFile(file.name, parseTitleFile(await file.text()));
+            }}
+            className="text-dash-foreground mt-1 block text-sm"
+          />
+          {fileName ? <span className="mt-1 block text-xs">{fileCount} titles in {fileName}</span> : null}
+        </label>
+      )}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label>
+          <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">Course for rows without one</span>
+          <select name="courseCode" className={INPUT} defaultValue="">
+            <option value="">Leave blank</option>
+            {courses
+              .filter((item) => item.code !== "OTHER")
+              .map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.code} · {item.name}
+                </option>
+              ))}
+          </select>
+        </label>
+        <label>
+          <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">Institution for rows without one</span>
+          <select name="institution" className={INPUT} defaultValue="">
+            <option value="">Any institution</option>
+            {INSTITUTIONS.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div>
+        <button
+          type="submit"
+          disabled={busy || (mode === "file" && fileCount === 0)}
+          className="bg-dash-accent rounded-xl px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        >
+          {mode === "paste" ? "Add pasted titles" : "Import titles"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function splitCsv(line: string): string[] {
+  const out: string[] = [];
+  let current = "";
+  let quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (quoted) {
+      if (ch === '"' && line[i + 1] === '"') {
+        current += '"';
+        i += 1;
+      } else if (ch === '"') quoted = false;
+      else current += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === "," || ch === "\t") {
+      out.push(current.trim());
+      current = "";
+    } else current += ch;
+  }
+  out.push(current.trim());
+  return out;
+}
+
+function parseTitleFile(raw: string): NewTitleProposalInput[] {
+  const lines = raw.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length === 0) return [];
+  const header = splitCsv(lines[0]).map((cell) => cell.toLowerCase());
+  const hasHeader = header.includes("title") || header.includes("project title");
+  const index = (name: string) => header.indexOf(name);
+  const body = hasHeader ? lines.slice(1) : lines;
+  return body
+    .map((line) => {
+      const cols = splitCsv(line);
+      if (!hasHeader) {
+        return {
+          title: cols[0] ?? "",
+          courseCode: cols[1],
+          institution: cols[2],
+          originalTitle: cols[3],
+          originRef: cols[4],
+        };
+      }
+      const titleAt = index("title") >= 0 ? index("title") : index("project title");
+      return {
+        title: cols[titleAt] ?? "",
+        courseCode: index("course") >= 0 ? cols[index("course")] : index("course code") >= 0 ? cols[index("course code")] : undefined,
+        institution: index("institution") >= 0 ? cols[index("institution")] : index("institute") >= 0 ? cols[index("institute")] : undefined,
+        originalTitle: index("original title") >= 0 ? cols[index("original title")] : undefined,
+        originRef: index("origin") >= 0 ? cols[index("origin")] : undefined,
+      };
+    })
+    .filter((row) => row.title.trim().length > 0)
+    .slice(0, 500);
 }
 
 function Detail({ label, value }: { label: string; value: string }) {

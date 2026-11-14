@@ -5,6 +5,8 @@ import { PlansMilestonesView } from "@/components/plans/next-week-milestones-vie
 import { PlansWeekCalendarJump } from "@/components/plans/plans-week-calendar-jump";
 import { PlansWeekSummary } from "@/components/plans/plans-week-summary";
 import { PlansWeekNav } from "@/components/plans/plans-week-nav";
+import { academicYearLabel } from "@/lib/academic-year";
+import { getSelectedAcademicYear } from "@/lib/academic-year-server";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
 import { clampWeekOffset, loadPlansBoardData, type PlansMilestoneRow } from "@/lib/next-week-milestones-data";
@@ -36,10 +38,13 @@ export default async function PlansPage(props: {
   const clientFilter = typeof sp.client === "string" ? sp.client.trim() : "";
   const weekOffset = clampWeekOffset(Number.parseInt(String(sp.week ?? ""), 10));
 
+  const year = await getSelectedAcademicYear();
+  const yearLabel = year === "all" ? "all years" : academicYearLabel(year);
   const dash = await loadDashboardData();
   const { rows, weekHeading, startIso, endIso, todayIso, weekMonday, error } = await loadPlansBoardData({
     registeredClientId: clientFilter || undefined,
     weekOffset,
+    year,
   });
 
   const connected = isDashboardRegistryOk(dash.banner);
@@ -54,7 +59,7 @@ export default async function PlansPage(props: {
 
   const shellTitle = weekOffset === 0 ? "This week — milestones" : "Week view — milestones";
   const shellSubtitle =
-    "Weekly snapshot below · browse weeks or jump from the calendar · workflow is edited under Manage → Timeline.";
+    `Projects in ${yearLabel}. Browse weeks or jump from the calendar. Workflow is edited under Manage → Timeline.`;
 
   return (
     <DashboardShell title={shellTitle} subtitle={shellSubtitle} statusDotClass={statusDotClass}>

@@ -1,18 +1,18 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useActionState, useState, type ReactNode } from "react";
 
 import {
-  portalForgotPasswordAction,
+  portalAuthFormAction,
   portalGoogleSignInAction,
-  portalSignInAction,
-  portalSignUpAction,
+  type PortalAuthFormState,
   type PortalResult,
-} from "@/app/portal/actions";
-import { Card, Field, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
+} from "@/app/portal/auth-actions";
+import { Field, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { Spinner } from "@/components/ui/spinner";
 
-type Mode = "signin" | "signup" | "forgot";
+export type PortalAuthMode = "signin" | "signup" | "forgot";
 
 function GoogleIcon() {
   return (
@@ -25,120 +25,240 @@ function GoogleIcon() {
   );
 }
 
+function EyeIcon({ open }: { open: boolean }) {
+  if (open) {
+    return (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+        <path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.1A9.8 9.8 0 0112 5c5 0 9.3 3.1 11 7-.5 1.2-1.2 2.3-2.1 3.3M6.1 6.1C4.2 7.4 2.7 9.1 2 12c1.7 3.9 6 7 10 7 1.4 0 2.7-.3 3.9-.8" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function GoogleButton() {
+  const [msg, setMsg] = useState<PortalResult | null>(null);
+  const [pending, setPending] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        disabled={pending}
+        aria-busy={pending}
+        className={`${SECONDARY} w-full`}
+        onClick={() => {
+          setMsg(null);
+          setPending(true);
+          void portalGoogleSignInAction()
+            .then((res) => {
+              if (!res.ok) setMsg(res);
+            })
+            .catch(() => {
+              setMsg({ ok: false, message: "Google sign-in failed. Try email instead." });
+            })
+            .finally(() => setPending(false));
+        }}
+      >
+        {pending ? <Spinner /> : <GoogleIcon />}
+        {pending ? "Connecting…" : "Continue with Google"}
+      </button>
+      <StatusText status={msg} />
+      <div className="text-dash-muted-foreground my-4 flex items-center gap-3 text-xs">
+        <span className="bg-dash-border h-px flex-1" />
+        or with email
+        <span className="bg-dash-border h-px flex-1" />
+      </div>
+    </>
+  );
+}
+
+function tabClass(active: boolean) {
+  return active
+    ? "bg-dash-card text-dash-foreground block cursor-pointer rounded-lg px-3 py-2.5 text-center text-sm font-semibold shadow-sm"
+    : "text-dash-muted-foreground hover:text-dash-foreground block cursor-pointer rounded-lg px-3 py-2.5 text-center text-sm font-semibold";
+}
+
+function ModeTab({ mode, active, children }: { mode: PortalAuthMode; active: boolean; children: ReactNode }) {
+  // GET form forces a full document navigation (works even when client soft-nav/hydration is broken).
+  return (
+    <form action="/portal" method="get" className="contents">
+      <input type="hidden" name="auth" value={mode} />
+      <button type="submit" role="tab" aria-selected={active} className={tabClass(active)}>
+        {children}
+      </button>
+    </form>
+  );
+}
+
 export function PortalAuth({
   initialStatus,
   googleEnabled = false,
+  initialMode = "signup",
 }: {
   initialStatus?: PortalResult | null;
   googleEnabled?: boolean;
+  initialMode?: PortalAuthMode;
 }) {
-  const router = useRouter();
-  const [mode, setMode] = useState<Mode>("signin");
-  const [status, setStatus] = useState<PortalResult | null>(initialStatus ?? null);
-  const [pending, startTransition] = useTransition();
+  const mode = initialMode;
+  const [showPassword, setShowPassword] = useState(false);
+  const [state, formAction, pending] = useActionState<PortalAuthFormState, FormData>(
+    portalAuthFormAction,
+    initialStatus ?? null,
+  );
 
-  function submit(form: HTMLFormElement) {
-    const fd = new FormData(form);
-    const email = String(fd.get("email") ?? "");
-    const password = String(fd.get("password") ?? "");
-    if (mode === "signup" && password !== String(fd.get("password2") ?? "")) {
-      setStatus({ ok: false, message: "The two passwords do not match." });
-      return;
-    }
-    setStatus(null);
-    startTransition(async () => {
-      const res =
-        mode === "signin"
-          ? await portalSignInAction(email, password)
-          : mode === "signup"
-            ? await portalSignUpAction(email, password)
-            : await portalForgotPasswordAction(email);
-      setStatus(res);
-      if (res.ok && !res.message) router.refresh();
-    });
-  }
-
-  const titles: Record<Mode, [string, string]> = {
-    signin: ["Sign in", "Students: sign in to choose your project title or follow your project."],
-    signup: ["Create your student account", "Use your own email. You will confirm it from your inbox."],
-    forgot: ["Forgot password", "We will email you a link to set a new password."],
+  const titles: Record<PortalAuthMode, [string, string]> = {
+    signin: ["Sign in", "Welcome back. Use your student email and password."],
+    signup: ["Create account", "Register with your own email. Confirm from your inbox, then sign in."],
+    forgot: ["Reset password", "We email a secure link to set a new password."],
   };
 
+  const submitLabel =
+    mode === "signin" ? "Sign in securely" : mode === "signup" ? "Create student account" : "Send reset link";
+  const pendingLabel = mode === "signin" ? "Signing in…" : mode === "signup" ? "Creating account…" : "Sending link…";
+
   return (
-    <Card title={titles[mode][0]} subtitle={titles[mode][1]}>
-      {googleEnabled && mode !== "forgot" ? (
-        <>
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => {
-              setStatus(null);
-              startTransition(async () => {
-                const res = await portalGoogleSignInAction();
-                if (!res.ok) setStatus(res);
-              });
-            }}
-            className={`${SECONDARY} flex w-full items-center justify-center gap-2`}
-          >
-            <GoogleIcon />
-            Continue with Google
-          </button>
-          <div className="text-dash-muted-foreground my-4 flex items-center gap-3 text-xs">
-            <span className="bg-dash-border h-px flex-1" />
-            or with email
-            <span className="bg-dash-border h-px flex-1" />
-          </div>
-        </>
-      ) : null}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit(e.currentTarget);
-        }}
-        className="grid gap-3"
-      >
-        <Field label="Email">
-          <input name="email" type="email" required autoComplete="email" className={INPUT} />
-        </Field>
+    <div className="relative z-10 mx-auto w-full max-w-md space-y-6">
+      <div className="absolute top-0 right-0 sm:-right-2 sm:-top-2">
+        <ThemeToggle />
+      </div>
+      <div className="text-center">
+        <div className="bg-dash-card border-dash-border mx-auto mb-4 flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border p-1">
+          {/* Plain img avoids next/image hydration mismatches across LAN vs localhost. */}
+          <img src="/logo.jpg" alt="Honic" width={48} height={48} className="h-full w-full object-contain" />
+        </div>
+        <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.2em] uppercase">Honic Company Limited</p>
+        <h1 className="text-dash-foreground mt-1 text-2xl font-semibold tracking-tight">Honic Nexis</h1>
+        <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
+          Titles, ownership claims, and your project workspace. Staff use inova separately.
+        </p>
+      </div>
+
+      <section className="border-dash-border bg-dash-card rounded-2xl border p-5 shadow-sm sm:p-6">
         {mode !== "forgot" ? (
-          <Field label="Password">
+          <div className="bg-dash-muted/40 mb-5 grid grid-cols-2 gap-1 rounded-xl p-1" role="tablist" aria-label="Account">
+            <ModeTab mode="signup" active={mode === "signup"}>
+              Create account
+            </ModeTab>
+            <ModeTab mode="signin" active={mode === "signin"}>
+              Sign in
+            </ModeTab>
+          </div>
+        ) : null}
+
+        <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">{titles[mode][0]}</h2>
+        <p className="text-dash-muted-foreground mt-1 mb-4 text-sm">{titles[mode][1]}</p>
+
+        {googleEnabled && mode !== "forgot" ? <GoogleButton /> : null}
+
+        <form action={formAction} className="grid gap-3" autoComplete="on" aria-busy={pending}>
+          <input type="hidden" name="mode" value={mode} />
+          <Field label="Student email">
             <input
-              name="password"
-              type="password"
+              name="email"
+              type="email"
               required
-              minLength={8}
-              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              autoComplete="username"
+              inputMode="email"
               className={INPUT}
+              placeholder="you@school.edu"
             />
           </Field>
-        ) : null}
-        {mode === "signup" ? (
-          <Field label="Confirm password">
-            <input name="password2" type="password" required minLength={8} autoComplete="new-password" className={INPUT} />
-          </Field>
-        ) : null}
-        <button type="submit" disabled={pending} className={PRIMARY}>
-          {pending ? "Please wait…" : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Send link"}
-        </button>
-        <StatusText status={status} />
-      </form>
-      <div className="text-dash-muted-foreground mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-        {mode !== "signin" ? (
-          <button type="button" className="text-dash-accent font-semibold" onClick={() => (setMode("signin"), setStatus(null))}>
-            I have an account
+
+          {mode !== "forgot" ? (
+            <Field label="Password">
+              <div className="relative">
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  className={`${INPUT} pr-11`}
+                />
+                <button
+                  type="button"
+                  className="text-dash-muted-foreground hover:text-dash-foreground absolute top-1/2 right-2 z-10 -translate-y-1/2 cursor-pointer rounded-lg p-2"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  <EyeIcon open={showPassword} />
+                </button>
+              </div>
+            </Field>
+          ) : null}
+
+          {mode === "signup" ? (
+            <Field label="Confirm password">
+              <input
+                name="password2"
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className={INPUT}
+              />
+            </Field>
+          ) : null}
+
+          <StatusText status={state} />
+          <button type="submit" disabled={pending} aria-busy={pending} className={`${PRIMARY} w-full`}>
+            {pending ? <Spinner /> : null}
+            {pending ? pendingLabel : submitLabel}
           </button>
-        ) : null}
-        {mode !== "signup" ? (
-          <button type="button" className="text-dash-accent font-semibold" onClick={() => (setMode("signup"), setStatus(null))}>
-            Create an account
-          </button>
-        ) : null}
-        {mode === "signin" ? (
-          <button type="button" className="text-dash-accent font-semibold" onClick={() => (setMode("forgot"), setStatus(null))}>
-            Forgot password?
-          </button>
-        ) : null}
-      </div>
-    </Card>
+          {pending ? (
+            <p className="text-dash-muted-foreground text-center text-xs" role="status">
+              Checking your account…
+            </p>
+          ) : null}
+        </form>
+
+        <div className="border-dash-border mt-5 space-y-2 border-t pt-4 text-sm">
+          {mode === "signup" ? (
+            <p className="text-dash-muted-foreground">
+              Already registered?{" "}
+              <a href="/portal?auth=signin" className="text-dash-accent font-semibold underline-offset-2 hover:underline">
+                Sign in
+              </a>
+            </p>
+          ) : null}
+          {mode === "signin" ? (
+            <>
+              <p className="text-dash-muted-foreground">
+                New student?{" "}
+                <a href="/portal?auth=signup" className="text-dash-accent font-semibold underline-offset-2 hover:underline">
+                  Create an account
+                </a>
+              </p>
+              <p className="text-dash-muted-foreground">
+                <a href="/portal?auth=forgot" className="text-dash-accent font-semibold underline-offset-2 hover:underline">
+                  Forgot password?
+                </a>
+              </p>
+            </>
+          ) : null}
+          {mode === "forgot" ? (
+            <p className="text-dash-muted-foreground">
+              Remembered it?{" "}
+              <a href="/portal?auth=signin" className="text-dash-accent font-semibold underline-offset-2 hover:underline">
+                Back to sign in
+              </a>
+            </p>
+          ) : null}
+        </div>
+      </section>
+
+      <p className="text-dash-muted-foreground text-center text-xs leading-relaxed">
+        Staff accounts belong on{" "}
+        <a className="text-dash-accent font-semibold" href="https://inova.honiccompany.com/login">
+          inova.honiccompany.com
+        </a>
+        , not this student portal.
+      </p>
+    </div>
   );
 }

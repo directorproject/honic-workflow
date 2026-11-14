@@ -1,7 +1,10 @@
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { AddCourseForm } from "@/components/titles/add-course-form";
 import { LastYearProjectsTable } from "@/components/titles/last-year-projects-table";
+import { TitleClaimQueue } from "@/components/titles/title-claim-queue";
 import { TitleProposalsBoard } from "@/components/titles/title-proposals-board";
+import { academicYearLabel, isInAcademicYear } from "@/lib/academic-year";
+import { getSelectedAcademicYear } from "@/lib/academic-year-server";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
 import { loadTitleBank } from "@/lib/title-bank";
@@ -9,20 +12,24 @@ import { loadTitleBank } from "@/lib/title-bank";
 export const dynamic = "force-dynamic";
 
 export default async function ProjectTitlesPage() {
+  const year = await getSelectedAcademicYear();
+  const yearLabel = year === "all" ? "all years" : academicYearLabel(year);
   const [dash, bank] = await Promise.all([loadDashboardData(), loadTitleBank()]);
   const connected = isDashboardRegistryOk(dash.banner);
   const statusDotClass = connected
     ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.55)]"
     : "bg-amber-500";
 
-  const { lastYear, proposals, error } = bank;
+  const { error } = bank;
+  const lastYear = year === "all" ? bank.lastYear : bank.lastYear.filter((row) => row.year === year);
+  const proposals = bank.proposals.filter((p) => isInAcademicYear(p.createdAt, year));
   const available = proposals.filter((p) => p.status === "available").length;
   const taken = proposals.filter((p) => p.status === "reserved" || p.status === "assigned").length;
 
   return (
     <DashboardShell
       title="Project titles"
-      subtitle="Last year's student projects and new titles for selection."
+      subtitle={`Titles in ${yearLabel}. Filter by year, institution, or course. Hide student and supervisor names when you need a shorter list.`}
       statusDotClass={statusDotClass}
     >
       {error ? (
@@ -40,6 +47,7 @@ export default async function ProjectTitlesPage() {
         </div>
       ) : null}
 
+      <TitleClaimQueue />
       <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <SummaryCard label="Last year projects" value={lastYear.length} />
         <SummaryCard label="ETE Min Two" value={lastYear.filter((r) => r.programme === "ETE").length} />
@@ -51,24 +59,22 @@ export default async function ProjectTitlesPage() {
       <section className="mb-10">
         <h2 className="text-dash-foreground text-base font-semibold tracking-tight">New titles for selection</h2>
         <p className="text-dash-muted-foreground mt-1 mb-4 text-sm">
-          Students pick available titles for their course on share.honiccompany.com/portal. Use Create project on a
-          student&apos;s title to start their project and link their portal account. Release gives the title back to the
-          list and lets the student choose again for free.
+          Students pick available titles on the portal. Add one title, paste a list, or import a file. Filter by year,
+          institution, and course. Release gives a title back so the student can choose again for free.
         </p>
         <div className="mb-4">
           <AddCourseForm courses={bank.courses} />
         </div>
-        <TitleProposalsBoard proposals={proposals} courses={bank.courses} />
+        <TitleProposalsBoard key={String(year)} proposals={bank.proposals} courses={bank.courses} selectedYear={year} />
       </section>
 
       <section>
         <h2 className="text-dash-foreground text-base font-semibold tracking-tight">Last year projects</h2>
         <p className="text-dash-muted-foreground mt-1 mb-4 text-sm">
-          From <code className="text-dash-foreground">docs/BENG22ETE-MIN2.xlsx</code> and{" "}
-          <code className="text-dash-foreground">docs/BENG22COE-Project-Realization-Complete-Titles.xlsx</code>. Use{" "}
-          <span className="font-semibold">New title</span> to turn a project into a title for selection.
+          Previous project record. The year comes from the presentation date. Hide the student or supervisor column, or
+          use <span className="font-semibold">New title</span> to copy a project into the selection list.
         </p>
-        <LastYearProjectsTable rows={lastYear} />
+        <LastYearProjectsTable key={String(year)} rows={bank.lastYear} selectedYear={year} />
       </section>
     </DashboardShell>
   );

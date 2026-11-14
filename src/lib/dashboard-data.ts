@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { filterByAcademicYear, type AcademicYearSelection } from "@/lib/academic-year";
 import { getSelectedAcademicYear } from "@/lib/academic-year-server";
 import type { DashboardBanner, RegisteredClientRow } from "@/lib/dashboard-types";
-import { bannerForRegistry, fetchRegisteredClients } from "@/lib/registered-clients";
+import { bannerForRegistry, fetchRegisteredClientsForYear } from "@/lib/registered-clients";
 import { getSupabaseAdminClient, hasSupabaseServiceRoleEnv } from "@/lib/supabase-server";
 
 export type { DashboardBanner, RegisteredClientRow } from "@/lib/dashboard-types";
@@ -85,14 +85,15 @@ export async function loadDashboardData(): Promise<{
     };
   }
 
-  const { clients, hints } = await fetchRegisteredClients(supabase);
+  const year = await getSelectedAcademicYear();
+  const clients = await fetchRegisteredClientsForYear(supabase, year);
   const banner = bannerForRegistry({
     clientsLength: clients.length,
-    hints,
+    hints: [],
     usingServiceRole,
   });
 
-  const counts = await fetchTrackingCounts(supabase, await getSelectedAcademicYear());
+  const counts = await fetchTrackingCounts(supabase, year);
 
   const monthStart = startOfUtcMonth();
   const registryNewThisMonth = clients.filter((c) => {

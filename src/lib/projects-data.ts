@@ -4,7 +4,7 @@ import type { RegisteredClientRow } from "@/lib/dashboard-types";
 
 /** Returned when `tracked_projects` has no row for the given id (and the query itself succeeded). */
 export const PROJECT_DETAIL_NOT_FOUND_MESSAGE = "Project not found.";
-import { fetchRegisteredClients } from "@/lib/registered-clients";
+import { fetchRegisteredClientsForYear } from "@/lib/registered-clients";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { normalizeRegisteredClientJoin } from "@/lib/supabase-relations";
 
@@ -216,10 +216,7 @@ export async function loadClientsForProjectForms(): Promise<{
     return { clients: [], error: "Database not configured." };
   }
 
-  const { clients, hints } = await fetchRegisteredClients(supabase);
-  if (clients.length === 0 && hints.length > 0) {
-    return { clients: [], error: hints[0] ?? "No registered clients." };
-  }
+  const clients = await fetchRegisteredClientsForYear(supabase, await getSelectedAcademicYear());
 
   const { data: usedClientRows, error: usedClientErr } = await supabase
     .from("tracked_projects")

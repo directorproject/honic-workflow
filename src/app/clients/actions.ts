@@ -1,5 +1,7 @@
 "use server";
 
+import { requireStaffActor } from "@/lib/auth-staff";
+
 import { revalidatePath } from "next/cache";
 
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
@@ -13,6 +15,7 @@ function revalidateClientPages() {
 }
 
 export async function createRegisteredClientAction(name: string, phone: string | null = null) {
+  await requireStaffActor();
   const clean = String(name ?? "").replace(/\s+/g, " ").trim().slice(0, 200);
   if (!clean) throw new Error("Enter the client name.");
   const cleanPhone = String(phone ?? "").trim().slice(0, 40);
@@ -20,6 +23,7 @@ export async function createRegisteredClientAction(name: string, phone: string |
   const supabase = getSupabaseAdminClient();
   if (!supabase) throw new Error("Database not configured.");
 
+  await supabase.from("registered_client_removals").delete().eq("name", clean);
   const { error } = await supabase
     .from("registered_clients")
     .insert({ name: clean, phone: cleanPhone.length > 0 ? cleanPhone : null });
@@ -32,6 +36,7 @@ export async function createRegisteredClientAction(name: string, phone: string |
 }
 
 export async function setRegisteredClientHiddenAction(clientId: string, hidden: boolean) {
+  await requireStaffActor();
   const id = String(clientId ?? "").trim();
   if (!id) throw new Error("Missing client id.");
 
@@ -54,6 +59,7 @@ export async function setRegisteredClientBlockedAction(
   blocked: boolean,
   reason: string | null = null,
 ) {
+  await requireStaffActor();
   const id = String(clientId ?? "").trim();
   if (!id) throw new Error("Missing client id.");
 
@@ -76,6 +82,7 @@ export async function setRegisteredClientBlockedAction(
 type DeleteRpcResult = { ok?: boolean; error?: string; project_count?: number };
 
 export async function deleteRegisteredClientFromManageAction(clientId: string) {
+  await requireStaffActor();
   const id = String(clientId ?? "").trim();
   if (!id) throw new Error("Missing client id.");
 

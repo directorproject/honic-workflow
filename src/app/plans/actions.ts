@@ -1,11 +1,14 @@
 "use server";
 
+import { requireStaffActor } from "@/lib/auth-staff";
+
 import { revalidatePath } from "next/cache";
 
 import { type MilestoneWorkStatusValue, isMilestoneWorkStatus } from "@/lib/milestone-work-status";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
 export async function updateMilestoneWorkStatus(milestoneId: string, workStatusRaw: string) {
+  await requireStaffActor();
   const id = String(milestoneId ?? "").trim();
   const raw = String(workStatusRaw ?? "").trim();
   if (!id || !isMilestoneWorkStatus(raw)) {

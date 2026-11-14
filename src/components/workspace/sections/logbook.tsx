@@ -41,7 +41,7 @@ export function LogbookSection({
         <Panel title={editing ? "Edit entry" : "New logbook entry"} subtitle="Write what you did, what went wrong and what is next. Short and honest is best.">
           <form
             key={editing?.id ?? `new-${formKey}`}
-            className="grid gap-3 sm:grid-cols-[10rem_7rem_1fr]"
+            className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[10rem_7rem_1fr]"
             onSubmit={(e) => {
               e.preventDefault();
               const fd = new FormData(e.currentTarget);

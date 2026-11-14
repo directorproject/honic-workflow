@@ -24,17 +24,33 @@ function shareOnlyHostname(): string | null {
 }
 
 function isPortalPath(pathname: string): boolean {
-  return pathname === "/portal" || pathname.startsWith("/portal/") || pathname.startsWith("/api/portal/");
+  const p = pathname.toLowerCase();
+  return p === "/portal" || p.startsWith("/portal/") || p.startsWith("/api/portal/");
+}
+
+/** Canonicalize /PORTAL → /portal so App Router + public-path checks always match. */
+function canonicalizePortalCase(request: NextRequest): NextResponse | null {
+  const { pathname, search } = request.nextUrl;
+  if (!isPortalPath(pathname)) return null;
+  const lower = pathname.toLowerCase();
+  if (pathname === lower) return null;
+  const url = request.nextUrl.clone();
+  url.pathname = lower;
+  url.search = search;
+  return NextResponse.redirect(url);
 }
 
 function isAllowedOnShareHost(pathname: string): boolean {
-  if (pathname.startsWith("/_next/")) return true;
-  if (pathname === "/share" || pathname.startsWith("/share/")) return true;
-  if (pathname.startsWith("/api/share/")) return true;
+  const p = pathname.toLowerCase();
+  if (p.startsWith("/_next/")) return true;
+  if (p === "/share" || p.startsWith("/share/")) return true;
+  if (p.startsWith("/api/share/")) return true;
+  if (p === "/supervisor" || p.startsWith("/supervisor/")) return true;
   if (isPortalPath(pathname)) return true;
-  if (pathname === "/share-push-sw.js") return true;
-  if (pathname === "/portal.webmanifest" || pathname.startsWith("/portal-icon-") || pathname.startsWith("/templates/")) return true;
-  if (pathname === "/favicon.ico" || pathname === "/robots.txt" || pathname === "/logo.jpg") return true;
+  if (p === "/share-push-sw.js") return true;
+  if (p === "/portal.webmanifest" || p.startsWith("/portal-icon-") || p.startsWith("/templates/")) return true;
+  if (p === "/favicon.ico" || p === "/robots.txt" || p === "/logo.jpg") return true;
+  if (p === "/pdf.worker.min.mjs" || p === "/pdf-worker.js") return true;
   return false;
 }
 
@@ -44,6 +60,9 @@ function isAllowedOnShareHost(pathname: string): boolean {
  * The student title portal (/portal) lives on the share host; the dashboard host redirects there.
  */
 export async function middleware(request: NextRequest) {
+  const caseFix = canonicalizePortalCase(request);
+  if (caseFix) return caseFix;
+
   const pathname = request.nextUrl.pathname;
   const shareHost = shareOnlyHostname();
   const hostname = requestHostname(request);
@@ -52,7 +71,7 @@ export async function middleware(request: NextRequest) {
     if (pathname === "/") {
       return NextResponse.redirect(new URL("/portal", request.url));
     }
-    if (isPortalPath(pathname)) {
+    if (isPortalPath(pathname) || pathname.toLowerCase() === "/supervisor" || pathname.toLowerCase().startsWith("/supervisor/")) {
       const { supabaseResponse } = await updateSession(request);
       return supabaseResponse;
     }
@@ -102,5 +121,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|robots.txt|logo.jpg).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|robots.txt|logo.jpg|pdf\\.worker\\.min\\.mjs|pdf-worker\\.js).*)"],
 };

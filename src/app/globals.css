@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Class-based dark mode so users can override the OS preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -16,6 +19,28 @@
   --dash-sidebar-hover: rgba(51, 65, 85, 0.55);
   --dash-accent: #06b6d4;
   --dash-accent-dim: #0891b2;
+
+  color-scheme: light;
+}
+
+.dark {
+  --background: #020617;
+  --foreground: #f1f5f9;
+
+  --dash-canvas: #020617;
+  --dash-foreground: #f1f5f9;
+  --dash-muted-foreground: #94a3b8;
+  --dash-card: #0f172a;
+  --dash-border: #1e293b;
+  --dash-muted: #1e293b;
+  --dash-header: rgba(15, 23, 42, 0.85);
+  --dash-sidebar: #020617;
+  --dash-sidebar-muted: #64748b;
+  --dash-sidebar-hover: rgba(30, 41, 59, 0.85);
+  --dash-accent: #22d3ee;
+  --dash-accent-dim: #06b6d4;
+
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -36,34 +61,6 @@
   --color-dash-sidebar-hover: var(--dash-sidebar-hover);
   --color-dash-accent: var(--dash-accent);
   --color-dash-accent-dim: var(--dash-accent-dim);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #f1f5f9;
-
-    --dash-canvas: #020617;
-    --dash-foreground: #f1f5f9;
-    --dash-muted-foreground: #94a3b8;
-    --dash-card: #0f172a;
-    --dash-border: #1e293b;
-    --dash-muted: #1e293b;
-    --dash-header: rgba(15, 23, 42, 0.85);
-    --dash-sidebar: #020617;
-    --dash-sidebar-muted: #64748b;
-    --dash-sidebar-hover: rgba(30, 41, 59, 0.85);
-  }
-}
-
-:root {
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-  }
 }
 
 select option {
@@ -90,9 +87,33 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+@layer base {
+  html,
+  html :where(*) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar,
+  html :where(*)::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
+  }
+}
+
+@keyframes honic-nav-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -104,10 +125,8 @@ body {
   background-size: 56px 56px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .dash-grid-bg {
-    background-image:
-      linear-gradient(rgb(148 163 184 / 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(148 163 184 / 0.06) 1px, transparent 1px);
-  }
+.dark .dash-grid-bg {
+  background-image:
+    linear-gradient(rgb(148 163 184 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(148 163 184 / 0.06) 1px, transparent 1px);
 }

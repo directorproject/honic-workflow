@@ -153,7 +153,7 @@ export function TeamSection({ bundle }: { bundle: WorkspaceBundle }) {
           <Label text="Phone">
             <input name="supervisor_phone" maxLength={40} defaultValue={ws.supervisor_phone ?? ""} className={INPUT} disabled={!viewer.canEdit} />
           </Label>
-          <Label text="Email">
+          <Label text="Email (same as their supervisor portal login)">
             <input name="supervisor_email" type="email" maxLength={254} defaultValue={ws.supervisor_email ?? ""} className={INPUT} disabled={!viewer.canEdit} />
           </Label>
           <Label text="Meeting days and times">
@@ -179,9 +179,10 @@ export function TeamSection({ bundle }: { bundle: WorkspaceBundle }) {
         <div className="border-dash-border mt-5 border-t pt-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-dash-foreground text-sm font-semibold">Read-only link for your supervisor</p>
+              <p className="text-dash-foreground text-sm font-semibold">Backup link (optional)</p>
               <p className="text-dash-muted-foreground text-xs">
-                Your supervisor sees the plan, progress, documents and logbook without an account, and can leave comments.
+                Prefer the supervisor portal at /supervisor with one account. This link still works without signing in.
+                They only see review items you marked Shared.
               </p>
             </div>
             {viewer.canEdit ? (

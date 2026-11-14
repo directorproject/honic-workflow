@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { AppendixGanttTable } from "@/components/workspace/appendix-gantt";
 import { GanttChart } from "@/components/workspace/gantt-chart";
 import { PrintButton } from "@/components/workspace/print-button";
 import { WorkspaceProvider } from "@/components/workspace/ws-context";
@@ -9,7 +10,9 @@ import { addDays, formatDate, todayIso } from "@/lib/workspace/dates";
 import { scheduleHealth } from "@/lib/workspace/schedule";
 import type { WorkspaceBundle } from "@/lib/workspace/types";
 
-export type PrintKind = "progress" | "plan" | "logbook";
+export type PrintKind = "progress" | "plan" | "logbook" | "corrections" | "gantt";
+
+export const PRINT_KINDS: PrintKind[] = ["progress", "plan", "logbook", "corrections", "gantt"];
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -41,6 +44,8 @@ export function WorkspacePrint({ bundle, kind, period }: { bundle: WorkspaceBund
     progress: period === "week" ? "Weekly progress report" : "Monthly progress report",
     plan: "Project plan",
     logbook: "Project logbook",
+    corrections: "Supervisor correction summary",
+    gantt: "Gantt chart (appendix)",
   };
   const from = addDays(today, period === "week" ? -6 : -29);
   const phaseName = (id: string | null) => bundle.phases.find((p) => p.id === id)?.name ?? "Other";
@@ -273,6 +278,76 @@ export function WorkspacePrint({ bundle, kind, period }: { bundle: WorkspaceBund
         ) : null}
       </>
     );
+  } else if (kind === "gantt") {
+    body = (
+      <div className="mt-6">
+        <AppendixGanttTable
+          workspace={ws}
+          phases={bundle.phases}
+          tasks={bundle.tasks}
+          appendixLabel="Appendix: B Gantt Chart"
+        />
+        <p className="mt-4 text-xs text-slate-500 print:text-slate-600">
+          Coloured months show when each task runs. Export via Print → Save as PDF for your report appendix.
+        </p>
+      </div>
+    );
+  } else if (kind === "corrections") {
+    const docs = bundle.documents.filter((d) => d.status !== "not_started" || bundle.files.some((f) => f.document_id === d.id));
+    body = (
+      <>
+        <p className="mt-2 text-sm text-slate-700">
+          Take this sheet to your supervisor. Do not reprint the full report unless they ask. Feedback stays in the portal.
+        </p>
+        <Section title="Chapters">
+          {docs.length === 0 ? (
+            <p className="text-sm text-slate-500">No chapters in the correction loop yet.</p>
+          ) : (
+            docs.map((d) => {
+              const comments = bundle.comments.filter((c) => c.target_type === "document" && c.target_id === d.id);
+              const latest = bundle.files.find((f) => f.document_id === d.id);
+              return (
+                <div key={d.id} className="mb-5 break-inside-avoid">
+                  <p className="text-sm font-bold text-slate-900">
+                    {d.name}{" "}
+                    <span className="font-normal text-slate-600">({labelOf(DOCUMENT_STATUSES, d.status)})</span>
+                  </p>
+                  {latest ? (
+                    <p className="mt-1 text-xs text-slate-600">
+                      Latest file: {latest.name} · {formatDate(latest.created_at.slice(0, 10))}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs text-slate-500">No file uploaded yet.</p>
+                  )}
+                  <Para label="What changed since last feedback" text={d.change_summary} />
+                  {comments.length ? (
+                    <div className="mt-2">
+                      <p className="text-xs font-bold tracking-wide text-slate-500 uppercase">Open comments</p>
+                      <ul className="mt-1 space-y-1">
+                        {comments.slice(-8).map((c) => (
+                          <li key={c.id} className="text-xs text-slate-800">
+                            <span className="font-semibold">{c.author_name}</span>
+                            {c.author_kind === "supervisor" ? " (supervisor)" : c.author_kind === "staff" ? " (Honic)" : ""}
+                            : {c.body}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-xs text-slate-500">No comments yet.</p>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </Section>
+        <Section title="Meeting asks">
+          <p className="text-sm text-slate-700">Decisions needed today:</p>
+          <div className="mt-3 h-24 border border-dashed border-slate-400" />
+        </Section>
+        <Signatures />
+      </>
+    );
   } else {
     const logs = [...bundle.logbook].sort((a, b) => a.entry_date.localeCompare(b.entry_date));
     body = (
@@ -306,53 +381,72 @@ export function WorkspacePrint({ bundle, kind, period }: { bundle: WorkspaceBund
     );
   }
 
+  const landscape = kind === "plan" || kind === "gantt";
+
   return (
-    <main className={`ws-print mx-auto bg-white px-8 py-8 text-slate-900 print:max-w-none print:px-0 print:py-0 ${kind === "plan" ? "max-w-[297mm]" : "max-w-[210mm]"}`}>
-      <style>{`@page { size: A4 ${kind === "plan" ? "landscape" : "portrait"}; margin: 14mm; } @media print { html, body { background: #fff !important; } }`}</style>
+    <main
+      className={`ws-print mx-auto bg-white px-8 py-8 text-slate-900 print:max-w-none print:px-0 print:py-0 ${
+        landscape ? "max-w-[297mm]" : "max-w-[210mm]"
+      }`}
+    >
+      <style>{`@page { size: A4 ${landscape ? "landscape" : "portrait"}; margin: 14mm; } @media print { html, body { background: #fff !important; } }`}</style>
       <div className="mb-4 flex items-start justify-between gap-4 print:hidden">
         <p className="text-sm text-slate-500">Check the preview, then print or choose Save as PDF.</p>
         <PrintButton />
       </div>
-      <header className="flex items-center gap-4 border-b-2 border-sky-700 pb-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.jpg" alt="Honic" className="h-12 w-auto" />
-        <div>
-          <p className="text-xs font-semibold tracking-widest text-sky-800 uppercase">Honic Company Limited · Innovation and Research</p>
-          <h1 className="text-xl font-bold">{titles[kind]}</h1>
-        </div>
-      </header>
-      <table className="mt-4 w-full border-collapse">
-        <tbody>
-          <tr>
-            <td className={TH}>Project</td>
-            <td className={TD} colSpan={3}>
-              {ws.name}
-            </td>
-          </tr>
-          <tr>
-            <td className={TH}>Students</td>
-            <td className={TD}>{bundle.members.map((m) => m.full_name).join(", ")}</td>
-            <td className={TH}>Institution</td>
-            <td className={TD}>{[...new Set(bundle.members.map((m) => m.institution).filter(Boolean))].join(", ")}</td>
-          </tr>
-          <tr>
-            <td className={TH}>Type</td>
-            <td className={TD}>{projectCategoryLabel(ws.project_category) ?? ""}</td>
-            <td className={TH}>Supervisor</td>
-            <td className={TD}>{ws.supervisor_name ?? ""}</td>
-          </tr>
-          <tr>
-            <td className={TH}>Dates</td>
-            <td className={TD}>
-              {formatDate(ws.start_date)} – {formatDate(ws.end_date)}
-            </td>
-            <td className={TH}>Defence</td>
-            <td className={TD}>{formatDate(ws.defence_date)}</td>
-          </tr>
-        </tbody>
-      </table>
-      {body}
-      <p className="mt-8 text-[10px] text-slate-400">Generated {formatDate(today)} from the Honic student portal.</p>
+      {kind === "gantt" ? (
+        <>
+          <header className="mb-4 border-b border-slate-300 pb-2 print:hidden">
+            <p className="text-xs font-semibold tracking-widest text-sky-800 uppercase">Honic student portal</p>
+            <h1 className="text-lg font-bold">{titles.gantt}</h1>
+            <p className="text-sm text-slate-600">{ws.name}</p>
+          </header>
+          {body}
+        </>
+      ) : (
+        <>
+          <header className="flex items-center gap-4 border-b-2 border-sky-700 pb-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.jpg" alt="Honic" className="h-12 w-auto" />
+            <div>
+              <p className="text-xs font-semibold tracking-widest text-sky-800 uppercase">Honic Company Limited · Innovation and Research</p>
+              <h1 className="text-xl font-bold">{titles[kind]}</h1>
+            </div>
+          </header>
+          <table className="mt-4 w-full border-collapse">
+            <tbody>
+              <tr>
+                <td className={TH}>Project</td>
+                <td className={TD} colSpan={3}>
+                  {ws.name}
+                </td>
+              </tr>
+              <tr>
+                <td className={TH}>Students</td>
+                <td className={TD}>{bundle.members.map((m) => m.full_name).join(", ")}</td>
+                <td className={TH}>Institution</td>
+                <td className={TD}>{[...new Set(bundle.members.map((m) => m.institution).filter(Boolean))].join(", ")}</td>
+              </tr>
+              <tr>
+                <td className={TH}>Type</td>
+                <td className={TD}>{projectCategoryLabel(ws.project_category) ?? ""}</td>
+                <td className={TH}>Supervisor</td>
+                <td className={TD}>{ws.supervisor_name ?? ""}</td>
+              </tr>
+              <tr>
+                <td className={TH}>Dates</td>
+                <td className={TD}>
+                  {formatDate(ws.start_date)} – {formatDate(ws.end_date)}
+                </td>
+                <td className={TH}>Defence</td>
+                <td className={TD}>{formatDate(ws.defence_date)}</td>
+              </tr>
+            </tbody>
+          </table>
+          {body}
+          <p className="mt-8 text-[10px] text-slate-400">Generated {formatDate(today)} from the Honic student portal.</p>
+        </>
+      )}
     </main>
   );
 }

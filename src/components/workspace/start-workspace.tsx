@@ -8,13 +8,10 @@ import { BTN, BTN_SOFT, INPUT, Label, Panel, Status } from "@/components/workspa
 import { PROJECT_CATEGORIES } from "@/lib/portal/config";
 import { defaultEndDate, todayIso } from "@/lib/workspace/dates";
 
-const FEATURES = [
-  ["Gantt chart and task board", "A ready-made plan for your project type that you can drag and adjust."],
-  ["Calendar and reminders", "Supervisor meetings, university deadlines and alerts before due dates."],
-  ["Documents, files and logbook", "Chapters with versions and feedback, all project files, a printable logbook."],
-  ["Data, parts and references", "Charts of your test results, a budget tracker and IEEE or APA references."],
-  ["Honic support", "Message Honic, book lab or meeting time, and see quotes and payments."],
-  ["Reports and defence", "One-click progress reports and a defence checklist with practice questions."],
+const HIGHLIGHTS = [
+  "Plan with Gantt, tasks and calendar",
+  "Review documents with your supervisor",
+  "Logbook, files, parts and references in one place",
 ];
 
 export function StartWorkspace({
@@ -60,15 +57,25 @@ export function StartWorkspace({
         </Panel>
       ) : null}
 
-      <Panel title="Start your project workspace" subtitle="Plan, organise and keep everything about your project in one place, shared with your partner and Honic.">
-        <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map(([t, d]) => (
-            <div key={t} className="bg-dash-muted/40 rounded-xl px-3 py-2.5">
-              <p className="text-dash-foreground text-sm font-semibold">{t}</p>
-              <p className="text-dash-muted-foreground text-xs">{d}</p>
-            </div>
+      <section className="border-dash-border from-dash-card to-dash-muted/40 overflow-hidden rounded-2xl border bg-gradient-to-br px-5 py-6 shadow-sm sm:px-7 sm:py-8">
+        <p className="text-dash-accent text-xs font-semibold tracking-wide uppercase">Student workspace</p>
+        <h1 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Start your project</h1>
+        <p className="text-dash-muted-foreground mt-2 max-w-xl text-sm leading-relaxed">
+          One place for your plan, review documents, files and team, shared with your partner and Honic.
+        </p>
+        <ul className="text-dash-muted-foreground mt-4 space-y-1.5 text-sm">
+          {HIGHLIGHTS.map((line) => (
+            <li key={line} className="flex gap-2">
+              <span className="text-dash-accent font-semibold" aria-hidden>
+                ·
+              </span>
+              <span>{line}</span>
+            </li>
           ))}
-        </div>
+        </ul>
+      </section>
+
+      <Panel title="Create workspace" subtitle="Use your selected title if you have one, then set dates.">
         <form
           className="grid gap-3 sm:grid-cols-2"
           onSubmit={(e) => {

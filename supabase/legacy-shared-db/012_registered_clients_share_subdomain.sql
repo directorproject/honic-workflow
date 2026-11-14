@@ -5,7 +5,7 @@ alter table public.registered_clients
   add column if not exists share_subdomain text null;
 
 comment on column public.registered_clients.share_subdomain is
-  'Optional hostname label (e.g. hosea-api). Must be unique when set. Lowercase a-z, 0-9, hyphen; max 63 chars.';
+  'Optional hostname label (e.g. acme-labs). Must be unique when set. Lowercase a-z, 0-9, hyphen; max 63 chars.';
 
 create unique index if not exists registered_clients_share_subdomain_lower_uk
   on public.registered_clients (lower(share_subdomain))

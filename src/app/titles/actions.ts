@@ -1,5 +1,7 @@
 "use server";
 
+import { requireStaffActor } from "@/lib/auth-staff";
+
 import { revalidatePath } from "next/cache";
 
 import { notifyLinkedStudent } from "@/lib/portal/notify";
@@ -29,6 +31,7 @@ export async function setTitleProposalStatusAction(
   status: TitleProposalStatus,
   assignedTo: string | null = null,
 ) {
+  await requireStaffActor();
   const id = requireId(proposalId);
   if (!TITLE_PROPOSAL_STATUSES.includes(status)) throw new Error("Invalid status.");
 
@@ -76,6 +79,7 @@ export async function setTitleProposalStatusAction(
 
 /** Creates a tracked project from a student's selected title and links the student's portal account to it. */
 export async function createProjectFromTitleAction(proposalId: string): Promise<string> {
+  await requireStaffActor();
   const id = requireId(proposalId);
   const supabase = db();
 
@@ -142,6 +146,7 @@ export async function createProjectFromTitleAction(proposalId: string): Promise<
 }
 
 export async function createCourseAction(code: string, name: string) {
+  await requireStaffActor();
   const c = String(code ?? "").trim().toUpperCase();
   const n = text(name, 160);
   if (!/^[A-Z0-9]{2,12}$/.test(c)) throw new Error("Course code: 2–12 capital letters or digits, e.g. EE.");
@@ -167,6 +172,7 @@ export type NewTitleProposalInput = {
 };
 
 export async function createTitleProposalAction(input: NewTitleProposalInput) {
+  await requireStaffActor();
   const title = text(input.title, 300);
   if (!title) throw new Error("Enter the new title.");
 
@@ -188,7 +194,53 @@ export async function createTitleProposalAction(input: NewTitleProposalInput) {
   revalidatePath("/titles");
 }
 
+/** Adds many titles at once. Blank lines are skipped. A title already in the list is skipped. */
+export async function importTitleProposalsAction(inputs: NewTitleProposalInput[]) {
+  await requireStaffActor();
+  const rows = inputs.slice(0, 500);
+  if (rows.length === 0) throw new Error("Nothing to import.");
+
+  const supabase = db();
+  const [{ data: existing, error: readError }, { data: courses, error: courseError }] = await Promise.all([
+    supabase.from("title_proposals").select("title"),
+    supabase.from("courses").select("code"),
+  ]);
+  if (readError) throw new Error(readError.message);
+  if (courseError) throw new Error(courseError.message);
+
+  const known = new Set((existing ?? []).map((row) => String(row.title ?? "").trim().toLowerCase()));
+  const courseCodes = new Set((courses ?? []).map((row) => String(row.code).toUpperCase()));
+
+  const fresh = [];
+  for (const input of rows) {
+    const title = text(input.title, 300);
+    if (!title) continue;
+    const key = title.toLowerCase();
+    if (known.has(key)) continue;
+    known.add(key);
+    const courseCode = text(input.courseCode, 40)?.split(/[^A-Za-z0-9]/)[0]?.toUpperCase() ?? null;
+    fresh.push({
+      title,
+      course_code: courseCode && courseCodes.has(courseCode) ? courseCode : null,
+      institution: text(input.institution, 160),
+      batch: "Imported on dashboard",
+      original_title: text(input.originalTitle, 300),
+      origin_ref: text(input.originRef, 100) ?? "Imported",
+      summary: text(input.summary),
+      hardware: text(input.hardware),
+      communication: text(input.communication),
+    });
+  }
+  if (fresh.length === 0) throw new Error("Every title is already in the list.");
+
+  const { error } = await supabase.from("title_proposals").insert(fresh);
+  if (error) throw new Error(error.message);
+  revalidatePath("/titles");
+  return fresh.length;
+}
+
 export async function deleteTitleProposalAction(proposalId: string) {
+  await requireStaffActor();
   const id = requireId(proposalId);
   const { error } = await db().from("title_proposals").delete().eq("id", id);
   if (error) throw new Error(error.message);
@@ -196,6 +248,7 @@ export async function deleteTitleProposalAction(proposalId: string) {
 }
 
 export async function deleteLastYearProjectAction(projectId: string) {
+  await requireStaffActor();
   const id = requireId(projectId);
   const { error } = await db().from("last_year_projects").delete().eq("id", id);
   if (error) throw new Error(error.message);

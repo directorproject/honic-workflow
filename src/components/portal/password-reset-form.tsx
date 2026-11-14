@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { portalUpdatePasswordAction, type PortalResult } from "@/app/portal/actions";
+import { portalUpdatePasswordAction, type PortalResult } from "@/app/portal/auth-actions";
 import { Card, Field, INPUT, PRIMARY, StatusText } from "@/components/portal/portal-ui";
+import { Spinner } from "@/components/ui/spinner";
 
 export function PasswordResetForm() {
   const router = useRouter();
@@ -36,7 +37,8 @@ export function PasswordResetForm() {
         <Field label="Confirm new password">
           <input name="password2" type="password" required minLength={8} autoComplete="new-password" className={INPUT} />
         </Field>
-        <button type="submit" disabled={pending} className={PRIMARY}>
+        <button type="submit" disabled={pending} aria-busy={pending} className={PRIMARY}>
+          {pending ? <Spinner /> : null}
           {pending ? "Saving…" : "Save new password"}
         </button>
         <StatusText status={status} />

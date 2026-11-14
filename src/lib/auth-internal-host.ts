@@ -19,8 +19,24 @@ export function requestHostname(request: NextRequest): string {
   return host.split(":")[0]?.toLowerCase() ?? "";
 }
 
+/** True for an address on this PC's own network, including Wi-Fi and Tailscale. */
+function isPrivateNetworkHost(hostname: string): boolean {
+  const match = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(hostname);
+  if (!match) return false;
+  const parts = match.slice(1).map(Number);
+  if (parts.some((n) => n > 255)) return false;
+  const [a, b] = parts;
+  if (a === 10 || (a === 192 && b === 168) || (a === 172 && b >= 16 && b <= 31)) return true;
+  return a === 100 && b >= 64 && b <= 127;
+}
+
 function isLocalDevHost(hostname: string): boolean {
-  return hostname === "localhost" || hostname === "127.0.0.1" || hostname.endsWith(".localhost");
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.endsWith(".localhost") ||
+    isPrivateNetworkHost(hostname)
+  );
 }
 
 /** True only on the internal dashboard host (inova) or localhost dev — not share / client-api hosts. */

@@ -35,15 +35,46 @@ export const EVENT_KINDS = [
   { value: "other", label: "Other" },
 ] as const;
 
+/** Calendar events with this location belong to Plan → Field study. */
+export const FIELD_STUDY_LOCATION = "Field study";
+
+/** Project files group for photos, video, and other captures from field visits. */
+export const FIELD_STUDY_FOLDER = "Field study";
+
 export const DOCUMENT_STATUSES = [
   { value: "not_started", label: "Not started", tone: "bg-slate-500/15 text-dash-muted-foreground" },
   { value: "draft", label: "Draft", tone: "bg-sky-500/15 text-sky-700 dark:text-sky-300" },
-  { value: "submitted", label: "Sent to supervisor", tone: "bg-violet-500/15 text-violet-700 dark:text-violet-300" },
-  { value: "changes", label: "Needs changes", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
-  { value: "approved", label: "Approved", tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" },
+  { value: "submitted", label: "Waiting for feedback", tone: "bg-violet-500/15 text-violet-700 dark:text-violet-300" },
+  { value: "changes", label: "Partial, still open", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+  { value: "approved", label: "Ready / approved", tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" },
 ] as const;
 
-export const FILE_FOLDERS = ["General", "Code", "Circuits and designs", "Photos and videos", "Datasheets", "Reports", "Results"];
+/** Statuses shown on the Corrections tab (skip empty “not started”). */
+export const CORRECTION_STATUSES = DOCUMENT_STATUSES.filter((s) => s.value !== "not_started");
+
+/** Fixed groups on Project files. Extra “Min N” folders are added from the UI. */
+export const FILE_FOLDERS = [
+  "Project presentation (PPTs)",
+  "Questionnaires",
+  "Field study",
+  "Videos",
+  "Images",
+  "Audios",
+] as const;
+
+/** Prefer Images / Videos / Audios when uploading from Field study; other types stay in Field study. */
+export function folderForFieldCapture(file: { type?: string | null; name: string }): string {
+  const mime = String(file.type ?? "");
+  const name = file.name;
+  if (mime.startsWith("image/") || /\.(png|jpe?g|gif|webp|heic|bmp)$/i.test(name)) return "Images";
+  if (mime.startsWith("video/") || /\.(mp4|mov|webm|mkv|avi)$/i.test(name)) return "Videos";
+  if (mime.startsWith("audio/") || /\.(mp3|wav|m4a|aac|ogg)$/i.test(name)) return "Audios";
+  return FIELD_STUDY_FOLDER;
+}
+
+export const DEFAULT_FILE_FOLDER = FILE_FOLDERS[0];
+
+export const FILE_FOLDER_MAX_LEN = 80;
 
 export const PART_STATUSES = [
   { value: "needed", label: "Needed", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
@@ -99,5 +130,6 @@ export function formatTsh(n: number): string {
 export function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
-  return `${(n / 1024 / 1024).toFixed(1)} MB`;
+  if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
+  return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }

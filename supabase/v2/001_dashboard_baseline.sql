@@ -165,7 +165,7 @@ CREATE INDEX IF NOT EXISTS tracked_projects_updated_idx ON public.tracked_projec
 
 comment on column public.project_milestones.assignee is 'Name of the person responsible for this milestone.';
 comment on column public.project_milestones.work_status is 'Lifecycle for plans board; done sets completed_at; reopen clears completed_at.';
-comment on column public.registered_clients.share_subdomain is 'Optional hostname label (e.g. hosea-api). Must be unique when set. Lowercase a-z, 0-9, hyphen; max 63 chars.';
+comment on column public.registered_clients.share_subdomain is 'Optional hostname label (e.g. acme-labs). Must be unique when set. Lowercase a-z, 0-9, hyphen; max 63 chars.';
 comment on column public.registered_clients.phone is 'Optional phone; shown on /projects/[id] and /work; not selected on public share pages.';
 comment on column public.registered_clients.is_hidden is 'When true, hide client from normal dashboard and new-project selectors.';
 comment on column public.registered_clients.is_blocked is 'When true, block client from normal dashboard and new-project selectors.';

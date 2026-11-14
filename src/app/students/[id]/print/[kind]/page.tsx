@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { WorkspacePrint, type PrintKind } from "@/components/workspace/workspace-print";
+import { PRINT_KINDS, WorkspacePrint, type PrintKind } from "@/components/workspace/workspace-print";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { loadWorkspaceBundle } from "@/lib/workspace/load";
 import { readableWorkspaceId } from "@/lib/workspace/resolve";
@@ -14,7 +14,7 @@ export default async function StaffPrintPage(props: {
   searchParams: Promise<{ period?: string }>;
 }) {
   const [{ id, kind }, sp] = await Promise.all([props.params, props.searchParams]);
-  if (!["progress", "plan", "logbook"].includes(kind)) notFound();
+  if (!(PRINT_KINDS as string[]).includes(kind)) notFound();
   const workspaceId = await readableWorkspaceId({ workspaceId: id, staffOnly: true });
   const db = getSupabaseAdminClient();
   const bundle = workspaceId && db ? await loadWorkspaceBundle(db, workspaceId) : null;

@@ -3,31 +3,48 @@
 import { useState } from "react";
 
 import { createInvoiceAction, payInvoiceAction, setInvoiceStatusAction } from "@/app/portal/workspace-actions";
+import { PaymentsBoard } from "@/components/portal/payments-board";
 import { useRun, useWs } from "@/components/workspace/ws-context";
-import { Badge, BTN, BTN_GHOST, Empty, INPUT, Label, Modal, Panel, Stat, Status } from "@/components/workspace/ws-ui";
+import { Badge, BTN, BTN_GHOST, Empty, INPUT, Label, Modal, Panel, Status } from "@/components/workspace/ws-ui";
 import { PAYMENT_NETWORKS } from "@/lib/portal/config";
+import type { PortalPaymentRow } from "@/lib/portal/payments-ledger";
+import type { PayoutAccount } from "@/lib/portal/payout-accounts";
 import { formatTsh, INVOICE_STATUSES, tone } from "@/lib/workspace/constants";
 import { formatDate, formatDateTime } from "@/lib/workspace/dates";
 import type { Invoice } from "@/lib/workspace/types";
 
-export function PaymentsSection({ invoices }: { invoices: Invoice[] }) {
+export function PaymentsSection({
+  invoices,
+  payments = [],
+  registeredName = "",
+  payoutEligible = false,
+  payoutAccount = null,
+}: {
+  invoices: Invoice[];
+  payments?: PortalPaymentRow[];
+  registeredName?: string;
+  payoutEligible?: boolean;
+  payoutAccount?: PayoutAccount | null;
+}) {
   const { workspaceId, viewer } = useWs();
   const create = useRun();
   const [paying, setPaying] = useState<Invoice | null>(null);
-  const unpaid = invoices.filter((i) => i.status === "unpaid").reduce((s, i) => s + i.amount_tsh, 0);
-  const paid = invoices.filter((i) => i.status === "paid").reduce((s, i) => s + i.amount_tsh, 0);
 
   return (
     <>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Stat label="To pay" value={formatTsh(unpaid)} tone={unpaid ? "text-amber-600 dark:text-amber-300" : ""} />
-        <Stat label="Paid to Honic" value={formatTsh(paid)} />
-      </div>
+      <PaymentsBoard
+        payments={payments}
+        invoices={invoices}
+        registeredName={registeredName}
+        payoutEligible={payoutEligible}
+        payoutAccount={payoutAccount}
+        canPayInvoices={viewer.kind === "student"}
+      />
 
       {viewer.kind === "staff" ? (
         <Panel title="New quote or invoice" subtitle="For Honic services on this project: design help, fabrication, components, lab time.">
           <form
-            className="grid gap-3 sm:grid-cols-[1fr_10rem_9rem_10rem_auto]"
+            className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[1fr_10rem_9rem_10rem_auto]"
             onSubmit={(e) => {
               e.preventDefault();
               const fd = new FormData(e.currentTarget);
@@ -70,17 +87,36 @@ export function PaymentsSection({ invoices }: { invoices: Invoice[] }) {
         </Panel>
       ) : null}
 
-      <Panel title="Quotes and invoices" subtitle="Payments are a test for now: no money is taken.">
-        {invoices.length ? (
-          <ul className="divide-dash-border divide-y">
-            {invoices.map((inv) => (
-              <InvoiceRow key={inv.id} invoice={inv} onPay={() => setPaying(inv)} />
-            ))}
-          </ul>
-        ) : (
-          <Empty title="Nothing here">Quotes and invoices from Honic for work on your project will appear here.</Empty>
-        )}
-      </Panel>
+      {viewer.kind === "student" ? (
+        <Panel title="Pay an unpaid invoice" subtitle="Open Pay on a row below. Snippe confirms before the invoice marks paid.">
+          {invoices.filter((i) => i.status === "unpaid").length ? (
+            <ul className="divide-dash-border divide-y">
+              {invoices
+                .filter((i) => i.status === "unpaid")
+                .map((inv) => (
+                  <InvoiceRow key={inv.id} invoice={inv} onPay={() => setPaying(inv)} />
+                ))}
+            </ul>
+          ) : (
+            <Empty title="No unpaid invoices">When Honic sends an invoice for project work, you can pay it here.</Empty>
+          )}
+        </Panel>
+      ) : null}
+
+      {viewer.kind === "staff" ? (
+        <Panel title="Manage invoices">
+          {invoices.length ? (
+            <ul className="divide-dash-border divide-y">
+              {invoices.map((inv) => (
+                <InvoiceRow key={inv.id} invoice={inv} onPay={() => setPaying(inv)} />
+              ))}
+            </ul>
+          ) : (
+            <Empty title="Nothing here">Quotes and invoices will appear here.</Empty>
+          )}
+        </Panel>
+      ) : null}
+
       <PayDialog invoice={paying} onClose={() => setPaying(null)} />
     </>
   );
@@ -133,8 +169,9 @@ function PayDialog({ invoice, onClose }: { invoice: Invoice | null; onClose: () 
   return (
     <Modal open onClose={onClose} title={`Pay ${formatTsh(invoice.amount_tsh)}`}>
       <p className="text-dash-muted-foreground mb-3 text-sm">{invoice.description}</p>
-      <p className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
-        Test payment: no money is taken. Real mobile money will be connected later.
+      <p className="mb-4 rounded-xl border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs text-sky-950 dark:text-sky-100">
+        You will get a mobile-money prompt on this number (Snippe). Enter your PIN to confirm. The invoice updates only after
+        verified payment.
       </p>
       <div className="grid gap-3">
         <Label text="Network">
@@ -148,7 +185,16 @@ function PayDialog({ invoice, onClose }: { invoice: Invoice | null; onClose: () 
           <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="07XX XXX XXX" className={INPUT} />
         </Label>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" disabled={pending} className={BTN} onClick={() => run(() => payInvoiceAction(workspaceId, invoice.id, { network, phone }), { onOk: () => setTimeout(onClose, 1500) })}>
+          <button
+            type="button"
+            disabled={pending}
+            className={BTN}
+            onClick={() =>
+              run(() => payInvoiceAction(workspaceId, invoice.id, { network, phone }), {
+                onOk: () => setTimeout(onClose, 1500),
+              })
+            }
+          >
             {pending ? "Paying…" : "Pay now"}
           </button>
           <button type="button" className={BTN_GHOST} onClick={onClose}>

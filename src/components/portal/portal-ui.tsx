@@ -2,9 +2,10 @@ import type { ReactNode } from "react";
 
 export const INPUT =
   "border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2";
-export const PRIMARY = "bg-dash-accent rounded-xl px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50";
+export const PRIMARY =
+  "bg-dash-accent inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-opacity disabled:cursor-wait disabled:opacity-60";
 export const SECONDARY =
-  "border-dash-border bg-dash-muted hover:bg-dash-border rounded-xl border px-4 py-2.5 text-sm font-semibold disabled:opacity-50";
+  "border-dash-border bg-dash-muted hover:bg-dash-border inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold disabled:cursor-wait disabled:opacity-60";
 
 export function Card({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   return (

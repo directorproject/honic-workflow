@@ -1,3 +1,4 @@
+import { academicYearOf } from "@/lib/academic-year";
 import { projectCategoryLabel, studyLevelLabel } from "@/lib/portal/config";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
@@ -26,6 +27,8 @@ export type LastYearProject = {
   studentName: string | null;
   title: string;
   supervisor: string | null;
+  /** Working year parsed from the source date, when the source names one. */
+  year: number | null;
 };
 
 export const TITLE_PROPOSAL_STATUSES = ["available", "reserved", "assigned", "dropped"] as const;
@@ -70,6 +73,21 @@ export type TitleBankData = {
 function str(v: unknown): string | null {
   const s = typeof v === "string" ? v.trim() : v == null ? "" : String(v).trim();
   return s.length > 0 ? s : null;
+}
+
+const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+
+/** Working year from a note such as "17 Jul 2026". */
+export function academicYearFromText(source: string): number | null {
+  const match = source.match(/(\d{1,2})\s+([A-Za-z]{3,9})\s+(20\d{2})/);
+  if (!match) return null;
+  const month = MONTHS.indexOf(match[2].slice(0, 3).toLowerCase());
+  if (month < 0) return null;
+  const day = Number(match[1]);
+  const year = Number(match[3]);
+  const date = new Date(Date.UTC(year, month, day, 9, 0, 0));
+  if (Number.isNaN(date.getTime()) || date.getUTCMonth() !== month) return null;
+  return academicYearOf(date);
 }
 
 function toStatus(v: unknown): TitleProposalStatus {
@@ -129,6 +147,7 @@ export async function loadTitleBank(): Promise<TitleBankData> {
     studentName: str(r.student_name),
     title: String(r.title ?? ""),
     supervisor: str(r.supervisor),
+    year: academicYearFromText(String(r.source ?? "")),
   }));
 
   const proposals: TitleProposal[] = (tp.data ?? []).map((r) => ({

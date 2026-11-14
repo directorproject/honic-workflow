@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { StudentsTable, type SummaryRow } from "@/components/workspace/students-table";
+import { academicYearLabel, isInAcademicYear } from "@/lib/academic-year";
+import { getSelectedAcademicYear } from "@/lib/academic-year-server";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { diffDays, todayIso } from "@/lib/workspace/dates";
 import { loadWorkspaceSummaries } from "@/lib/workspace/load";
@@ -11,8 +13,10 @@ export const runtime = "nodejs";
 export const metadata = { title: "Student workspaces · Honic" };
 
 export default async function StudentsPage() {
+  const year = await getSelectedAcademicYear();
+  const yearLabel = year === "all" ? "all years" : academicYearLabel(year);
   const db = getSupabaseAdminClient();
-  const summaries = db ? await loadWorkspaceSummaries(db) : [];
+  const summaries = (db ? await loadWorkspaceSummaries(db) : []).filter((s) => isInAcademicYear(s.startedAt, year));
   const today = todayIso();
   const rows: SummaryRow[] = summaries.map((s) => {
     const risk: string[] = [];
@@ -25,15 +29,20 @@ export default async function StudentsPage() {
   const count = (f: (r: SummaryRow) => number) => rows.reduce((n, r) => n + f(r), 0);
 
   return (
-    <DashboardShell title="Student workspaces" subtitle="Plans, progress and requests from students on the portal." statusDotClass="bg-emerald-500">
+    <DashboardShell title="Student workspaces" subtitle={`Plans, progress and requests in ${yearLabel}. Invoices here are for these projects.`} statusDotClass="bg-emerald-500">
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Card label="Workspaces" value={rows.length} />
         <Card label="At risk" value={rows.filter((r) => r.risk.length).length} tone="text-rose-600 dark:text-rose-300" />
-        <Card label="Unread messages" value={count((r) => r.unreadMessages)} tone="text-rose-600 dark:text-rose-300" />
+        <Link href="/students/help-desk" className="block">
+          <Card label="Help desk unread" value={count((r) => r.unreadMessages)} tone="text-rose-600 dark:text-rose-300" />
+        </Link>
         <Card label="Session requests" value={count((r) => r.pendingBookings)} tone="text-amber-600 dark:text-amber-300" />
         <Card label="Unpaid invoices" value={count((r) => r.unpaidInvoices)} />
       </div>
       <div className="mb-4 flex flex-wrap justify-end gap-2">
+        <Link href="/students/help-desk" className="border-dash-border bg-dash-card hover:bg-dash-muted rounded-xl border px-3.5 py-2 text-sm font-semibold">
+          Help desk inbox
+        </Link>
         <Link href="/students/deadlines" className="border-dash-border bg-dash-card hover:bg-dash-muted rounded-xl border px-3.5 py-2 text-sm font-semibold">
           Shared deadlines
         </Link>

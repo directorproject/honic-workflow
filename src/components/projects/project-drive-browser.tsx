@@ -42,7 +42,9 @@ export function ProjectDriveBrowser({
   }, [projectId, parentIdForFetch]);
 
   useEffect(() => {
-    void load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [load]);
 
   function enterFolder(f: StackEntry) {

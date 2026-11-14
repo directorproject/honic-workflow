@@ -1,5 +1,7 @@
 "use server";
 
+import { requireStaffActor } from "@/lib/auth-staff";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -63,6 +65,7 @@ function parseTimelineMilestonesPayload(raw: string): {
 }
 
 export async function createTrackedProject(formData: FormData) {
+  await requireStaffActor();
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     throw new Error("Database not configured.");
@@ -168,6 +171,7 @@ export async function createTrackedProject(formData: FormData) {
 }
 
 export async function configureProjectDriveFolder(formData: FormData) {
+  await requireStaffActor();
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     throw new Error("Database not configured.");
@@ -246,6 +250,7 @@ export async function createProjectTask(
   milestone_id: string | null;
   sort_order: number;
 }> {
+  await requireStaffActor();
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     throw new Error("Database not configured.");
@@ -286,6 +291,7 @@ export async function createProjectTask(
 }
 
 export async function addProjectMilestone(formData: FormData): Promise<ProjectMilestoneRow> {
+  await requireStaffActor();
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     throw new Error("Database not configured.");
@@ -349,6 +355,7 @@ export async function addProjectMilestone(formData: FormData): Promise<ProjectMi
 }
 
 export async function updateProjectMilestone(formData: FormData): Promise<void> {
+  await requireStaffActor();
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     throw new Error("Database not configured.");
@@ -379,6 +386,7 @@ export async function updateProjectMilestone(formData: FormData): Promise<void> 
 }
 
 export async function deleteProjectMilestone(formData: FormData): Promise<void> {
+  await requireStaffActor();
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     throw new Error("Database not configured.");
@@ -405,6 +413,7 @@ export async function deleteProjectMilestone(formData: FormData): Promise<void> 
 }
 
 export async function deleteTrackedProject(formData: FormData) {
+  await requireStaffActor();
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     throw new Error("Database not configured.");
@@ -428,6 +437,7 @@ export async function deleteTrackedProject(formData: FormData) {
 }
 
 export async function updateTaskStatus(taskId: string, trackedProjectId: string, status: string) {
+  await requireStaffActor();
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     throw new Error("Database not configured.");

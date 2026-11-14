@@ -91,7 +91,7 @@ export function buildAgenda(b: WorkspaceBundle): AgendaItem[] {
     items.push({ key: `doc-${d.id}`, date: d.due_date, time: null, title: d.name, kind: "document", sub: "Document due", done: d.status === "approved", tab: "documents" });
   }
   if (b.workspace.defence_date) {
-    items.push({ key: "defence", date: b.workspace.defence_date, time: null, title: "Final defence", kind: "defence", sub: "Defence day", done: false, tab: "defence" });
+    items.push({ key: "defence", date: b.workspace.defence_date, time: null, title: "Final defence", kind: "defence", sub: "Defence day", done: false, tab: "home" });
   }
   return items.sort((a, b2) => a.date.localeCompare(b2.date) || (a.time ?? "").localeCompare(b2.time ?? ""));
 }

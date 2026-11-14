@@ -6,6 +6,7 @@ import { useMemo, useState, useTransition } from "react";
 import { portalSelectTitleAction, type PortalResult } from "@/app/portal/actions";
 import { Card, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
 import { TITLE_CHANGE_FEE_TSH } from "@/lib/portal/config";
+import { FREE_TITLE_SLOTS } from "@/lib/portal/title-limits";
 import type { Course, PortalTitle } from "@/lib/portal/data";
 
 const ALL = "__all__";
@@ -148,7 +149,9 @@ export function TitlePicker({
             <p className="text-dash-foreground font-semibold">Select this title?</p>
             <p className="text-dash-foreground mt-2 text-sm">{confirm.title}</p>
             <p className="text-dash-muted-foreground mt-3 text-sm">
-              It will be hidden from other students. Changing later costs TSh {TITLE_CHANGE_FEE_TSH.toLocaleString()}.
+              This shortlists the title for you (keeps it in front). Classmates are not blocked until you hide it. Paid
+              plan: {FREE_TITLE_SLOTS} free hides; free mode pays TSh {TITLE_CHANGE_FEE_TSH.toLocaleString()} per hide.
+              Conflict protection for defence, not a title shop.
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" disabled={pending} onClick={() => setConfirm(null)} className={SECONDARY}>

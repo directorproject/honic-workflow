@@ -1,7 +1,8 @@
 import { filterByAcademicYear } from "@/lib/academic-year";
 import { getSelectedAcademicYear } from "@/lib/academic-year-server";
 import type { DashboardBanner } from "@/lib/dashboard-types";
-import { bannerForRegistry, fetchRegisteredClients } from "@/lib/registered-clients";
+import { getThisCalendarWeekIsoRange } from "@/lib/next-week-milestones-data";
+import { bannerForRegistry, fetchRegisteredClients, fetchRegisteredClientsForYear } from "@/lib/registered-clients";
 import { getSupabaseAdminClient, hasSupabaseServiceRoleEnv } from "@/lib/supabase-server";
 import { formatHomeTimelineSummary } from "@/lib/timeline-summary";
 import { normalizeRegisteredClientJoin } from "@/lib/supabase-relations";
@@ -27,7 +28,8 @@ export type HomeWorkflowSummaries = {
   incompleteProjects: number;
   criticalProjects: number;
   onHoldProjects: number;
-  activeProjects: number;
+  /** Projects in the selected year with a milestone due this week, or overdue and still open. */
+  thisWeekProjects: number;
 };
 
 export async function loadHomeWorkflowPage(): Promise<{
@@ -46,7 +48,7 @@ export async function loadHomeWorkflowPage(): Promise<{
     incompleteProjects: 0,
     criticalProjects: 0,
     onHoldProjects: 0,
-    activeProjects: 0,
+    thisWeekProjects: 0,
   };
 
   if (!supabase) {
@@ -71,7 +73,7 @@ export async function loadHomeWorkflowPage(): Promise<{
     supabase
       .from("tracked_projects")
       .select(
-        "id, title, status, priority, project_type, workflow_checklist, start_date, target_end_date, registered_client_id, registered_clients ( name ), project_milestones ( title, target_date, completed_at, sort_order, assignee )"
+        "id, title, status, priority, project_type, workflow_checklist, start_date, target_end_date, registered_client_id, registered_clients ( name, is_hidden, is_blocked ), project_milestones ( title, target_date, completed_at, sort_order, assignee )"
       ),
     await getSelectedAcademicYear(),
   ).order("updated_at", { ascending: false });
@@ -140,28 +142,42 @@ export async function loadHomeWorkflowPage(): Promise<{
     (p) => p.status !== "client_side" && p.status !== "completed",
   );
 
+  const { startIso, endIso } = getThisCalendarWeekIsoRange();
+  const today = new Date();
+  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const thisWeekProjects = (rawProjects ?? []).filter((p) => {
+    const rawMs = (p as { project_milestones?: unknown }).project_milestones;
+    if (!Array.isArray(rawMs)) return false;
+    return rawMs.some((m) => {
+      if (!m || typeof m !== "object" || !("target_date" in m)) return false;
+      const target = (m as { target_date?: string | null }).target_date;
+      if (!target) return false;
+      const open = !(m as { completed_at?: string | null }).completed_at;
+      const dueThisWeek = target >= startIso && target <= endIso;
+      const overdue = open && target < todayIso;
+      return dueThisWeek || overdue;
+    });
+  }).length;
+
   const totalProjects = projects.length;
   const completedProjects = projects.filter((p) => p.status === "completed").length;
   const clientSideProjects = projects.filter((p) => p.status === "client_side").length;
   const incompleteProjects = totalProjects - completedProjects;
   const criticalProjects = projects.filter((p) => p.priority === "critical").length;
   const onHoldProjects = projects.filter((p) => p.status === "on_hold").length;
-  const activeProjects = pipelineProjects.filter((p) =>
-    ["planning", "active", "prototype_phase", "testing"].includes(p.status),
-  ).length;
 
   return {
     banner,
     projects: pipelineProjects,
     summaries: {
-      totalClients: clients.length,
+      totalClients: (await fetchRegisteredClientsForYear(supabase, await getSelectedAcademicYear())).length,
       totalProjects,
       completedProjects,
       clientSideProjects,
       incompleteProjects,
       criticalProjects,
       onHoldProjects,
-      activeProjects,
+      thisWeekProjects,
     },
   };
 }

@@ -1,5 +1,6 @@
 import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
 import { LoginForm } from "@/components/auth/login-form";
+import { SiteFooter } from "@/components/portal/site-footer";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function LoginPage(props: { searchParams?: Promise<{ next?:
           </div>
         </div>
       </div>
+      <SiteFooter />
     </main>
   );
 }

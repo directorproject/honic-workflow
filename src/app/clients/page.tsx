@@ -3,13 +3,18 @@ import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { AddRegisteredClientForm } from "@/components/clients/add-registered-client-form";
 import { RegisteredClientAdminTable } from "@/components/clients/registered-client-admin-table";
+import { academicYearLabel } from "@/lib/academic-year";
+import { getSelectedAcademicYear } from "@/lib/academic-year-server";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
+import { fetchRegisteredClientsForYear } from "@/lib/registered-clients";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
 export default async function ManageRegisteredClientsPage() {
+  const year = await getSelectedAcademicYear();
+  const yearLabel = year === "all" ? "all years" : academicYearLabel(year);
   const dash = await loadDashboardData();
   const connected = isDashboardRegistryOk(dash.banner);
   const statusDotClass = connected
@@ -17,42 +22,18 @@ export default async function ManageRegisteredClientsPage() {
     : "bg-amber-500";
 
   const supabase = getSupabaseAdminClient();
-  let rows = dash.clients;
-  let error: string | null = null;
-
-  if (supabase) {
-    const q = await supabase
-      .from("registered_clients")
-      .select("id, name, first_seen_at, last_seen_at, phone, is_hidden, is_blocked, blocked_reason")
-      .order("last_seen_at", { ascending: false });
-
-    if (q.error) {
-      error = q.error.message;
-    } else {
-      rows = (q.data ?? []).map((r) => ({
-        id: String(r.id),
-        name: String(r.name ?? ""),
-        firstSeenAt: (r.first_seen_at as string | null) ?? null,
-        lastSeenAt: (r.last_seen_at as string | null) ?? null,
-        phone: (r.phone as string | null) ?? null,
-        isHidden: Boolean(r.is_hidden),
-        isBlocked: Boolean(r.is_blocked),
-        blockedReason: (r.blocked_reason as string | null) ?? null,
-      }));
-    }
-  } else {
-    error = "Database not configured.";
-  }
+  const rows = supabase ? await fetchRegisteredClientsForYear(supabase, year, { includeHidden: true }) : [];
+  const error = supabase ? null : "Database not configured.";
 
   return (
     <DashboardShell
       title="Manage registered clients"
-      subtitle="Add, hide, block, or delete clients."
+      subtitle={`Project-invoice clients in ${yearLabel}. Add, hide, block, or delete.`}
       statusDotClass={statusDotClass}
     >
       <div className="mb-5">
         <p className="text-dash-muted-foreground text-sm">
-          Hidden or blocked clients are excluded from dashboards and new-project client selectors.
+          Shop sales are not listed. Hidden or blocked clients stay here so you can change them, and stay off the other pages.
         </p>
       </div>
 

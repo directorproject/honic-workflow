@@ -1,11 +1,28 @@
 "use server";
 
-import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { isStaffUser } from "@/lib/auth-staff";
+import {
+  deskPlanAmount,
+  fulfillMembershipPayment,
+  fulfillTitleChangePayment,
+  type DeskPlanId,
+} from "@/lib/payments/fulfill";
+import {
+  defaultPendingExpiresAt,
+  expireStalePendingPayments,
+  isPendingExpired,
+  resolvePendingExpiresAt,
+} from "@/lib/payments/pending-expiry";
+import { simulatedPaymentsAllowed } from "@/lib/payments/security";
+import {
+  createMobilePayment,
+  makeIdempotencyKey,
+  publicWebhookUrl,
+  snippeConfigured,
+  toSnippePhone,
+} from "@/lib/payments/snippe";
 import {
   OTHER_COURSE_CODE,
   PAYMENT_NETWORKS,
@@ -16,19 +33,13 @@ import {
   YEARS_OF_STUDY,
 } from "@/lib/portal/config";
 import { getPortalUser } from "@/lib/portal/data";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { chooseTitle, hideTitleFromPeers, loadLiterature } from "@/lib/portal/title-choices";
+import { titleHideEntitlement } from "@/lib/portal/title-limits";
+import { POLICY_VERSION, TITLE_RULES_VERSION, titleTermsStatus } from "@/lib/portal/title-terms";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
-export type PortalResult = { ok: true; message?: string } | { ok: false; message: string };
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-async function requestOrigin(): Promise<string> {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
-  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}`;
-}
+import type { PortalResult } from "@/app/portal/auth-actions";
+export type { PortalAuthFormState, PortalResult } from "@/app/portal/auth-actions";
 
 function clean(v: unknown, max = 200): string {
   return String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
@@ -41,81 +52,6 @@ async function requireStudent() {
   const db = getSupabaseAdminClient();
   if (!db) throw new Error("Service unavailable. Please try again later.");
   return { user, db };
-}
-
-export async function portalSignUpAction(email: string, password: string): Promise<PortalResult> {
-  const e = clean(email, 254).toLowerCase();
-  if (!EMAIL_RE.test(e)) return { ok: false, message: "Enter a valid email address." };
-  if (String(password).length < 8) return { ok: false, message: "Password must be at least 8 characters." };
-
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.signUp({
-    email: e,
-    password: String(password),
-    options: { emailRedirectTo: `${await requestOrigin()}/portal/auth/callback` },
-  });
-  if (error) return { ok: false, message: error.message };
-  if (data.session) {
-    revalidatePath("/portal");
-    return { ok: true };
-  }
-  return { ok: true, message: `We sent a confirmation link to ${e}. Open it to finish creating your account.` };
-}
-
-export async function portalSignInAction(email: string, password: string): Promise<PortalResult> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: clean(email, 254).toLowerCase(),
-    password: String(password),
-  });
-  if (error) {
-    return {
-      ok: false,
-      message: /confirm/i.test(error.message) ? "Confirm your email first: open the link we sent you." : "Wrong email or password.",
-    };
-  }
-  if (isStaffUser(data.user)) {
-    await supabase.auth.signOut();
-    return { ok: false, message: "Staff accounts sign in at inova.honiccompany.com." };
-  }
-  revalidatePath("/portal");
-  return { ok: true };
-}
-
-export async function portalGoogleSignInAction(): Promise<PortalResult> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: `${await requestOrigin()}/portal/auth/callback`, skipBrowserRedirect: true },
-  });
-  if (error || !data.url) {
-    return { ok: false, message: error?.message ?? "Google sign-in is not available right now." };
-  }
-  redirect(data.url);
-}
-
-export async function portalSignOutAction(): Promise<void> {
-  const supabase = await createSupabaseServerClient();
-  await supabase.auth.signOut();
-  redirect("/portal");
-}
-
-export async function portalForgotPasswordAction(email: string): Promise<PortalResult> {
-  const e = clean(email, 254).toLowerCase();
-  if (!EMAIL_RE.test(e)) return { ok: false, message: "Enter a valid email address." };
-  const supabase = await createSupabaseServerClient();
-  await supabase.auth.resetPasswordForEmail(e, {
-    redirectTo: `${await requestOrigin()}/portal/auth/callback?next=/portal/reset`,
-  });
-  return { ok: true, message: `If ${e} has an account, we sent a link to set a new password.` };
-}
-
-export async function portalUpdatePasswordAction(password: string): Promise<PortalResult> {
-  if (String(password).length < 8) return { ok: false, message: "Password must be at least 8 characters." };
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.updateUser({ password: String(password) });
-  if (error) return { ok: false, message: error.message };
-  return { ok: true, message: "Password updated." };
 }
 
 export type ProfileInput = {
@@ -190,14 +126,191 @@ export async function portalSaveProfileAction(input: ProfileInput): Promise<Port
 
 const SELECT_ERRORS: Record<string, string> = {
   no_profile: "Fill in your details first.",
-  already_has_title: "You already hold a title.",
-  payment_required: `Pay the TSh ${TITLE_CHANGE_FEE_TSH.toLocaleString()} change fee to choose another title.`,
-  not_available: "Someone else just took this title. Please choose another one.",
+  already_has_title: "You already hold this title, or you reached the hide limit.",
+  payment_required: `Pay TSh ${TITLE_CHANGE_FEE_TSH.toLocaleString()} to hide a title from classmates.`,
+  payment_required_hide: `Pay TSh ${TITLE_CHANGE_FEE_TSH.toLocaleString()} to hide this title from classmates. Selecting alone only keeps it on your shortlist. This is not a title shop.`,
+  not_available: "Someone else just hid this title from your group. Please choose another one.",
 };
+
+export async function portalAcceptTitleTermsAction(step: "policy" | "rules"): Promise<PortalResult> {
+  try {
+    if (step !== "policy" && step !== "rules") return { ok: false, message: "Choose the policy or the title rules." };
+    const { user, db } = await requireStudent();
+    const { data, error } = await db.auth.admin.getUserById(user.id);
+    if (error) return { ok: false, message: error.message };
+    if (!data.user) return { ok: false, message: "Please sign in again." };
+    const progress = titleTermsStatus(data.user.user_metadata);
+    if (step === "rules" && !progress.policyAccepted) return { ok: false, message: "Accept the policy first." };
+    const existing = (data.user.user_metadata ?? {}) as Record<string, unknown>;
+    const now = new Date().toISOString();
+    const patch =
+      step === "policy"
+        ? { portal_policy_version: POLICY_VERSION, portal_policy_accepted_at: now }
+        : { title_rules_version: TITLE_RULES_VERSION, title_rules_accepted_at: now };
+    const { error: updateError } = await db.auth.admin.updateUserById(user.id, {
+      user_metadata: { ...existing, ...patch },
+    });
+    if (updateError) return { ok: false, message: updateError.message };
+    revalidatePath("/portal/titles");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not save your acceptance." };
+  }
+}
+
+export async function portalChooseTitleAction(proposalId: string): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    const { data: row, error } = await db.from("student_profiles").select("*").eq("user_id", user.id).maybeSingle();
+    if (error) return { ok: false, message: error.message };
+    if (!row) return { ok: false, message: "Fill in your details first." };
+    const profile = {
+      fullName: String(row.full_name),
+      regNo: row.reg_no ? String(row.reg_no) : null,
+      phone: String(row.phone),
+      institution: String(row.institution),
+      courseCode: String(row.course_code),
+      courseOther: row.course_other ? String(row.course_other) : null,
+      studyLevel: row.study_level ? String(row.study_level) : null,
+      studyLevelOther: row.study_level_other ? String(row.study_level_other) : null,
+      projectCategory: row.project_category ? String(row.project_category) : null,
+      yearOfStudy: row.year_of_study ? String(row.year_of_study) : null,
+      academicYear: String(row.academic_year),
+      partner: row.partner ? String(row.partner) : null,
+      trackedProjectId: row.tracked_project_id ? String(row.tracked_project_id) : null,
+      changeCredits: Number(row.change_credits ?? 0),
+      deskExpiresAt: row.desk_expires_at ? String(row.desk_expires_at) : null,
+      deskPlan: row.desk_plan ? String(row.desk_plan) : null,
+    };
+    await chooseTitle(db, user.id, profile, proposalId);
+    revalidatePath("/portal");
+    revalidatePath("/portal/titles");
+    revalidatePath(`/portal/titles/${encodeURIComponent(proposalId)}`);
+    revalidatePath("/portal/titles/mine");
+    revalidatePath("/titles");
+    return {
+      ok: true,
+      message:
+        "Title added to your shortlist. Classmates can still see it until you hide it (paid plan free hides, or pay to hide).",
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Could not select this title.";
+    return { ok: false, message: SELECT_ERRORS[message] ?? message };
+  }
+}
+
+/**
+ * One-step: shortlist if needed, then hide from classmates using a free plan hide or hide credit.
+ * If payment is required, returns payment_required_hide so the client opens checkout.
+ */
+export async function portalOwnAndHideTitleAction(proposalId: string): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    const { data: row, error } = await db.from("student_profiles").select("*").eq("user_id", user.id).maybeSingle();
+    if (error) return { ok: false, message: error.message };
+    if (!row) return { ok: false, message: "Fill in your details first." };
+    const profile = {
+      fullName: String(row.full_name),
+      regNo: row.reg_no ? String(row.reg_no) : null,
+      phone: String(row.phone),
+      institution: String(row.institution),
+      courseCode: String(row.course_code),
+      courseOther: row.course_other ? String(row.course_other) : null,
+      studyLevel: row.study_level ? String(row.study_level) : null,
+      studyLevelOther: row.study_level_other ? String(row.study_level_other) : null,
+      projectCategory: row.project_category ? String(row.project_category) : null,
+      yearOfStudy: row.year_of_study ? String(row.year_of_study) : null,
+      academicYear: String(row.academic_year),
+      partner: row.partner ? String(row.partner) : null,
+      trackedProjectId: row.tracked_project_id ? String(row.tracked_project_id) : null,
+      changeCredits: Number(row.change_credits ?? 0),
+      deskExpiresAt: row.desk_expires_at ? String(row.desk_expires_at) : null,
+      deskPlan: row.desk_plan ? String(row.desk_plan) : null,
+    };
+
+    const review = await loadLiterature(db, user.id, profile);
+    const mine = review.mine.find((t) => t.id === String(proposalId).trim());
+    if (!mine) {
+      await chooseTitle(db, user.id, profile, proposalId);
+    } else if (mine.isHiddenFromPeers) {
+      return { ok: true, message: "This title is already yours and hidden from classmates." };
+    }
+
+    // Refresh credits/plan after possible select.
+    const { data: fresh } = await db
+      .from("student_profiles")
+      .select("change_credits, desk_expires_at, desk_plan")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (fresh) {
+      profile.changeCredits = Number(fresh.change_credits ?? 0);
+      profile.deskExpiresAt = fresh.desk_expires_at ? String(fresh.desk_expires_at) : null;
+      profile.deskPlan = fresh.desk_plan ? String(fresh.desk_plan) : null;
+    }
+
+    await hideTitleFromPeers(db, user.id, profile, proposalId);
+    revalidatePath("/portal");
+    revalidatePath("/portal/titles");
+    revalidatePath(`/portal/titles/${encodeURIComponent(proposalId)}`);
+    revalidatePath("/portal/home");
+    return {
+      ok: true,
+      message: "This title is yours and hidden from classmates at your institution / course / level.",
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Could not claim this title.";
+    return { ok: false, message: SELECT_ERRORS[message] ?? message };
+  }
+}
+
+/** Hide a shortlisted title from classmates (uses plan free hide or a paid hide credit). */
+export async function portalHideTitleAction(proposalId: string): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    const { data: row, error } = await db.from("student_profiles").select("*").eq("user_id", user.id).maybeSingle();
+    if (error) return { ok: false, message: error.message };
+    if (!row) return { ok: false, message: "Fill in your details first." };
+    const profile = {
+      fullName: String(row.full_name),
+      regNo: row.reg_no ? String(row.reg_no) : null,
+      phone: String(row.phone),
+      institution: String(row.institution),
+      courseCode: String(row.course_code),
+      courseOther: row.course_other ? String(row.course_other) : null,
+      studyLevel: row.study_level ? String(row.study_level) : null,
+      studyLevelOther: row.study_level_other ? String(row.study_level_other) : null,
+      projectCategory: row.project_category ? String(row.project_category) : null,
+      yearOfStudy: row.year_of_study ? String(row.year_of_study) : null,
+      academicYear: String(row.academic_year),
+      partner: row.partner ? String(row.partner) : null,
+      trackedProjectId: row.tracked_project_id ? String(row.tracked_project_id) : null,
+      changeCredits: Number(row.change_credits ?? 0),
+      deskExpiresAt: row.desk_expires_at ? String(row.desk_expires_at) : null,
+      deskPlan: row.desk_plan ? String(row.desk_plan) : null,
+    };
+    await hideTitleFromPeers(db, user.id, profile, proposalId);
+    revalidatePath("/portal");
+    revalidatePath("/portal/titles");
+    revalidatePath(`/portal/titles/${encodeURIComponent(proposalId)}`);
+    revalidatePath("/portal/home");
+    return {
+      ok: true,
+      message: "Hidden from classmates at your institution / course / level. Others outside your group can still read it.",
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Could not hide this title.";
+    return { ok: false, message: SELECT_ERRORS[message] ?? message };
+  }
+}
 
 export async function portalSelectTitleAction(proposalId: string): Promise<PortalResult> {
   try {
     const { user, db } = await requireStudent();
+    const account = await db.auth.admin.getUserById(user.id);
+    if (account.error) return { ok: false, message: account.error.message };
+    if (!titleTermsStatus(account.data.user?.user_metadata).accepted) {
+      return { ok: false, message: "Accept the title rules before you take a title." };
+    }
     const { data, error } = await db.rpc("portal_select_title", { p_user: user.id, p_proposal: String(proposalId) });
     if (error) return { ok: false, message: error.message };
     const r = (data ?? {}) as { ok?: boolean; error?: string };
@@ -216,30 +329,558 @@ const PAY_ERRORS: Record<string, string> = {
   no_title: "You do not hold a title right now.",
 };
 
-export async function portalPayForChangeAction(network: string, phone: string): Promise<PortalResult> {
+function parsePayContact(network: string, phone: string): PortalResult | { net: string; tel: string } {
+  const net = clean(network, 40);
+  if (!(PAYMENT_NETWORKS as readonly string[]).includes(net)) return { ok: false, message: "Choose a payment network." };
+  const tel = clean(phone, 20).replace(/\s/g, "");
+  if (!/^(\+?255|0)\d{9}$/.test(tel)) return { ok: false, message: "Enter a valid Tanzanian mobile number." };
+  return { net, tel };
+}
+
+
+function useSnippe(): boolean {
+  return PAYMENT_PROVIDER === "snippe" && snippeConfigured();
+}
+
+function splitName(full: string | null | undefined): { firstname: string; lastname: string } {
+  const parts = String(full ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return { firstname: "Student", lastname: "Portal" };
+  if (parts.length === 1) return { firstname: parts[0], lastname: "Student" };
+  return { firstname: parts[0], lastname: parts.slice(1).join(" ") };
+}
+
+/** Pay to release one held title and get a credit to pick a replacement (Snippe USSD push). */
+export async function portalPayForChangeAction(network: string, phone: string, titleId?: string): Promise<PortalResult> {
   try {
     const { user, db } = await requireStudent();
-    const net = clean(network, 40);
-    if (!(PAYMENT_NETWORKS as readonly string[]).includes(net)) return { ok: false, message: "Choose a payment network." };
-    const tel = clean(phone, 20).replace(/\s/g, "");
-    if (!/^(\+?255|0)\d{9}$/.test(tel)) return { ok: false, message: "Enter a valid Tanzanian mobile number." };
+    const contact = parsePayContact(network, phone);
+    if ("ok" in contact) return contact;
+    if (!toSnippePhone(contact.tel)) {
+      return { ok: false, message: "Enter a valid Tanzanian mobile number (e.g. 07XX XXX XXX)." };
+    }
 
-    const reference = `SIM-${randomBytes(6).toString("hex").toUpperCase()}`;
-    const { data, error } = await db.rpc("portal_pay_for_change", {
-      p_user: user.id,
-      p_amount: TITLE_CHANGE_FEE_TSH,
-      p_provider: PAYMENT_PROVIDER,
-      p_network: net,
-      p_phone: tel,
-      p_reference: reference,
+    const { data: profile } = await db
+      .from("student_profiles")
+      .select("tracked_project_id, change_credits, full_name")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!profile) return { ok: false, message: PAY_ERRORS.no_profile };
+    if (profile.tracked_project_id) return { ok: false, message: PAY_ERRORS.project_started };
+
+    const { count: heldCount } = await db
+      .from("title_selections")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .is("released_at", null);
+    if ((heldCount ?? 0) < 1) {
+      return { ok: false, message: "Hide at least one title first, then you can pay to change it." };
+    }
+
+    let q = db.from("title_selections").select("id, proposal_id, title").eq("user_id", user.id).is("released_at", null);
+    const wanted = String(titleId ?? "").trim();
+    if (wanted) {
+      if (wanted.startsWith("earlier:")) {
+        const idPart = wanted.slice("earlier:".length).replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
+        q = q.ilike("title", `earlier:${idPart}|%`);
+      } else {
+        q = q.eq("proposal_id", wanted);
+      }
+    }
+    const { data: held, error: heldError } = await q.order("selected_at", { ascending: true }).limit(1).maybeSingle();
+    if (heldError) return { ok: false, message: heldError.message };
+    if (!held) return { ok: false, message: PAY_ERRORS.no_title };
+
+    const reference = makeIdempotencyKey("CHG");
+    const live = useSnippe();
+
+    if (!live && PAYMENT_PROVIDER === "snippe") {
+      return {
+        ok: false,
+        message: "Snippe is not configured yet. Add SNIPPE_API_KEY and SNIPPE_WEBHOOK_SECRET to the server env.",
+      };
+    }
+    if (!live && !simulatedPaymentsAllowed()) {
+      return { ok: false, message: "Online payment is not enabled yet. Contact Honic to complete this payment." };
+    }
+
+    // Block parallel pending charges for the same slot (anti double-spend).
+    await expireStalePendingPayments(db, { userId: user.id, selectionId: String(held.id) });
+    const { data: openPay } = await db
+      .from("title_change_payments")
+      .select("id, reference, created_at, expires_at")
+      .eq("user_id", user.id)
+      .eq("selection_id", held.id)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (
+      openPay &&
+      !isPendingExpired({
+        status: "pending",
+        expiresAt: openPay.expires_at ? String(openPay.expires_at) : null,
+        createdAt: openPay.created_at ? String(openPay.created_at) : null,
+      })
+    ) {
+      return {
+        ok: true,
+        message: `A payment prompt is already open (ref ${openPay.reference}). Check your phone before it expires (~15 min), then retry if needed.`,
+      };
+    }
+
+    const pendingExpires = live ? defaultPendingExpiresAt() : null;
+    const { data: paymentRow, error: insertError } = await db
+      .from("title_change_payments")
+      .insert({
+        user_id: user.id,
+        amount: TITLE_CHANGE_FEE_TSH,
+        currency: "TZS",
+        provider: live ? "snippe" : "simulated",
+        network: contact.net,
+        phone: contact.tel,
+        status: live ? "pending" : "paid",
+        reference,
+        selection_id: held.id,
+        expires_at: pendingExpires,
+        paid_at: live ? null : new Date().toISOString(),
+      })
+      .select("id, user_id, selection_id, status, reference, amount")
+      .single();
+    if (insertError) {
+      if (/pending_selection|unique|23505/i.test(insertError.message)) {
+        return {
+          ok: true,
+          message: "A payment is already pending for this title. Check your phone for the prompt.",
+        };
+      }
+      if (/selection_id|schema cache|column/i.test(insertError.message)) {
+        return {
+          ok: false,
+          message: "Payment storage needs an update. Ask Honic to run SQL migrations 013 and 018.",
+        };
+      }
+      return { ok: false, message: insertError.message };
+    }
+
+    if (live) {
+      try {
+        const name = splitName(profile.full_name);
+        const payment = await createMobilePayment({
+          amountTsh: TITLE_CHANGE_FEE_TSH,
+          phoneNumber: contact.tel,
+          customer: { ...name, email: user.email || "student@honiccompany.com" },
+          orderId: reference,
+          webhookUrl: publicWebhookUrl(),
+          idempotencyKey: reference,
+          metadata: { purpose: "title_change" },
+        });
+        const expiresAt = resolvePendingExpiresAt(payment.expiresAt);
+        await db
+          .from("title_change_payments")
+          .update({ provider_txn_id: payment.reference, network: contact.net, expires_at: expiresAt })
+          .eq("id", paymentRow.id);
+      } catch (err) {
+        await db.from("title_change_payments").update({ status: "failed" }).eq("id", paymentRow.id);
+        return { ok: false, message: err instanceof Error ? err.message : "Could not send the payment prompt." };
+      }
+
+      revalidatePath("/portal");
+      revalidatePath("/portal/titles");
+      return {
+        ok: true,
+        message: `Check your phone for the mobile-money prompt (ref ${reference}). Enter your PIN before it expires (about 15 minutes). Your title slot opens when payment is confirmed.`,
+      };
+    }
+
+    const fulfilled = await fulfillTitleChangePayment(db, {
+      id: String(paymentRow.id),
+      user_id: user.id,
+      selection_id: String(held.id),
+      status: "pending",
+      reference,
+      amount: TITLE_CHANGE_FEE_TSH,
     });
-    if (error) return { ok: false, message: error.message };
-    const r = (data ?? {}) as { ok?: boolean; error?: string };
-    if (!r.ok) return { ok: false, message: PAY_ERRORS[r.error ?? ""] ?? "Payment could not be completed." };
+    if (!fulfilled.ok) return { ok: false, message: fulfilled.message ?? "Could not complete simulated payment." };
+
     revalidatePath("/portal");
+    revalidatePath("/portal/titles");
     revalidatePath("/titles");
-    return { ok: true, message: `Payment received (reference ${reference}). Choose your new title.` };
+    return {
+      ok: true,
+      message: `Simulated payment received (reference ${reference}). That slot is open again. Pick a free replacement from the literature review.`,
+    };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Payment could not be completed." };
+  }
+}
+
+/**
+ * Buy peer-hide protection (TSh EXTRA_TITLE_HIDE_FEE).
+ * Pass titleId to hide that shortlisted title after payment; otherwise credit is banked.
+ */
+export async function portalPayForHideAction(network: string, phone: string, titleId?: string): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    const contact = parsePayContact(network, phone);
+    if ("ok" in contact) return contact;
+    if (!toSnippePhone(contact.tel)) {
+      return { ok: false, message: "Enter a valid Tanzanian mobile number (e.g. 07XX XXX XXX)." };
+    }
+
+    const { data: profile } = await db
+      .from("student_profiles")
+      .select("full_name, change_credits, desk_expires_at")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!profile) return { ok: false, message: PAY_ERRORS.no_profile };
+
+    const [{ count: selectedCount }, { count: hiddenCount }] = await Promise.all([
+      db.from("title_selections").select("id", { count: "exact", head: true }).eq("user_id", user.id).is("released_at", null),
+      db
+        .from("title_selections")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .is("released_at", null)
+        .not("hidden_at", "is", null),
+    ]);
+
+    const entitlement = titleHideEntitlement({
+      deskExpiresAt: profile.desk_expires_at ? String(profile.desk_expires_at) : null,
+      changeCredits: Number(profile.change_credits ?? 0),
+      selectedCount: selectedCount ?? 0,
+      hiddenCount: hiddenCount ?? 0,
+    });
+    if (!entitlement.needsPayment) {
+      return {
+        ok: true,
+        message: entitlement.freeRemaining > 0
+          ? `You still have ${entitlement.freeRemaining} free hide${entitlement.freeRemaining === 1 ? "" : "s"} on your plan. Use Hide from classmates without paying.`
+          : "You already have a hide credit. Open the title and tap Hide from classmates.",
+      };
+    }
+
+    let selectionId: string | null = null;
+    const wanted = String(titleId ?? "").trim();
+    if (wanted) {
+      let q = db.from("title_selections").select("id, hidden_at").eq("user_id", user.id).is("released_at", null);
+      if (wanted.startsWith("earlier:")) {
+        const idPart = wanted.slice("earlier:".length).replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
+        q = q.ilike("title", `earlier:${idPart}|%`);
+      } else {
+        q = q.eq("proposal_id", wanted);
+      }
+      const { data: sel } = await q.maybeSingle();
+      if (!sel) return { ok: false, message: "Select this title first, then pay to hide it from classmates." };
+      if (sel.hidden_at) return { ok: true, message: "This title is already hidden from classmates." };
+      selectionId = String(sel.id);
+    }
+
+    const reference = makeIdempotencyKey("HID");
+    const live = useSnippe();
+    if (!live && PAYMENT_PROVIDER === "snippe") {
+      return {
+        ok: false,
+        message: "Snippe is not configured yet. Add SNIPPE_API_KEY and SNIPPE_WEBHOOK_SECRET to the server env.",
+      };
+    }
+    if (!live && !simulatedPaymentsAllowed()) {
+      return { ok: false, message: "Online payment is not enabled yet. Contact Honic to complete this payment." };
+    }
+
+    await expireStalePendingPayments(db, { userId: user.id, referencePrefix: "HID" });
+    const { data: openPay } = await db
+      .from("title_change_payments")
+      .select("id, reference, created_at, expires_at")
+      .eq("user_id", user.id)
+      .eq("status", "pending")
+      .ilike("reference", "HID%")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (
+      openPay &&
+      !isPendingExpired({
+        status: "pending",
+        expiresAt: openPay.expires_at ? String(openPay.expires_at) : null,
+        createdAt: openPay.created_at ? String(openPay.created_at) : null,
+      })
+    ) {
+      return {
+        ok: true,
+        message: `A hide payment is already open (ref ${openPay.reference}). Check your phone before it expires, then retry if needed.`,
+      };
+    }
+
+    const pendingExpires = live ? defaultPendingExpiresAt() : null;
+    const { data: paymentRow, error: insertError } = await db
+      .from("title_change_payments")
+      .insert({
+        user_id: user.id,
+        amount: TITLE_CHANGE_FEE_TSH,
+        currency: "TZS",
+        provider: live ? "snippe" : "simulated",
+        network: contact.net,
+        phone: contact.tel,
+        status: live ? "pending" : "paid",
+        reference,
+        selection_id: selectionId,
+        expires_at: pendingExpires,
+        paid_at: live ? null : new Date().toISOString(),
+      })
+      .select("id, user_id, selection_id, status, reference, amount")
+      .single();
+    if (insertError) return { ok: false, message: insertError.message };
+
+    if (live) {
+      try {
+        const name = splitName(profile.full_name);
+        const payment = await createMobilePayment({
+          amountTsh: TITLE_CHANGE_FEE_TSH,
+          phoneNumber: contact.tel,
+          customer: { ...name, email: user.email || "student@honiccompany.com" },
+          orderId: reference,
+          webhookUrl: publicWebhookUrl(),
+          idempotencyKey: reference,
+          metadata: { purpose: "title_hide", ...(wanted ? { title_id: wanted } : {}) },
+        });
+        const expiresAt = resolvePendingExpiresAt(payment.expiresAt);
+        await db
+          .from("title_change_payments")
+          .update({ provider_txn_id: payment.reference, network: contact.net, expires_at: expiresAt })
+          .eq("id", paymentRow.id);
+      } catch (err) {
+        await db.from("title_change_payments").update({ status: "failed" }).eq("id", paymentRow.id);
+        return { ok: false, message: err instanceof Error ? err.message : "Could not send the payment prompt." };
+      }
+      revalidatePath("/portal");
+      revalidatePath("/portal/titles");
+      return {
+        ok: true,
+        message: selectionId
+          ? `Check your phone (ref ${reference}). Approve before it expires (~15 min). After payment, this title is hidden from classmates.`
+          : `Check your phone (ref ${reference}). Approve before it expires (~15 min). After payment you get 1 hide credit.`,
+      };
+    }
+
+    const fulfilled = await fulfillTitleChangePayment(db, {
+      id: String(paymentRow.id),
+      user_id: user.id,
+      selection_id: selectionId,
+      status: "pending",
+      reference,
+      amount: TITLE_CHANGE_FEE_TSH,
+    });
+    if (!fulfilled.ok) return { ok: false, message: fulfilled.message ?? "Could not complete simulated payment." };
+
+    revalidatePath("/portal");
+    revalidatePath("/portal/titles");
+    return {
+      ok: true,
+      message: selectionId
+        ? `Simulated hide payment received (ref ${reference}). This title is now hidden from classmates.`
+        : `Simulated hide payment received (ref ${reference}). You have 1 hide credit. Open a shortlisted title and hide it.`,
+    };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Payment could not be completed." };
+  }
+}
+
+/** Buy or renew Nexis Desk membership (year / semester) via Snippe. */
+export async function portalPayForMembershipAction(
+  plan: string,
+  network: string,
+  phone: string,
+): Promise<PortalResult> {
+  try {
+    const planId = (plan === "semester" ? "semester" : plan === "year" ? "year" : null) as DeskPlanId | null;
+    if (!planId) return { ok: false, message: "Choose the full year or one semester plan." };
+
+    const { user, db } = await requireStudent();
+    const contact = parsePayContact(network, phone);
+    if ("ok" in contact) return contact;
+    if (!toSnippePhone(contact.tel)) {
+      return { ok: false, message: "Enter a valid Tanzanian mobile number (e.g. 07XX XXX XXX)." };
+    }
+
+    const { data: profile } = await db
+      .from("student_profiles")
+      .select("full_name")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!profile) return { ok: false, message: PAY_ERRORS.no_profile };
+
+    const amount = deskPlanAmount(planId);
+    const reference = makeIdempotencyKey(planId === "year" ? "MEMY" : "MEMS");
+    const live = useSnippe();
+
+    if (!live && PAYMENT_PROVIDER === "snippe") {
+      return {
+        ok: false,
+        message: "Snippe is not configured yet. Add SNIPPE_API_KEY and SNIPPE_WEBHOOK_SECRET to the server env.",
+      };
+    }
+    if (!live && !simulatedPaymentsAllowed()) {
+      return { ok: false, message: "Online payment is not enabled yet. Contact Honic to complete this payment." };
+    }
+
+    await expireStalePendingPayments(db, { userId: user.id, referencePrefix: "MEM" });
+    const { data: openPay } = await db
+      .from("title_change_payments")
+      .select("id, reference, created_at, expires_at")
+      .eq("user_id", user.id)
+      .is("selection_id", null)
+      .eq("status", "pending")
+      .ilike("reference", "MEM%")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (
+      openPay &&
+      !isPendingExpired({
+        status: "pending",
+        expiresAt: openPay.expires_at ? String(openPay.expires_at) : null,
+        createdAt: openPay.created_at ? String(openPay.created_at) : null,
+      })
+    ) {
+      return {
+        ok: true,
+        message: `A membership payment is already open (ref ${openPay.reference}). Check your phone before it expires.`,
+      };
+    }
+
+    const pendingExpires = live ? defaultPendingExpiresAt() : null;
+    const { data: paymentRow, error: insertError } = await db
+      .from("title_change_payments")
+      .insert({
+        user_id: user.id,
+        amount,
+        currency: "TZS",
+        provider: live ? "snippe" : "simulated",
+        network: contact.net,
+        phone: contact.tel,
+        status: live ? "pending" : "paid",
+        reference,
+        selection_id: null,
+        expires_at: pendingExpires,
+        paid_at: live ? null : new Date().toISOString(),
+      })
+      .select("id, user_id, status, reference, amount")
+      .single();
+    if (insertError) return { ok: false, message: insertError.message };
+
+    if (live) {
+      try {
+        const name = splitName(profile.full_name);
+        const payment = await createMobilePayment({
+          amountTsh: amount,
+          phoneNumber: contact.tel,
+          customer: { ...name, email: user.email || "student@honiccompany.com" },
+          orderId: reference,
+          webhookUrl: publicWebhookUrl(),
+          idempotencyKey: reference,
+          metadata: { purpose: "membership", plan: planId },
+        });
+        const expiresAt = resolvePendingExpiresAt(payment.expiresAt);
+        await db
+          .from("title_change_payments")
+          .update({ provider_txn_id: payment.reference, network: contact.net, expires_at: expiresAt })
+          .eq("id", paymentRow.id);
+      } catch (err) {
+        await db.from("title_change_payments").update({ status: "failed" }).eq("id", paymentRow.id);
+        return { ok: false, message: err instanceof Error ? err.message : "Could not send the payment prompt." };
+      }
+      revalidatePath("/portal");
+      revalidatePath("/portal/packs");
+      return {
+        ok: true,
+        message: `Check your phone for the mobile-money prompt (ref ${reference}). Approve before it expires (~15 min). Your plan activates when payment is confirmed.`,
+      };
+    }
+
+    const fulfilled = await fulfillMembershipPayment(
+      db,
+      {
+        id: String(paymentRow.id),
+        user_id: user.id,
+        status: "pending",
+        reference,
+        amount,
+      },
+      planId,
+    );
+    if (!fulfilled.ok) return { ok: false, message: fulfilled.message ?? "Could not activate membership." };
+
+    revalidatePath("/portal");
+    revalidatePath("/portal/packs");
+    revalidatePath("/portal/titles");
+    return {
+      ok: true,
+      message: `Simulated membership payment received (ref ${reference}). Your ${planId} plan is active.`,
+    };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Payment could not be completed." };
+  }
+}
+
+/** @deprecated Prefer portalPayForHideAction. */
+export async function portalPayForSelectAction(network: string, phone: string): Promise<PortalResult> {
+  return portalPayForHideAction(network, phone);
+}
+
+/**
+ * Save a mobile-money payout account after a title claim is confirmed.
+ * Account holder name must match the registered profile name. Later edits lock and require Help desk.
+ */
+export async function portalSavePayoutAccountAction(
+  network: string,
+  phone: string,
+  accountName: string,
+): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    const { data: profile } = await db
+      .from("student_profiles")
+      .select("full_name")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!profile?.full_name) {
+      return { ok: false, message: "Complete your account profile first, then add a payout account." };
+    }
+
+    const { userHasConfirmedClaim, validatePayoutInput, upsertPayoutAccount } = await import(
+      "@/lib/portal/payout-accounts"
+    );
+    const eligible = await userHasConfirmedClaim(db, user.id);
+    if (!eligible.ok) return { ok: false, message: eligible.reason };
+
+    const validated = validatePayoutInput({
+      network,
+      phone,
+      accountName,
+      registeredName: String(profile.full_name),
+    });
+    if (!validated.ok) return { ok: false, message: validated.message };
+
+    const saved = await upsertPayoutAccount(db, {
+      userId: user.id,
+      claimId: eligible.claimId,
+      network: validated.network,
+      phone: validated.phone,
+      accountName: validated.accountName,
+      registeredName: String(profile.full_name),
+    });
+    if (!saved.ok) return { ok: false, message: saved.message };
+
+    revalidatePath("/portal");
+    revalidatePath("/portal/home");
+    return {
+      ok: true,
+      message: "Payout account saved. The holder name matches your registered portal name. To change it later, contact Help desk.",
+    };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not save payout account." };
   }
 }

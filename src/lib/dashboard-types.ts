@@ -17,4 +17,6 @@ export type RegisteredClientRow = {
   isHidden?: boolean;
   isBlocked?: boolean;
   blockedReason?: string | null;
+  /** Invoice title, or the tracked project title when the invoice has none. */
+  titles?: { id: string; title: string; projectId?: string }[];
 };

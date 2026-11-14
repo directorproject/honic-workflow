@@ -3,10 +3,14 @@ import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { RegisteredClientsTable } from "@/components/dashboard/registered-clients-table";
 import { DeleteTrackedProjectButton } from "@/components/projects/delete-tracked-project-button";
+import { academicYearLabel } from "@/lib/academic-year";
+import { getSelectedAcademicYear } from "@/lib/academic-year-server";
 import { loadDashboardData } from "@/lib/dashboard-data";
 import { isDashboardRegistryOk } from "@/lib/dashboard-types";
 import { formatProjectType } from "@/lib/project-types";
 import { loadProjectsList } from "@/lib/projects-data";
+import { fetchRegisteredClientsForYear } from "@/lib/registered-clients";
+import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
 function statusTone(banner: Awaited<ReturnType<typeof loadDashboardData>>["banner"]) {
   return isDashboardRegistryOk(banner);
@@ -29,6 +33,9 @@ export default async function ProjectsPage(props: {
   const clientFilter = typeof sp.client === "string" ? sp.client.trim() : "";
 
   const dash = await loadDashboardData();
+  const year = await getSelectedAcademicYear();
+  const supabase = getSupabaseAdminClient();
+  const registeredClients = supabase ? await fetchRegisteredClientsForYear(supabase, year) : [];
   const { projects, error } = await loadProjectsList(clientFilter || undefined, {
     excludeStatuses: ["client_side", "completed"],
   });
@@ -167,10 +174,14 @@ export default async function ProjectsPage(props: {
         <div>
           <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">Registered clients</h2>
           <p className="text-dash-muted-foreground mt-1 text-sm">
-            Add new clients on Manage clients. A client can be deleted only when no tracked project uses it.
+            Clients added from project invoices in{" "}
+            <span className="text-dash-foreground font-medium">
+              {year === "all" ? "all years" : academicYearLabel(year)}
+            </span>
+            . A new project invoice adds the client. A shop sale does not. A client you remove stays removed.
           </p>
         </div>
-        <RegisteredClientsTable rows={dash.clients} />
+        <RegisteredClientsTable rows={registeredClients} />
       </section>
 
       <p className="text-dash-muted-foreground mt-8 text-center text-xs">

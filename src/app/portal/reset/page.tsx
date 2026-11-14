@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
 import { PasswordResetForm } from "@/components/portal/password-reset-form";
+import { SiteFooter } from "@/components/portal/site-footer";
 import { getPortalUser } from "@/lib/portal/data";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ export default async function PortalResetPage() {
       <div className="border-dash-border bg-dash-canvas/95 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
         <CompanyBrandBar variant="full" />
       </div>
-      <div className="mx-auto w-full max-w-md px-4 py-10">
+      <div className="mx-auto w-full max-w-md flex-1 px-4 py-10">
         {user ? (
           <PasswordResetForm />
         ) : (
@@ -30,6 +31,7 @@ export default async function PortalResetPage() {
           </p>
         )}
       </div>
+      <SiteFooter />
     </main>
   );
 }

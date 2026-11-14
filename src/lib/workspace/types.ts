@@ -90,17 +90,51 @@ export type DocumentItem = {
   status: "not_started" | "draft" | "submitted" | "changes" | "approved";
   due_date: string | null;
   notes: string | null;
+  /** What changed since last feedback — print this for the supervisor, not the whole report. */
+  change_summary: string | null;
+  /** Student marks this item visible to the supervisor now. */
+  shared_with_supervisor: boolean;
+  /** Parent document when this row is a page-range partial. */
+  parent_id: string | null;
+  page_from: number | null;
+  page_to: number | null;
   sort_order: number;
   updated_at: string;
+};
+
+export type ReviewMarkKind = "comment" | "draw" | "general" | "highlight";
+
+export type ReviewStroke = {
+  color: string;
+  width: number;
+  points: { x: number; y: number }[];
+};
+
+export type ReviewMark = {
+  id: string;
+  document_id: string;
+  author_kind: ActorKind;
+  author_name: string;
+  kind: ReviewMarkKind;
+  page_number: number | null;
+  /** Normalized 0..1 pin on the page so the note sits on the paper. */
+  pin_x: number | null;
+  pin_y: number | null;
+  body: string | null;
+  strokes: ReviewStroke[];
+  created_at: string;
 };
 
 export type FileItem = {
   id: string;
   document_id: string | null;
+  event_id: string | null;
   folder: string;
   name: string;
   size_bytes: number;
   mime_type: string | null;
+  /** Place/site where the file was obtained (e.g. Muhimbili Hospital). */
+  obtained_place: string | null;
   uploaded_by_name: string | null;
   created_at: string;
 };
@@ -226,11 +260,14 @@ export type WorkspaceBundle = {
   messages: Message[];
   bookings: Booking[];
   comments: Comment[];
+  reviewMarks: ReviewMark[];
   invoices: Invoice[];
   defence: DefenceItem[];
   activity: Activity[];
   /** Linked Honic-managed project, if staff linked a team member. */
   trackedProjectId: string | null;
+  /** Workspace Project files quota from plan (250 MB free / 2 GB paid). */
+  storageLimitBytes: number;
 };
 
 /** Who is looking at the workspace and what they may do. */
@@ -240,4 +277,6 @@ export type Viewer = {
   name: string;
   /** False for the supervisor link. */
   canEdit: boolean;
+  /** Student Nexis Desk membership; staff/supervisor ignore this. */
+  hasPaidDesk?: boolean;
 };

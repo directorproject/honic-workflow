@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 
 import type { ProjectDriveUploadState } from "@/app/projects/[id]/files/actions";
 import {
@@ -67,9 +67,11 @@ export function ProjectDriveUploadForm({
     null,
   );
 
-  useEffect(() => {
+  const [prevMode, setPrevMode] = useState(mode);
+  if (mode !== prevMode) {
+    setPrevMode(mode);
     setSelectedFileIds([]);
-  }, [mode]);
+  }
 
   function toggleSelectedFile(fileId: string, checked: boolean) {
     setSelectedFileIds((prev) => {

@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { portalSaveProfileAction, type PortalResult } from "@/app/portal/actions";
 import { Card, Field, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
 import { SearchSelect } from "@/components/portal/search-select";
+import { Spinner } from "@/components/ui/spinner";
 import {
   DEFAULT_INSTITUTION,
   INSTITUTIONS,
@@ -105,7 +106,7 @@ export function ProfileForm({
               partner: get("partner"),
             });
             setStatus(res);
-            if (res.ok) router.push("/portal");
+            if (res.ok) router.push(profile ? "/portal" : "/portal/titles");
           });
         }}
         className="grid gap-3 sm:grid-cols-2"
@@ -208,7 +209,8 @@ export function ProfileForm({
               Cancel
             </a>
           ) : null}
-          <button type="submit" disabled={pending} className={PRIMARY}>
+          <button type="submit" disabled={pending} aria-busy={pending} className={PRIMARY}>
+            {pending ? <Spinner /> : null}
             {pending ? "Saving…" : profile ? "Save details" : "Save and see titles"}
           </button>
           <StatusText status={status} />

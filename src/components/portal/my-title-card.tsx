@@ -25,7 +25,7 @@ export function MyTitleCard({
   const fee = TITLE_CHANGE_FEE_TSH.toLocaleString();
 
   return (
-    <Card title="Your project title" subtitle="This title is yours. Other students can no longer see it.">
+    <Card title="Your project title" subtitle="Study it and change the project. Do not submit it as it is. It is hidden from other students at your institution, in your department, and at your level.">
       <div className="border-dash-accent/40 bg-dash-accent/5 rounded-xl border p-4">
         <p className="text-dash-foreground text-lg font-semibold leading-snug">{title.title}</p>
         {title.summary ? <p className="text-dash-muted-foreground mt-1 text-sm">{title.summary}</p> : null}
@@ -45,7 +45,7 @@ export function MyTitleCard({
 
       {projectStarted ? (
         <p className="text-dash-muted-foreground mt-4 text-sm">
-          Honic has started your project. Open the <span className="font-semibold">My project</span> tab to follow it.
+          Honic has started your project. Open <span className="font-semibold">Honic progress</span> in the side nav to follow it.
         </p>
       ) : (
         <div className="border-dash-border mt-5 border-t pt-4">
@@ -72,7 +72,6 @@ export function MyTitleCard({
                 setWaiting(true);
                 setStatus(null);
                 startTransition(async () => {
-                  await new Promise((r) => setTimeout(r, 2000));
                   const res = await portalPayForChangeAction(String(fd.get("network") ?? ""), String(fd.get("phone") ?? ""));
                   setWaiting(false);
                   setStatus(res);

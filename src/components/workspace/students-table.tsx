@@ -101,7 +101,13 @@ export function StudentsTable({ rows }: { rows: SummaryRow[] }) {
                   <td className="text-dash-muted-foreground px-4 py-3 text-xs">{formatDate(r.lastActivityAt)}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
-                      {r.unreadMessages ? <Badge className="bg-rose-500 text-white">{r.unreadMessages} message{r.unreadMessages === 1 ? "" : "s"}</Badge> : null}
+                      {r.unreadMessages ? (
+                        <Link href={`/students/help-desk?c=${encodeURIComponent(r.id)}`} className="inline-flex">
+                          <Badge className="bg-rose-500 text-white hover:opacity-90">
+                            {r.unreadMessages} message{r.unreadMessages === 1 ? "" : "s"}
+                          </Badge>
+                        </Link>
+                      ) : null}
                       {r.pendingBookings ? <Badge className="bg-amber-500 text-white">{r.pendingBookings} session request</Badge> : null}
                       {r.unpaidInvoices ? <Badge className="bg-slate-500/20 text-dash-muted-foreground">{r.unpaidInvoices} unpaid</Badge> : null}
                       {!r.unreadMessages && !r.pendingBookings && !r.unpaidInvoices ? <span className="text-dash-muted-foreground text-xs">—</span> : null}

@@ -32,10 +32,11 @@ export function RegisteredClientEditor({
   const [state, formAction, pending] = useActionState<UpdateRegisteredClientState, FormData>(bound, null);
 
   useEffect(() => {
-    if (state?.ok) {
+    if (!state?.ok) return;
+    queueMicrotask(() => {
       setOpen(false);
       router.refresh();
-    }
+    });
   }, [state, router]);
 
   useEffect(() => {

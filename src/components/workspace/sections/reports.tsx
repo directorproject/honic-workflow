@@ -4,6 +4,7 @@ const PRINTS = [
   { path: "progress?period=week", name: "Weekly progress report", note: "Tasks finished and planned, logbook, problems and next steps for the last 7 days." },
   { path: "progress?period=month", name: "Monthly progress report", note: "The same for the last 30 days, with phase progress." },
   { path: "plan", name: "Project plan with Gantt chart", note: "Overview, objectives, phases and a printable Gantt chart for the department." },
+  { path: "gantt", name: "Appendix Gantt chart", note: "Monthly coloured table for your report appendix. Print → Save as PDF." },
   { path: "logbook", name: "Logbook", note: "All entries with signature lines for the supervisor." },
 ];
 

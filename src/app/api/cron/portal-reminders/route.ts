@@ -16,7 +16,10 @@ type Line = { workspaceId: string; text: string };
  */
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET?.trim();
-  if (secret && request.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!secret) {
+    return NextResponse.json({ ok: false, error: "CRON_SECRET not configured" }, { status: 503 });
+  }
+  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
   const db = getSupabaseAdminClient();

@@ -1,5 +1,7 @@
 "use server";
 
+import { requireStaffActor } from "@/lib/auth-staff";
+
 import { revalidatePath } from "next/cache";
 
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
@@ -13,8 +15,14 @@ type DeleteRpcResult = { ok?: boolean; error?: string; project_count?: number };
 
 export async function deleteRegisteredClientAction(
   clientId: string,
-  _prev: DeleteRegisteredClientState,
+  prev: DeleteRegisteredClientState,
 ): Promise<DeleteRegisteredClientState> {
+  void prev;
+  try {
+    await requireStaffActor();
+  } catch {
+    return { ok: false, message: "Staff access required." };
+  }
   const id = clientId.trim();
   if (!id) {
     return { ok: false, message: "Missing client id." };

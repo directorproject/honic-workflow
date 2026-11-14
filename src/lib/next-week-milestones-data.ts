@@ -1,3 +1,4 @@
+import { filterByAcademicYear, type AcademicYearSelection } from "@/lib/academic-year";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { normalizeMilestoneWorkStatus } from "@/lib/milestone-work-status";
 import { normalizeRegisteredClientJoin } from "@/lib/supabase-relations";
@@ -161,10 +162,11 @@ const milestoneSelect = `
       completed_at,
       work_status,
       tracked_project_id,
-      tracked_projects (
+      tracked_projects!inner (
         id,
         title,
         status,
+        created_at,
         workflow_checklist,
         registered_client_id,
         registered_clients ( name )
@@ -174,6 +176,7 @@ const milestoneSelect = `
 export async function loadPlansBoardData(options: {
   registeredClientId?: string;
   weekOffset: number;
+  year: AcademicYearSelection;
 }): Promise<{
   rows: PlansMilestoneRow[];
   weekHeading: string;
@@ -203,12 +206,15 @@ export async function loadPlansBoardData(options: {
   const today = startOfLocalDay(new Date());
   const todayIso = toIsoDateLocal(today);
   const { monday, startIso, endIso, weekHeading } = getCalendarWeekRangeByOffset(weekOffset);
-
-  const weekRes = await supabase
-    .from("project_milestones")
-    .select(milestoneSelect)
-    .gte("target_date", startIso)
-    .lte("target_date", endIso)
+  const weekRes = await filterByAcademicYear(
+    supabase
+      .from("project_milestones")
+      .select(milestoneSelect)
+      .gte("target_date", startIso)
+      .lte("target_date", endIso),
+    options.year,
+    "tracked_projects.created_at",
+  )
     .order("target_date", { ascending: true })
     .order("sort_order", { ascending: true });
 
@@ -233,12 +239,16 @@ export async function loadPlansBoardData(options: {
   }
 
   if (weekOffset === 0) {
-    const overdueRes = await supabase
-      .from("project_milestones")
-      .select(milestoneSelect)
-      .lt("target_date", todayIso)
-      .not("target_date", "is", null)
-      .is("completed_at", null)
+    const overdueRes = await filterByAcademicYear(
+      supabase
+        .from("project_milestones")
+        .select(milestoneSelect)
+        .lt("target_date", todayIso)
+        .not("target_date", "is", null)
+        .is("completed_at", null),
+      options.year,
+      "tracked_projects.created_at",
+    )
       .order("target_date", { ascending: true })
       .order("sort_order", { ascending: true });
 

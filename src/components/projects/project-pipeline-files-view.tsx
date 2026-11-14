@@ -8,15 +8,6 @@ import { SharePreviewLink } from "@/components/share/share-preview-link";
 import { canPreviewInBrowser } from "@/lib/drive-preview-helpers";
 import type { ProjectPipelineActivityFiles } from "@/lib/project-pipeline-files";
 
-function Spinner({ label = "Loading..." }: { label?: string }) {
-  return (
-    <span className="inline-flex items-center gap-2 text-xs font-semibold">
-      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-dash-accent/30 border-t-dash-accent" aria-hidden />
-      {label}
-    </span>
-  );
-}
-
 function formatBytes(size: string | null): string {
   if (!size) return "—";
   const n = Number(size);
@@ -67,26 +58,28 @@ export function ProjectPipelineFilesViewSection({
   const storageKey = useMemo(() => `pipelineFilesState:${pathname}:${sectionId ?? "default"}`, [pathname, sectionId]);
 
   useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(storageKey);
-      if (raw) {
-        const parsed = JSON.parse(raw) as { openActivityKey?: string; scrollY?: number };
-        if (parsed.openActivityKey && activities.some((a) => a.key === parsed.openActivityKey)) {
-          setOpenActivityKey(parsed.openActivityKey);
-        } else if (activities[0]?.key) {
-          setOpenActivityKey(activities[0].key);
+    queueMicrotask(() => {
+      try {
+        const raw = sessionStorage.getItem(storageKey);
+        if (raw) {
+          const parsed = JSON.parse(raw) as { openActivityKey?: string; scrollY?: number };
+          if (parsed.openActivityKey && activities.some((a) => a.key === parsed.openActivityKey)) {
+            setOpenActivityKey(parsed.openActivityKey);
+          } else if (activities[0]?.key) {
+            setOpenActivityKey(activities[0].key);
+          }
+          if (typeof parsed.scrollY === "number" && Number.isFinite(parsed.scrollY) && parsed.scrollY >= 0) {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => window.scrollTo({ top: parsed.scrollY, behavior: "auto" }));
+            });
+          }
+          return;
         }
-        if (typeof parsed.scrollY === "number" && Number.isFinite(parsed.scrollY) && parsed.scrollY >= 0) {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => window.scrollTo({ top: parsed.scrollY, behavior: "auto" }));
-          });
-        }
-        return;
+        if (activities[0]?.key) setOpenActivityKey(activities[0].key);
+      } catch {
+        /* ignore storage parse errors */
       }
-      if (activities[0]?.key) setOpenActivityKey(activities[0].key);
-    } catch {
-      /* ignore storage parse errors */
-    }
+    });
   }, [activities, storageKey]);
 
   function rememberUiState(nextOpenActivityKey: string | null = openActivityKey) {

@@ -1,5 +1,7 @@
 "use server";
 
+import { requireStaffActor } from "@/lib/auth-staff";
+
 import { revalidatePath } from "next/cache";
 
 import {
@@ -32,6 +34,7 @@ export async function uploadProjectFileAction(
   _prev: ProjectDriveUploadState,
   formData: FormData,
 ): Promise<ProjectDriveUploadState> {
+  await requireStaffActor();
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return { ok: false, message: "Database not configured." };
@@ -115,6 +118,7 @@ export async function assignExistingProjectFileAction(
   _prev: ProjectDriveUploadState,
   formData: FormData,
 ): Promise<ProjectDriveUploadState> {
+  await requireStaffActor();
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return { ok: false, message: "Database not configured." };

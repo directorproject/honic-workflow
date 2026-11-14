@@ -1,7 +1,60 @@
-export const TITLE_CHANGE_FEE_TSH = 10000;
+/**
+ * Honic Nexis / Nexis Desk membership (mobile money via Snippe).
+ * Paid plan: up to 2 title hides free; Jobs posting & applying included.
+ * Free plan: every hide costs EXTRA_TITLE_HIDE_FEE_TSH; Jobs browse only.
+ * 3rd+ hide on a paid plan also costs EXTRA_TITLE_HIDE_FEE_TSH each.
+ */
+export const SUBSCRIPTION_YEAR_TSH = 22_000;
+/** Six-month / one-semester plan (slightly more than half year so annual is the better deal). */
+export const SUBSCRIPTION_SEMESTER_TSH = 12_000;
 
-/** Payments are simulated until a mobile-money provider (for example AzamPay) is connected. */
-export const PAYMENT_PROVIDER = "simulated";
+/** Free hides included with an active paid desk plan. */
+export const PAID_PLAN_FREE_HIDES = 2;
+/** Free hides on the free (no membership) plan — every hide is paid. */
+export const FREE_PLAN_FREE_HIDES = 0;
+
+/** @deprecated Use PAID_PLAN_FREE_HIDES — kept for older UI imports. */
+export const FREE_TITLE_SLOTS = PAID_PLAN_FREE_HIDES;
+
+/** Pay this to hide one title when no free hide remains (free plan, or 3rd+ on paid plan). */
+export const EXTRA_TITLE_HIDE_FEE_TSH = 3_500;
+
+/** How long a pending mobile-money prompt stays open before it expires (students can retry after). */
+export const PENDING_PAYMENT_TTL_MS = 15 * 60 * 1000;
+
+/**
+ * Unlock published documents on literature / earlier projects (study files, not a finished FYP for sale).
+ */
+export const PROJECT_DOCUMENTS_ACCESS_TSH = 25_000;
+
+/**
+ * Workspace file storage by plan (Project files page).
+ * Free: enough for a proposal PDF, a few minutes decks, and light images.
+ * Paid Nexis Desk: room for full report versions, PPT, CAD, and photos through the project cycle.
+ */
+export const FREE_PLAN_FILE_STORAGE_BYTES = 250 * 1024 * 1024; // 250 MB
+export const PAID_PLAN_FILE_STORAGE_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB
+
+export function formatStorageQuota(bytes: number): string {
+  if (bytes >= 1024 * 1024 * 1024) {
+    const gb = bytes / (1024 * 1024 * 1024);
+    return Number.isInteger(gb) ? `${gb} GB` : `${gb.toFixed(1)} GB`;
+  }
+  const mb = Math.round(bytes / (1024 * 1024));
+  return `${mb} MB`;
+}
+
+/**
+ * Legacy: fee to release a held title and pick a replacement.
+ * Prefer EXTRA_TITLE_HIDE_FEE_TSH for new “extra hide” purchases.
+ */
+export const TITLE_CHANGE_FEE_TSH = EXTRA_TITLE_HIDE_FEE_TSH;
+
+/** Legacy alias kept so older copy still compiles. */
+export const TITLE_SELECT_FEE_TSH = EXTRA_TITLE_HIDE_FEE_TSH;
+
+/** Live mobile-money provider. Set SNIPPE_API_KEY; webhook confirms payment. */
+export const PAYMENT_PROVIDER = "snippe" as const;
 
 export const PAYMENT_NETWORKS = ["M-Pesa", "Mixx by Yas (Tigo Pesa)", "Airtel Money", "HaloPesa"] as const;
 

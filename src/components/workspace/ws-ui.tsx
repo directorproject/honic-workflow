@@ -7,13 +7,13 @@ import type { RunStatus } from "@/components/workspace/ws-context";
 export const INPUT =
   "border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2";
 export const BTN =
-  "bg-dash-accent inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50";
+  "bg-dash-accent inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-60";
 export const BTN_SOFT =
-  "border-dash-border bg-dash-card hover:bg-dash-muted text-dash-foreground inline-flex items-center justify-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-semibold disabled:opacity-50";
+  "border-dash-border bg-dash-card hover:bg-dash-muted text-dash-foreground inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-semibold disabled:cursor-wait disabled:opacity-60";
 export const BTN_GHOST =
-  "text-dash-muted-foreground hover:text-dash-foreground hover:bg-dash-muted inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold disabled:opacity-50";
+  "text-dash-muted-foreground hover:text-dash-foreground hover:bg-dash-muted inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold disabled:cursor-wait disabled:opacity-60";
 export const BTN_DANGER =
-  "inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-500/10 disabled:opacity-50 dark:text-red-300";
+  "inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-500/10 disabled:cursor-wait disabled:opacity-60 dark:text-red-300";
 
 export function Panel({
   title,
@@ -130,7 +130,7 @@ export function Modal({
       <button type="button" aria-label="Close" className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div
         className={`border-dash-border bg-dash-card relative max-h-[92vh] w-full overflow-y-auto rounded-t-2xl border p-5 shadow-2xl sm:rounded-2xl ${
-          wide ? "sm:max-w-3xl" : "sm:max-w-lg"
+          wide ? "sm:max-w-5xl" : "sm:max-w-lg"
         }`}
       >
         <div className="mb-4 flex items-center justify-between gap-3">

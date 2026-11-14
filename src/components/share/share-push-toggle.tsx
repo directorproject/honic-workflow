@@ -46,7 +46,7 @@ export function SharePushToggle({ slug, token }: Props) {
 
   useEffect(() => {
     const ok = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
-    setSupported(ok && Boolean(vapidKey));
+    queueMicrotask(() => setSupported(ok && Boolean(vapidKey)));
     if (!ok) return;
 
     void navigator.serviceWorker.getRegistration("/share-push-sw.js").then((reg) => {

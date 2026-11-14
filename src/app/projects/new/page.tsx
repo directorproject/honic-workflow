@@ -42,9 +42,9 @@ export default async function NewProjectPage(props: {
 
       {clients.length === 0 ? (
         <div className="border-dash-border bg-dash-card rounded-2xl border px-5 py-10 text-center">
-          <p className="text-dash-foreground font-medium">No registered clients available.</p>
+          <p className="text-dash-foreground font-medium">No project-invoice clients available this year.</p>
           <p className="text-dash-muted-foreground mt-2 text-sm">
-            Populate <code className="text-dash-foreground text-xs">registered_clients</code> first (migration 005).
+            A new project invoice adds a client. A shop sale does not. Clients who already have a project are not listed here.
           </p>
           <Link
             href="/"

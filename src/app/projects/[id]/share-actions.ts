@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
+import { requireStaffActor } from "@/lib/auth-staff";
 import { createProjectShareLink } from "@/lib/project-share";
 import { loadProjectDetail } from "@/lib/projects-data";
 import {
@@ -29,9 +30,16 @@ export async function getPublicSiteBaseUrl(): Promise<string> {
 
 export async function createClientShareLinkAction(
   projectId: string,
-  _prev: CreateShareLinkState,
-  _formData: FormData,
+  prev: CreateShareLinkState,
+  formData: FormData,
 ): Promise<CreateShareLinkState> {
+  void prev;
+  void formData;
+  try {
+    await requireStaffActor();
+  } catch {
+    return { ok: false, message: "Staff access required." };
+  }
   const created = await createProjectShareLink({ trackedProjectId: projectId });
   if (!created.ok) {
     return { ok: false, message: created.error };

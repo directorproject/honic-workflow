@@ -43,7 +43,7 @@ export function RegisteredClientAdminTable({ rows }: { rows: RegisteredClientRow
   if (rows.length === 0) {
     return (
       <div className="border-dash-border bg-dash-card rounded-2xl border px-5 py-10 text-center">
-        <p className="text-dash-muted-foreground text-sm">No registered clients found.</p>
+        <p className="text-dash-muted-foreground text-sm">No project-invoice clients in this working year.</p>
       </div>
     );
   }
