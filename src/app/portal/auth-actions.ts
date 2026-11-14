@@ -197,11 +197,17 @@ export async function portalAuthFormAction(
   return { ok: false, message: "Unknown sign-in mode." };
 }
 
-export async function portalGoogleSignInAction(): Promise<PortalResult> {
+export async function portalGoogleSignInAction(role: PortalAuthRole = "student"): Promise<PortalResult> {
+  const preferred = role === "supervisor" ? "supervisor" : "student";
+  const next = preferred === "supervisor" ? "/supervisor" : "/portal/packs";
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: `${await requestOrigin()}/portal/auth/callback`, skipBrowserRedirect: true },
+    options: {
+      redirectTo: `${await requestOrigin()}/portal/auth/callback?next=${encodeURIComponent(next)}&role=${preferred}`,
+      skipBrowserRedirect: true,
+      queryParams: { prompt: "select_account" },
+    },
   });
   if (error || !data.url) {
     return { ok: false, message: error?.message ?? "Google sign-in is not available right now." };

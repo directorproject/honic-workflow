@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { isStaffUser } from "@/lib/auth-staff";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseAdminClient, getSupabaseServiceRoleClient } from "@/lib/supabase-server";
 
 async function rejectStaffOnPortal(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, origin: string) {
   const {
@@ -15,10 +16,39 @@ async function rejectStaffOnPortal(supabase: Awaited<ReturnType<typeof createSup
   return null;
 }
 
+async function provisionAfterGoogle(opts: {
+  userId: string;
+  email: string | undefined;
+  fullName: string;
+  role: "student" | "supervisor";
+}) {
+  try {
+    if (opts.role === "supervisor") {
+      const db = getSupabaseAdminClient();
+      if (!db) return;
+      await db.from("portal_supervisor_profiles").upsert(
+        {
+          user_id: opts.userId,
+          email: (opts.email ?? "").toLowerCase(),
+          full_name: opts.fullName || "Supervisor",
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" },
+      );
+      return;
+    }
+    const { ensurePortalAccount } = await import("@/lib/portal/accounts");
+    const admin = getSupabaseServiceRoleClient();
+    if (admin) await ensurePortalAccount(admin, opts.userId);
+  } catch {
+    /* profile rows can be created later */
+  }
+}
+
 const OTP_TYPES = new Set<EmailOtpType>(["signup", "email", "recovery", "invite", "magiclink", "email_change"]);
 
 /**
- * Email confirmation and password-reset links land here on the share host.
+ * Email confirmation, password-reset, and Google OAuth land here.
  * token_hash links (from the custom email templates) work on any device; ?code= links need the
  * browser that started the flow and remain supported as a fallback.
  */
@@ -27,7 +57,8 @@ export async function GET(request: NextRequest) {
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const code = searchParams.get("code");
-  const nextRaw = searchParams.get("next") ?? "/portal";
+  const roleParam = searchParams.get("role") === "supervisor" ? "supervisor" : "student";
+  const nextRaw = searchParams.get("next") ?? (roleParam === "supervisor" ? "/supervisor" : "/portal");
   let next =
     nextRaw.startsWith("/portal") || nextRaw.startsWith("/supervisor") ? nextRaw : "/portal";
 
@@ -56,6 +87,30 @@ export async function GET(request: NextRequest) {
     }
     const staffBlock = await rejectStaffOnPortal(supabase, origin);
     if (staffBlock) return staffBlock;
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const meta = (user.user_metadata ?? {}) as { full_name?: string; name?: string; role?: string };
+      const role =
+        roleParam === "supervisor" || next.startsWith("/supervisor") || meta.role === "supervisor"
+          ? "supervisor"
+          : "student";
+      const fullName = String(meta.full_name || meta.name || "").trim() || (role === "supervisor" ? "Supervisor" : "Student");
+      if (role === "supervisor" && meta.role !== "supervisor") {
+        await supabase.auth.updateUser({ data: { role: "supervisor", full_name: fullName } });
+      }
+      await provisionAfterGoogle({
+        userId: user.id,
+        email: user.email,
+        fullName,
+        role,
+      });
+      if (role === "supervisor" && !next.startsWith("/supervisor")) next = "/supervisor";
+      if (role === "student" && (next === "/portal" || next === "/portal/home")) next = "/portal/packs";
+    }
+
     return NextResponse.redirect(`${origin}${next}`);
   }
 

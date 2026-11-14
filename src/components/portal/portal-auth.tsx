@@ -37,7 +37,7 @@ function GoogleIcon() {
   );
 }
 
-function GoogleButton() {
+function GoogleButton({ role }: { role: PortalAuthRole }) {
   const [msg, setMsg] = useState<PortalResult | null>(null);
   const [pending, setPending] = useState(false);
   return (
@@ -50,7 +50,7 @@ function GoogleButton() {
         onClick={() => {
           setMsg(null);
           setPending(true);
-          void portalGoogleSignInAction()
+          void portalGoogleSignInAction(role)
             .then((res) => {
               if (!res.ok) setMsg(res);
             })
@@ -61,7 +61,7 @@ function GoogleButton() {
         }}
       >
         {pending ? <Spinner /> : <GoogleIcon />}
-        {pending ? "Connecting…" : "Continue with Google"}
+        {pending ? "Connecting…" : "Proceed with Google"}
       </button>
       {msg && !msg.ok ? <p className="text-sm font-medium text-rose-600 dark:text-rose-300">{msg.message}</p> : null}
       <div className="text-dash-muted-foreground my-4 flex items-center gap-3 text-xs">
@@ -208,7 +208,7 @@ export function PortalAuth({
           <p className="text-dash-muted-foreground mb-5 text-sm">We email a secure link to set a new password.</p>
         )}
 
-        {googleEnabled && mode !== "forgot" && role === "student" ? <GoogleButton /> : null}
+        {googleEnabled && mode !== "forgot" ? <GoogleButton role={role} /> : null}
 
         <form action={formAction} className="space-y-3.5" autoComplete="on" aria-busy={pending}>
           <input type="hidden" name="mode" value={mode} />

@@ -10,11 +10,13 @@ export function SupervisorAuthForm({
   initialMode = "signin",
   prefillEmail = "",
   projectHint = "",
+  googleEnabled = false,
 }: {
   initialMode?: "signin" | "signup";
   prefillEmail?: string;
   /** Optional project name shown when a student shared this form. */
   projectHint?: string;
+  googleEnabled?: boolean;
 }) {
   return (
     <PortalAuth
@@ -23,6 +25,7 @@ export function SupervisorAuthForm({
       prefillEmail={prefillEmail}
       projectHint={projectHint}
       lockRole={Boolean(prefillEmail || projectHint)}
+      googleEnabled={googleEnabled}
     />
   );
 }

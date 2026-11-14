@@ -87,6 +87,7 @@ export default async function SupervisorPortalPage(props: {
           initialMode={sp.auth === "signup" ? "signup" : prefillEmail ? "signup" : "signin"}
           prefillEmail={prefillEmail}
           projectHint={projectHint}
+          googleEnabled={process.env.PORTAL_GOOGLE_SIGNIN === "true"}
         />
       </div>
     </AuthShell>
