@@ -436,7 +436,7 @@ function TitleDetail({
 
           <section id="documents" className="mt-10 scroll-mt-24">
             <h2 className="text-dash-foreground text-sm font-semibold">Project documents</h2>
-            {files.length ? (
+            {files.length || item.sourceUrl ? (
               <ul className="mt-3 space-y-2">
                 {files.map((file) => (
                   <li key={file.id}>
@@ -449,12 +449,22 @@ function TitleDetail({
                     )}
                   </li>
                 ))}
+                {item.sourceUrl ? (
+                  <li>
+                    <a
+                      href={item.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-dash-accent text-sm font-semibold break-all"
+                    >
+                      {/github\.com/i.test(item.sourceUrl) ? "Source repository (GitHub)" : "Source project page"}
+                    </a>
+                    <p className="text-dash-muted-foreground mt-0.5 text-xs">Linked document / code from the project dataset.</p>
+                  </li>
+                ) : null}
               </ul>
             ) : (
-              <p className="text-dash-muted-foreground mt-2 text-sm">
-                No full report is stored here yet.
-                {item.sourceUrl ? " Use the source link above to approach the original list or project page." : ""}
-              </p>
+              <p className="text-dash-muted-foreground mt-2 text-sm">No full report or source document is stored here yet.</p>
             )}
           </section>
 
