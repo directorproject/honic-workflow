@@ -11,9 +11,13 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const metadata = { title: "Supervisor portal", robots: { index: false, follow: false } };
 
-export default async function SupervisorPortalPage(props: { searchParams: Promise<{ auth?: string; notice?: string }> }) {
+export default async function SupervisorPortalPage(props: {
+  searchParams: Promise<{ auth?: string; notice?: string; email?: string; project?: string }>;
+}) {
   const sp = await props.searchParams;
   const actor = await getSessionActor();
+  const prefillEmail = typeof sp.email === "string" ? sp.email.trim().slice(0, 254) : "";
+  const projectHint = typeof sp.project === "string" ? sp.project.trim().slice(0, 160) : "";
 
   if (actor) {
     const projects = await workspacesForSupervisorEmail(actor.db, actor.email);
@@ -31,16 +35,17 @@ export default async function SupervisorPortalPage(props: { searchParams: Promis
             }}
           >
             <div className="space-y-5">
-              <div className="border-dash-border bg-dash-card rounded-2xl border px-4 py-4 sm:px-5">
+              <div className="border-dash-border bg-dash-card rounded-md border px-4 py-4 sm:px-5">
                 <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-wide uppercase">Supervisor</p>
                 <h2 className="text-dash-foreground mt-1 text-xl font-semibold tracking-tight">My projects</h2>
                 <p className="text-dash-muted-foreground mt-1 text-sm">
-                  Projects that list your email under Team & supervisor. Open one to review shared documents, plans, and progress.
+                  Projects that list your email under Team & supervisor. Open one to review shared documents, plans, and
+                  progress.
                 </p>
               </div>
 
               {!projects.length ? (
-                <div className="border-dash-border bg-dash-card rounded-2xl border p-5 text-sm">
+                <div className="border-dash-border bg-dash-card rounded-md border p-5 text-sm">
                   <p className="text-dash-foreground font-semibold">No projects yet</p>
                   <p className="text-dash-muted-foreground mt-1">
                     Ask the student to save your email under Team & supervisor, then mark Review items as Shared.
@@ -52,7 +57,7 @@ export default async function SupervisorPortalPage(props: { searchParams: Promis
                     <li key={p.id}>
                       <Link
                         href={`/supervisor/p/${p.id}?tab=home`}
-                        className="border-dash-border bg-dash-card hover:border-dash-accent/40 block h-full rounded-2xl border px-4 py-4 transition-colors"
+                        className="border-dash-border bg-dash-card hover:border-dash-accent/40 block h-full rounded-md border px-4 py-4 transition-colors"
                       >
                         <p className="text-dash-foreground font-semibold">{p.name}</p>
                         <p className="text-dash-muted-foreground mt-1 text-xs">
@@ -72,15 +77,17 @@ export default async function SupervisorPortalPage(props: { searchParams: Promis
 
   return (
     <AuthShell>
-      <div className="border-dash-border bg-dash-card mx-auto w-full max-w-md rounded-2xl border p-6 shadow-sm sm:p-8">
-        <h1 className="text-xl font-semibold tracking-tight">Supervisor portal</h1>
-        <p className="text-dash-muted-foreground mt-1 text-sm">Same layout as the student workspace. Sign in with the email students list for you.</p>
+      <div className="mx-auto w-full max-w-5xl">
         {sp.notice === "check_email" ? (
-          <p className="mt-3 text-sm font-medium text-emerald-700 dark:text-emerald-300">Check your email to confirm, then sign in.</p>
+          <p className="mb-4 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-800 dark:text-emerald-200">
+            Check your email to confirm, then sign in.
+          </p>
         ) : null}
-        <div className="mt-6">
-          <SupervisorAuthForm initialMode={sp.auth === "signup" ? "signup" : "signin"} />
-        </div>
+        <SupervisorAuthForm
+          initialMode={sp.auth === "signup" ? "signup" : prefillEmail ? "signup" : "signin"}
+          prefillEmail={prefillEmail}
+          projectHint={projectHint}
+        />
       </div>
     </AuthShell>
   );
@@ -88,11 +95,18 @@ export default async function SupervisorPortalPage(props: { searchParams: Promis
 
 function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <main className="bg-dash-canvas text-dash-foreground flex min-h-screen flex-col">
-      <div className="border-dash-border bg-dash-canvas/95 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
+    <main className="relative flex min-h-screen flex-col overflow-hidden">
+      <div
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(1200px 600px at 10% -10%, rgba(14, 165, 180, 0.18), transparent 55%), radial-gradient(900px 500px at 90% 10%, rgba(15, 23, 42, 0.08), transparent 50%), linear-gradient(180deg, #f4f7f9 0%, #e8eef2 100%)",
+        }}
+      />
+      <div className="border-dash-border bg-dash-canvas/80 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
         <CompanyBrandBar variant="full" />
       </div>
-      <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">{children}</div>
+      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">{children}</div>
       <SiteFooter />
     </main>
   );

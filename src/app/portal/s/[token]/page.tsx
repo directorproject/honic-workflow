@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
@@ -18,18 +19,31 @@ export default async function SupervisorPage(props: { params: Promise<{ token: s
   const bundle = workspaceId && db ? await loadWorkspaceBundle(db, workspaceId, { supervisorView: true }) : null;
   if (!bundle) notFound();
 
+  const formQs = new URLSearchParams({ auth: "signup" });
+  if (bundle.workspace.supervisor_email) formQs.set("email", bundle.workspace.supervisor_email);
+  if (bundle.workspace.name) formQs.set("project", bundle.workspace.name);
+  const supervisorFormHref = `/supervisor?${formQs.toString()}`;
+
   return (
     <main className="bg-dash-canvas text-dash-foreground flex min-h-screen flex-col">
       <div className="border-dash-border bg-dash-canvas/95 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
         <CompanyBrandBar variant="full" />
       </div>
       <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
-        <div className="border-dash-border bg-dash-card mb-6 rounded-2xl border px-4 py-3 text-sm">
-          <p className="text-dash-foreground font-semibold">Supervisor view</p>
-          <p className="text-dash-muted-foreground">
-            {bundle.members.map((m) => m.full_name).join(", ")} shared review items with you. Leave page notes, drawings, or
-            general comments. Prefer a permanent login at /supervisor.
-          </p>
+        <div className="border-dash-border bg-dash-card mb-6 flex flex-wrap items-start justify-between gap-3 rounded-md border px-4 py-3 text-sm">
+          <div>
+            <p className="text-dash-foreground font-semibold">Supervisor guest view</p>
+            <p className="text-dash-muted-foreground mt-1 max-w-2xl">
+              {bundle.members.map((m) => m.full_name).join(", ")} shared review items with you. For a permanent account,
+              open the supervisor form.
+            </p>
+          </div>
+          <Link
+            href={supervisorFormHref}
+            className="bg-dash-accent inline-flex shrink-0 items-center rounded-md px-3.5 py-2 text-sm font-semibold text-white"
+          >
+            Open supervisor form →
+          </Link>
         </div>
         <WorkspaceView
           bundle={bundle}

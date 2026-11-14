@@ -33,7 +33,15 @@ export function TeamSection({ bundle }: { bundle: WorkspaceBundle }) {
   const danger = useRun();
   const [email, setEmail] = useState("");
   const [copied, setCopied] = useState("");
-  const supervisorUrl = ws.supervisor_token ? `${shareOrigin()}/portal/s/${ws.supervisor_token}` : "";
+  const origin = shareOrigin();
+  const guestProjectUrl = ws.supervisor_token ? `${origin}/portal/s/${ws.supervisor_token}` : "";
+  const supervisorFormUrl = (() => {
+    const q = new URLSearchParams();
+    q.set("auth", "signup");
+    if (ws.supervisor_email) q.set("email", ws.supervisor_email);
+    if (ws.name) q.set("project", ws.name);
+    return `${origin}/supervisor?${q.toString()}`;
+  })();
 
   async function copy(text: string, key: string) {
     try {
@@ -176,48 +184,82 @@ export function TeamSection({ bundle }: { bundle: WorkspaceBundle }) {
           ) : null}
         </form>
 
-        <div className="border-dash-border mt-5 border-t pt-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-dash-foreground text-sm font-semibold">Backup link (optional)</p>
-              <p className="text-dash-muted-foreground text-xs">
-                Prefer the supervisor portal at /supervisor with one account. This link still works without signing in.
-                They only see review items you marked Shared.
-              </p>
-            </div>
-            {viewer.canEdit ? (
-              <button
-                type="button"
-                disabled={link.pending}
-                className={ws.supervisor_link_enabled ? BTN_SOFT : BTN}
-                onClick={() => link.run(() => setSupervisorLinkAction(workspaceId, !ws.supervisor_link_enabled))}
-              >
-                {ws.supervisor_link_enabled ? "Turn off" : "Turn on"}
+        <div className="border-dash-border mt-5 space-y-5 border-t pt-4">
+          <div>
+            <p className="text-dash-foreground text-sm font-semibold">Share supervisor form</p>
+            <p className="text-dash-muted-foreground mt-1 text-xs leading-relaxed">
+              Send this link so your supervisor opens the modern sign-up / sign-in form (email prefilled). After they
+              create an account they see this project under My projects.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <input
+                readOnly
+                value={supervisorFormUrl}
+                className={`${INPUT} flex-1 font-mono text-xs`}
+                onFocus={(e) => e.target.select()}
+              />
+              <button type="button" className={BTN} onClick={() => copy(supervisorFormUrl, "form")}>
+                {copied === "form" ? "Copied" : "Copy form link"}
               </button>
+              <a href={supervisorFormUrl} target="_blank" rel="noopener noreferrer" className={BTN_SOFT}>
+                Open form
+              </a>
+            </div>
+            {!ws.supervisor_email ? (
+              <p className="text-amber-700 dark:text-amber-300 mt-2 text-xs">
+                Save the supervisor email above first so the form link prefills correctly.
+              </p>
             ) : null}
           </div>
-          {ws.supervisor_link_enabled && supervisorUrl ? (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <input readOnly value={supervisorUrl} className={`${INPUT} flex-1 font-mono text-xs`} onFocus={(e) => e.target.select()} />
-              <button type="button" className={BTN_SOFT} onClick={() => copy(supervisorUrl, "sup")}>
-                {copied === "sup" ? "Copied" : "Copy"}
-              </button>
+
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-dash-foreground text-sm font-semibold">Guest project link (optional)</p>
+                <p className="text-dash-muted-foreground text-xs">
+                  Opens the project without an account. Prefer the form link above for a permanent supervisor login.
+                  Guest view only shows Review items marked Shared.
+                </p>
+              </div>
               {viewer.canEdit ? (
                 <button
                   type="button"
-                  className={BTN_GHOST}
-                  onClick={() => {
-                    if (window.confirm("Make a new link? The old link will stop working.")) {
-                      link.run(() => setSupervisorLinkAction(workspaceId, true, true));
-                    }
-                  }}
+                  disabled={link.pending}
+                  className={ws.supervisor_link_enabled ? BTN_SOFT : BTN}
+                  onClick={() => link.run(() => setSupervisorLinkAction(workspaceId, !ws.supervisor_link_enabled))}
                 >
-                  New link
+                  {ws.supervisor_link_enabled ? "Turn off" : "Turn on"}
                 </button>
               ) : null}
             </div>
-          ) : null}
-          <div className="mt-2">
+            {ws.supervisor_link_enabled && guestProjectUrl ? (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <input
+                  readOnly
+                  value={guestProjectUrl}
+                  className={`${INPUT} flex-1 font-mono text-xs`}
+                  onFocus={(e) => e.target.select()}
+                />
+                <button type="button" className={BTN_SOFT} onClick={() => copy(guestProjectUrl, "sup")}>
+                  {copied === "sup" ? "Copied" : "Copy guest link"}
+                </button>
+                {viewer.canEdit ? (
+                  <button
+                    type="button"
+                    className={BTN_GHOST}
+                    onClick={() => {
+                      if (window.confirm("Make a new guest link? The old link will stop working.")) {
+                        link.run(() => setSupervisorLinkAction(workspaceId, true, true));
+                      }
+                    }}
+                  >
+                    New link
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+          <div>
             <Status status={link.status} />
           </div>
         </div>
