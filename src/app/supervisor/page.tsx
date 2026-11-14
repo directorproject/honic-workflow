@@ -5,6 +5,7 @@ import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
 import { PortalShell } from "@/components/portal/portal-shell";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { SupervisorAuthForm } from "@/components/supervisor/supervisor-auth-form";
+import { isPortalGoogleSignInEnabled } from "@/lib/portal/google-signin";
 import { getSessionActor, workspacesForSupervisorEmail } from "@/lib/workspace/access";
 
 export const dynamic = "force-dynamic";
@@ -87,7 +88,7 @@ export default async function SupervisorPortalPage(props: {
           initialMode={sp.auth === "signup" ? "signup" : prefillEmail ? "signup" : "signin"}
           prefillEmail={prefillEmail}
           projectHint={projectHint}
-          googleEnabled={process.env.PORTAL_GOOGLE_SIGNIN === "true"}
+          googleEnabled={isPortalGoogleSignInEnabled()}
         />
       </div>
     </AuthShell>

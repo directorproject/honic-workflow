@@ -5,6 +5,7 @@ import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
 import { PortalAuth } from "@/components/portal/portal-auth";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { loadPortalState } from "@/lib/portal/data";
+import { isPortalGoogleSignInEnabled } from "@/lib/portal/google-signin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -97,7 +98,7 @@ export default async function PortalAuthPage(props: {
           initialStatus={initial}
           initialMode={authMode}
           initialRole={initialRole}
-          googleEnabled={process.env.PORTAL_GOOGLE_SIGNIN === "true"}
+          googleEnabled={isPortalGoogleSignInEnabled()}
         />
       </div>
     </AuthShell>

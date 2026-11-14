@@ -8,9 +8,13 @@ import { PortalShell } from "@/components/portal/portal-shell";
 import { ProfileForm } from "@/components/portal/profile-form";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { studyLevelLabel } from "@/lib/portal/config";
+import { isPortalGoogleSignInEnabled } from "@/lib/portal/google-signin";
 import { loadPortalState } from "@/lib/portal/data";
+
 import { listOpenJobs } from "@/lib/portal/jobs";
+
 import { hasActiveDeskPlan } from "@/lib/portal/title-limits";
+
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { findMembership } from "@/lib/workspace/access";
 
@@ -31,7 +35,7 @@ export default async function PortalJobsPage() {
         </div>
         <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">
           <p className="text-dash-muted-foreground mb-4 text-sm">Sign in to view jobs. Applying needs a paid plan.</p>
-          <PortalAuth initialStatus={null} googleEnabled={process.env.PORTAL_GOOGLE_SIGNIN === "true"} />
+          <PortalAuth initialStatus={null} googleEnabled={isPortalGoogleSignInEnabled()} />
           <p className="text-dash-muted-foreground mt-6 text-center text-xs">
             <Link href="/portal/titles" className="text-dash-accent font-semibold">
               Browse literature →

@@ -8,9 +8,13 @@ import { ProfileForm } from "@/components/portal/profile-form";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { TitleTermsGate } from "@/components/portal/title-terms-gate";
 import { studyLevelLabel } from "@/lib/portal/config";
+import { isPortalGoogleSignInEnabled } from "@/lib/portal/google-signin";
 import { loadPortalState } from "@/lib/portal/data";
+
 import { loadLiterature } from "@/lib/portal/title-choices";
+
 import { titleTermsStatus } from "@/lib/portal/title-terms";
+
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { findMembership } from "@/lib/workspace/access";
 import { formatDate } from "@/lib/workspace/dates";
@@ -27,7 +31,7 @@ export default async function PortalTitlesPage() {
   let content: React.ReactNode;
   let catalogue = false;
   if (!user) {
-    content = <PortalAuth initialStatus={null} googleEnabled={process.env.PORTAL_GOOGLE_SIGNIN === "true"} />;
+    content = <PortalAuth initialStatus={null} googleEnabled={isPortalGoogleSignInEnabled()} />;
   } else if (state.isStaff && db) {
     const review = await loadLiterature(db, null, null);
     catalogue = true;

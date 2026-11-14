@@ -6,6 +6,7 @@ import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
 import { TitlesFrame } from "@/components/portal/cohort-title-board";
 import { LinkifiedText } from "@/components/portal/linkified-text";
 import { PortalAuth } from "@/components/portal/portal-auth";
+import { isPortalGoogleSignInEnabled } from "@/lib/portal/google-signin";
 import { ProfileForm } from "@/components/portal/profile-form";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { TitleJumpNav } from "@/components/portal/title-jump-nav";
@@ -63,7 +64,7 @@ export default async function PortalTitlePage(props: {
   if (!user) {
     return (
       <Gate>
-        <PortalAuth initialStatus={null} googleEnabled={process.env.PORTAL_GOOGLE_SIGNIN === "true"} />
+        <PortalAuth initialStatus={null} googleEnabled={isPortalGoogleSignInEnabled()} />
       </Gate>
     );
   }

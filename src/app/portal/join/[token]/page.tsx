@@ -1,5 +1,6 @@
 import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
 import { PortalAuth } from "@/components/portal/portal-auth";
+import { isPortalGoogleSignInEnabled } from "@/lib/portal/google-signin";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { JoinInvite } from "@/components/workspace/start-workspace";
 import { getPortalUser } from "@/lib/portal/data";
@@ -32,7 +33,7 @@ export default async function JoinPage(props: { params: Promise<{ token: string 
           You are invited to join <strong>{ws?.name ?? "a project"}</strong>. Sign in or create an account with{" "}
           <strong>{String(invite.email)}</strong>, then come back to this link.
         </p>
-        <PortalAuth initialStatus={null} googleEnabled={process.env.PORTAL_GOOGLE_SIGNIN === "true"} />
+        <PortalAuth initialStatus={null} googleEnabled={isPortalGoogleSignInEnabled()} />
       </div>
     );
   } else {
