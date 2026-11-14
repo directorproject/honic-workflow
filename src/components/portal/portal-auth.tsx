@@ -184,17 +184,6 @@ export function PortalAuth({
           <p className="text-dash-muted-foreground mt-1 text-sm">{copy.formSub}</p>
         </div>
 
-        {!lockRole && mode !== "forgot" ? (
-          <div className="bg-dash-muted/50 mb-4 inline-flex rounded-md p-1">
-            <ModeButton active={role === "student"} onClick={() => setRole("student")}>
-              Student
-            </ModeButton>
-            <ModeButton active={role === "supervisor"} onClick={() => setRole("supervisor")}>
-              Supervisor
-            </ModeButton>
-          </div>
-        ) : null}
-
         {mode !== "forgot" ? (
           <div className="bg-dash-muted/50 mb-5 inline-flex rounded-md p-1">
             <ModeButton active={mode === "signin"} onClick={() => setMode("signin")}>
@@ -293,7 +282,14 @@ export function PortalAuth({
               </p>
               <p>
                 New here?{" "}
-                <button type="button" className="text-dash-accent font-semibold" onClick={() => setMode("signup")}>
+                <button
+                  type="button"
+                  className="text-dash-accent font-semibold"
+                  onClick={() => {
+                    setRole("student");
+                    setMode("signup");
+                  }}
+                >
                   Create an account
                 </button>
               </p>
@@ -315,29 +311,45 @@ export function PortalAuth({
               </button>
             </p>
           ) : null}
+          {!lockRole && mode !== "forgot" ? (
+            <p>
+              {role === "supervisor" ? (
+                <>
+                  Need a student account?{" "}
+                  <button
+                    type="button"
+                    className="text-dash-accent font-semibold"
+                    onClick={() => {
+                      setRole("student");
+                      setMode("signup");
+                    }}
+                  >
+                    Create an account
+                  </button>
+                </>
+              ) : (
+                <>
+                  Supervising a project?{" "}
+                  <button
+                    type="button"
+                    className="text-dash-accent font-semibold"
+                    onClick={() => {
+                      setRole("supervisor");
+                      setMode("signup");
+                    }}
+                  >
+                    Supervisor account
+                  </button>
+                </>
+              )}
+            </p>
+          ) : null}
           <p>
             Staff accounts belong on{" "}
             <a className="text-dash-accent font-semibold" href="https://inova.honiccompany.com/login">
               inova.honiccompany.com
             </a>
             .
-            {role === "supervisor" ? (
-              <>
-                {" "}
-                Prefer the student path?{" "}
-                <Link href="/portal" className="text-dash-accent font-semibold">
-                  Student portal
-                </Link>
-              </>
-            ) : (
-              <>
-                {" "}
-                Supervising a project?{" "}
-                <Link href="/supervisor" className="text-dash-accent font-semibold">
-                  Supervisor portal
-                </Link>
-              </>
-            )}
           </p>
         </div>
       </div>
