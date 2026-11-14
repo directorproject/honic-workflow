@@ -44,7 +44,7 @@ export default async function JoinPage(props: { params: Promise<{ token: string 
       <div className="border-dash-border bg-dash-canvas/95 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
         <CompanyBrandBar variant="full" />
       </div>
-      <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">{content}</div>
+      <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">{content}</div>
       <SiteFooter />
     </main>
   );

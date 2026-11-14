@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
 
+import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
 import { PortalAuth } from "@/components/portal/portal-auth";
+import { SiteFooter } from "@/components/portal/site-footer";
 import { loadPortalState } from "@/lib/portal/data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -25,7 +28,7 @@ const AUTH_NOTICES: Record<string, { ok: boolean; message: string }> = {
   },
   student_only: {
     ok: true,
-    message: "This portal is for students only. Create a student account (or sign in with one). Staff use inova.",
+    message: "This portal is for students and supervisors. Create an account (or sign in). Staff use inova.",
   },
 };
 
@@ -37,6 +40,7 @@ export default async function PortalAuthPage(props: {
     tab: typeof raw.tab === "string" ? raw.tab : undefined,
     edit: typeof raw.edit === "string" ? raw.edit : undefined,
     auth: typeof raw.auth === "string" ? raw.auth : undefined,
+    role: typeof raw.role === "string" ? raw.role : undefined,
     auth_error: typeof raw.auth_error === "string" ? raw.auth_error : undefined,
     notice: typeof raw.notice === "string" ? raw.notice : undefined,
   };
@@ -83,15 +87,38 @@ export default async function PortalAuthPage(props: {
       ? { ok: false, message: "That link is invalid or has expired. Please try again." }
       : null;
   const authMode = sp.auth === "signin" || sp.auth === "forgot" ? sp.auth : sp.notice === "confirmed" ? "signin" : "signup";
+  const initialRole = sp.role === "supervisor" ? "supervisor" : "student";
 
   return (
-    <main className="bg-dash-canvas text-dash-foreground flex min-h-screen flex-col px-4 py-10 sm:px-6">
-      <PortalAuth
-        key={`${authMode}-${sp.notice ?? ""}-${sp.auth_error ?? ""}`}
-        initialStatus={initial}
-        initialMode={authMode}
-        googleEnabled={process.env.PORTAL_GOOGLE_SIGNIN === "true"}
+    <AuthShell>
+      <div className="mx-auto w-full max-w-5xl">
+        <PortalAuth
+          key={`${authMode}-${initialRole}-${sp.notice ?? ""}-${sp.auth_error ?? ""}`}
+          initialStatus={initial}
+          initialMode={authMode}
+          initialRole={initialRole}
+          googleEnabled={process.env.PORTAL_GOOGLE_SIGNIN === "true"}
+        />
+      </div>
+    </AuthShell>
+  );
+}
+
+function AuthShell({ children }: { children: ReactNode }) {
+  return (
+    <main className="relative flex min-h-screen flex-col overflow-hidden">
+      <div
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(1200px 600px at 10% -10%, rgba(14, 165, 180, 0.18), transparent 55%), radial-gradient(900px 500px at 90% 10%, rgba(15, 23, 42, 0.08), transparent 50%), linear-gradient(180deg, #f4f7f9 0%, #e8eef2 100%)",
+        }}
       />
+      <div className="border-dash-border bg-dash-canvas/80 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
+        <CompanyBrandBar variant="full" />
+      </div>
+      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">{children}</div>
+      <SiteFooter />
     </main>
   );
 }

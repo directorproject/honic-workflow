@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "auth:ensure-operator": "node scripts/ensure-operator-user.mjs",
+    "auth:delete-non-staff": "node scripts/delete-all-non-staff-accounts.mjs",
     "db:migrate": "node scripts/db-migrate.mjs",
     "email:setup": "node scripts/setup-auth-email.mjs"
   },

@@ -29,7 +29,7 @@ export default async function PortalMyJobsPage() {
         <div className="border-dash-border bg-dash-canvas/95 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
           <CompanyBrandBar variant="full" />
         </div>
-        <div className="mx-auto w-full max-w-lg flex-1 px-4 py-10 sm:px-6">
+        <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">
           <p className="text-dash-muted-foreground mb-4 text-sm">Sign in to post and manage your jobs.</p>
           <PortalAuth initialStatus={null} googleEnabled={process.env.PORTAL_GOOGLE_SIGNIN === "true"} />
           <p className="text-dash-muted-foreground mt-6 text-center text-xs">
