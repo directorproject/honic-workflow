@@ -1,9 +1,7 @@
 import { redirect } from "next/navigation";
-import type { ReactNode } from "react";
 
-import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
+import { AuthPageShell } from "@/components/portal/auth-page-shell";
 import { PortalAuth } from "@/components/portal/portal-auth";
-import { SiteFooter } from "@/components/portal/site-footer";
 import { loadPortalState } from "@/lib/portal/data";
 import { isPortalGoogleSignInEnabled } from "@/lib/portal/google-signin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -91,7 +89,7 @@ export default async function PortalAuthPage(props: {
   const initialRole = sp.role === "supervisor" ? "supervisor" : "student";
 
   return (
-    <AuthShell>
+    <AuthPageShell>
       <div className="mx-auto w-full max-w-5xl">
         <PortalAuth
           key={`${authMode}-${initialRole}-${sp.notice ?? ""}-${sp.auth_error ?? ""}`}
@@ -101,25 +99,6 @@ export default async function PortalAuthPage(props: {
           googleEnabled={isPortalGoogleSignInEnabled()}
         />
       </div>
-    </AuthShell>
-  );
-}
-
-function AuthShell({ children }: { children: ReactNode }) {
-  return (
-    <main className="relative flex min-h-screen flex-col overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(1200px 600px at 10% -10%, rgba(14, 165, 180, 0.18), transparent 55%), radial-gradient(900px 500px at 90% 10%, rgba(15, 23, 42, 0.08), transparent 50%), linear-gradient(180deg, #f4f7f9 0%, #e8eef2 100%)",
-        }}
-      />
-      <div className="border-dash-border bg-dash-canvas/80 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
-        <CompanyBrandBar variant="full" />
-      </div>
-      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">{children}</div>
-      <SiteFooter />
-    </main>
+    </AuthPageShell>
   );
 }
