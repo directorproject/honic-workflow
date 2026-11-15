@@ -457,9 +457,17 @@ function TitleDetail({
                       rel="noreferrer"
                       className="text-dash-accent text-sm font-semibold break-all"
                     >
-                      {/github\.com/i.test(item.sourceUrl) ? "Source repository (GitHub)" : "Source project page"}
+                      {/catalogue-docs/i.test(item.sourceUrl)
+                        ? "Project report (PDF)"
+                        : /github\.com/i.test(item.sourceUrl)
+                          ? "Source repository (GitHub)"
+                          : "Source project page"}
                     </a>
-                    <p className="text-dash-muted-foreground mt-0.5 text-xs">Linked document / code from the project dataset.</p>
+                    <p className="text-dash-muted-foreground mt-0.5 text-xs">
+                      {/catalogue-docs/i.test(item.sourceUrl)
+                        ? "Full report attached for this title. Sign in to open."
+                        : "Linked document / code from the project source."}
+                    </p>
                   </li>
                 ) : null}
               </ul>

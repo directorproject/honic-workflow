@@ -90,8 +90,10 @@ export function parseTitleBrief(notes: string | null | undefined): {
 function asHttpUrl(value: string | null): string | null {
   if (!value) return null;
   const trimmed = value.trim();
-  if (!/^https?:\/\//i.test(trimmed)) return null;
   if (trimmed.includes("…")) return null;
+  // Staff-imported catalogue PDFs use same-origin API paths.
+  if (/^\/api\/portal\/catalogue-docs\//i.test(trimmed)) return trimmed;
+  if (!/^https?:\/\//i.test(trimmed)) return null;
   return trimmed;
 }
 
