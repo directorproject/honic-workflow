@@ -43,7 +43,7 @@ export function DocumentPacksBoard({
 
   return (
     <div className="mx-auto max-w-6xl space-y-14 pb-10">
-      <header className="relative overflow-hidden rounded-[1.75rem] border border-dash-border bg-dash-card px-5 py-8 sm:px-10 sm:py-10">
+      <header className="relative overflow-hidden rounded-2xl border border-dash-border bg-dash-card px-4 py-6 sm:rounded-[1.75rem] sm:px-10 sm:py-10">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -56,10 +56,12 @@ export function DocumentPacksBoard({
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[color-mix(in_oklab,var(--dash-accent)_55%,transparent)] to-transparent"
         />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.22em] uppercase">Honic Nexis</p>
-            <h1 className="text-dash-foreground mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Plans & access</h1>
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
+          <div className="max-w-2xl min-w-0">
+            <p className="text-dash-muted-foreground text-[10px] font-semibold tracking-[0.18em] uppercase sm:text-[11px] sm:tracking-[0.22em]">
+              Honic Nexis
+            </p>
+            <h1 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">Plans & access</h1>
             <p className="text-dash-muted-foreground mt-3 text-sm leading-relaxed sm:text-base">
               Pick a Nexis Desk subscription for full portal access — including Jobs posting and applying. Select stays
               free. Pay or use a paid plan to hide and make a title yours. It is not a purchase of the idea.
@@ -366,9 +368,9 @@ function SubscriptionCard({
       ) : null}
 
       <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">{period}</p>
-      <h3 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight">{name}</h3>
+      <h3 className="text-dash-foreground mt-2 text-xl font-semibold tracking-tight sm:text-2xl">{name}</h3>
       <p className="text-dash-foreground mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <span className="text-4xl font-semibold tracking-tight tabular-nums">{formatTsh(price)}</span>
+        <span className="text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">{formatTsh(price)}</span>
         <span className="text-dash-muted-foreground text-xs tabular-nums">≈ {formatTsh(perMonth)} / month</span>
       </p>
       {active ? (
@@ -417,11 +419,11 @@ function SubscriptionCard({
           <Field label="Mobile money number">
             <input name="phone" required className={INPUT} defaultValue={phone} placeholder="07XX XXX XXX" />
           </Field>
-          <div className="flex flex-wrap gap-2">
-            <button type="button" className={SECONDARY} onClick={() => setOpen(false)} disabled={pending}>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <button type="button" className={`${SECONDARY} w-full`} onClick={() => setOpen(false)} disabled={pending}>
               Cancel
             </button>
-            <button type="submit" className={PRIMARY} disabled={pending}>
+            <button type="submit" className={`${PRIMARY} w-full`} disabled={pending}>
               {pending ? "Subscribing…" : active ? "Pay to renew" : "Subscribe"}
             </button>
           </div>

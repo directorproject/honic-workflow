@@ -10,6 +10,7 @@ import {
   type PortalResult,
 } from "@/app/portal/auth-actions";
 import { Spinner } from "@/components/ui/spinner";
+import { toUserError } from "@/lib/portal/user-errors";
 
 export type PortalAuthMode = "signin" | "signup" | "forgot";
 export type PortalAuthRole = "student" | "supervisor";
@@ -260,7 +261,9 @@ export function PortalAuth({
             </label>
           ) : null}
 
-          {state && !state.ok ? <p className="text-sm font-medium text-rose-600 dark:text-rose-300">{state.message}</p> : null}
+          {state && !state.ok ? (
+            <p className="text-sm font-medium text-rose-600 dark:text-rose-300">{toUserError(state.message)}</p>
+          ) : null}
           {state?.ok && state.message ? (
             <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{state.message}</p>
           ) : null}

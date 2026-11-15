@@ -78,7 +78,7 @@ export async function createMobilePayment(input: {
   metadata?: Record<string, string>;
 }): Promise<SnippePaymentResult> {
   if (!snippeConfigured()) {
-    throw new Error("Snippe is not configured. Add SNIPPE_API_KEY and SNIPPE_WEBHOOK_SECRET.");
+    throw new Error("PAYMENT_UNAVAILABLE");
   }
   assertSecureWebhookUrl(input.webhookUrl);
   const phone = toSnippePhone(input.phoneNumber);

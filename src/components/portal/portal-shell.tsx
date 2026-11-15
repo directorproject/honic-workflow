@@ -95,7 +95,7 @@ export function PortalShell({
             scrolled ? "shadow-[0_8px_24px_-16px_rgba(15,23,42,0.55)]" : ""
           }`}
         >
-          <div className="flex items-center gap-2 px-3 py-2.5 sm:gap-4 sm:px-6 sm:py-3">
+          <div className="flex items-center gap-1.5 px-2.5 py-2 sm:gap-4 sm:px-6 sm:py-3">
             <button
               type="button"
               className="hover:bg-dash-muted inline-flex shrink-0 rounded-lg p-2 lg:hidden"
@@ -106,17 +106,21 @@ export function PortalShell({
             >
               {drawer ? <CloseIcon /> : <MenuIcon />}
             </button>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-dash-foreground truncate text-lg font-semibold tracking-tight sm:text-xl">{activeLabel}</h1>
-              <p className="text-dash-muted-foreground truncate text-xs sm:text-sm">{viewer.detail ?? viewer.name}</p>
+            <div className="min-w-0 flex-1 pr-1">
+              <h1 className="text-dash-foreground truncate text-[0.95rem] leading-tight font-semibold tracking-tight sm:text-xl">
+                {activeLabel}
+              </h1>
+              <p className="text-dash-muted-foreground mt-0.5 truncate text-[11px] leading-snug sm:text-sm">
+                {viewer.detail ?? viewer.name}
+              </p>
             </div>
-            <div className="border-dash-border flex shrink-0 items-center gap-1.5 border-l pl-2 sm:gap-2 sm:pl-3">
+            <div className="border-dash-border flex shrink-0 items-center gap-1 border-l pl-1.5 sm:gap-2 sm:pl-3">
               <ThemeToggle />
-              {mode === "student" ? <PlanModeChip deskExpiresAt={deskExpiresAt} /> : null}
+              {mode === "student" ? <PlanModeChip deskExpiresAt={deskExpiresAt} compact /> : null}
               <span className="bg-dash-accent hidden h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white sm:inline-flex">
                 {viewer.name.slice(0, 1).toUpperCase()}
               </span>
-              <span className="hidden max-w-[10rem] truncate text-xs font-medium sm:inline">{viewer.name}</span>
+              <span className="hidden max-w-[10rem] truncate text-xs font-medium md:inline">{viewer.name}</span>
               {mode === "supervisor" ? (
                 <span className="bg-violet-500/15 text-violet-800 dark:text-violet-200 hidden rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase sm:inline">
                   Supervisor
@@ -127,9 +131,9 @@ export function PortalShell({
           <span className={`bg-dash-accent block h-0.5 origin-left transition-transform duration-500 ${scrolled ? "scale-x-100" : "scale-x-0"}`} />
         </header>
         {/* Matches fixed header height so content is not covered. */}
-        <div className="h-[3.75rem] shrink-0 sm:h-[4.25rem]" aria-hidden />
+        <div className="h-[3.6rem] shrink-0 sm:h-[4.25rem]" aria-hidden />
 
-        <div className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8">{children}</div>
+        <div className="min-w-0 flex-1 px-3 py-4 sm:px-6 sm:py-5 lg:px-8">{children}</div>
         <SiteFooter />
       </div>
     </div>

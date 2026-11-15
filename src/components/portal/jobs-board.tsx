@@ -14,6 +14,7 @@ import {
   portalUpdateJobAction,
 } from "@/app/portal/job-actions";
 import { Field, StatusText } from "@/components/portal/portal-ui";
+import { toUserError } from "@/lib/portal/user-errors";
 
 const INPUT =
   "border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-sm border px-3 py-2.5 text-sm outline-none focus:ring-2";
@@ -478,7 +479,9 @@ function DeleteJobButton({
       >
         {pending ? "Deleting…" : "Delete"}
       </button>
-      {status && !status.ok ? <span className="text-xs text-red-600 dark:text-red-300">{status.message}</span> : null}
+      {status && !status.ok ? (
+        <span className="text-xs text-red-600 dark:text-red-300">{toUserError(status.message)}</span>
+      ) : null}
     </span>
   );
 }
@@ -1020,7 +1023,7 @@ function MessageThread({
               </button>
             </div>
             {status && !status.ok ? (
-              <p className="mt-2 text-xs text-red-600 dark:text-red-300">{status.message}</p>
+              <p className="mt-2 text-xs text-red-600 dark:text-red-300">{toUserError(status.message)}</p>
             ) : null}
           </>
         )}

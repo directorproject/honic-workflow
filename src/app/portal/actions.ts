@@ -36,6 +36,7 @@ import { getPortalUser } from "@/lib/portal/data";
 import { chooseTitle, hideTitleFromPeers, loadLiterature } from "@/lib/portal/title-choices";
 import { titleHideEntitlement } from "@/lib/portal/title-limits";
 import { POLICY_VERSION, TITLE_RULES_VERSION, titleTermsStatus } from "@/lib/portal/title-terms";
+import { paymentUnavailableMessage, toUserError } from "@/lib/portal/user-errors";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
 import type { PortalResult } from "@/app/portal/auth-actions";
@@ -397,13 +398,10 @@ export async function portalPayForChangeAction(network: string, phone: string, t
     const live = useSnippe();
 
     if (!live && PAYMENT_PROVIDER === "snippe") {
-      return {
-        ok: false,
-        message: "Snippe is not configured yet. Add SNIPPE_API_KEY and SNIPPE_WEBHOOK_SECRET to the server env.",
-      };
+      return { ok: false, message: paymentUnavailableMessage() };
     }
     if (!live && !simulatedPaymentsAllowed()) {
-      return { ok: false, message: "Online payment is not enabled yet. Contact Honic to complete this payment." };
+      return { ok: false, message: paymentUnavailableMessage() };
     }
 
     // Block parallel pending charges for the same slot (anti double-spend).
@@ -484,7 +482,7 @@ export async function portalPayForChangeAction(network: string, phone: string, t
           .eq("id", paymentRow.id);
       } catch (err) {
         await db.from("title_change_payments").update({ status: "failed" }).eq("id", paymentRow.id);
-        return { ok: false, message: err instanceof Error ? err.message : "Could not send the payment prompt." };
+        return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };
       }
 
       revalidatePath("/portal");
@@ -503,7 +501,7 @@ export async function portalPayForChangeAction(network: string, phone: string, t
       reference,
       amount: TITLE_CHANGE_FEE_TSH,
     });
-    if (!fulfilled.ok) return { ok: false, message: fulfilled.message ?? "Could not complete simulated payment." };
+    if (!fulfilled.ok) return { ok: false, message: toUserError(fulfilled.message, paymentUnavailableMessage()) };
 
     revalidatePath("/portal");
     revalidatePath("/portal/titles");
@@ -513,7 +511,7 @@ export async function portalPayForChangeAction(network: string, phone: string, t
       message: `Simulated payment received (reference ${reference}). That slot is open again. Pick a free replacement from the literature review.`,
     };
   } catch (err) {
-    return { ok: false, message: err instanceof Error ? err.message : "Payment could not be completed." };
+    return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };
   }
 }
 
@@ -581,13 +579,10 @@ export async function portalPayForHideAction(network: string, phone: string, tit
     const reference = makeIdempotencyKey("HID");
     const live = useSnippe();
     if (!live && PAYMENT_PROVIDER === "snippe") {
-      return {
-        ok: false,
-        message: "Snippe is not configured yet. Add SNIPPE_API_KEY and SNIPPE_WEBHOOK_SECRET to the server env.",
-      };
+      return { ok: false, message: paymentUnavailableMessage() };
     }
     if (!live && !simulatedPaymentsAllowed()) {
-      return { ok: false, message: "Online payment is not enabled yet. Contact Honic to complete this payment." };
+      return { ok: false, message: paymentUnavailableMessage() };
     }
 
     await expireStalePendingPayments(db, { userId: user.id, referencePrefix: "HID" });
@@ -653,7 +648,7 @@ export async function portalPayForHideAction(network: string, phone: string, tit
           .eq("id", paymentRow.id);
       } catch (err) {
         await db.from("title_change_payments").update({ status: "failed" }).eq("id", paymentRow.id);
-        return { ok: false, message: err instanceof Error ? err.message : "Could not send the payment prompt." };
+        return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };
       }
       revalidatePath("/portal");
       revalidatePath("/portal/titles");
@@ -673,7 +668,7 @@ export async function portalPayForHideAction(network: string, phone: string, tit
       reference,
       amount: TITLE_CHANGE_FEE_TSH,
     });
-    if (!fulfilled.ok) return { ok: false, message: fulfilled.message ?? "Could not complete simulated payment." };
+    if (!fulfilled.ok) return { ok: false, message: toUserError(fulfilled.message, paymentUnavailableMessage()) };
 
     revalidatePath("/portal");
     revalidatePath("/portal/titles");
@@ -684,7 +679,7 @@ export async function portalPayForHideAction(network: string, phone: string, tit
         : `Simulated hide payment received (ref ${reference}). You have 1 hide credit. Open a shortlisted title and hide it.`,
     };
   } catch (err) {
-    return { ok: false, message: err instanceof Error ? err.message : "Payment could not be completed." };
+    return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };
   }
 }
 
@@ -717,13 +712,10 @@ export async function portalPayForMembershipAction(
     const live = useSnippe();
 
     if (!live && PAYMENT_PROVIDER === "snippe") {
-      return {
-        ok: false,
-        message: "Snippe is not configured yet. Add SNIPPE_API_KEY and SNIPPE_WEBHOOK_SECRET to the server env.",
-      };
+      return { ok: false, message: paymentUnavailableMessage() };
     }
     if (!live && !simulatedPaymentsAllowed()) {
-      return { ok: false, message: "Online payment is not enabled yet. Contact Honic to complete this payment." };
+      return { ok: false, message: paymentUnavailableMessage() };
     }
 
     await expireStalePendingPayments(db, { userId: user.id, referencePrefix: "MEM" });
@@ -790,7 +782,7 @@ export async function portalPayForMembershipAction(
           .eq("id", paymentRow.id);
       } catch (err) {
         await db.from("title_change_payments").update({ status: "failed" }).eq("id", paymentRow.id);
-        return { ok: false, message: err instanceof Error ? err.message : "Could not send the payment prompt." };
+        return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };
       }
       revalidatePath("/portal");
       revalidatePath("/portal/packs");
@@ -811,7 +803,7 @@ export async function portalPayForMembershipAction(
       },
       planId,
     );
-    if (!fulfilled.ok) return { ok: false, message: fulfilled.message ?? "Could not activate membership." };
+    if (!fulfilled.ok) return { ok: false, message: toUserError(fulfilled.message, paymentUnavailableMessage()) };
 
     revalidatePath("/portal");
     revalidatePath("/portal/packs");
@@ -821,7 +813,7 @@ export async function portalPayForMembershipAction(
       message: `Simulated membership payment received (ref ${reference}). Your ${planId} plan is active.`,
     };
   } catch (err) {
-    return { ok: false, message: err instanceof Error ? err.message : "Payment could not be completed." };
+    return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };
   }
 }
 

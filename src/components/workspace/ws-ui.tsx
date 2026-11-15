@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 
 import type { RunStatus } from "@/components/workspace/ws-context";
+import { toUserError } from "@/lib/portal/user-errors";
 
 export const INPUT =
   "border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2";
@@ -59,9 +60,10 @@ export function Badge({ children, className = "" }: { children: ReactNode; class
 
 export function Status({ status }: { status: RunStatus }) {
   if (!status?.message) return null;
+  const message = status.ok ? status.message : toUserError(status.message);
   return (
     <p role="status" className={`text-sm break-words ${status.ok ? "text-emerald-700 dark:text-emerald-300" : "text-red-600 dark:text-red-300"}`}>
-      {status.message}
+      {message}
     </p>
   );
 }
