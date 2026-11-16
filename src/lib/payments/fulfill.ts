@@ -130,7 +130,14 @@ export async function fulfillTitleChangePayment(
   // Another worker already fulfilled — treat as success, do not re-grant credit.
   if (!claimed) return { ok: true, message: "Already paid.", fulfilled: false };
 
-  const isHidePay = String(payment.reference).toUpperCase().startsWith("HID");
+  const ref = String(payment.reference).toUpperCase();
+  const isHidePay = ref.startsWith("HID");
+  const isDocsPay = ref.startsWith("DOC");
+
+  // Project-documents unlock: marking paid is enough (checked via DOC* paid rows).
+  if (isDocsPay) {
+    return { ok: true, fulfilled: true };
+  }
 
   if (isHidePay && payment.selection_id) {
     // Pay-to-hide: protect this shortlisted title from classmates (do not release).

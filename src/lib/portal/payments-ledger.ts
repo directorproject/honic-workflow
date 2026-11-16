@@ -24,6 +24,7 @@ function purposeFromReference(reference: string, purposeCol: string | null | und
   if (ref.startsWith("MEMY") || ref.startsWith("MEMS") || ref.startsWith("MEM")) return "membership";
   if (ref.startsWith("HID")) return "title_hide";
   if (ref.startsWith("CHG")) return "title_change";
+  if (ref.startsWith("DOC")) return "project_documents";
   return "other";
 }
 
@@ -35,6 +36,8 @@ export function paymentPurposeLabel(purpose: string): string {
       return "Title hide (make yours)";
     case "title_change":
       return "Title change";
+    case "project_documents":
+      return "Project documents unlock";
     default:
       return "Portal payment";
   }

@@ -1,0 +1,1298 @@
+[
+  {
+    "id": "90dbfb69-ae1b-4a50-b3bb-7c85a8fc5af1",
+    "title": "Gupta TruVantagr",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a45dae27b1f4cb",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "3110fd45-e740-4b13-80e6-07ffa4abb2b1",
+    "title": "Arora Company Tagger",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-95bd1a9651da62",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "92dc5c46-4caf-4250-9e2f-3135279a7a18",
+    "title": "Mini Shell",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-9a34d8c0e46ac6",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "os_systems_cs"
+  },
+  {
+    "id": "0403fe79-80cd-4a78-a7af-bd05cd74d4bb",
+    "title": "Multi-Threaded Server",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-1de69e9a44d66e",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "os_systems_cs"
+  },
+  {
+    "id": "50bc2db9-817f-409f-8e4f-06b5b2911b40",
+    "title": "Pratap Singh APR (Annual Percentage Rate) Review",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-400ad87a5b6e63",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "6f92914e-dd56-412d-aca7-eb009d736c66",
+    "title": "Kothari Oracle Banking Digital Experience",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-1559dd303293be",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "791fe755-9299-47ba-8de3-e8798e14de8a",
+    "title": "Prajapati Communication Layer Optimization",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-553aca6436f8d0",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "e6e1750f-5b5c-456d-9d3b-5cbfa102835b",
+    "title": "Begum Youtube Transcript Summariser",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-3773194bd47108",
+    "course_code": "COE",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)",
+    "tag": "person_name"
+  },
+  {
+    "id": "9e1998ca-efda-4103-a178-0c3e2e759a3d",
+    "title": "Chouhan Po2pay and internal panel",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-33bdb954972134",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "f9213510-fcfb-44c1-a5d1-338dc5a8bc35",
+    "title": "Windows Widgets",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-5119d5000db6cc",
+    "course_code": "COE",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)",
+    "tag": "person_name"
+  },
+  {
+    "id": "a9a35ea0-b559-41e1-b6fe-7c4bc2e87418",
+    "title": "Kumar Rahangdale Online Team Management",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-1314b5457fa4b1",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "b8d883dd-d19d-403f-90a4-a79d4617cfd8",
+    "title": "Tiwari Utility for creating meta data",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c5d174dd301df2",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "b6957ee9-bf8e-4d2e-b5bc-a51f548bca24",
+    "title": "Assembly Programming Tutorial",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-009801a933b78c",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "person_name"
+  },
+  {
+    "id": "074e52f4-3643-4a71-969f-027b5dc1b2c0",
+    "title": "Gupta Custom Monitoring Dashboards",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-71d1d9dba8750a",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "9c60141f-b664-40fc-8424-8d8ffb1704cf",
+    "title": "Beniwal Yellow Pages:A Telephone Directory",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-0953683cd9ba53",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "eb72b7ed-ecc2-490a-84f4-810f60dff708",
+    "title": "Kumar Oracle Banking Digital Experience",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-95b093baeb12a0",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "181740c9-c939-47d0-82a6-f6b8ef999bf1",
+    "title": "lariya Video library system",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-cc3898fbdc8306",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "3caa81c7-8dbc-47f3-8381-7bdf246e8f17",
+    "title": "Malviya learner programming portal",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-0024d0404293a8",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "2ffd34ed-018b-49f0-9f5f-d9a422c6e3f3",
+    "title": "Sheeba Fatma DATAPATH TESTING AUTOMATION TOOL",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-22d2f265fabad0",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "5ee138ca-3f2f-4ff6-9242-da2b6eb77d7e",
+    "title": "Bairwa Click to Call and Internal Panel",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-1c2165b41abc4c",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "803ea5d9-7586-4962-9a04-d20d5701b966",
+    "title": "Gupta mSupply B2B Ecommerce A",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-5cf400ba81b792",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "5b5210c8-933c-4bbe-af7f-4413b33338ae",
+    "title": "Agarawal Matrix",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-e1823a3931195a",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "6b69142a-bfb2-4030-9bf1-fda3b1994da1",
+    "title": "Thakur Generic Reconciliation Tool",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-22db23de42200b",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "person_name"
+  },
+  {
+    "id": "dd98e95b-e7f6-4343-90c9-7d4c6b77ca42",
+    "title": "Borkute Online Shopping",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-bbd62c0ad4bed1",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "91dae6a4-7a0d-436a-a2e1-266664b4f6b8",
+    "title": "Prakash Expert Search",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a8276133acd9c8",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "person_name"
+  },
+  {
+    "id": "5fe5aeeb-6ef6-4f96-bf4e-e945c7fdd75c",
+    "title": "Aggregate Data Validation Tool",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-58704556f368fc",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "person_name"
+  },
+  {
+    "id": "cd662cbf-9d60-43b5-af78-6ebbe333e934",
+    "title": "Sahu Generic Connector Service",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-99bb9f70589ddf",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "8c48aff3-7bf2-4ff6-9c90-e18553ad9d60",
+    "title": "Verma Jugnoo Tracking App",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-00b121bc864fdc",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "3b465051-a37b-4404-9f67-703a5454a55b",
+    "title": "Seth Performance Test Automation for Cloud Based M2M Node",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-2a159b9bbbac2c",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "c812f73d-8b4f-49cd-9ad5-124807504864",
+    "title": "Choudhari Online Book Store",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-e0c2517e9c668f",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "7c801074-648c-4abf-8bfd-465d8b6a58c5",
+    "title": "Nagliya Outbound Hardware Monitoring Server",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-876128d526af2b",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "02ea98e8-0c21-4db2-b74b-5d38be612597",
+    "title": "Jaiswal Lender Panel",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-26fd9fc2fccb42",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "674f0446-562b-4370-b1ed-a9560f972d3f",
+    "title": "Java Tutorials",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-3a520bbfc599b5",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "person_name"
+  },
+  {
+    "id": "a40760f5-fe4c-4dd7-9199-adb69d40d01f",
+    "title": "Gupta Online Shopping",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c742a26fcf3f97",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "5c61ae71-36c7-4ac8-8a07-7a88c1406da6",
+    "title": "Baskey Online Shopping",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-f67030b5f97b70",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "a7cbed82-6896-446c-ad74-53b1e3f36e63",
+    "title": "Beck Quality Assurance for MaaS3",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-2ccc1e092a6bac",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "3a4dac47-4989-4e8d-8c87-d5ed10bc80b7",
+    "title": "Bano Smart Finder",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-54b6dadc788dfa",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "d022a8f7-d689-4f97-be3a-633352550829",
+    "title": "Kumar Ahirwar online discussion forum",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-5432ca52e5342c",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "8dba326c-eb2d-4822-bba3-5e2638b3e146",
+    "title": "Bohra Communication & Parsing in GCS (Generic Connector Service)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c160888aba87f4",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "2d885677-2e93-48f0-b5f7-b90926c91660",
+    "title": "Soni Hostel Management Android Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-735b8a02b3f6ed",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "5200695e-137f-4cec-b76c-41cab9d61702",
+    "title": "Kumar Saket Agripedia (Android Application)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-bcba2e32384d8b",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "cff26718-9756-492e-81f6-3e6bba81e4b6",
+    "title": "Maran GTEQ",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-7ecc6c885b909c",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "be39a410-f41c-43af-ad90-92ea3bf43919",
+    "title": "Singoriya Oracle banking digital experience",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-5173e37fe862c5",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "e1b8cffb-d6bd-400c-904e-d23ff96bfef5",
+    "title": "zoho one (user management",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-61250b69e7fb15",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "3a3a54d6-4bc1-40ad-84ac-54234c98c2fa",
+    "title": "Maheshwari Campaign Centralization",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-f799baa0673a09",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "871908e0-58d7-4755-afa6-d76d13a18f8c",
+    "title": "Jain Matrimonial website",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-37163d8330c8b9",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "7b179905-c5b3-40eb-9728-775df0b27859",
+    "title": "Soni QRadar Web Services",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-9bbef5f37a13e7",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "e7497154-d74e-4a23-a436-fb95340e255f",
+    "title": "Gupta Hostel Management Android Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-66c9aeb01e0504",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "b6644ab7-d5d2-48e2-8c61-43ecbaf3461a",
+    "title": "Chouhan Payee Management Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-37b810038228e6",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "4e1da4bc-7bbf-4142-b137-58691f2f3139",
+    "title": "Agrawal Release Manager",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a5ad22f2882d89",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "person_name"
+  },
+  {
+    "id": "e1e0e353-97ce-4ea5-8a63-c0d30c37ad26",
+    "title": "Dixit Opal hostel management Android application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-d237a6fe56248a",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "a9d78306-0189-4581-ac1d-6ed193efb6ad",
+    "title": "MIS Automation",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-4c8fa464229ebe",
+    "course_code": "COE",
+    "institution": "NIT Trichy",
+    "tag": "too_vague"
+  },
+  {
+    "id": "6e1c68f3-6319-4aca-8b67-56c1d33c9c3e",
+    "title": "International Journal of Innovative Research in Science, Engineering and Technology (IJIRSET), e-ISSN: 2319-8753, p-ISSN: 2347-6710 ,Impact Factor: 7.569 Volume 10, Issue 7, July 2021 DOI:10.15680/IJI",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f724872510931b",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "citation_not_title"
+  },
+  {
+    "id": "6c025f28-006d-43d8-a306-43fadffb5ece",
+    "title": "SINC Function Based Adaptive Gamma Correction Using Grey Level Co-Occurrence Matrix for Contrast Enhancement of dark images Anirudha S, M. Sreevatsan",
+    "batch": "NIT Trichy ECE 2017",
+    "seed_key": "pub-nitt-ece-3b1a069167eff4",
+    "course_code": "ETE",
+    "institution": "NIT Trichy",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "b1ddf55d-5435-4ba9-92fb-a98204b2f5e7",
+    "title": "GeeksforGeeks Algorithms",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-3d489c380ed67d",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "too_vague"
+  },
+  {
+    "id": "86d8724e-7482-4859-a27d-0dc89273272e",
+    "title": "Transcript Summariser",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-922837e7bff3c5",
+    "course_code": "COE",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)",
+    "tag": "person_name"
+  },
+  {
+    "id": "749b2c94-2e52-4bbf-af3e-4881bc514e37",
+    "title": "For Google Meet",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-acf50c3cf37e83",
+    "course_code": "COE",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)",
+    "tag": "person_name"
+  },
+  {
+    "id": "e6c7df00-04ea-4719-b077-129ca537c12a",
+    "title": "Assembly Emulator",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-94744cf4a158c0",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "too_low_level_cs"
+  },
+  {
+    "id": "2726f2ee-abd5-4621-89a0-0d5a7cc9b57d",
+    "title": "CONTRACT MANAGEMENT",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-0cfc4e02431511",
+    "course_code": "COE",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)",
+    "tag": "too_vague"
+  },
+  {
+    "id": "94a629da-5ffe-490e-bab0-5d9e43fae36e",
+    "title": "APPOINTMENT SYSTEM",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-dec5e24d2b409b",
+    "course_code": "COE",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)",
+    "tag": "too_vague"
+  },
+  {
+    "id": "91c4a899-63a8-4205-b22e-3ef6e5e533db",
+    "title": "Custom Monitoring Dashboards",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-38469c91b74a97",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "11ab3c64-62b4-482a-8af5-b99ea92ce252",
+    "title": "Yellow Pages:A Telephone Directory",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-0cb0a93129c2b1",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "4777df5d-9be6-4565-a565-e82bdb0149ad",
+    "title": "Online Book Store",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-9bc258e734a3aa",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "fbf14c89-41ca-416a-8b06-e5f6550ee43b",
+    "title": "Online Team Management",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-4301e61535677c",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "c525c9eb-de69-42fb-94da-7986ea52f746",
+    "title": "Performance Test Automation for Cloud Based M2M Node",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-73efab4319cdc6",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "70d1e6a4-5272-40a8-9cf3-26dbb2939570",
+    "title": "Oracle Banking Digital Experience",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-72bb1e7f49c825",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "696a04db-c534-4330-bd02-22921c9db268",
+    "title": "Utility for creating meta data",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-520b6c383a6399",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "234f124a-4a0f-4362-a78f-c79d1c1eb3e3",
+    "title": "Online Shopping",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-b3890f82d95561",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "e523b8fa-ac1e-4397-a695-cef09c685ab3",
+    "title": "Platform For Increasing Empl",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c6b5fbaf54cf9c",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "person_name"
+  },
+  {
+    "id": "520584a3-5422-4daa-8480-c2fc101804eb",
+    "title": "Quality Assurance for MaaS3",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-194958dfcbad96",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "dac8148d-14c8-40d0-9b7a-943c29b5a32e",
+    "title": "Agripedia (Android Application)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-480082df69a485",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "5f56b27e-ce0a-428e-a41e-6e1496c4f977",
+    "title": "Video library system",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-518c42b47f3596",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "50f23ab8-146a-4f1c-9e02-60c10e43ca86",
+    "title": "Outbound Hardware Monitoring Server",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-e32763fbfaff8e",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "8d0e4a5a-d71a-4183-aa1d-a9532e01320f",
+    "title": "Arithmetic in Assembly",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-6725b8abbe8b93",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "too_low_level_cs"
+  },
+  {
+    "id": "2e7222df-8c25-46d6-9d4c-768b51d992a2",
+    "title": "Smart Finder",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-7d6d17d573ae46",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "8e5b69d7-de54-4e93-8c8e-d6bc577c2de7",
+    "title": "learner programming portal",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-22caad07aeb323",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "0ed9714a-f32d-4595-9519-82e2bc21aeea",
+    "title": "online discussion forum",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-9ade431f02fa88",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "ce4c2875-fc45-42f8-a7b8-ee9a64cccd4c",
+    "title": "Lender Panel",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-96e5dabe6b495b",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "1a1e12a7-75e8-45c1-bd46-d519708c4c3c",
+    "title": "DATAPATH TESTING AUTOMATION TOOL",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-04c7ec8abf78c7",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "d17a1cb8-74b1-4811-9643-724343d1ee97",
+    "title": "QRadar Web Services",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-0bc9103d997277",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "e480f015-f9a0-4ca0-93d9-692832c7b881",
+    "title": "Communication & Parsing in GCS (Generic Connector Service)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-bce16d22548ecf",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "7ed7139d-fdd4-49b1-a3b5-10a75132f4f8",
+    "title": "Generic Connector Service",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-0eb548d07a57da",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "cddb55c4-5e31-4ba1-94b0-e33d7500205c",
+    "title": "Click to Call and Internal Panel",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-5e7671da9ded45",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "97ef5ea7-75e2-4875-9730-41087639418d",
+    "title": "Jugnoo Tracking App",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-b028539cac8d33",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "6a79917c-f99d-435a-be49-13c7ccdb2ff9",
+    "title": "APR (Annual Percentage Rate) Review",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-b8fa0725653ab9",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "85186c8a-79d4-4432-ae1b-c74f21fb7e2b",
+    "title": "Communication Layer Optimization",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-b7cde7cfeaa33d",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "6c210523-06aa-41bd-8d07-07177ffa4d9f",
+    "title": "Company Tagger",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-37267d80ff145c",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "ccd3bba8-3bc2-4ff4-bd92-0a2b8bd5fdc7",
+    "title": "Po2pay and internal panel",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a291d7db4128ed",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "478c21ea-b51a-41c2-9eb2-979b09dab398",
+    "title": "Inventory Tracker",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-361b90ad2d75be",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "cs_coursework_toy"
+  },
+  {
+    "id": "08cad2e2-8275-4d11-a79f-bcd6c783846d",
+    "title": "Hostel Management Android Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-ad93bdc3d1d807",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "04b6e644-9f80-4890-a6c2-5c7317b55f45",
+    "title": "mSupply B2B Ecommerce A",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a560dcade0bd28",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "9f6bc017-0abf-40b1-9e6a-7195f7d18bf5",
+    "title": "Campaign Centralization",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-8f046a3dbc5c51",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "da93028b-ddae-414f-96fe-a4f902e148b5",
+    "title": "Matrimonial website",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c3748928d02a44",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "generic_or_intern_web"
+  },
+  {
+    "id": "08e16c70-b185-4ee5-973d-1a9bd750c6db",
+    "title": "Traffic generator",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-72e32e04513601",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "too_vague"
+  },
+  {
+    "id": "f41e057a-c722-4dce-a021-cc2d8aaf7bf1",
+    "title": "Continuous Integration for Mammography Software",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a74c67ab42687a",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_niche"
+  },
+  {
+    "id": "e6b4da62-bec2-4e1f-94bb-7fcb1e4b4f6e",
+    "title": "Integration Of BDM (Informatica Big Data Management) With Hadoop Security FeaturesDr.P.J.A.Alphonse Informatica Business Solution Pvt. Ltd.",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-8bcbb687329ac7",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "4271584a-44b4-4b5f-8a14-780950b9b73c",
+    "title": "Payee Management Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-d4f543728a009e",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "2f5cb86f-9a02-4f49-bfee-e1f6bfbd5e14",
+    "title": "MDM Implementation",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-4bc4301af8df95",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "too_vague"
+  },
+  {
+    "id": "2a7d67bc-9966-44eb-9507-8610c98afb63",
+    "title": "Sorting Visualizer",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-45f7e434c701c0",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "cs_coursework_toy"
+  },
+  {
+    "id": "b138b371-f51e-40f3-991a-dbb0dc63abfc",
+    "title": "Set top box integration",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-dffc06aa77eddd",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_niche"
+  },
+  {
+    "id": "7c8940dc-ea03-4858-866e-9f5ea6b2acb7",
+    "title": "Release Manager",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-9e393b3837a3fd",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "person_name"
+  },
+  {
+    "id": "ba0c2cc5-68bf-490a-8495-070a4ad3138e",
+    "title": "Generic Reconciliation Tool",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-91da7d106c8396",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "person_name"
+  },
+  {
+    "id": "a2937a23-4130-45e0-aec9-b5d0804e3fc2",
+    "title": "Maze Solver",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-5be072ed4f2bd9",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "cs_coursework_toy"
+  },
+  {
+    "id": "d6dfb140-3386-487c-9720-6c62a3decfbb",
+    "title": "Integration of BDM (Informatica Big Data Management) with new releases of hadoop distributionsMr.K. Sakkaravarthy Iyyappan Informatica Business Solution Pvt. Ltd.",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-32e0d49dab7eac",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "vendor_or_internship"
+  },
+  {
+    "id": "5133531e-9703-4dcd-927c-833cdd1e1ab7",
+    "title": "Mobile Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-cc768e83311813",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "too_vague"
+  },
+  {
+    "id": "10d96cbb-40fc-4ce6-9355-1c5196a3e16d",
+    "title": "Kirange Maharashtra Tourism Portal",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-2e0fc90355469a",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "person_name"
+  },
+  {
+    "id": "aa5b91aa-7408-4509-adfb-2074c1588853",
+    "title": "Customer Panel­mProcure",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-0b2e892e25a52a",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "too_vague"
+  },
+  {
+    "id": "9c432b49-525c-4d1a-ab83-b593d8651808",
+    "title": "Expert Search",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-35ff49047bc68d",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "person_name"
+  },
+  {
+    "id": "5aa73448-59ca-4326-ad24-8a60094cfa84",
+    "title": "Digital Watermarking",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-e1505272f8c79a",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "too_vague"
+  },
+  {
+    "id": "35c37a70-f798-4434-bd3f-2ffe40b3697f",
+    "title": "Data Validation Tool",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-b0fd17294a4b55",
+    "course_code": "COE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "person_name"
+  },
+  {
+    "id": "166e65c1-0e5e-4231-856f-20e5c3cd0e26",
+    "title": "3. Automated flow for asynchronous state machine Hemanaathan D",
+    "batch": "NIT Trichy ECE 2026",
+    "seed_key": "pub-nitt-ece-ee634a55b9a42c",
+    "course_code": "ETE",
+    "institution": "National Institute of Technology, Tiruchirappalli",
+    "tag": "garbage_meta"
+  },
+  {
+    "id": "4b0ba5fa-8dae-4493-94bb-8c6fd8b7f450",
+    "title": "A-MAC: Deterministic Execution Replay and OS-Agnostic Memory Carving",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-70f391cbe2e038",
+    "course_code": "COE",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "tag": "advanced_cyber_research"
+  },
+  {
+    "id": "cc1d7aca-ecec-48d1-a9a5-fe1bf1677893",
+    "title": "Integration of Wazuh with SOAR",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-505406f7d1b90d",
+    "course_code": "COE",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "tag": "advanced_cyber_research"
+  },
+  {
+    "id": "e49f1bc8-1172-43f9-af2f-a333311a51dc",
+    "title": "Enhancing ScoutSuite: Automated Remediation Playbook Generator",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-99c0745e95b335",
+    "course_code": "COE",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "tag": "advanced_cyber_research"
+  },
+  {
+    "id": "e94dfa05-8d0b-4e1f-8a90-0dcb9cec80b2",
+    "title": "Automated Detection and Mitigation of Mass Assignment Vulnerabilities in RESTful APIs",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-9a2bbe6980724b",
+    "course_code": "COE",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "tag": "advanced_cyber_research"
+  },
+  {
+    "id": "73bd764a-91af-463f-b597-7bf5609207dd",
+    "title": "Data Search Tool",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-aceea9ddaca2e0",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "cs_coursework_toy"
+  },
+  {
+    "id": "eae9ca85-c819-41b2-8605-21e3cc9dbf6c",
+    "title": "Deception Technology for APT Detection in Critical Infrastructure",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-f63aa694a47654",
+    "course_code": "COE",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "tag": "advanced_cyber_research"
+  },
+  {
+    "id": "eee81592-362f-4ee8-81b8-047780a4eb71",
+    "title": "Adaptive Multimode Cyber Awareness Training Platform with Automated Challenge Synthesis and Quantified Cyber Awareness, Recognition, and Treatment Scoring (CARTQ)",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-02d5df4ec4bb46",
+    "course_code": "COE",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "tag": "advanced_cyber_research"
+  },
+  {
+    "id": "48ae9f40-5b33-4e72-bc8a-a7678c97beee",
+    "title": "MTD-HealthNet: A Moving Target Defense Model for Securing Hospital LANs",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-7a63ba9bb4a7c7",
+    "course_code": "COE",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "tag": "advanced_cyber_research"
+  },
+  {
+    "id": "f5ed6737-7792-431a-8758-69a07ff93389",
+    "title": "Quantum Secure File transfer (Client-Server)",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-6c9f1ad88808d3",
+    "course_code": "COE",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "tag": "advanced_cyber_research"
+  },
+  {
+    "id": "d91a3229-1b89-40bb-b81d-73f96fb5d91f",
+    "title": "Implementation of a Hybrid Post-Quantum VPN Protocol with Quantum Key Integration",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-5660db1dd394fd",
+    "course_code": "COE",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "tag": "advanced_cyber_research"
+  },
+  {
+    "id": "b1271240-36c8-43aa-ab5b-427ff4dcc8c8",
+    "title": "Exploring Data Diodes for Cyber Physical System Security",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-82658c484306cf",
+    "course_code": "COE",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "tag": "advanced_cyber_research"
+  },
+  {
+    "id": "b7510af4-4c8e-4070-82ce-da6997f61aae",
+    "title": "Text-Based Adventure Game",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-8b364f99927ea1",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "too_basic_toy"
+  },
+  {
+    "id": "84f19a5b-28e5-4350-a3b1-2de9c6341a14",
+    "title": "Simple Calculator",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-40fae637055418",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "too_basic_toy"
+  },
+  {
+    "id": "de7e58fe-c04e-42be-9a14-f0219d22ec93",
+    "title": "To-Do List App",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-79b7b59f43590d",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "too_basic_toy"
+  },
+  {
+    "id": "1651a12f-a68a-4ff0-9c4a-d4f85a80143f",
+    "title": "Student Management System",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-8383df500de398",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "cs_coursework_toy"
+  },
+  {
+    "id": "5b4bf62d-01ea-445a-b221-2fd9bbb4116a",
+    "title": "Simulation Game",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-376c3201ec0197",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "cs_coursework_toy"
+  },
+  {
+    "id": "cbd259fc-02da-4399-8ae6-df97804270f6",
+    "title": "Bootloader Message",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-56092c8e602350",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "too_low_level_cs"
+  },
+  {
+    "id": "354a2032-9808-4cfb-aa3f-fc274732089d",
+    "title": "Ram Tapse Patil",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1147d3f4fefc3f",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "person_name"
+  },
+  {
+    "id": "0c8776f1-e510-44a1-b4d0-e78dc442a825",
+    "title": "File System Explorer",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-2f69aa563f7af2",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "os_systems_cs"
+  },
+  {
+    "id": "0771638d-24dc-4dda-9531-222ac7c9067f",
+    "title": "Personal Portfolio Website",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-78874d892e1857",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "too_basic_toy"
+  },
+  {
+    "id": "0f757e42-a25d-487f-81a8-bbf26502a60b",
+    "title": "Interactive To-Do App",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-73217887a767fb",
+    "course_code": "COE",
+    "institution": null,
+    "tag": "too_basic_toy"
+  },
+  {
+    "id": "9d4664ef-38d4-483f-b721-999dc8cf3dc1",
+    "title": "Aditya Sanjay Gujar",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-a45a1dcce860a1",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "person_name"
+  },
+  {
+    "id": "f53c634f-a3a0-43ef-8084-29dacb65328e",
+    "title": "Chaudhari Piyush Dinesh",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-36ccfea27dff9a",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "person_name"
+  },
+  {
+    "id": "d9585531-8971-47d5-a16d-883ae8230b62",
+    "title": "Automate Engineering Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-5f8a773b5a932d",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "person_name"
+  },
+  {
+    "id": "fed0b974-a668-4a39-b1ff-66ef45a234c0",
+    "title": "Mahajan Neeraj Vinod",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-ec509821b68408",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "person_name"
+  },
+  {
+    "id": "69d37fee-caa3-445a-b6b4-dd0a30628dbd",
+    "title": "Patil Nikita Ajitsinh",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f2978fef3f354f",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "person_name"
+  },
+  {
+    "id": "0dced67d-0ba7-4228-b1ed-e332acc0c204",
+    "title": "Pattern Recognition, Volume 147, article id. 110068.March 2024 &nbsp; DOI: 10.1016/j.patcog.2023.110068 &nbsp;",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-818cb9bbf74944",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "citation_not_title"
+  },
+  {
+    "id": "3ef07e19-1293-4ab8-80bc-0fec1977d35e",
+    "title": "Pooja Dilip Kulkarni",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-b3d17001d0d806",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "person_name"
+  },
+  {
+    "id": "0150d56e-841e-4159-8d6f-b8f652ac3e85",
+    "title": "My Future Town Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1f3bfd30382a7b",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "person_name"
+  },
+  {
+    "id": "b011c220-648e-4ce2-bd09-8ad4008f72d4",
+    "title": "2022 IEEE Region 10 Symposium (TENSYMP), Mumbai, India, 2022, pp. 1-5, doi:10.1109/TENSYMP54529.2022.9864416",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-ad221b6bbe425d",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "citation_not_title"
+  },
+  {
+    "id": "c02919da-34cc-4bad-86f6-69b6af8541de",
+    "title": "Remote Sensing Based Crop Monitoring System IEEE Conference Publication IEEE Xplore",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-4c7042a1c3611f",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "citation_not_title"
+  },
+  {
+    "id": "24b59238-b639-42f0-b721-668961f7cb87",
+    "title": "Shiv Kumar Dange",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f7bf22ebd09bd4",
+    "course_code": "ETE",
+    "institution": "AISSMS College of Engineering, Pune",
+    "tag": "person_name"
+  },
+  {
+    "id": "05ece1ee-51e1-4375-8110-394e838e79de",
+    "title": "error detection",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-8bc72f4789d1ed",
+    "course_code": "COE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)",
+    "tag": "too_vague"
+  }
+]

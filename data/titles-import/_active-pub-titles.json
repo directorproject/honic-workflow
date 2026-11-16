@@ -1,0 +1,4367 @@
+[
+  {
+    "id": "b011c220-648e-4ce2-bd09-8ad4008f72d4",
+    "title": "2022 IEEE Region 10 Symposium (TENSYMP), Mumbai, India, 2022, pp. 1-5, doi:10.1109/TENSYMP54529.2022.9864416",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-ad221b6bbe425d",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "43d02b9b-f254-4e9c-a981-1252291719fe",
+    "title": "2D to 3D using neural radiance field and volumetric rendering",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-6b0c6001b39f1f",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "166e65c1-0e5e-4231-856f-20e5c3cd0e26",
+    "title": "3. Automated flow for asynchronous state machine Hemanaathan D",
+    "batch": "NIT Trichy ECE 2026",
+    "seed_key": "pub-nitt-ece-ee634a55b9a42c",
+    "course_code": "ETE",
+    "communication": "ECE",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "9b90f945-bfb2-4096-98d9-85b6c1a0b0b7",
+    "title": "A Hybrid Approach for helmet detection",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-97e0328c546957",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "f2a9df56-cbd2-4a11-b265-6ab1f21c071f",
+    "title": "A Real time non invasive cholesterol monitoring system",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-3013375f541123",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "22111ed0-2765-4f16-ad53-6da703493d28",
+    "title": "A Wireless Sensor Network monitoring system for walls and Civil Structures",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-2f72d115ca2a5d",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "4b0ba5fa-8dae-4493-94bb-8c6fd8b7f450",
+    "title": "A-MAC: Deterministic Execution Replay and OS-Agnostic Memory Carving",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-70f391cbe2e038",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "eee81592-362f-4ee8-81b8-047780a4eb71",
+    "title": "Adaptive Multimode Cyber Awareness Training Platform with Automated Challenge Synthesis and Quantified Cyber Awareness, Recognition, and Treatment Scoring (CARTQ)",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-02d5df4ec4bb46",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "9d4664ef-38d4-483f-b721-999dc8cf3dc1",
+    "title": "Aditya Sanjay Gujar",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-a45a1dcce860a1",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "f7092b83-c59f-4a59-9224-9d0f201ee99a",
+    "title": "Advanced street lighting system using IOT",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-c8b9d7bd2ab78b",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "5b5210c8-933c-4bbe-af7f-4413b33338ae",
+    "title": "Agarawal Matrix",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-e1823a3931195a",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "5fe5aeeb-6ef6-4f96-bf4e-e945c7fdd75c",
+    "title": "Aggregate Data Validation Tool",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-58704556f368fc",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "4e1da4bc-7bbf-4142-b137-58691f2f3139",
+    "title": "Agrawal Release Manager",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a5ad22f2882d89",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "dac8148d-14c8-40d0-9b7a-943c29b5a32e",
+    "title": "Agripedia (Android Application)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-480082df69a485",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "6c8b17c9-cef5-4cdf-95ce-392b14e5cfe3",
+    "title": "AISSMS College of Engineering 1 Kennedy Road, Pune - 411 001, Maharashtra (INDIA)",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-0951e862a1fc7d",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "69f37062-0dec-40c3-9835-1aeb139b683c",
+    "title": "Alternative method for Predicting severity of accidents using deep forest algorithm",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-593edf06629493",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "c6d69ced-2624-4125-b5de-6036937ee45e",
+    "title": "Aman Sagar, Arjun Singh, Shreyash Parkhe, Vaishnavi Navale,",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-8661efc2e648d2",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "87826e73-a031-463b-8150-a7d9472bf088",
+    "title": "Amble Vijay D",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-83660cf884fdf3",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "c69d1384-a40b-463d-9ad0-f09f628939a8",
+    "title": "An Effective Technique for Reducing Transient Response in Digital IIR Notch Filter B. Banu Prasad, D. Naga Shiva Sai Pavan Kumar, N. Jayanth",
+    "batch": "NIT Trichy ECE 2017",
+    "seed_key": "pub-nitt-ece-6be14af435c0a2",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "f501ec89-b437-4fda-921f-542117fb3758",
+    "title": "An efficient and secure seduplication scheme for",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-450f3e1f3fe72c",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "dfe996a2-12e4-433e-9611-28313e584659",
+    "title": "An Integrated System for Smart Anomaly Detection and Secure Network Configuration",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-b255534e9f830e",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "1e6e46c1-3e08-4c54-a815-510e41fd8296",
+    "title": "analysis of students performance",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-4978604bf32570",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "52e6b9a3-c557-49ab-bbeb-9d6372b60a86",
+    "title": "Android Based Food Waste Management System",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-88156a2df5dd1e",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "d7d1cebc-bba8-4b24-aa9f-72e84af022e1",
+    "title": "Android Test Automation",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-eebe9058038212",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "f82d9b5d-c385-42f9-9299-1b95f4f8a52a",
+    "title": "Application Detection and Deep Packet Inspection, Web QoE",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-e6f80edfa30419",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "d6c5ab00-923f-40f0-9742-f121636932a9",
+    "title": "Application, Environment, safety",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-67c1638ec648ff",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "94a629da-5ffe-490e-bab0-5d9e43fae36e",
+    "title": "APPOINTMENT SYSTEM",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-dec5e24d2b409b",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "6a79917c-f99d-435a-be49-13c7ccdb2ff9",
+    "title": "APR (Annual Percentage Rate) Review",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-b8fa0725653ab9",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "156b6255-6a7d-4a11-9d8b-bee5a9496065",
+    "title": "Aquaculture Water Management",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-827b015d3b526c",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "8d0e4a5a-d71a-4183-aa1d-a9532e01320f",
+    "title": "Arithmetic in Assembly",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-6725b8abbe8b93",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "3110fd45-e740-4b13-80e6-07ffa4abb2b1",
+    "title": "Arora Company Tagger",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-95bd1a9651da62",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "705a2522-a783-4605-93d8-6fd70fb1ca8c",
+    "title": "Asolution of online weighted",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-7c55d57523d434",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "e6c7df00-04ea-4719-b077-129ca537c12a",
+    "title": "Assembly Emulator",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-94744cf4a158c0",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "b6957ee9-bf8e-4d2e-b5bc-a51f548bca24",
+    "title": "Assembly Programming Tutorial",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-009801a933b78c",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "3a23f1d0-f15c-49a2-9144-f4af0b0b4052",
+    "title": "Atomic Enterprises, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-d5216b02bd25a2",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "65a63fd0-5248-476c-9c62-01d7977aa1bd",
+    "title": "AudioVision: A Helping system for Visually Impaired",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-957145e70d4815",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "d9585531-8971-47d5-a16d-883ae8230b62",
+    "title": "Automate Engineering Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-5f8a773b5a932d",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "68194d77-ab5b-45b3-b53a-f409f2a29d58",
+    "title": "Automated Authentication Testing Tool for JWT and OAuth Vulnerabilities",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-12aaea9404f6cb",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "2ed0ed2b-ba19-4b90-96d0-1beb0086823b",
+    "title": "Automated Data entry using Robotic process Automation",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-274a9ead00907b",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e94dfa05-8d0b-4e1f-8a90-0dcb9cec80b2",
+    "title": "Automated Detection and Mitigation of Mass Assignment Vulnerabilities in RESTful APIs",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-9a2bbe6980724b",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "e41e4960-e06d-499b-8c8d-5f503fc3d061",
+    "title": "Automated flow for asynchronous state machine Hemanaathan D",
+    "batch": "NIT Trichy ECE 2026",
+    "seed_key": "pub-nitt-ece-297a147543fc88",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "c490ec7d-75c9-4ab0-80ff-c2ca82000de1",
+    "title": "Automated handwritten character recognition",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1c172278442b57",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "13c8e789-7565-4f63-841a-88cbd540b370",
+    "title": "Automated Paralysis Patient Healthcare System",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-a75e09f11a9aeb",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "339655bb-1842-43c3-9e6f-983228149819",
+    "title": "Automated Patient Room using Neural Network based Speech Recognition",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-3fedc168c30a63",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "bf3eed6f-a908-4c79-8c2f-42cb2e18e557",
+    "title": "Automation Testing in Distributed Environment",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-3311e3a9ad8f26",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "84377baf-0049-44f5-b31b-0d7c6cc8a6e4",
+    "title": "Automation tool for testing packet forwarding",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-fe5466162669c1",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "5e07dd73-31a2-4be0-b25d-775e554a6b55",
+    "title": "Autonomous Medical Assistive Robot &nbsp;",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-9c8907bd0b025d",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e3c24067-7614-4e12-9413-e02e0cd9b986",
+    "title": "Availability Analytical model of cloud computing based on backup resource sharing and probabilistic protection guarantee",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-ac793130a41057",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "5ee138ca-3f2f-4ff6-9242-da2b6eb77d7e",
+    "title": "Bairwa Click to Call and Internal Panel",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-1c2165b41abc4c",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "3a4dac47-4989-4e8d-8c87-d5ed10bc80b7",
+    "title": "Bano Smart Finder",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-54b6dadc788dfa",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "5c61ae71-36c7-4ac8-8a07-7a88c1406da6",
+    "title": "Baskey Online Shopping",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-f67030b5f97b70",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "a7cbed82-6896-446c-ad74-53b1e3f36e63",
+    "title": "Beck Quality Assurance for MaaS3",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-2ccc1e092a6bac",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "c33cb68a-650f-45b4-8225-467849d53e27",
+    "title": "Begum Pulmonary CT Scan Image Segmentation using U-Net Architecture",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-14e88c96ad29f1",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "536e9899-c9fb-4713-874b-7ed2e53071fa",
+    "title": "Begum Skin Cancer Detection using Machine Learning",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-b910fe86c8b332",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "7b5f4f43-54f2-4fc8-83d8-7668b00adf08",
+    "title": "Begum SONAR ROCK OR MINE PREDICTION IN MACHINE LEARNING",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-7163d4de2b7913",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "2b4f9b9e-5930-4175-bb2d-92cf097f2cb4",
+    "title": "Begum Youtube comment spam detection",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-b35a93672fb937",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "e6e1750f-5b5c-456d-9d3b-5cbfa102835b",
+    "title": "Begum Youtube Transcript Summariser",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-3773194bd47108",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "9c60141f-b664-40fc-8424-8d8ffb1704cf",
+    "title": "Beniwal Yellow Pages:A Telephone Directory",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-0953683cd9ba53",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "d583618c-f904-46e6-be6e-7456dba59f8d",
+    "title": "Bhatti Image Computer Health Check Framework",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-91438017dd7c24",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "b796d550-caec-45aa-b4cc-41ba0ea83b1d",
+    "title": "Bhosle Medical information system",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-96d64ad0bd16b6",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "3d282012-1321-40e3-b550-853a26308888",
+    "title": "Bike Security System",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-267daa20d14077",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "a8811d3d-0770-4b95-bc99-a4f647554b59",
+    "title": "Blood Cell Count Detection Using YOLO V5",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-ea1d840fa59dc0",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "bbe5a0e6-e558-44f5-8aa8-03fdfcb7a2d8",
+    "title": "bloom filters used for privacy preserving record linkage",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-0396a0f93d7302",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "8dba326c-eb2d-4822-bba3-5e2638b3e146",
+    "title": "Bohra Communication & Parsing in GCS (Generic Connector Service)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c160888aba87f4",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "cbd259fc-02da-4399-8ae6-df97804270f6",
+    "title": "Bootloader Message",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-56092c8e602350",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "195105f5-55ca-43a0-9ce9-45feb6ed6ef8",
+    "title": "Border Noise Removal, Image Classification of Text and Graphics B. Harinivash, Raj Kamal Ganesan, Sibinanth M",
+    "batch": "NIT Trichy ECE 2013",
+    "seed_key": "pub-nitt-ece-922342ba31ad62",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "dd98e95b-e7f6-4343-90c9-7d4c6b77ca42",
+    "title": "Borkute Online Shopping",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-bbd62c0ad4bed1",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "45cd8583-8e08-4ab1-95de-cf380c659896",
+    "title": "Brand Publicity(Graphics Designing and Printing, Pune)",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-72a605f00d7b0d",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "63a1373d-44de-4c3f-9703-4ff693de6340",
+    "title": "Breaking Language Barriers: Transformer Based Sentence Translation",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-0730b31e10d91a",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "54d2c6a3-f2d4-4718-bb1f-d38ea7b1d8c1",
+    "title": "Breast Cancer Detection Using ML",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-3f7d74db91e15a",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "23a4be5b-ce5d-4f60-8d65-950e5432495a",
+    "title": "BRENT CRUDE OIL PRICE PREDICTION",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-3b864f462d956c",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "e452744a-b62e-4900-a283-a57950cdb098",
+    "title": "Bundele Detection and Avoidance of Replication of Files",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-566289a4aed508",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "88936a24-5fad-4a47-bee5-e141a1825a05",
+    "title": "calorie and nutrition from food image",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-e512839f333de9",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "9f6bc017-0abf-40b1-9e6a-7195f7d18bf5",
+    "title": "Campaign Centralization",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-8f046a3dbc5c51",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "66896d38-52da-4423-9244-8573e4e56ab3",
+    "title": "Cancer Detection using Machine Learning",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-35e971e75017f7",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "c6bfec44-83d9-4903-8583-29edcf7048c0",
+    "title": "Car Solution App",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-6065ac1517d8d9",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "f53c634f-a3a0-43ef-8084-29dacb65328e",
+    "title": "Chaudhari Piyush Dinesh",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-36ccfea27dff9a",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "c812f73d-8b4f-49cd-9ad5-124807504864",
+    "title": "Choudhari Online Book Store",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-e0c2517e9c668f",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "386108d3-2784-4976-b46b-f2bf3601ee50",
+    "title": "Choudhary MDM (Mobile Device Management)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-7a3bbd3359890f",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "b6644ab7-d5d2-48e2-8c61-43ecbaf3461a",
+    "title": "Chouhan Payee Management Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-37b810038228e6",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "9e1998ca-efda-4103-a178-0c3e2e759a3d",
+    "title": "Chouhan Po2pay and internal panel",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-33bdb954972134",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "2efcee59-e2c7-4e3b-b2ad-50e7e18d45f5",
+    "title": "Classification of Crack Propagation in Materials Using Acoustic Emission by Deep Learning Damarla Kuvalaya Datta, Kethavath Rakesh,",
+    "batch": "NIT Trichy ECE 2019",
+    "seed_key": "pub-nitt-ece-13020884ccfcfb",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "bbd1b391-d9d9-4a25-9ca1-5139bef01e6f",
+    "title": "Classification of Different Corrosion Types Based on Electrochemical Noise Data Using Deep Neural Networks D. Abhishek, V.",
+    "batch": "NIT Trichy ECE 2019",
+    "seed_key": "pub-nitt-ece-d9ea1a0bc4340f",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "5d45d2ad-000c-461f-8c06-8f6f32429004",
+    "title": "Classification of ECG Arrhythmias using discrete wavelet transform and neural networks.",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-839c07fff3e5cd",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e4f4522e-d057-4757-9293-1c0e26eaf171",
+    "title": "classification using neural",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-3c2179aaf6a63e",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "cddb55c4-5e31-4ba1-94b0-e33d7500205c",
+    "title": "Click to Call and Internal Panel",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-5e7671da9ded45",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "95aec45d-3c78-4c86-9fed-319f1b29d490",
+    "title": "cloud assiste ehealth systems",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-3a8c48f388a104",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "3ffcbc23-7c51-4156-8526-c22bdb50b0ee",
+    "title": "CNC PCB Router",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-816fddabf882d5",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e487fa7e-5495-49c7-a8a1-8ec7e9369aad",
+    "title": "CNN- based deep fake face detector",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-6e595af530a470",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "ace7b920-f9bb-43b6-858b-a1f5235af21c",
+    "title": "collection Fishing websites",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-d7f350e6ba771b",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "a37cf785-8705-4d81-981e-2c75aec66f5a",
+    "title": "comment spam detection",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-753834e0f43f7e",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "e480f015-f9a0-4ca0-93d9-692832c7b881",
+    "title": "Communication & Parsing in GCS (Generic Connector Service)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-bce16d22548ecf",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "85186c8a-79d4-4432-ae1b-c74f21fb7e2b",
+    "title": "Communication Layer Optimization",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-b7cde7cfeaa33d",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "6c210523-06aa-41bd-8d07-07177ffa4d9f",
+    "title": "Company Tagger",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-37267d80ff145c",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "5def1d22-6313-4137-80c7-6cf4e44725d0",
+    "title": "Concept based Image retrieval",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-d2e96924e94005",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "a3616dc9-24cd-432d-a9e8-5681e0c3d657",
+    "title": "Conditional reiterative High-Fidelity GAN inversion for image editing",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-c37e8e73846908",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "f41e057a-c722-4dce-a021-cc2d8aaf7bf1",
+    "title": "Continuous Integration for Mammography Software",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a74c67ab42687a",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "2726f2ee-abd5-4621-89a0-0d5a7cc9b57d",
+    "title": "CONTRACT MANAGEMENT",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-0cfc4e02431511",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "05562f34-0838-4894-b2dc-d83cb764ff86",
+    "title": "cost prediction using ML",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-a7d2c6f8506a64",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "d2f129a9-a305-42ca-9d12-4bf743024f26",
+    "title": "country level location classification of world wide",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-5d4bf39cec86e1",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "731d6d82-20aa-41a8-aebe-437eb69b7978",
+    "title": "Crop and Fertiliser Adviser",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-472b40ea44c88d",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "c4a88f0b-9cd6-427a-bf0d-dddb3ea449a5",
+    "title": "Cryptanalysis of bloom filters used for privacy preserving record linkage",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-99d5fb297a03b8",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "c06541b9-53c4-4489-8711-450b088f27ea",
+    "title": "CT Scan Image Segmentation using U-Net Architecture",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-1f4051a9ec0c6f",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "91c4a899-63a8-4205-b22e-3ef6e5e533db",
+    "title": "Custom Monitoring Dashboards",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-38469c91b74a97",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "3e8fa914-2fb9-41f4-9312-a549f92d5b00",
+    "title": "Custom Object distance and detection using computer vision",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-51b50965798466",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "7e28f78c-6c54-4b2f-91fc-120fa702501c",
+    "title": "Customer Panel(PO to Pay)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c578435ba01e5f",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "aa5b91aa-7408-4509-adfb-2074c1588853",
+    "title": "Customer Panel­mProcure",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-0b2e892e25a52a",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "90be9e30-e60f-4556-b799-8e5ef8b16724",
+    "title": "CUSTOMER SEGMENTATION USING MACHINE LEARNING",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-49ab830762f523",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "145295bb-9263-4d90-bf73-5fa8f3b77860",
+    "title": "Cyber Security using Natural Language Processing and Key Logging",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-e856083cc88b16",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "ccbdc019-0d1d-4e45-8d11-853e91eab203",
+    "title": "D.G. Bhalke, Daideep Bhingarde, Siddhi Deshmukh, Digvijay Dhere",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-a26f1cdb326ff8",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "17b24666-b25f-4461-b7d2-7453e082475f",
+    "title": "Dangi SAP IQ",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-26e2a543ee6824",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "a5bbd014-cf58-4157-af45-6442752a158c",
+    "title": "Data Analysis on Geolocational Data",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-1e14aa12ec1166",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "73bd764a-91af-463f-b597-7bf5609207dd",
+    "title": "Data Search Tool",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-aceea9ddaca2e0",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "35c37a70-f798-4434-bd3f-2ffe40b3697f",
+    "title": "Data Validation Tool",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-b0fd17294a4b55",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "1a1e12a7-75e8-45c1-bd46-d519708c4c3c",
+    "title": "DATAPATH TESTING AUTOMATION TOOL",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-04c7ec8abf78c7",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "84b180da-3a9d-4cf1-b1c1-be0a9ee747d7",
+    "title": "Debugging Java in Eclipse",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-92143040580a09",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "2857a668-7e19-4651-be61-af1f58571f26",
+    "title": "Debugging Javascript in browser",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-4f1bda971dcc3e",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "a575dfeb-8e47-4e3d-9f93-b27fdd2a3992",
+    "title": "Debugging Python in VSCode",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-e29174414312bf",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "eae9ca85-c819-41b2-8605-21e3cc9dbf6c",
+    "title": "Deception Technology for APT Detection in Critical Infrastructure",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-f63aa694a47654",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "bb7bc0c1-ec21-4228-8b39-bc47408cc980",
+    "title": "Deep captcha - a deep learning based captcha solver for vulnerability assessment",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-139d0f713642b0",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "e242b45e-9dc1-4101-a70c-3e2a3ce64774",
+    "title": "Deep Convolution Neural Network based Agricultural Image Super Resolution Sai Sanika Mualidhar,",
+    "batch": "NIT Trichy ECE 2023",
+    "seed_key": "pub-nitt-ece-fd4a36d5195be6",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "3a915f0f-08f6-4902-8dbb-817648c73427",
+    "title": "Deep Learning Based Image Super Resolution for Plant Disease Classification Sammeta Kushal, M.",
+    "batch": "NIT Trichy ECE 2024",
+    "seed_key": "pub-nitt-ece-cf7fd4c336d9e4",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "39a1ca09-a876-49cb-b0f4-fdf3ef84f40d",
+    "title": "Deep Sea Debris Detection using Convolutional Neural Network Sharan Rajamanoharan, V.",
+    "batch": "NIT Trichy ECE 2022",
+    "seed_key": "pub-nitt-ece-5cd07df985bc48",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "cc7724cc-8092-464d-b242-e5a6b65c14ba",
+    "title": "Deep Spectral Spatial attention network for HIS super resolution using adaptive feature embedding Gondala ShivaTeja,",
+    "batch": "NIT Trichy ECE 2025",
+    "seed_key": "pub-nitt-ece-f9269e83a82a6b",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "b2e05157-f98c-45d1-93cc-4e5594140bc6",
+    "title": "DeepFake Detection System",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-b60b3487fb396a",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "6398bbd9-4358-4163-a33e-7816b0326ebd",
+    "title": "Denoising and Enhancement of Dark Images Using Multiwavelets Kilari",
+    "batch": "NIT Trichy ECE 2016",
+    "seed_key": "pub-nitt-ece-39ea3df9646a21",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "434c611d-5127-4f78-b0ac-db347cf13337",
+    "title": "Design and Development of IoT Based Sanitary Napkin Vending Machine",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-aa79467ed172cf",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "2c0e0ea3-90ca-4a81-9fa1-aca6071a3706",
+    "title": "Design and Development Of Microstrip Antenna For Non-Invasive Glucose Testing",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-dcaaa511e42ead",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "371edfe7-d196-4c3f-a412-538803510c39",
+    "title": "Design and implementation of 3 Axis CNC PCB drilling machine",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-21ee75bba3b0dc",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "edc23529-294a-4ba8-9442-d776590ff66f",
+    "title": "Design and implementation of protocol for defense safety in 5G using D2D communication",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f04aa8d39d09e1",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "204e2f95-ba0e-4977-abcd-3baf040cdacc",
+    "title": "Designig a control system and software application to monitor advertisment/display screen",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-65068419dbf1e2",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "6dec8fbf-8d83-4ff1-b6aa-632ff99b4652",
+    "title": "Designing a control system and software application to monitor advertisement/display screen",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-c6080359a844f0",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "c929852e-375e-4feb-87bc-87f4eaafa153",
+    "title": "Detection and Avoidance of Replication of Files",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-4a9c2ebb09c25c",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "a5d68225-4d04-4306-8838-1f00a3414344",
+    "title": "Detection And Diagnosis of Covid-19 Using Pnuemonia",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-760f66ef40beaa",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "7472e4d0-9b00-4e1b-ba51-789cd2556a6e",
+    "title": "Detection And Diagnosis of Covid-19 Using Pnuemonia SAMRIDDHI : A Journal of Physical Sciences, Engineering and Technology (smsjournals.com)",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-9aa5ecd98df3c6",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "42a70184-2485-4f79-a065-4a2ee6aa5927",
+    "title": "Detection of Corrosion using R-CNN Arutselvan D, G.",
+    "batch": "NIT Trichy ECE 2019",
+    "seed_key": "pub-nitt-ece-8a67af0f8da85a",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "79995e23-d886-48a6-879a-cd1133a459b4",
+    "title": "Detection of Midge Damage in Wheat Kernels A",
+    "batch": "NIT Trichy ECE 2013",
+    "seed_key": "pub-nitt-ece-4c1e7a69604fd9",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "85319022-6320-4cee-a263-c6e4f2ddba0c",
+    "title": "Detection using CNN",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-87a710de641ed0",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "e074146e-57b1-4c0a-b681-f722bde7e35e",
+    "title": "detection using Image processing",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-ead2d098f3ce9c",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "8870d302-1654-41a1-a618-dc6dd108c250",
+    "title": "detection using machine learning",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-c96f6bbc87866d",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "121f1f66-d24a-4be2-801c-e299ddd837ce",
+    "title": "Development of an efficient LEACH routing protocol encountering wormhole attack in wireless sensor network",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f32835fcd7e2c4",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "7447d7c9-6b6e-45fc-b0a9-ecf0016d0f7b",
+    "title": "Development of Mobile Person Identifier and Follower Robot Aswin Gururaj, Naven S R,",
+    "batch": "NIT Trichy ECE 2020",
+    "seed_key": "pub-nitt-ece-bc52aba50a86ca",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "f626c382-3318-432a-9cf5-4bc1a415e2d1",
+    "title": "Dhankar Make A List",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-ae3586a3bcf9cc",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "ee05f004-0bc2-4153-8f61-09f655dc73c9",
+    "title": "Diagnosis and Detection of Covid19 , Pneumonia using Deep Learning",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-c2de47f100162e",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "5aa73448-59ca-4326-ad24-8a60094cfa84",
+    "title": "Digital Watermarking",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-e1505272f8c79a",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "b62577c8-402b-435b-bc82-b217b6db4046",
+    "title": "Digitization of operational matrices",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-35c6f9cc34f89a",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "92bcd372-04bb-4715-8a55-33204e61153b",
+    "title": "Divya Sutar, Amisha Yeole, Vrushali Gaikwad, V d Nagrale,",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-6862dfbe1e4865",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e1e0e353-97ce-4ea5-8a63-c0d30c37ad26",
+    "title": "Dixit Opal hostel management Android application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-d237a6fe56248a",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "4d3b98d2-ce6b-47d4-b3cd-a56b5d28f5e9",
+    "title": "Driver Monitoring System for Digital Twin",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-2c87cb4a0f7e81",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "bf81e409-ff20-457b-b8f0-d28379d76d24",
+    "title": "e-voting using block chain technology",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-2ebecac41d674e",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "b5629dec-2ac7-4eb7-bfb3-f225acd4e340",
+    "title": "Easy solution for accurate analysis of normal and orthotic leg",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f2572a82955fec",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "fd9d7aad-9a5d-4841-9d26-8bd495bee41c",
+    "title": "Elevator Control Using Voice Command",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-fd7b85713242bb",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "722622f4-df79-45b0-862b-9d2cf77cc218",
+    "title": "Elevator safety system",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-739f177d108fe5",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "00cad7f4-883d-425b-ab8d-e9077253216e",
+    "title": "Empowering Communication: A Paralysis-Aid Gloveiris with IoT Integration",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1051c91f747333",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e49f1bc8-1172-43f9-af2f-a333311a51dc",
+    "title": "Enhancing ScoutSuite: Automated Remediation Playbook Generator",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-99c0745e95b335",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "b4b57f95-b021-4460-b4a4-4a7d8fb7b677",
+    "title": "Environment behavior prediction",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-4770d3b5e89a5e",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "4139e6c7-6bc2-4801-83ca-90370d649790",
+    "title": "Equipment data management",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c70c203b8b61a8",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "05ece1ee-51e1-4375-8110-394e838e79de",
+    "title": "error detection",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-8bc72f4789d1ed",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "cd9c8185-8dd8-401d-9ca2-42177e422f86",
+    "title": "Examining Anomalies In X-rays Using CNN",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-aba6bdc0cd3866",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "9c432b49-525c-4d1a-ab83-b593d8651808",
+    "title": "Expert Search",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-35ff49047bc68d",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "b1271240-36c8-43aa-ab5b-427ff4dcc8c8",
+    "title": "Exploring Data Diodes for Cyber Physical System Security",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-82658c484306cf",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "41fe9a2c-ce49-4a0e-ae53-cb9602c697a5",
+    "title": "extreme learning machine Secure data sharing for",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-d64383698b9970",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "35395f27-96f4-4867-8a1f-d4979bec6975",
+    "title": "Face Emotion Detection",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-3fad5e55c3e46f",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "0c8776f1-e510-44a1-b4d0-e78dc442a825",
+    "title": "File System Explorer",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-2f69aa563f7af2",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "43cdcf1d-d414-4abe-9149-13309a389660",
+    "title": "Flood monitoring system",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-a6b465c55ee9f5",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "96dcf028-5c86-4f67-b38b-7717cd461df1",
+    "title": "for gender classification",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-6bb912291f3cdf",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "749b2c94-2e52-4bbf-af3e-4881bc514e37",
+    "title": "For Google Meet",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-acf50c3cf37e83",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "7df62e89-8abe-4cf3-bdaf-67a04f799ee6",
+    "title": "for smart helmet system",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-9e551432118e4f",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "614374b6-f206-4e9b-b4b4-56c796b8b2c0",
+    "title": "Full-Stack Blog Platform",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-e7b78e8c0bcf32",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "1dd5eb46-14a2-4b92-8c07-a45005e37341",
+    "title": "Fungus Detection Using Deep Learning",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-44935b323c646b",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "950c411d-9501-469c-b864-7640174fbaf4",
+    "title": "GARBAGE CLASSIFICATION SYSTEM BASED ON DEEPLEARNING",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-c5af465a51ec73",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "b1ddf55d-5435-4ba9-92fb-a98204b2f5e7",
+    "title": "GeeksforGeeks Algorithms",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-3d489c380ed67d",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "7ed7139d-fdd4-49b1-a3b5-10a75132f4f8",
+    "title": "Generic Connector Service",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-0eb548d07a57da",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "ba0c2cc5-68bf-490a-8495-070a4ad3138e",
+    "title": "Generic Reconciliation Tool",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-91da7d106c8396",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "63e74349-4bad-428a-9466-4ea6790e4826",
+    "title": "Gesture control Robotic Arm",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-acbd55606868ad",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "a8a915ad-308f-4f7b-bf07-d69a38f01e31",
+    "title": "GNU C Library Documentation",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-fcff45c21e4719",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "16cafe01-eabc-4921-9eae-4a2ab806c104",
+    "title": "Gupta Concept based Image retrieval",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a721e89e1415d8",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "074e52f4-3643-4a71-969f-027b5dc1b2c0",
+    "title": "Gupta Custom Monitoring Dashboards",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-71d1d9dba8750a",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "e7497154-d74e-4a23-a436-fb95340e255f",
+    "title": "Gupta Hostel Management Android Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-66c9aeb01e0504",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "803ea5d9-7586-4962-9a04-d20d5701b966",
+    "title": "Gupta mSupply B2B Ecommerce A",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-5cf400ba81b792",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "a40760f5-fe4c-4dd7-9199-adb69d40d01f",
+    "title": "Gupta Online Shopping",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c742a26fcf3f97",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "90dbfb69-ae1b-4a50-b3bb-7c85a8fc5af1",
+    "title": "Gupta TruVantagr",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a45dae27b1f4cb",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "056c61f0-7cf5-450f-990a-a95981a5e2f7",
+    "title": "Heart disease prediction using Machine Learning",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-930031aae03155",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "06edfb42-3c03-4a35-a517-18618e42eebe",
+    "title": "High performance network intrusion detection engine",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-7989660d316e2f",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "34dca786-3b67-4597-9ea9-f3465f549fc5",
+    "title": "Home Automation using Alexa",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-83c847f3fe07fe",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "21100f76-9658-4ab1-ad6d-0c67485347ff",
+    "title": "Home healthcare system",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-78ebba4afe05ee",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "08cad2e2-8275-4d11-a79f-bcd6c783846d",
+    "title": "Hostel Management Android Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-ad93bdc3d1d807",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "74f78d9b-c09b-4ced-818c-998a4668ba37",
+    "title": "Identifying Agricultural Leaf Diseases using Deep Learning Techniques and a Chatbot Kavin R, Hirthickkesh PR",
+    "batch": "NIT Trichy ECE 2023",
+    "seed_key": "pub-nitt-ece-f2db8eba5d8ed4",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "978018dd-81bb-4f86-b3b6-86670120e4a4",
+    "title": "Image Computer Health Check Framework",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-33840997b03ad2",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "9835a998-43dd-41e7-a1fc-3a8afe0b840c",
+    "title": "Image Denoising Using Double Density Dual Tree Discrete Wavelet Transform Sangeetha M, Agni Lokayatha M. V",
+    "batch": "NIT Trichy ECE 2015",
+    "seed_key": "pub-nitt-ece-5e79f0a35650fd",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "d91a3229-1b89-40bb-b81d-73f96fb5d91f",
+    "title": "Implementation of a Hybrid Post-Quantum VPN Protocol with Quantum Key Integration",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-5660db1dd394fd",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "36aef1b0-832b-49a1-be5b-2463c9d819fa",
+    "title": "Impulse Noise Removal Using Robust Estimation Method Karthi M.S, Thangadurai N, Visshnu Ram P.V, Arvindhan S",
+    "batch": "NIT Trichy ECE 2009",
+    "seed_key": "pub-nitt-ece-882e7507745acb",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "7b1ade3c-119b-474c-939b-0aa92f07273d",
+    "title": "Indotech Industries Pvt Ltd, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-c4db9f14a0d955",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "c8e94783-6cdf-49f3-8aff-a97ff4a6567a",
+    "title": "Intangles Lab Pvt Ltd, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-bfd66f566dc9f6",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e6b4da62-bec2-4e1f-94bb-7fcb1e4b4f6e",
+    "title": "Integration Of BDM (Informatica Big Data Management) With Hadoop Security FeaturesDr.P.J.A.Alphonse Informatica Business Solution Pvt. Ltd.",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-8bcbb687329ac7",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "d6dfb140-3386-487c-9720-6c62a3decfbb",
+    "title": "Integration of BDM (Informatica Big Data Management) with new releases of hadoop distributionsMr.K. Sakkaravarthy Iyyappan Informatica Business Solution Pvt. Ltd.",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-32e0d49dab7eac",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "cc1d7aca-ecec-48d1-a9a5-fe1bf1677893",
+    "title": "Integration of Wazuh with SOAR",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-505406f7d1b90d",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "0e1c5eaa-067b-4f7b-ba43-0814e4c7b3c8",
+    "title": "Intelligent control of Elevator",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-e72bc6d88eb0bd",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "0f757e42-a25d-487f-81a8-bbf26502a60b",
+    "title": "Interactive To-Do App",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-73217887a767fb",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "6e1c68f3-6319-4aca-8b67-56c1d33c9c3e",
+    "title": "International Journal of Innovative Research in Science, Engineering and Technology (IJIRSET), e-ISSN: 2319-8753, p-ISSN: 2347-6710 ,Impact Factor: 7.569 Volume 10, Issue 7, July 2021 DOI:10.15680/IJI",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f724872510931b",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "b653a77b-8f90-4a7b-92f6-e8914bfbac4c",
+    "title": "International Research Journal of Innovations in Engineering and Technology, ISSN 2581-3048,VOL 7, ISSUE5, PP325-329, May 23",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-bb3419e6720049",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "478c21ea-b51a-41c2-9eb2-979b09dab398",
+    "title": "Inventory Tracker",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-361b90ad2d75be",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "ceedcabf-3ce8-4e51-a998-a58d565dba00",
+    "title": "ioCare Pvt. Ltd Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-2718bb3a28837b",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "28632598-1c11-46d4-bbe9-78504c2ffcfd",
+    "title": "IOT based automated toll tax",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-b06a42007cfa62",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "6475a759-5626-4596-bc62-27f5d185bf6a",
+    "title": "IOT based Automatic Waste Segregation System",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-c351c981160acd",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "33e66e5d-e127-4888-9f11-f216df8a7bbf",
+    "title": "Iot based battery management system for electric vehicles and battery cooling system.",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-0769e5d60a1317",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "48f5b760-f18e-47fc-96ae-265eeae9fcbf",
+    "title": "IoT based COVID alert multi-sensor integrated self-Sanitizing System",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-d07372ac6f2455",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "5106c4f0-062c-4af3-92d6-e4a1a4620a0d",
+    "title": "IoT based smart Blood bank system",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-faad0019aa2740",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "5ea86c48-a8d9-4aeb-bca4-932572ca038c",
+    "title": "IoT based smart grid system using Ardunio",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-128de48ed35dd1",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "326d4c15-519c-47dc-aa8a-f5cdfb9c2043",
+    "title": "IOT based System to avoid wastage of fruits",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-02b5fc6614b9d0",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "f1f9f3b7-60cb-457e-b311-c3ed1f4f3109",
+    "title": "IoT based water quality monitoring system",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1872f915e9f035",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "98c9e82f-05d3-4670-bd2d-f418e3f3da67",
+    "title": "IoT in Pre-Forging Process",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-b13db54f97f03b",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "45d08db5-2ab7-466e-a635-16794d6897ca",
+    "title": "Iot-Fog based healthcare framework to identify and control hypertension attack",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-86fea4990f7b94",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "1d559ed3-d566-456a-861f-337c6ae653dd",
+    "title": "IWear &#8211; The IOT based protection jacket for women",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1b635275328986",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "4b56c5f5-efad-44bb-8c24-b668a1ee7a1b",
+    "title": "Jain CV Tool",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-be82c40a1eb3c2",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "871908e0-58d7-4755-afa6-d76d13a18f8c",
+    "title": "Jain Matrimonial website",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-37163d8330c8b9",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "02ea98e8-0c21-4db2-b74b-5d38be612597",
+    "title": "Jaiswal Lender Panel",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-26fd9fc2fccb42",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "674f0446-562b-4370-b1ed-a9560f972d3f",
+    "title": "Java Tutorials",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-3a520bbfc599b5",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "af9a253f-e595-4144-8906-4a7f1cb21942",
+    "title": "Jayaswal Real Estate Android Application with Backend website in PhpDr. U. Srinivasulu Reddy NIT",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-30e3d25c538ace",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "45b6d6f0-c567-4745-9173-af8f082a2d1d",
+    "title": "Joshi Digitization of operational matrices",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-ceae316a6ee43e",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "97ef5ea7-75e2-4875-9730-41087639418d",
+    "title": "Jugnoo Tracking App",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-b028539cac8d33",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "a624e0ee-0d4f-49f5-b4d6-703d02fd168e",
+    "title": "Karmali Image Based Search Engine",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-6ec04db64a6566",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "b5272e1b-b04a-4fd6-ad38-85671f3ef8a9",
+    "title": "Khaparde Equipment data management",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-f7be05dc78c936",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "10d96cbb-40fc-4ce6-9355-1c5196a3e16d",
+    "title": "Kirange Maharashtra Tourism Portal",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-2e0fc90355469a",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "6f92914e-dd56-412d-aca7-eb009d736c66",
+    "title": "Kothari Oracle Banking Digital Experience",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-1559dd303293be",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "d022a8f7-d689-4f97-be3a-633352550829",
+    "title": "Kumar Ahirwar online discussion forum",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-5432ca52e5342c",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "69726a85-1e61-47a1-9053-6d8699cff6fc",
+    "title": "Kumar Automation Testing In Distributed Environment",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-1487a404b60f0f",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "33725c4d-79a6-43b9-adf1-792a9ac6deb6",
+    "title": "Kumar Customer Panel­mProcure",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-3fa394fc998159",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "23a8dce6-485b-4b9e-8485-8f454468a9de",
+    "title": "Kumar Dangi SAP IQ",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-6221246f867863",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "93eb6ef9-a6e0-4cc7-9d08-951c19f395cd",
+    "title": "Kumar Face Emotion Detection",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-81244783b83bea",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "3615f17c-c651-4ade-9202-94421fcb3cb7",
+    "title": "Kumar Karmali Image Based Search Engine",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-2c0ba1607e9d5d",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "eb72b7ed-ecc2-490a-84f4-810f60dff708",
+    "title": "Kumar Oracle Banking Digital Experience",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-95b093baeb12a0",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "a9a35ea0-b559-41e1-b6fe-7c4bc2e87418",
+    "title": "Kumar Rahangdale Online Team Management",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-1314b5457fa4b1",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "5200695e-137f-4cec-b76c-41cab9d61702",
+    "title": "Kumar Saket Agripedia (Android Application)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-bcba2e32384d8b",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "74a4c899-137e-4fe5-a5f8-800a224dcde8",
+    "title": "Kumar SWOT - Customer Panel(PO to Pay)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-17956758b3cc26",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "9af6a970-0b7e-42ba-841f-fefe37ef3302",
+    "title": "Kumar USB Debuging and Automation Testing",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-fd0c93b139497c",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "218a4daf-0460-4b4a-a198-2c5a3539dc38",
+    "title": "Kumar Vats Bytes to XML Adapter",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-fd2c3a90c54c86",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "dd288af0-d5ad-49c5-b6c8-fbbafd45268d",
+    "title": "Kumar Visualisation improvement in ebeam inspector software",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-78df4cb4227bcc",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "5380b365-bbf2-4000-aac0-49a9c0cc4bd4",
+    "title": "Kumari Online Student Attendance System with Biometric RecognitionDr.",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c5796a66a1daeb",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "74bb263e-e65c-4c91-bb6f-c655d642f706",
+    "title": "Lalwani Port Legacy stacks To Containers",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-f8c02e0f18a99c",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "181740c9-c939-47d0-82a6-f6b8ef999bf1",
+    "title": "lariya Video library system",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-cc3898fbdc8306",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "8e5b69d7-de54-4e93-8c8e-d6bc577c2de7",
+    "title": "learner programming portal",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-22caad07aeb323",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "ce4c2875-fc45-42f8-a7b8-ee9a64cccd4c",
+    "title": "Lender Panel",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-96e5dabe6b495b",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "6d4bc06f-d4de-4b78-9c2a-47906c84b60b",
+    "title": "Lightweight Threat Detection System for Edge Devices using Linux Security Tools",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-c064685e25fced",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "90d49516-5ddc-46f1-b5a3-378acc34c045",
+    "title": "Loan Default Prediction Using Supervised Machine Learning Algorithm",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-3669ee11d62521",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "b0fa3805-085b-481a-95e8-2324d843bf35",
+    "title": "localization using sybmolic",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-edc30104928948",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "a5194102-ac10-4db3-ae9f-97a3f7f48767",
+    "title": "LockBox: An offline Password Manager",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-9b8b63da23e54c",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "e6da108a-ad82-49b6-b7ae-aaffd80e5d3d",
+    "title": "machine learning, image processing",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f4e45975e4b0d0",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "bd6e0d59-53fd-44c7-b217-43ca2d345744",
+    "title": "Machine Translation using Seq2Seq with Attention/Transformers",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-82b495b757fe32",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "fed0b974-a668-4a39-b1ff-66ef45a234c0",
+    "title": "Mahajan Neeraj Vinod",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-ec509821b68408",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "3a3a54d6-4bc1-40ad-84ac-54234c98c2fa",
+    "title": "Maheshwari Campaign Centralization",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-f799baa0673a09",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "463aa56b-5e0b-460a-bf00-388fea763a47",
+    "title": "MAJOR PROJECT(2018-2019) IV-II CSE-A",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-43cf8c6dff47a2",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "7e2d5f96-e901-44d5-b849-6295a089f180",
+    "title": "Make A List",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-d7a5f75c028c2a",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "8210e7c2-e89a-42b7-9504-117a08ecd3a6",
+    "title": "Malaware detection using Machine learning",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-5f1e7031f1ccaa",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "3caa81c7-8dbc-47f3-8381-7bdf246e8f17",
+    "title": "Malviya learner programming portal",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-0024d0404293a8",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "14092cdf-7688-4821-95a7-587e293602df",
+    "title": "Mamba based Knowledge Distillation Network for Sunflower Leaf Disease Detection Aniket Tiwari, Mohammad",
+    "batch": "NIT Trichy ECE 2025",
+    "seed_key": "pub-nitt-ece-248756df716acd",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "cff26718-9756-492e-81f6-3e6bba81e4b6",
+    "title": "Maran GTEQ",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-7ecc6c885b909c",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "da93028b-ddae-414f-96fe-a4f902e148b5",
+    "title": "Matrimonial website",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c3748928d02a44",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "cc0c7932-7a33-49aa-a6fa-b322c7ef76f7",
+    "title": "Matta Application Detection and Deep Packet Inspection, Web QoE",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-637cbae960a148",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "a2937a23-4130-45e0-aec9-b5d0804e3fc2",
+    "title": "Maze Solver",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-5be072ed4f2bd9",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "9c0f2313-bc5c-442e-a79c-4848b783cae2",
+    "title": "MDM (Mobile Device Management)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-5de21c544f3a0d",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "2f5cb86f-9a02-4f49-bfee-e1f6bfbd5e14",
+    "title": "MDM Implementation",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-4bc4301af8df95",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "217434ea-20bb-4240-97ae-0272047ad36d",
+    "title": "MDN Web Docs",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-f6a508048d667c",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "805a1535-baab-4ec4-a956-3c116c48cbbd",
+    "title": "Medical Assistive robot supervised through android application",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-04c9174c5c9042",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "fdcd95e8-f78f-44d1-b076-617224b3ae11",
+    "title": "Medical image enhancement using evolutionary algorithm",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-d42db8d4dc945a",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "684abdd6-bc49-44f9-9108-829afac41030",
+    "title": "Medical information system",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-45e72903f8b55a",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "9207ee36-e5ef-4053-9ce1-dac62d2f2715",
+    "title": "Microstrip Patch Antenna for 5G Network",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-ecd6cbb8b6fb39",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "92dc5c46-4caf-4250-9e2f-3135279a7a18",
+    "title": "Mini Shell",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-9a34d8c0e46ac6",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "a9d78306-0189-4581-ac1d-6ed193efb6ad",
+    "title": "MIS Automation",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-4c8fa464229ebe",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "ee41e151-11e2-440b-b479-66285cbf062e",
+    "title": "ML Based Secured Voting System",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-5d774e30c56f60",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "5133531e-9703-4dcd-927c-833cdd1e1ab7",
+    "title": "Mobile Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-cc768e83311813",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "042fce16-ae75-4f69-b2cb-97dab6edc596",
+    "title": "mobile cloud computing logic bug detection and",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-c19619fa09c907",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "0a19db75-4f8b-4ab4-800b-8f26d5cad33a",
+    "title": "Monekho Digital Watermarking",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-7efa6584bce966",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "07ec0a99-c86a-4313-93bd-a52d64edcc42",
+    "title": "MRI Brain Tumour Detection and classification Mylavan V, Narottaman, T.",
+    "batch": "NIT Trichy ECE 2020",
+    "seed_key": "pub-nitt-ece-75ff4e42153c6b",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "04b6e644-9f80-4890-a6c2-5c7317b55f45",
+    "title": "mSupply B2B Ecommerce A",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a560dcade0bd28",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "48ae9f40-5b33-4e72-bc8a-a7678c97beee",
+    "title": "MTD-HealthNet: A Moving Target Defense Model for Securing Hospital LANs",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-7a63ba9bb4a7c7",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "cd3494b9-7e39-4792-a895-0356fe69fd7e",
+    "title": "Multi-banking ATM system service using biometrics",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-a049c319e645e8",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "0403fe79-80cd-4a78-a7af-bd05cd74d4bb",
+    "title": "Multi-Threaded Server",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-1de69e9a44d66e",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "3a29278c-db2a-4178-be5e-81abb4dd5893",
+    "title": "Multimodal Fusion of text, speech and vision for sentiment Analysis",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-a4c85b88cac263",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "466bdc77-0e13-490a-8f9d-b1e40492276f",
+    "title": "Multiple Interface Configurable Smart IoT Device",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-9e93801601cfe3",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "0150d56e-841e-4159-8d6f-b8f652ac3e85",
+    "title": "My Future Town Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1f3bfd30382a7b",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "7c801074-648c-4abf-8bfd-465d8b6a58c5",
+    "title": "Nagliya Outbound Hardware Monitoring Server",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-876128d526af2b",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "a8ee823f-62da-4781-b839-c9a9b4c63e7d",
+    "title": "namdev Traffic generator",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-3d8eebd65371f3",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "1260d8e9-0de6-4205-a450-2abd876a12ac",
+    "title": "Names of Authors",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-c2391d9a0a6a6d",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "2fd8225a-6c62-4a77-aa0f-ee0abc7c6d7b",
+    "title": "Navigation system for AISSMS COE Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-dc00b6b5b181ed",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e5b12c5c-a568-49b0-a2d8-4df781740d01",
+    "title": "Non-invasive glucose testing using microstrip antenna",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-9d4f9a5c1df9fb",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "8940abab-071b-42c1-af43-640a473aaa2a",
+    "title": "OBDX Mobile Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-aeab0a894e8ea5",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "4f794b5f-9ebb-497f-8c26-5f9bcbd86a02",
+    "title": "Of Printed Multiple Choice Answer Sheet",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-d487e12e2c2d73",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "9742601c-584e-4142-ad37-ac52b61df741",
+    "title": "of reviews data using text mining in big data analytics",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-dacfed187682a7",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "7b0ff659-06e7-47b2-84b0-541d861aa22f",
+    "title": "Off-Cycle Rewards (Compensation)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c0e2f2e141e667",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "bacb2db9-4692-4f0f-9284-f538ca0a4a84",
+    "title": "Om Boarding Sources to MDM",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-38d0377a2a102c",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "21c0fa59-c9f7-4281-81bf-e9257ff4aed2",
+    "title": "one (user management",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-afa91f4b9686e0",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "06a2bdf5-b303-4a73-95bd-18bf10dcc934",
+    "title": "Online Banking System U Srinivasulu Reddy NIT",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-b5db1d574c43ac",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "4777df5d-9be6-4565-a565-e82bdb0149ad",
+    "title": "Online Book Store",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-9bc258e734a3aa",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "0ed9714a-f32d-4595-9519-82e2bc21aeea",
+    "title": "online discussion forum",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-9ade431f02fa88",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "c48ba54c-b072-4487-8e38-037a1686528b",
+    "title": "ONLINE DOCTOR APPOINTMENT SYSTEM",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-5ff525e33d4d05",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "234f124a-4a0f-4362-a78f-c79d1c1eb3e3",
+    "title": "Online Shopping",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-b3890f82d95561",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "558a231d-3431-4744-99b1-7ebb945016ed",
+    "title": "Online Student Attendance System with Biometric RecognitionDr.",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-ce3bc5e5d5d06b",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "fbf14c89-41ca-416a-8b06-e5f6550ee43b",
+    "title": "Online Team Management",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-4301e61535677c",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "7163c3b3-36ea-44a8-85f6-17fef564ee78",
+    "title": "Open source software dependencies vulnerability analysis",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-8c1d01f71f8bfa",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "cc02ad8d-906b-44b2-a9f1-6f20fc5ccc03",
+    "title": "Optimizing Water Parameters Maintenance in Aquaculture",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-3d3b2d1f2f60ad",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "70d1e6a4-5272-40a8-9cf3-26dbb2939570",
+    "title": "Oracle Banking Digital Experience",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-72bb1e7f49c825",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "50f23ab8-146a-4f1c-9e02-60c10e43ca86",
+    "title": "Outbound Hardware Monitoring Server",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-e32763fbfaff8e",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "0d0e2e96-a1df-45a9-8bce-40c423bfa4da",
+    "title": "P.P.Vast1 , Siddhi Nasare2 , Ishika Chankeshwara3 , Harsh Shah4,",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-e5efb24ebae9f5",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "a6786919-6dce-479b-9bd8-ff142fd3e08c",
+    "title": "PAPYRES-Conference paper management system",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-ada5f55e99556c",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "c6672f0b-f0f0-4bd9-8cc5-99f2ab1345ea",
+    "title": "Parkomate Solution LLP, Kalwa-400605",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-d3fb5d9d45cc1f",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "04ef7c5b-dbb3-449b-868d-f390d536c4f0",
+    "title": "Pathania Off-Cycle Rewards (Compensation)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-9a505073b89a18",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "0ea495e2-eccd-49f9-ab31-dd21895bfd25",
+    "title": "Patidar Car Solution App",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-667ccbe2c20cf0",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "69d37fee-caa3-445a-b6b4-dd0a30628dbd",
+    "title": "Patil Nikita Ajitsinh",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f2978fef3f354f",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "0dced67d-0ba7-4228-b1ed-e332acc0c204",
+    "title": "Pattern Recognition, Volume 147, article id. 110068.March 2024 &nbsp; DOI: 10.1016/j.patcog.2023.110068 &nbsp;",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-818cb9bbf74944",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "4271584a-44b4-4b5f-8a14-780950b9b73c",
+    "title": "Payee Management Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-d4f543728a009e",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "42ecb932-af8a-4c3a-b815-8cbaa9dd77d6",
+    "title": "Payment Fraud Detection in Credit Card using Logistic Regression",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-541567c779df21",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "73aded1c-1a65-4320-a526-d2b31ead6eca",
+    "title": "Performance Analysis of CNN Architecture for Person Identification Using Ear Biometrics Deepanshu Dwande, Ganesh Kumar Agrawal,",
+    "batch": "NIT Trichy ECE 2021",
+    "seed_key": "pub-nitt-ece-e5cfcbaebf4249",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "69c369ca-0dbd-46ba-bb5f-7c3b92bffc14",
+    "title": "Performance analysis of machine learning algorithms",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-f658eb135343db",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "c525c9eb-de69-42fb-94da-7986ea52f746",
+    "title": "Performance Test Automation for Cloud Based M2M Node",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-73efab4319cdc6",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "0771638d-24dc-4dda-9531-222ac7c9067f",
+    "title": "Personal Portfolio Website",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-78874d892e1857",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "e62c569c-ed14-45dc-8f0a-ab1b6640a96e",
+    "title": "Photosketching- Inferring contour drawings from images",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-03361955e2f78e",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "26625568-a6d2-4fc1-a95b-e9253f8699c9",
+    "title": "Plant Leaf Disease Detection Using Deep Learning Based on Convolutional Neural Networks Deepak Kumar, Preity M",
+    "batch": "NIT Trichy ECE 2022",
+    "seed_key": "pub-nitt-ece-e7a9b38c875a43",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "e523b8fa-ac1e-4397-a695-cef09c685ab3",
+    "title": "Platform For Increasing Empl",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c6b5fbaf54cf9c",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "ccd3bba8-3bc2-4ff4-bd92-0a2b8bd5fdc7",
+    "title": "Po2pay and internal panel",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a291d7db4128ed",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "3ef07e19-1293-4ab8-80bc-0fec1977d35e",
+    "title": "Pooja Dilip Kulkarni",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-b3d17001d0d806",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "8f55bd51-bf4c-4ef4-a84d-e2df9acd5082",
+    "title": "Port Legacy stacks To Containers",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c3aa34fbb80f46",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "3df96884-914f-4aba-b8b6-f29717bcb2dc",
+    "title": "Pot hole and hump detection",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-969e985eab2189",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "791fe755-9299-47ba-8de3-e8798e14de8a",
+    "title": "Prajapati Communication Layer Optimization",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-553aca6436f8d0",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "91dae6a4-7a0d-436a-a2e1-266664b4f6b8",
+    "title": "Prakash Expert Search",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-a8276133acd9c8",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "84797ff6-37d2-40af-a2d9-c1e461dbd630",
+    "title": "Pramod Kirange Maharashtra Tourism Portal",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-283c8c24eb6a7e",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "50bc2db9-817f-409f-8e4f-06b5b2911b40",
+    "title": "Pratap Singh APR (Annual Percentage Rate) Review",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-400ad87a5b6e63",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "186ef2de-735e-49d8-b658-31baf918fc86",
+    "title": "Pratap Singh Improvement in wireshaping(LabVIEW)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-ec66e50d446b88",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "eb7d1398-6825-48f1-89d5-0462feaa736f",
+    "title": "prediction using Machine Learning",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-1fec8b92b9bbd0",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "e7a5ba08-6213-4fa7-9461-0fb54df41d0b",
+    "title": "Prediction Using Supervised Machine Learning Algorithm",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-8e33a229bce82c",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "f1d7897c-e435-45f9-8dd9-5352c9afcc3f",
+    "title": "Prediction using various Machine Learning Models",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-a6609bb29e38e3",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "70ec6b51-0c8f-41fb-b027-e5c17acec7d6",
+    "title": "Product, Agriculture, Environment",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-c5df30c9ef6c8a",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "8d0c9b24-d3d7-436f-91b1-947dfda924a2",
+    "title": "Product, Societal, safety",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-fba24e06ef05fd",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "d17a1cb8-74b1-4811-9643-724343d1ee97",
+    "title": "QRadar Web Services",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-0bc9103d997277",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "92851e45-2607-474d-b05e-758e2a7198fb",
+    "title": "quality analysis and classification using Image Processing",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-75b77a8871dc62",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "520584a3-5422-4daa-8480-c2fc101804eb",
+    "title": "Quality Assurance for MaaS3",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-194958dfcbad96",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "f5ed6737-7792-431a-8758-69a07ff93389",
+    "title": "Quantum Secure File transfer (Client-Server)",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-6c9f1ad88808d3",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "107b0ba2-db33-4148-94fd-f60a5fef5045",
+    "title": "R R Itkarkar, Shivam Deshmuskh, Aniket Dalvi, Anushka Tidke",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-a546fb7106bc10",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "f9283bac-5558-489c-b70f-4072ab9c45c6",
+    "title": "R. R. Itkarkar, Deepali R Dalvi, Prachi Kshirsagar, Satyam Walekar,",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-c7b60ec26f77e8",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "9e100f19-493a-4024-84f0-6d4435916c97",
+    "title": "Raghuwanshi Automation tool for testing packet forwarding",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-b82ab7a3dc6ad5",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "354a2032-9808-4cfb-aa3f-fc274732089d",
+    "title": "Ram Tapse Patil",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1147d3f4fefc3f",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "90b91be2-0a62-4fe4-ac7a-ca8043d9d12b",
+    "title": "Rathod Amol V",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-cab898292d170e",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "f48bde8c-1c63-40fc-9b08-fe8c7c17088e",
+    "title": "Real-Time Face Mask Detection using Deep Learning Network",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-04d7ae7e87c226",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "a19d31d0-9199-4fd9-9f3c-a705e7efe67a",
+    "title": "Real-time Map-Based Pollution Monitoring and Data Management",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-e4d6445508a9cb",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "7ac7ff15-5ed3-4d9c-bb98-622e1e898b01",
+    "title": "RECOGNITION ATTENDANCE SYSTEM",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-ce94081923dd5a",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "8b315532-0d95-4228-8ebd-5b51c29c74d2",
+    "title": "RECOGNITION USING OPENCV AND DEEP LEARNING",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-ec46d5502b1acf",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "7c8940dc-ea03-4858-866e-9f5ea6b2acb7",
+    "title": "Release Manager",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-9e393b3837a3fd",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "799f28e9-b958-48f2-aa6f-06fc3de7c84a",
+    "title": "Remote Sensing Based Crop Monitoring System",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-aacbc9fafb0259",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "c02919da-34cc-4bad-86f6-69b6af8541de",
+    "title": "Remote Sensing Based Crop Monitoring System IEEE Conference Publication IEEE Xplore",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-4c7042a1c3611f",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "d3319c04-9c46-40f0-902d-bf0204a43dc8",
+    "title": "Revocation in Identification of bird species using deep learning",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-0bd5ac1e8079a1",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "effecbd4-1698-4195-a76b-fd497dae4b37",
+    "title": "ROCK OR MINE PREDICTION IN MACHINE LEARNING",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-3cc44891c89cbf",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "dd364c51-1920-4d83-9555-6564df29877c",
+    "title": "RONOA Assistant Robot",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-82d32e9a2b1ef9",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "c6fc65aa-712f-4224-abd7-fb1678d04467",
+    "title": "Ry's Git Tutorial Book. Walks you through setting up a project on using Git, covers everything Git offers",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-f621aa71741db3",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "da254c82-202c-4d8d-8f9f-667157fa764c",
+    "title": "S B Dhekale, Komal Jadhav, Diksha Ingle, Mansi Shirode",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-8d66ae513f9c9c",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e6bd954f-bfc4-4ff2-86d7-e5e0e92cb046",
+    "title": "S B Dhonde, Sapna, Vishakha Gaikwad . Pratiksha Kavthale",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f1953bae404937",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "00015fa2-b67b-4d87-8b89-8ff2270e75e6",
+    "title": "S B. Dhonde,Shweta S. Jagdale, Sumedha S. Chaudhari,Tanvi P. Gavhane,.",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-937ae4dfa5ef70",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "cd662cbf-9d60-43b5-af78-6ebbe333e934",
+    "title": "Sahu Generic Connector Service",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-99bb9f70589ddf",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "319420eb-53f5-4047-abb1-739d3eba9c26",
+    "title": "Sales Prediction Analysis",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-d2612de2cfb55a",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "9668892d-f5f3-4916-9314-eed26aa03c1e",
+    "title": "Salt and Pepper Noise Removal Using Modified TSAMF and Wavelet Thresholding Techniques D.Suyambu Anand, Ramesh Krishnan R, Vipin Lal P. V",
+    "batch": "NIT Trichy ECE 2009",
+    "seed_key": "pub-nitt-ece-271a7d61d6afb3",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "6e24a049-4c26-42f8-ad98-10ba2598955b",
+    "title": "SAMRIDDHI : A Journal of Physical Sciences, Engineering and Technology, Vol. 14, Special Issue 2 (2022), ISSN : 2229 &#8211; 7111 (Print), ISSN : 2454 &#8211; 5767 (Online)",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-08a650c291a6d9",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "3eef080f-31d7-48a4-beeb-a53c5f58acde",
+    "title": "SAMRIDDHI: A Journal of Physical Sciences, Engineering and Technology, Volume 14, Special Issue (2), 391-396, Dec 2022.",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-de44a4ee7e2a42",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "47316849-5171-4f86-944c-13a9874ffa22",
+    "title": "Sanitary Napkin vending Machine",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-de93de65beb4c7",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "9bf7b410-5650-46b2-b62c-22755949b832",
+    "title": "Sanitory Napkin vending Machine",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-4d7b5e028be8c9",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "b6309d53-bef9-4fc3-b57b-fae842009b39",
+    "title": "Santosh Dhekale, Mamta Patni, Miheeka Khair, Sana Subhedar",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-0e4ae16bf3c586",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "c7ea60a7-e585-4766-a800-41847432c73d",
+    "title": "Satellite remote sensing application for agriculture sector",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-312ade25a2b61a",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "fd4a94c2-72a9-4c31-ada9-fc8e5e1cf6e0",
+    "title": "Scalable FPGA Architectures for Streaming Kernel Extraction & MTF Analysis Sam",
+    "batch": "NIT Trichy ECE 2026",
+    "seed_key": "pub-nitt-ece-270edb76dfa2b4",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "e15df550-7b0b-4621-9023-1de882be5967",
+    "title": "scissor game using neural networks",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-89cb39f4a82343",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "a0636d97-0b81-412d-92b5-a9166f1d45a1",
+    "title": "Secure Peer-Peer File Transfer Application With NAT Traversal",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-a326c94674534e",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "9f7e2a59-815c-43fd-a0e6-99250873aae9",
+    "title": "Secured Smart Shopping Cart",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-5e3f0d8b4b4a8a",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "0b0f5742-94ab-4b14-b4cb-53d908702563",
+    "title": "Securing data with Blockchain and AI",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-3e98ed2c1b5c63",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "71270b44-6973-4802-9c32-7e4dd31164f9",
+    "title": "Security Analysis of Android Application - static, dynamic and fuzzing",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-255835d9440b25",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "c31084b5-fd94-4088-a66f-c5e680282a86",
+    "title": "series analysis of covid-19",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-2b83cbe653e48b",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "b138b371-f51e-40f3-991a-dbb0dc63abfc",
+    "title": "Set top box integration",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-dffc06aa77eddd",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "3b465051-a37b-4404-9f67-703a5454a55b",
+    "title": "Seth Performance Test Automation for Cloud Based M2M Node",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-2a159b9bbbac2c",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "e24134d4-367b-48f5-9f7e-eb1943a8386a",
+    "title": "Shah Android Test Automation",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-ea883f9df04677",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "f02fe7aa-e92b-4cb8-949d-ad14f061605d",
+    "title": "Shankar Kumar USB Debuging and Automation Testing",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-fc461c6e8e4d6a",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "116cf25d-dae6-41a0-9bc6-7451d4f1dcdf",
+    "title": "Sharma Automation Testing in Distributed Environment",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-28a051cdfd1591",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "2ffd34ed-018b-49f0-9f5f-d9a422c6e3f3",
+    "title": "Sheeba Fatma DATAPATH TESTING AUTOMATION TOOL",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-22d2f265fabad0",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "24b59238-b639-42f0-b721-668961f7cb87",
+    "title": "Shiv Kumar Dange",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f7bf22ebd09bd4",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "3d54a233-f405-4bf7-917d-d434753380ff",
+    "title": "Shivam Kalane,Ganesh Kadam , Aditya Kumkar,Nitin Mawale,",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-42354a00b93c31",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "97d6c1f7-bad3-4c31-b51d-06b2310be2a2",
+    "title": "Shoppers’ Intention Using ML",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-24f60e3fdb38b2",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "075bd0b0-314d-4b56-be9a-2e3f9a10a9f3",
+    "title": "Shrivastava Platform For Increasing Empl",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-95705127c3a05a",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "84f19a5b-28e5-4350-a3b1-2de9c6341a14",
+    "title": "Simple Calculator",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-40fae637055418",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "5b4bf62d-01ea-445a-b221-2fd9bbb4116a",
+    "title": "Simulation Game",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-376c3201ec0197",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "6c025f28-006d-43d8-a306-43fadffb5ece",
+    "title": "SINC Function Based Adaptive Gamma Correction Using Grey Level Co-Occurrence Matrix for Contrast Enhancement of dark images Anirudha S, M. Sreevatsan",
+    "batch": "NIT Trichy ECE 2017",
+    "seed_key": "pub-nitt-ece-3b1a069167eff4",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "4f7e5f7f-01a7-4a5e-ae24-6cfef138c17d",
+    "title": "Singh Improvement in wireshaping(LabVIEW)",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-9017f30592fce6",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "be39a410-f41c-43af-ad90-92ea3bf43919",
+    "title": "Singoriya Oracle banking digital experience",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-5173e37fe862c5",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "977b36a5-7c82-43de-be66-c68fe4dfd176",
+    "title": "Smart and integrated home automation system",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-a8686d2a8e8a35",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "3b591020-42a8-4aa7-93d8-a8a5009581c9",
+    "title": "Smart and secure Voice controlled ATM with biometric authentication",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-00ee1af74d2cd8",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "29b7c9c1-7693-4811-81ad-2331eba32ee0",
+    "title": "Smart Chef: Automated Cooking System with Robotic Arm &nbsp;",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-71370a2eb6e6bd",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "d891e9e6-f251-4a71-957d-24195d915f2d",
+    "title": "Smart Cooking Chef",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-c8831efefc80fa",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "2ea5408f-14ff-463c-93f8-fda2889df3d1",
+    "title": "Smart Cylinder trolley for home safety",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-d8e9a5a8ed4dba",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "c3fce971-098c-4515-be0f-f00720c0ca0d",
+    "title": "Smart Cylinder Trolley for Home safety &nbsp;",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-2e83e120194e36",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "2b32fae0-19c5-446a-bfbb-730180630a4f",
+    "title": "Smart ECG Monitoring System",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-564e9f51891960",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "2e7222df-8c25-46d6-9d4c-768b51d992a2",
+    "title": "Smart Finder",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-7d6d17d573ae46",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "0e3dbb8f-be26-4cb0-b68a-8375b0e455c4",
+    "title": "Smart Mirror Using Raspberry Pi",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-6c4bbf7c878116",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "1bdf1480-1761-469c-9ae8-b27078ab7179",
+    "title": "Smart parking guidance system using wireless sensor network",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-dac695fe1d0b7b",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "1c64de8c-9dcc-4f46-baf5-1376f7c3f188",
+    "title": "smart pesticide bot",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-7505bf1e02839b",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "48059e68-8a86-438b-b8f1-26bf40adc020",
+    "title": "Smart Surveillance Robot",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-dfa6e603e377cf",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "4bca08e2-6225-442d-bbc4-dace2f052c87",
+    "title": "Solar Base water purification System",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-4a52720ad037df",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "b4765644-cd46-4362-aa57-9a21cc9d3c3e",
+    "title": "Solar Cleaning System",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-2ef59e9d753801",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "2d885677-2e93-48f0-b5f7-b90926c91660",
+    "title": "Soni Hostel Management Android Application",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-735b8a02b3f6ed",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "7b179905-c5b3-40eb-9728-775df0b27859",
+    "title": "Soni QRadar Web Services",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-9bbef5f37a13e7",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "2a7d67bc-9966-44eb-9507-8610c98afb63",
+    "title": "Sorting Visualizer",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-45f7e434c701c0",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "2a822248-2fb4-4c9b-bd0f-05c4f94605cf",
+    "title": "Spatial Spectral Mamba Attention Network for Spectral Super-Resolution Lok Visnu V Rupesh N U",
+    "batch": "NIT Trichy ECE 2026",
+    "seed_key": "pub-nitt-ece-eb17b0bc788c1e",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "363be038-0c32-400b-a0c5-58fa146f9061",
+    "title": "Special issue July 2023 web.pdf (isteonline.in)",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-fd05f6a03f896e",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "8b08186c-644f-408a-9296-7dab44de7b28",
+    "title": "Spurti Express Infra &amp; Innovation LLP Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-d3b2673c7eeaeb",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "b7bdc2ff-356e-4a51-823c-51def2e9c42b",
+    "title": "Stock Price Prediction and Sector wise Stock Recommendation",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-3cd200e8a4a7b6",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "88ca7525-6132-4c50-bdbd-ba47e88923ad",
+    "title": "Stock price prediction using knearest neighbour(KNN) algorithm",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-19a05b5daa6a23",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "adde4e88-582f-41c4-aa8c-106d3c239a6e",
+    "title": "Stock Price Prediction Using Long Short Term Memory",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-ca99e4088956dc",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "088155b4-d83c-45db-b35b-2a4161bc846b",
+    "title": "Stock Price Prediction Using Long Short Term Memory SAMRIDDHI : A Journal of Physical Sciences, Engineering and Technology (smsjournals.com)",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-8a74ce7bf8072d",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "1651a12f-a68a-4ff0-9c4a-d4f85a80143f",
+    "title": "Student Management System",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-8383df500de398",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "95001bcb-897a-41c0-a545-04d6257c3b1e",
+    "title": "Student Performance Analysis System",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-55e96321af0645",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e3bf0835-07de-4fc3-867a-8c5cc569311a",
+    "title": "Sunshine Powertronics Pvt ltd, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-0f7d640a800f5b",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "4ad938b3-29b6-4f6c-9595-5fb044661f5e",
+    "title": "Super Resolution and Classification of Chest CT Scan Images Amal S Pradeep,",
+    "batch": "NIT Trichy ECE 2024",
+    "seed_key": "pub-nitt-ece-e2d19e70642482",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "8f4079d6-fdb1-4b83-a354-03fbd4bd2ae2",
+    "title": "Suppressing Uncertainties with Large-Scale Facial Expression Recognition",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-3e0670d5bc1429",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "42972f57-7d71-4707-92d1-0c887ab9c46c",
+    "title": "System To Detect Thief Events Using Raspberry Pi",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-0d24cdbb0e1e4c",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "2133b407-4406-4364-9feb-41ed6cbbab8a",
+    "title": "Template Based Character Recognition System Sarath S, Nitin R",
+    "batch": "NIT Trichy ECE 2012",
+    "seed_key": "pub-nitt-ece-0c120b87311ca5",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "804082ef-cd2f-4c3e-a797-30318540da18",
+    "title": "Text To Image AI using Deep learning",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-b14b0faaa6fcd8",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "b7510af4-4c8e-4070-82ce-da6997f61aae",
+    "title": "Text-Based Adventure Game",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-8b364f99927ea1",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "d66ad5a3-c87d-420d-943d-77648387c5fc",
+    "title": "Text-To-Image AI Model Using Deep Learning &nbsp;",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-07d3d3145347a5",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "6b69142a-bfb2-4030-9bf1-fda3b1994da1",
+    "title": "Thakur Generic Reconciliation Tool",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-22db23de42200b",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "87854f92-63aa-427f-a106-bc637525e055",
+    "title": "The crop monitoring robot using IoRT",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1d43068ba5416c",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "1d5a77b4-2598-400c-aa61-9891db4ebbc0",
+    "title": "The Indian Journal of Technical Education, ISTE Vol. 46 July 2023. 0971-3034, pp 140-143",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-e6354115d60450",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "0c433be5-5708-48a3-992e-9592c66c4ceb",
+    "title": "The Indian Journal of Technical Education, ISTE Vol. 46 July 2023. 0971-3034, pp 144-148",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-9e00e57854e27a",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "8791581b-ca1c-493a-a1f2-6068738abb41",
+    "title": "The Indian Journal of Technical Education, ISTE Vol. 46 July 2023. 0971-3034, pp 149-152",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1dd66df3176893",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "b85cccb8-c9b3-418c-80b5-24eff3e7b1e9",
+    "title": "The Indian Journal of Technical Education, ISTE Vol. 46 July 2023. 0971-3034, pp 153-159",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-8f4cf1219d4252",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "0394f189-d3fb-409e-8925-75c785c04b51",
+    "title": "The Indian Journal of Technical Education, ISTE Vol. 46 July 2023. 0971-3034, pp 160-164",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-40396aa26a1a82",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "1500716b-5848-4513-94d0-13ebe42c07a2",
+    "title": "The Indian Journal of Technical Education, ISTE Vol. 46 July 2023. 0971-3034, pp 165-170",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1ca9ff36dc4aeb",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "877bc73f-8d3d-458b-9351-d1bccc20134d",
+    "title": "The Indian Journal of Technical Education, ISTE Vol. 46 July 2023. 0971-3034, pp 171-176",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-235abcd2e7319c",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "cff5fc50-0f1c-46e4-803e-23ea391b494d",
+    "title": "The Indian Journal of Technical Education, ISTE Vol. 46 July 2023. 0971-3034, pp 187-194",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-61568b622f2ae5",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e46d8dcf-ae5e-49b7-b445-d1f8ad805177",
+    "title": "The Indian Journal of Technical Education, ISTE Vol. 46 July 2023. 0971-3034, pp 195-199",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-7f48ea8f259971",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "a67ce9cb-2b82-4c1e-952d-1be34fe2336b",
+    "title": "The Indian Journal of Technical Education, ISTE Vol. 46 July 2023. 0971-3034, pp 200-206",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-6fbd52e75cbc36",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "1d96bcce-bfd4-42a7-b35c-4eb6061bdc77",
+    "title": "The Proctor – A Robot for Crop Disease Detection using IoRT and YOLO",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-8573980d8a9cdc",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "9081c3c8-0242-4358-805c-0c6925c44af9",
+    "title": "The third eye for blind",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-4219447651704f",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "bdaed8c7-6643-4a6c-9352-e7766a6c6df5",
+    "title": "Three Layer Privacy Preserving Cloud Storage Scheme based on Computational Intelligence in Fog Computing",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-df8a318df7bafa",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "012bebdd-dc8d-496c-b2e7-148002f4aaa7",
+    "title": "Time Data Pipeline Integration between Hadoop Environments and External SystemDr. P.J.A. Alphonse Kellton Tech Solutions Limited",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-2f69b93f2be8c2",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "1e0a68d3-f3c2-41d5-9745-125a4bf76ddc",
+    "title": "Time Sign Language Detection",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-a4d6d74c43e32a",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "3bd39c5b-4493-474a-bcb1-5626dee76f92",
+    "title": "Timer controlled automatic switch for 3 phase induction motor.",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-37c0a346348302",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "06812cbd-7191-42fe-907b-59e2a28d56e7",
+    "title": "Title of Paper",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-b5de8b6e47d7b3",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "1946adec-90a7-4a64-9572-d6ea88c74f97",
+    "title": "Title of Project",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-b7a7447833d82c",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "b8d883dd-d19d-403f-90a4-a79d4617cfd8",
+    "title": "Tiwari Utility for creating meta data",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-c5d174dd301df2",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "a08c66f3-753e-4c06-a146-e2ca4950864f",
+    "title": "TO HOMES AGANIST THEFT",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-77bccb6ea3eb60",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "de7e58fe-c04e-42be-9a14-f0219d22ec93",
+    "title": "To-Do List App",
+    "batch": "ACM UAB project ideas",
+    "seed_key": "pub-acm-uab-79b7b59f43590d",
+    "course_code": "COE",
+    "communication": "CS project ideas",
+    "institution": null
+  },
+  {
+    "id": "08e16c70-b185-4ee5-973d-1a9bd750c6db",
+    "title": "Traffic generator",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-72e32e04513601",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "86d8724e-7482-4859-a27d-0dc89273272e",
+    "title": "Transcript Summariser",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-922837e7bff3c5",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "504e6512-68e2-4d70-8333-85728858f53f",
+    "title": "Trusted Crowdfunding Platform Using Blockchain Technology",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-d365110a97f8cd",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "20161026-ab39-478b-8fdb-95fad04d0f6b",
+    "title": "Under water communication using Li-Fi technology",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-9ee6bdcc1d0792",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "57fc28da-e98e-4d6d-a737-f6ecc44508fc",
+    "title": "Underwater Communication Using Li-Fi Technology",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-995213cac5199f",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "282617de-15a9-4399-bd88-e798ef707cdc",
+    "title": "Underwater Image Super-Resolution Sidharth Sajan,",
+    "batch": "NIT Trichy ECE 2022",
+    "seed_key": "pub-nitt-ece-de780036de60c5",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "d0e3f8e1-18fb-4640-9b2a-153923b8dc27",
+    "title": "USING CRYPTOGRAPHIC TECHNIQUES",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-e480bea2ae0cb5",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "ef4ad05b-483b-4347-99d4-f322df5bb587",
+    "title": "using Deep Neural Networks",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-6a21a91f0ef33d",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "ded9d3a7-3a09-478c-8b65-29212ea5ccc2",
+    "title": "using Natural Language Processing and Key Logging",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-f6122b34487c47",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "726e2199-66c0-4c83-9feb-0ab0720c5079",
+    "title": "using time forecasting methods",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-7f73f6fafcceb8",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "696a04db-c534-4330-bd02-22921c9db268",
+    "title": "Utility for creating meta data",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-520b6c383a6399",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "f135dbd7-5a76-4b37-9d49-f75d6460bb13",
+    "title": "V D Nagrale",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-4142095c80b199",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "7a813f25-e858-4503-a016-4e1223ab1ad9",
+    "title": "V. A. Gujarkar, P. D. Kulkarni, A. Pal, K. Chaudhari and V. A. Mohite,",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-7d8c3a7807f783",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "b6a33028-7233-40c1-a950-c5c896660879",
+    "title": "Vani Om Boarding Sources to MDM",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-3fd20c6d48de1f",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "aefc91da-0032-4d46-8d83-8e6815c1dce8",
+    "title": "Vats Bytes to XML Adapter",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-bb2f7c93c4c7da",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "696c02c1-654a-4c19-b643-652d269a2906",
+    "title": "Vedant Dere, Amita Shinde, Prachi Vast",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-5cd45510fecb07",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "8c48aff3-7bf2-4ff6-9c90-e18553ad9d60",
+    "title": "Verma Jugnoo Tracking App",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-00b121bc864fdc",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "5f56b27e-ce0a-428e-a41e-6e1496c4f977",
+    "title": "Video library system",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-518c42b47f3596",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "9cac6874-136a-4ca8-96fc-e0d1cd8e42a2",
+    "title": "Vidya Deshmukh Ayush Shetty Gaurav Singh, Rajesh Parale,",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-235db2a94a1d30",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "c076b1d0-c62f-432f-afa8-80da443b7c20",
+    "title": "Vidya Deshmukh, Kiran Sunil Zure Akshay Gautam Jadhav Pravin Kailas Kunte Nisha Balwant Nelge,",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-5e950239d810ea",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "ce2d31ed-76ca-4e18-ae85-3046ffe972d8",
+    "title": "Vipin Gawai,Mr. Piyush Chaudhari, neeraj mahajan, Nikita Patil,",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-4f924ec16d08e9",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e6954280-5679-4512-a781-a0b2329fab22",
+    "title": "Visualisation improvement in ebeam inspector software",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-2df389caae267d",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "f8a98242-ceed-460c-94ea-f9a6c72e2875",
+    "title": "Voice Tone Analyzer Using Ml",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-55c798166b1fd8",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "0c9c2b43-e466-416c-a86f-291c47121fee",
+    "title": "Voice Tone Analyzer Using Ml SAMRIDDHI : A Journal of Physical Sciences, Engineering and Technology (smsjournals.com)",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-08c292e5439840",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "662286e1-dd3f-48ce-b69e-9ad222e42ba9",
+    "title": "Voice Tone recommendation",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f7a53d995c0654",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "cb769cd4-68a3-42cd-898a-2242d90c8978",
+    "title": "Water level monitoring management of dams using",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-0eb44005f4f16f",
+    "course_code": "COE",
+    "communication": "CSE",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)"
+  },
+  {
+    "id": "faf1d500-456a-46a8-bb3f-1a17a297512d",
+    "title": "Water Surface Cleaning Machine",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-9071fda33aff06",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "c689b710-8a39-4bf7-bdcb-34224bfcbdbb",
+    "title": "Wearable health monitoring system for workers",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-d8743e47e5379a",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "bff97c90-fa6a-4429-b399-02877c2cdda9",
+    "title": "Web Application Firewall",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-c523a677bfa682",
+    "course_code": "COE",
+    "communication": "Cybersecurity",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)"
+  },
+  {
+    "id": "f9213510-fcfb-44c1-a5d1-338dc5a8bc35",
+    "title": "Windows Widgets",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-5119d5000db6cc",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "8709267a-e019-4e6c-abd3-119335c9c41b",
+    "title": "Wireless Electric vehicle charging robot",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-8d57dd98ab39e4",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "bc07d5a6-3f8d-4691-8a7d-e6addd426655",
+    "title": "Wireless EV Charging Robot International Research Journal of Innovations Engineering &amp; Technology (irjiet.com)",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-54b0a15516bcf9",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "734fade9-11f6-47d5-b5da-8fad5685bde3",
+    "title": "Wireless EV charging Robot,,",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-5bb243790a1461",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "4ed65864-8095-4daa-b4d9-7629f2767920",
+    "title": "with Blockchain and AI",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-5a4a11e608ab7a",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "09d8211c-da97-4852-8383-e5f8b38b469d",
+    "title": "X-Ray Image Super Resolution using EBSR Ananya Khera,",
+    "batch": "NIT Trichy ECE 2023",
+    "seed_key": "pub-nitt-ece-276eced4b6d3a6",
+    "course_code": "ETE",
+    "communication": "ECE / signal processing",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "1a8c9569-1403-441e-ab93-348dc5b2bc37",
+    "title": "Yadav MDM Implementation",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-356f340f4f4fd7",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  },
+  {
+    "id": "11ab3c64-62b4-482a-8af5-b99ea92ce252",
+    "title": "Yellow Pages:A Telephone Directory",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-0cb0a93129c2b1",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "National Institute of Technology, Tiruchirappalli"
+  },
+  {
+    "id": "8bdcbdfb-52ea-4fdd-abe9-ca2e6d3bfa74",
+    "title": "Yogita Lad, Samruddhi Jadhav, Prathamesh Vishwas, Diya Vora,",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-45a8cce00ed327",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "d9ca3b55-b57f-40b3-ad4d-e6144c3fe046",
+    "title": "Yolov4: Optimal speed and Accuracy of object detection",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-40070022ea1026",
+    "course_code": "COE",
+    "communication": "CSE mini project",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)"
+  },
+  {
+    "id": "bac05b53-9139-439f-bedb-ab8e814b2e54",
+    "title": "Zeus: Smart electric Vehicle",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f5f9a1eda9c5d6",
+    "course_code": "ETE",
+    "communication": "Electronics",
+    "institution": "AISSMS College of Engineering, Pune"
+  },
+  {
+    "id": "e1b8cffb-d6bd-400c-904e-d23ff96bfef5",
+    "title": "zoho one (user management",
+    "batch": "NIT Trichy MCA 2017",
+    "seed_key": "pub-nitt-mca-61250b69e7fb15",
+    "course_code": "COE",
+    "communication": "MCA",
+    "institution": "NIT Trichy"
+  }
+]

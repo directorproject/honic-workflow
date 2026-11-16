@@ -1,0 +1,88 @@
+Sno Year Roll No Name Title Guide Place
+1 2017 205114001 Srishti Gupta Custom Monitoring Dashboards Dr. V. Gayathri Aurigo Software Technologies
+2 2017 205114002 Ajay Beniwal Yellow Pages:A Telephone Directory Dr. N P Gopalan NIT
+3 2017 205114003 Akhilesh Choudhari Online Book Store Dr. A.V. Reddy NIT
+4 2017 205114004 Parakh Kumar Rahangdale Online Team Management Dr. B. Ramadoss NIT
+5 2017 205114005 Shivam Seth Performance Test Automation for Cloud Based M2M Node Dr. Michael Arock Radisys India Pvt.
+6 2017 205114006 Rajesh Kumar Oracle Banking Digital Experience Dr. S. Nickolas Oracle Financial Services Software Ltd.
+7 2017 205114007 Ajay Tiwari Utility for creating meta data Dr. S R Balasundaram Magnitude software
+8 2017 205114008 Sahil Gupta Online Shopping Dr. P.J.A. Alphonse Nit
+9 2017 205114009 Vijay Shrivastava Platform For Increasing Empl Dr. S. Domnic NIT
+10 2017 205114010 Ravi Beck Quality Assurance for MaaS3 Dr. (Mrs.) B. Janet IBM India Pvt. Ltd.
+11 2017 205114011 Mukesh Kumar Saket Agripedia (Android Application) Dr. Mrs. S.Sangeetha NIT
+12 2017 205114012 Ekansh lariya Video library system Dr.R.Eswari NIT
+13 2017 205114013 Sonali Nagliya Outbound Hardware Monitoring Server Dr U. Srinivasulu Reddy Radisys India Pvt.
+14 2017 205114014 Shahnaz Bano Smart Finder Dr. S. R. Balasundaram NIT
+15 2017 205114015 Hemant Singoriya Oracle banking digital experience Dr. N.P. Gopalan Oracle Financial Services Software Ltd.
+16 2017 205114016 Sachin Malviya learner programming portal A V Reddy NIT
+17 2017 205114017 Santosh Kumar Ahirwar online discussion forum Dr. B Ramadoss NIT
+18 2017 205114018 Juli Jaiswal Lender Panel Dr. Michael Arock msupply.com
+19 2017 205114019 Km Sheeba Fatma DATAPATH TESTING AUTOMATION TOOL Dr. S. Nickolas Radisys Pvt. Ltd.
+20 2017 205114020 Abuturab Bohra Communication & Parsing in GCS (Generic Connector Service)  Dr. S. R. Balasundaram Teradata
+21 2017 205114021 Kunal Sahu Generic Connector Service Dr. P.J.A. Alphonse Teradata
+22 2017 205114022 Tarif zoho one (user management Dr. S Domnic zoho corporation
+23 2017 205114023 Hamendra Bairwa Click to Call and Internal Panel Dr. (Mrs.) B. Janet mSupply Ecommerce India Private Limited
+24 2017 205114024 Arjun Verma Jugnoo Tracking App Dr. Mrs. Sangeetha NIT
+25 2017 205114025 Palash Maran GTEQ Dr.Eswari Teradata
+26 2017 205114026 Prateek Soni QRadar Web Services Dr. U. Srinivasulu Reddy IBM India Pvt. Ltd.
+27 2017 205114027 Jinendra Pratap Singh APR (Annual Percentage Rate) Review Dr. S Suresh Citicorp finance India Pvt ltd
+28 2017 205114028 Priyanka Kothari Oracle Banking Digital Experience Dr. N. P. Gopalan Oracle ofss
+29 2017 205114029 Shubham Prajapati Communication Layer Optimization Dr. A.V. Reddy ZOHO Corporation
+30 2017 205114030 Abhishek Gupta TruVantagr Dr. B. Ramadoss Saggezza
+31 2017 205114031 Apeksha Bhosle Medical information system Dr. Michael Arock NIT
+32 2017 205114032 Piyush Sharma Automation Testing in Distributed Environment Dr. S. Nickolas Teradata
+33 2017 205114033 Akshay Arora Company Tagger Dr. S R Balasundaram Morgan Stanley
+34 2017 205114034 Vishal Chouhan Po2pay and internal panel Dr. P.J.A. Alphonse Msupply.com
+35 2017 205114035 Kanishka Gupta Concept based Image retrieval Dr. S. Domnic NIT
+36 2017 205114036 Sonam Soni Hostel Management Android Application DR. B. Janet NIT
+37 2017 205114037 Mayank Gupta Hostel Management Android Application Dr.(Mrs.) S. Sangeetha Oracle Financial Services Software
+38 2017 205114038 Arpit Gupta mSupply B2B Ecommerce A Dr. R. Eswari mSupply Ecommerce India Pvt. Ltd.
+39 2017 205114039 Anjali Maheshwari Campaign Centralization Dr. U. Srinivasulu Reddy CITI
+40 2017 205114040 Anil Patidar Car Solution App Dr. M.P. Anuradha NIT
+41 2017 205114041 Bhavika Matta Application Detection and Deep Packet Inspection, Web QoE Dr. N.P.Gopalan Sandvine Technologies
+42 2017 205114042 Shubham Agarawal Matrix Dr. A. V. Reddy Magnitude Software
+43 2017 205114043 Vaibhav Jain Matrimonial website Dr. B. Ramadoss NIT
+44 2017 205114044 Shalini namdev Traffic generator Michael Arock Radisys
+45 2017 205114045 Shivali Kolte Continuous Integration for Mammography Software Dr. S. Nickolas G. E. Health Care
+46 2017 205114046 Monika Raghuwanshi Automation tool for testing packet forwarding Dr. S. R. Balasundaram Radisys pvt. Ltd
+47 2017 205114047 Vinay Kant Garg Integration Of BDM (Informatica Big Data Management) With Hadoop Security FeaturesDr.P.J.A.Alphonse Informatica Business Solution Pvt. Ltd.
+48 2017 205114048 Chanchal Chouhan Payee Management Application Dr. S. Domnic Amazon Development Center, India pvt. ltd.
+49 2017 205114049 Mayank Shah Android Test Automation Dr. (Mrs.) B. Janet IBM India Pvt. Ltd.
+50 2017 205114050 Pranjul Kumar SWOT - Customer Panel(PO to Pay) DR. S. Sangeetha mSupply Ecommerce India Pvt. Ltd.
+51 2017 205114051 Deepanshu Bhatti Image Computer Health Check Framework Dr.(Ms.) R. Eswari KLA Tencor
+52 2017 205114052 Devendra Yadav MDM Implementation Dr. U. Srinivasulu Reddy Infotreillis Inc.
+53 2017 205114053 Basant Pratap Singh Improvement in wireshaping(LabVIEW) Dr. Siva Sankar National Instrument
+54 2017 205114054 Atul Rathore Set top box integration Dr. N. P. Gopalan Cisco
+55 2017 205114055 Poonam Choudhary MDM (Mobile Device Management) Dr. AV Reddy IBM
+56 2017 205114056 Manu Agrawal Release Manager Dr B Ramadoss GE healthcare
+57 2017 205114057 Aman Joshi Digitization of operational matrices Dr Michael Arock GE oil and gas
+58 2017 205114058 Rahul Kumar Dangi SAP IQ Dr. S. Nickolas SAP Labs
+59 2017 205114059 Monika Lalwani Port Legacy stacks To Containers Dr. S.R. Balasundaram Cisco
+60 2017 205114060 Sanjay Baskey Online Shopping Dr. P.J.A. Alphonse NIT
+61 2017 205114061 Ruchi Khaparde Equipment data management Dr. S. Domnic Caterpillar INC.
+62 2017 205114062 Akanksha Dixit Opal hostel management Android application Dr.(Mrs.) B. Janet NIT Trichy
+63 2017 205114063 Komal Thakur Generic Reconciliation Tool Dr.(Mrs).S.Sangeetha Arcesium India Pvt
+64 2017 205114064 Pranjali Bundele Detection and Avoidance of Replication of Files Dr. R. Eswari NIT
+65 2017 205114065 Javendra Kumar Jayaswal Real Estate Android Application with Backend website in PhpDr. U. Srinivasulu Reddy NIT
+66 2017 205114067 Vikash Kumar Integration of BDM (Informatica Big Data Management) with new releases of hadoop distributionsMr.K. Sakkaravarthy Iyyappan Informatica Business Solution Pvt. Ltd.
+67 2017 205114069 Gaurav Pathania Off-Cycle Rewards (Compensation) Dr. A. V. Reddy SAP Labs
+68 2017 205114070 Shailesh Kumar Visualisation improvement in ebeam inspector software Dr. B. Ramadoss Kla­tencor
+69 2017 205114071 Divya Jain CV Tool Dr. Michael Arock Saggezza India Pv
+70 2017 205114072 GautamGoel OBDX Mobile Application Dr.S.Nickolas Oracle Financial Services Software
+71 2017 205114073 Karmveer Kumar Automation Testing In Distributed Environment Dr. S. R. Balasundaram Teradata
+72 2017 205114074 Shikha Borkute Online Shopping Dr. P. J. A. Alphonse NIT
+73 2017 205114075 Akanksha MIS Automation Dr. S .Domnic Citi
+74 2017 205114076 Mohit Kumar Vats Bytes to XML Adapter Dr. B. Janet Fiorano
+75 2017 205114078 Ravi Shankar Kumar USB Debuging and Automation Testing Dr. R. Eswari Technicolor Connec
+76 2017 205114079 Rohit Verma Online Banking System U Srinivasulu Reddy NIT
+77 2017 205114080 Ganesh Pramod Kirange Maharashtra Tourism Portal Dr. Michael Arock NIT
+78 2017 205114081 Sanil Kumar Face Emotion Detection Dr.S.Nickolas Nit
+79 2017 205114082 Praveen Kumar Customer Panel­mProcure Dr. S. R. Balasundaram mSupply.com Ecommerce india pvt. Ltd.
+80 2017 205114083 Jyoti Kumari Online Student Attendance System with Biometric RecognitionDr. Michael Arock NIT
+81 2017 205114084 Abhilash Dhankar Make A List Dr. S. Nickolas mSupply.com Ecommerce india pvt. Ltd.
+82 2017 205114085 Chandra Prakash Expert Search Dr. S. R. Balasundaram NIT
+83 2017 205114086 Raju Maury Real Time Data Pipeline Integration between Hadoop  Environments and External SystemDr. P.J.A. Alphonse Kellton Tech Solutions Limited
+84 2017 205114087 A Monekho Digital Watermarking Dr. S. Domnic NIT
+85 2017 205114088 Aishwarya Vani Om Boarding Sources to MDM Dr. (Mrs.) B. Janet Infotrellis PVT LDT. Chennai
+86 2017 205114090 Anil Kumar Karmali Image Based Search Engine Dr. S. Sangeetha NIT
+87 2017 205114091 Preeti Aggregate Data Validation Tool Dr R Eswari Citi

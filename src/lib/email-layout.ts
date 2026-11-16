@@ -27,8 +27,8 @@ export function brandedEmail(params: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0">
 <tr><td style="padding:20px 28px;border-bottom:3px solid ${BRAND}"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
-<td style="padding-right:14px"><img src="${origin()}/logo.jpg" alt="Honic" width="56" style="display:block;border:0;height:auto"></td>
-<td><div style="font-size:16px;font-weight:700;color:#0f172a">Honic Company Limited</div><div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#475569">Innovation and Research</div></td>
+<td style="padding-right:14px;vertical-align:middle"><img src="${origin()}/logo-nexis-mark.jpg" alt="" width="48" height="48" style="display:block;border:0;border-radius:14px"></td>
+<td style="vertical-align:middle"><div style="font-size:18px;font-weight:800;line-height:1.15;color:#0f172a">Honic</div><div style="font-size:18px;font-weight:800;line-height:1.15;color:#0e7490">Nexis</div></td>
 </tr></table></td></tr>
 <tr><td style="padding:26px 28px 18px">${params.greeting ? `<p style="margin:0 0 14px;font-size:15px;color:#0f172a">${escapeHtml(params.greeting)}</p>` : ""}${paras}${button}</td></tr>
 <tr><td style="padding:16px 28px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:12px;line-height:1.5;color:#64748b">${params.footnote ? `${escapeHtml(params.footnote)}<br>` : ""}Honic Company Limited · Innovation and Research Department · Dar es Salaam, Tanzania</td></tr>

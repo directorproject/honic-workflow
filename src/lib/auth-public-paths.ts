@@ -4,6 +4,7 @@ export function isPublicAppPath(pathname: string): boolean {
   if (p === "/login") return true;
   // Supervisor portal has its own sign-in (not staff /login).
   if (p === "/supervisor" || p.startsWith("/supervisor/")) return true;
+  if (p === "/about" || p === "/share-portal") return true;
   if (p === "/portal" || p.startsWith("/portal/") || p.startsWith("/api/portal/")) return true;
   if (p.startsWith("/auth/")) return true;
   if (p === "/share" || p.startsWith("/share/")) return true;
@@ -13,7 +14,15 @@ export function isPublicAppPath(pathname: string): boolean {
   // Payment provider callbacks (Snippe HMAC-verified in the route).
   if (p.startsWith("/api/payments/")) return true;
   if (p.startsWith("/_next/")) return true;
-  if (p === "/favicon.ico" || p === "/robots.txt" || p === "/logo.jpg" || p === "/pdf.worker.min.mjs" || p === "/pdf-worker.js") {
+  if (
+    p === "/favicon.ico" ||
+    p === "/robots.txt" ||
+    p === "/sitemap.xml" ||
+    p === "/logo.jpg" ||
+    p.startsWith("/logo-nexis") ||
+    p === "/pdf.worker.min.mjs" ||
+    p === "/pdf-worker.js"
+  ) {
     return true;
   }
   if (p === "/portal.webmanifest" || p.startsWith("/portal-icon-")) return true;

@@ -43,13 +43,21 @@ function canonicalizePortalCase(request: NextRequest): NextResponse | null {
 function isAllowedOnShareHost(pathname: string): boolean {
   const p = pathname.toLowerCase();
   if (p.startsWith("/_next/")) return true;
+  if (p === "/about" || p === "/share-portal") return true;
   if (p === "/share" || p.startsWith("/share/")) return true;
   if (p.startsWith("/api/share/")) return true;
   if (p === "/supervisor" || p.startsWith("/supervisor/")) return true;
   if (isPortalPath(pathname)) return true;
   if (p === "/share-push-sw.js") return true;
   if (p === "/portal.webmanifest" || p.startsWith("/portal-icon-") || p.startsWith("/templates/")) return true;
-  if (p === "/favicon.ico" || p === "/robots.txt" || p === "/logo.jpg") return true;
+  if (
+    p === "/favicon.ico" ||
+    p === "/robots.txt" ||
+    p === "/sitemap.xml" ||
+    p === "/logo.jpg" ||
+    p.startsWith("/logo-nexis")
+  )
+    return true;
   if (p === "/pdf.worker.min.mjs" || p === "/pdf-worker.js") return true;
   return false;
 }
@@ -121,5 +129,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|robots.txt|logo.jpg|pdf\\.worker\\.min\\.mjs|pdf-worker\\.js).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap\\.xml|logo\\.jpg|logo-nexis|portal-icon-|pdf\\.worker\\.min\\.mjs|pdf-worker\\.js).*)",
+  ],
 };

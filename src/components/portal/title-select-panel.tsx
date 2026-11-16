@@ -21,6 +21,7 @@ export function TitleSelectAction({
   isHiddenFromPeers = false,
   selectedCount,
   readOnly,
+  readOnlyReason = "staff",
   needsPayment = false,
   hasPaidPlan: _hasPaidPlan = false,
   freeRemaining = 0,
@@ -33,6 +34,8 @@ export function TitleSelectAction({
   isHiddenFromPeers?: boolean;
   selectedCount: number;
   readOnly: boolean;
+  /** Guest browse vs staff catalogue — both lock actions. */
+  readOnlyReason?: "staff" | "guest";
   needsPayment?: boolean;
   hasPaidPlan?: boolean;
   freeRemaining?: number;
@@ -93,6 +96,19 @@ export function TitleSelectAction({
   }
 
   if (readOnly) {
+    if (readOnlyReason === "guest") {
+      return (
+        <div className="text-right">
+          <p className="text-dash-foreground text-sm font-semibold">Preview only</p>
+          <p className="text-dash-muted-foreground mt-1 text-xs leading-relaxed">
+            You can read this title. Sign in to shortlist it or claim ownership.
+          </p>
+          <Link href="/portal?auth=signin" className="text-dash-accent mt-2 inline-block text-xs font-semibold">
+            Sign in to use →
+          </Link>
+        </div>
+      );
+    }
     return <p className="text-dash-muted-foreground text-right text-xs leading-relaxed">Staff · read only</p>;
   }
 

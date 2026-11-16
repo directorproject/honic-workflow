@@ -101,13 +101,12 @@ export const PRICING_BOARD = {
   storage: {
     freeBytes: FREE_PLAN_FILE_STORAGE_BYTES,
     paidBytes: PAID_PLAN_FILE_STORAGE_BYTES,
-    note: `Free plan: up to ${formatStorageQuota(FREE_PLAN_FILE_STORAGE_BYTES)}. Paid Nexis Desk: up to ${formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES)} for Project files.`,
+    note: `Paid Nexis Desk includes project file storage up to ${formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES)}.`,
   },
   freeAlways: [
     "Browse all literature titles",
     "Browse Jobs listings (view only)",
     "Blank workspace templates (when you have a workspace)",
-    `Project file storage up to ${formatStorageQuota(FREE_PLAN_FILE_STORAGE_BYTES)}`,
   ],
   paidOnly: [
     "Help desk chat with Honic",

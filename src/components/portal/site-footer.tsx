@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 
+import { NexisWordmark } from "@/components/brand/nexis-wordmark";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 const YEAR = new Date().getFullYear();
@@ -20,7 +20,7 @@ const PORTAL_LINKS = [
 
 const COMPANY_LINKS = [
   { href: "/about", label: "About Honic" },
-  { href: "/login", label: "Staff sign in" },
+  { href: "/share-portal", label: "Share portal" },
 ] as const;
 
 function WhatsAppIcon() {
@@ -54,15 +54,7 @@ export function SiteFooter({
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-8">
           <div className="sm:col-span-2 lg:col-span-5">
-            <Link href="/" className="inline-flex items-start gap-3">
-              <span className="relative mt-0.5 h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-white">
-                <Image src="/logo.jpg" alt="" fill className="object-contain" sizes="44px" />
-              </span>
-              <span className="min-w-0">
-                <span className="text-dash-foreground block text-base font-semibold tracking-tight">Honic Company Limited</span>
-                <span className="mt-0.5 block text-[11px] font-semibold tracking-[0.16em] uppercase">Innovations and research</span>
-              </span>
-            </Link>
+            <NexisWordmark href="/portal" size="lg" subtitle="Honic Company Limited" />
             <p className="mt-4 max-w-md text-sm leading-relaxed">
               Engineering project support for students and institutions: titles, literature review, workspace, fabrication,
               and project follow-up from Dar es Salaam, Tanzania.
@@ -97,11 +89,6 @@ export function SiteFooter({
                   </Link>
                 </li>
               ))}
-              <li>
-                <a href="https://share.honiccompany.com" className="hover:text-dash-foreground transition-colors">
-                  Share portal
-                </a>
-              </li>
             </ul>
           </div>
 

@@ -5,15 +5,16 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 
 import { portalSignOutAction } from "@/app/portal/auth-actions";
+import { GuestPreviewBanner } from "@/components/portal/guest-preview-banner";
+import { LinkifiedText } from "@/components/portal/linkified-text";
 import { PortalNavLinks } from "@/components/portal/portal-nav";
 import { PlanModeChip } from "@/components/portal/plan-mode-chip";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { TitleRules } from "@/components/portal/title-terms-gate";
 import type { Course } from "@/lib/portal/data";
 import { projectMark } from "@/lib/portal/project-mark";
-import { LinkifiedText } from "@/components/portal/linkified-text";
 import type { ReviewItem } from "@/lib/portal/title-choices";
-import { MAX_TITLE_CHOICES } from "@/lib/portal/title-limits";
+import { hasActiveDeskPlan, MAX_TITLE_CHOICES } from "@/lib/portal/title-limits";
 
 const LINE =
   "border-dash-foreground/30 text-dash-foreground placeholder:text-dash-muted-foreground w-full border-0 border-b bg-transparent px-0 py-2 text-sm outline-none focus:border-dash-accent";
@@ -52,6 +53,7 @@ export function CohortTitleBoard(props: {
   studentYear: string | null;
   acceptedOn?: string | null;
   readOnly: boolean;
+  guest?: boolean;
   viewer?: { name: string; detail: string | null; homeHref: string | null } | null;
   hasWorkspace?: boolean;
   hasProgress?: boolean;
@@ -71,6 +73,7 @@ export function TitlesFrame({
   studentYear,
   acceptedOn,
   readOnly,
+  guest = false,
   viewer,
   hasWorkspace = false,
   hasProgress = false,
@@ -84,6 +87,7 @@ export function TitlesFrame({
   studentYear: string | null;
   acceptedOn?: string | null;
   readOnly: boolean;
+  guest?: boolean;
   viewer?: { name: string; detail: string | null; homeHref: string | null } | null;
   hasWorkspace?: boolean;
   hasProgress?: boolean;
@@ -162,7 +166,15 @@ export function TitlesFrame({
   });
 
   const ordered = order ? [...matched].sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)) : [];
-  const groups = filtering ? groupByYear(matched) : [];
+  // Keep year sections when filtering, but honor shuffle order inside each year.
+  const groups = filtering
+    ? groupByYear(matched).map(([label, group]): [string, ReviewItem[]] => [
+        label,
+        order
+          ? [...group].sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
+          : group,
+      ])
+    : [];
   const siteYears = yearFromTo(items);
   const completedCount = matched.filter((item) => item.kind === "earlier").length;
   const proposalCount = matched.filter((item) => item.kind === "study").length;
@@ -263,7 +275,7 @@ export function TitlesFrame({
   ) : null;
 
   const titleBand = (
-    <div className="flex items-center gap-2 px-3 py-2.5 sm:gap-4 sm:px-6 sm:py-3">
+    <div className="flex min-h-[3.6rem] flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2 sm:h-[4.25rem] sm:flex-nowrap sm:gap-4 sm:px-6 sm:py-0">
       <button
         type="button"
         className="hover:bg-dash-muted focus-visible:ring-dash-accent inline-flex shrink-0 rounded-lg p-2 focus-visible:ring-2 focus-visible:outline-none lg:hidden"
@@ -274,19 +286,19 @@ export function TitlesFrame({
       >
         {drawer ? <SidebarCloseIcon /> : <SidebarOpenIcon />}
       </button>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 basis-[10rem]">
         <p className="text-dash-foreground flex flex-wrap items-baseline gap-x-2">
-          <span className="text-lg font-semibold tracking-tight tabular-nums sm:text-xl">{items.length}</span>
-          <span className="text-dash-muted-foreground text-xs sm:text-sm">titles on this site</span>
+          <span className="text-base font-semibold tracking-tight tabular-nums sm:text-xl">{items.length}</span>
+          <span className="text-dash-muted-foreground text-[11px] sm:text-sm">titles on this site</span>
         </p>
-        <p className="text-dash-muted-foreground mt-0.5 max-w-xl text-[11px] leading-relaxed sm:mt-1 sm:text-xs">
+        <p className="text-dash-muted-foreground mt-0.5 max-w-xl truncate text-[10px] leading-relaxed sm:text-xs">
           {siteYears.startsWith("from ") ? `These are project titles collected ${siteYears}.` : "These are project titles collected for this site."}
         </p>
       </div>
-      <div className="border-dash-border flex shrink-0 items-center gap-0.5 border-l pl-2 sm:gap-1 sm:pl-3">
-        {!readOnly ? <PlanModeChip deskExpiresAt={deskExpiresAt} /> : null}
+      <div className="border-dash-border ml-auto flex shrink-0 flex-wrap items-center justify-end gap-0.5 border-l pl-2 sm:gap-1 sm:pl-3">
+        {!readOnly ? <PlanModeChip deskExpiresAt={deskExpiresAt} compact /> : null}
         {viewer?.homeHref ? (
-          <Link href={viewer.homeHref} className="text-dash-muted-foreground hover:bg-dash-muted hover:text-dash-foreground inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold">
+          <Link href={viewer.homeHref} className="text-dash-muted-foreground hover:bg-dash-muted hover:text-dash-foreground inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold sm:px-2.5">
             <HomeIcon />
             <span className="hidden sm:inline">Home</span>
           </Link>
@@ -294,7 +306,7 @@ export function TitlesFrame({
         <div ref={accountRef} className="relative">
           <button
             type="button"
-            className="text-dash-foreground hover:bg-dash-muted inline-flex items-center gap-2 rounded-lg py-1 pr-2 pl-1"
+            className="text-dash-foreground hover:bg-dash-muted inline-flex items-center gap-2 rounded-lg py-1 pr-1.5 pl-1 sm:pr-2"
             aria-expanded={accountOpen}
             aria-label="Account"
             onClick={() => setAccountOpen((open) => !open)}
@@ -302,11 +314,11 @@ export function TitlesFrame({
             <span className="bg-dash-foreground inline-flex h-8 w-8 items-center justify-center rounded-full text-white">
               <AccountIcon />
             </span>
-            <span className="hidden max-w-[11rem] truncate text-xs font-medium sm:inline">{viewer?.name ?? "Account"}</span>
+            <span className="hidden max-w-[6rem] truncate text-xs font-medium sm:inline sm:max-w-[11rem]">{viewer?.name ?? "Account"}</span>
           </button>
           {accountOpen ? (
-            <div className="bg-white border-dash-border absolute top-full right-0 z-20 mt-2 w-64 rounded-lg border p-3 shadow-sm">
-              <p className="text-dash-foreground text-sm font-semibold">{viewer?.name ?? "Account"}</p>
+            <div className="bg-dash-card text-dash-foreground border-dash-border absolute top-full right-0 z-20 mt-2 w-64 rounded-lg border p-3 shadow-sm">
+              <p className="text-sm font-semibold">{viewer?.name ?? "Account"}</p>
               {viewer?.detail ? <p className="text-dash-muted-foreground mt-1 text-xs leading-relaxed">{viewer.detail}</p> : null}
               {!readOnly ? (
                 <p className="text-dash-muted-foreground mt-2 text-xs">
@@ -314,23 +326,41 @@ export function TitlesFrame({
                   {slotsLeft ? " Select free; hide when you need conflict protection." : " Shortlist limit reached."}
                 </p>
               ) : (
-                <p className="text-dash-muted-foreground mt-2 text-xs">You can read every title.</p>
+                <p className="text-dash-muted-foreground mt-2 text-xs">
+                  {guest ? "Preview only — sign in to shortlist or claim." : "You can read every title."}
+                </p>
               )}
               {acceptedOn ? <p className="text-dash-muted-foreground mt-1 text-xs">Rules accepted {acceptedOn}</p> : null}
               {!readOnly ? (
                 <Link href="/portal/home?tab=projects" className="text-dash-accent mt-3 inline-block text-xs font-semibold">
                   My projects & titles
                 </Link>
+              ) : guest ? (
+                <Link href="/portal?auth=signin" className="text-dash-accent mt-3 inline-block text-xs font-semibold">
+                  Sign in to use →
+                </Link>
               ) : null}
             </div>
           ) : null}
         </div>
-        <form action={portalSignOutAction}>
-          <button type="submit" className="text-dash-muted-foreground hover:bg-dash-muted hover:text-dash-foreground inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold">
-            <LogoutIcon />
-            <span className="hidden sm:inline">Sign out</span>
-          </button>
-        </form>
+        {guest ? (
+          <Link
+            href="/portal?auth=signin"
+            className="bg-dash-accent inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white"
+          >
+            Sign in
+          </Link>
+        ) : (
+          <form action={portalSignOutAction}>
+            <button
+              type="submit"
+              className="text-dash-muted-foreground hover:bg-dash-muted hover:text-dash-foreground inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
+            >
+              <LogoutIcon />
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
@@ -365,7 +395,7 @@ export function TitlesFrame({
         id="portal-side-nav"
         aria-hidden={sidebarVisible ? undefined : true}
         inert={!sidebarVisible ? true : undefined}
-        className={`bg-dash-sidebar fixed inset-y-0 left-0 z-50 w-[17rem] -translate-x-full overflow-y-auto px-3 py-5 shadow-xl transition-transform duration-200 ease-out motion-reduce:transition-none lg:translate-x-0 ${drawer ? "max-lg:translate-x-0" : "max-lg:pointer-events-none"}`}
+        className={`bg-dash-sidebar fixed inset-y-0 left-0 z-50 flex w-[17rem] -translate-x-full flex-col overflow-y-auto pb-5 shadow-xl transition-transform duration-200 ease-out motion-reduce:transition-none lg:translate-x-0 ${drawer ? "max-lg:translate-x-0" : "max-lg:pointer-events-none"}`}
         onClick={(event) => {
           if (event.target instanceof Element && event.target.closest("a")) setDrawer(false);
         }}
@@ -374,7 +404,9 @@ export function TitlesFrame({
           <PortalNavLinks
             hasWorkspace={hasWorkspace}
             hasProgress={hasProgress}
+            hasPaidDesk={!guest && hasActiveDeskPlan(deskExpiresAt)}
             onSide
+            showSignOut={!guest}
             topExtras={catalogueTop}
             extras={catalogueExtras}
           />
@@ -390,9 +422,16 @@ export function TitlesFrame({
           {titleBand}
           <span className={`bg-dash-accent block h-0.5 origin-left transition-transform duration-500 ${scrolled ? "scale-x-100" : "scale-x-0"}`} />
         </header>
-        <div className="h-[3.75rem] shrink-0 sm:h-[4.25rem]" aria-hidden />
+        <div className="h-[3.6rem] shrink-0 sm:h-[4.25rem]" aria-hidden />
 
-        <div className="min-w-0 flex-1 overflow-visible">{children}</div>
+        <div className="min-w-0 flex-1 overflow-visible">
+          {guest ? (
+            <div className="px-3 pt-4 sm:px-6 lg:px-8">
+              <GuestPreviewBanner blurb="Browse every title and open a brief. Sign in to shortlist, claim ownership, or open source documents." />
+            </div>
+          ) : null}
+          {children}
+        </div>
         <SiteFooter className="lg:pl-0" />
       </div>
     </div>
@@ -476,12 +515,27 @@ function TitleCatalogue() {
           </div>
           <button
             type="button"
-            onClick={() => setOrder(shuffle(items.map((item) => item.id)))}
+            onClick={() => setOrder(shuffle(matched.map((item) => item.id)))}
             className="text-dash-foreground w-full shrink-0 rounded-lg border border-current px-3 py-2 text-xs font-semibold sm:ml-4 sm:w-auto sm:self-center sm:py-1.5"
           >
             Shuffle
           </button>
         </div>
+        {filtering ? (
+          <p className="text-dash-muted-foreground mt-2 text-xs leading-relaxed">
+            Filter match: <span className="text-dash-foreground font-semibold tabular-nums">{matched.length}</span>
+            {" · "}
+            <span className="tabular-nums">{completedCount}</span> final year
+            {" · "}
+            <span className="tabular-nums">{proposalCount}</span> new titles
+            {!showStudy ? (
+              <span className="text-amber-700 dark:text-amber-300"> — new project titles are hidden (use the eye icon).</span>
+            ) : null}
+            {!showEarlier ? (
+              <span className="text-amber-700 dark:text-amber-300"> — final year projects are hidden (use the eye icon).</span>
+            ) : null}
+          </p>
+        ) : null}
       </div>
       <div className="px-3 pb-6 sm:px-8">{list}</div>
     </>
@@ -651,7 +705,7 @@ function Filter({
               role="listbox"
               aria-label={label}
               style={{ position: "fixed", top: place.top, bottom: place.bottom, left: place.left, width: place.width, zIndex: 70 }}
-              className="bg-white text-dash-foreground border-dash-border max-h-64 overflow-y-auto rounded-lg border shadow-sm"
+              className="bg-dash-card text-dash-foreground border-dash-border max-h-64 overflow-y-auto rounded-lg border shadow-lg"
             >
               {options.map((option) => {
                 const selected = option.value === value;
@@ -661,7 +715,7 @@ function Filter({
                     type="button"
                     role="option"
                     aria-selected={selected}
-                    className={`hover:bg-dash-muted block w-full border-b border-dash-border px-3 py-2 text-left text-sm break-words last:border-b-0 ${selected ? "font-medium" : ""}`}
+                    className={`hover:bg-dash-muted block w-full border-b border-dash-border px-3 py-2 text-left text-sm break-words last:border-b-0 ${selected ? "bg-dash-muted font-medium" : ""}`}
                     onClick={() => {
                       onChange(option.value);
                       setOpen(false);
@@ -736,7 +790,7 @@ function TitleRow({ item, courseName }: { item: ReviewItem; courseName: Map<stri
     <li className="border-dash-foreground/15 border-b py-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
-          <p className="text-dash-muted-foreground text-[11px] leading-relaxed tracking-wide uppercase">
+          <p className="text-dash-muted-foreground text-[11px] leading-relaxed tracking-wide break-words uppercase">
             <span>{mark.year}</span>
             <span aria-hidden="true"> | </span>
             <span>{mark.group}</span>
@@ -750,7 +804,7 @@ function TitleRow({ item, courseName }: { item: ReviewItem; courseName: Map<stri
             {mark.institute ? (
               <>
                 <span aria-hidden="true"> | </span>
-                <span>{mark.institute}</span>
+                <span className="break-words">{mark.institute}</span>
               </>
             ) : null}
           </p>
@@ -761,45 +815,41 @@ function TitleRow({ item, courseName }: { item: ReviewItem; courseName: Map<stri
           {open ? (
             <div className="border-dash-border mt-3 space-y-3 rounded-lg border px-3 py-3">
               <div>
-                <p className="text-dash-foreground text-xs font-semibold">Problem statement</p>
+                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Problem statement</p>
                 <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
                   <LinkifiedText text={emptyProblem(item)} />
                 </p>
               </div>
               <div>
-                <p className="text-dash-foreground text-xs font-semibold">Main objective</p>
+                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Main objective</p>
                 <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
                   <LinkifiedText text={item.objectives ?? "No main objective has been published yet for this title."} />
                 </p>
               </div>
-              {item.specificObjectives ? (
-                <div>
-                  <p className="text-dash-foreground text-xs font-semibold">Specific objectives</p>
-                  <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                    <LinkifiedText text={item.specificObjectives} />
-                  </p>
-                </div>
-              ) : null}
               <div>
-                <p className="text-dash-foreground text-xs font-semibold">Literature and source</p>
-                {item.literatureNote ? (
-                  <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                    <LinkifiedText text={item.literatureNote} />
-                  </p>
-                ) : (
-                  <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed">No literature note yet for this title.</p>
-                )}
-                {item.sourceUrl ? (
-                  <a
-                    href={item.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-2 inline-block text-sm font-semibold break-all text-blue-700 underline decoration-blue-700/40 underline-offset-2 hover:text-blue-900 dark:text-blue-400 dark:decoration-blue-400/40 dark:hover:text-blue-300"
-                  >
-                    Open source page
-                  </a>
-                ) : null}
+                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Specific objectives</p>
+                <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                  <LinkifiedText
+                    text={item.specificObjectives ?? "Open the title page — extracted from the source document when available."}
+                  />
+                </p>
               </div>
+              <div>
+                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Recommendations</p>
+                <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                  <LinkifiedText
+                    text={item.limitations ?? "Open the title page — extracted from the source document when available."}
+                  />
+                </p>
+              </div>
+              {item.sourceUrl ? (
+                <Link
+                  href={`/portal/titles/${encodeURIComponent(item.id)}#documents`}
+                  className="text-dash-accent inline-block text-sm font-semibold"
+                >
+                  Source file on title page (unlock to view)
+                </Link>
+              ) : null}
             </div>
           ) : null}
         </div>

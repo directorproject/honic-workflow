@@ -1,11 +1,8 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
 import { JobDetailPanel } from "@/components/portal/jobs-board";
 import { PortalShell } from "@/components/portal/portal-shell";
-import { SiteFooter } from "@/components/portal/site-footer";
 import { studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
 import {
@@ -27,32 +24,16 @@ export default async function PortalJobDetailPage(props: { params: Promise<{ id:
   const state = await loadPortalState();
   const { user, profile } = state;
   const db = getSupabaseAdminClient();
+  const guest = !user;
 
-  if (!user || !db) {
-    return (
-      <main className="bg-dash-canvas text-dash-foreground flex min-h-screen flex-col">
-        <div className="border-dash-border sticky top-0 z-30 border-b backdrop-blur-md">
-          <CompanyBrandBar variant="full" />
-        </div>
-        <div className="mx-auto max-w-lg flex-1 px-4 py-10">
-          <p className="text-sm">
-            <Link href="/portal?auth=signin" className="text-dash-accent font-semibold">
-              Sign in
-            </Link>{" "}
-            to view this job.
-          </p>
-        </div>
-        <SiteFooter />
-      </main>
-    );
-  }
+  if (!db) notFound();
 
-  const viewerId = state.isStaff ? null : user.id;
+  const viewerId = guest || state.isStaff ? null : user!.id;
   const job = await getJobByPublicId(db, id, viewerId);
   if (!job) notFound();
 
-  const applications = job.isMine || state.isStaff ? await listApplicationsForJob(db, job.id, viewerId) : [];
-  const myApplication = viewerId && !job.isMine ? await getMyApplicationForJob(db, job.id, viewerId) : null;
+  const applications = !guest && (job.isMine || state.isStaff) ? await listApplicationsForJob(db, job.id, viewerId) : [];
+  const myApplication = !guest && viewerId && !job.isMine ? await getMyApplicationForJob(db, job.id, viewerId) : null;
 
   const threadApps = job.isMine
     ? applications.filter((a) => a.status === "pending" || a.status === "accepted")
@@ -65,17 +46,20 @@ export default async function PortalJobDetailPage(props: { params: Promise<{ id:
     messagesByApplicationPublicId[app.publicId] = await listMessagesForApplication(db, app.id, viewerId);
   }
 
-  const membership = !state.isStaff ? await findMembership(db, user.id) : null;
-  const viewerDetail = state.isStaff
-    ? "Staff · job detail"
-    : [profile?.courseOther ?? profile?.courseCode, studyLevelLabel(profile?.studyLevel ?? null, profile?.studyLevelOther), profile?.institution]
-        .filter(Boolean)
-        .join(" · ") || user.email;
+  const membership = !guest && !state.isStaff && user ? await findMembership(db, user.id) : null;
+  const viewerDetail = guest
+    ? "Preview · sign in to apply"
+    : state.isStaff
+      ? "Staff · job detail"
+      : [profile?.courseOther ?? profile?.courseCode, studyLevelLabel(profile?.studyLevel ?? null, profile?.studyLevelOther), profile?.institution]
+          .filter(Boolean)
+          .join(" · ") || user!.email;
 
   return (
     <Suspense fallback={<main className="bg-dash-canvas min-h-screen" />}>
       <PortalShell
-        viewer={{ name: profile?.fullName || user.email, detail: viewerDetail }}
+        guest={guest}
+        viewer={{ name: guest ? "Guest" : profile?.fullName || user!.email, detail: viewerDetail }}
         hasWorkspace={Boolean(membership)}
         hasProgress={Boolean(profile?.trackedProjectId)}
         deskExpiresAt={profile?.deskExpiresAt ?? null}
@@ -85,7 +69,7 @@ export default async function PortalJobDetailPage(props: { params: Promise<{ id:
           applications={applications}
           myApplication={myApplication}
           messagesByApplicationPublicId={messagesByApplicationPublicId}
-          canUseJobs={hasActiveDeskPlan(profile?.deskExpiresAt)}
+          canUseJobs={!guest && hasActiveDeskPlan(profile?.deskExpiresAt)}
         />
       </PortalShell>
     </Suspense>

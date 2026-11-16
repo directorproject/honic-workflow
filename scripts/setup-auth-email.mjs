@@ -35,8 +35,8 @@ function template({ title, intro, button, type, extra = "" }) {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0">
 <tr><td style="padding:20px 28px;border-bottom:3px solid ${BRAND}"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
-<td style="padding-right:14px"><img src="${origin}/logo.jpg" alt="Honic" width="56" style="display:block;border:0;height:auto"></td>
-<td><div style="font-size:16px;font-weight:700;color:#0f172a">Honic Company Limited</div><div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#475569">Innovation and Research</div></td>
+<td style="padding-right:14px;vertical-align:middle"><img src="${origin}/logo-nexis-mark.jpg" alt="" width="48" height="48" style="display:block;border:0;border-radius:14px"></td>
+<td style="vertical-align:middle"><div style="font-size:18px;font-weight:800;line-height:1.15;color:#0f172a">Honic</div><div style="font-size:18px;font-weight:800;line-height:1.15;color:#0e7490">Nexis</div></td>
 </tr></table></td></tr>
 <tr><td style="padding:26px 28px 18px">
 <h1 style="margin:0 0 14px;font-size:20px;color:#0f172a">${title}</h1>
@@ -49,10 +49,10 @@ function template({ title, intro, button, type, extra = "" }) {
 }
 
 const TEMPLATES = {
-  mailer_subjects_confirmation: "Confirm your Honic student portal account",
+  mailer_subjects_confirmation: "Confirm your Honic portal account",
   mailer_templates_confirmation_content: template({
     title: "Confirm your email",
-    intro: "Welcome to the Honic student portal. Confirm your email address to finish creating your account for {{ .Email }}.",
+    intro: "Welcome to Honic. Confirm your email address to finish creating your portal account for {{ .Email }}.",
     button: "Confirm my email",
     type: "signup",
   }),
@@ -70,10 +70,10 @@ const TEMPLATES = {
     button: "Sign in",
     type: "email",
   }),
-  mailer_subjects_invite: "You are invited to the Honic student portal",
+  mailer_subjects_invite: "You are invited to the Honic portal",
   mailer_templates_invite_content: template({
     title: "You are invited",
-    intro: "Honic Company Limited invited you to the student portal. Accept the invitation to set up your account.",
+    intro: "Honic Company Limited invited you to the portal. Accept the invitation to set up your account.",
     button: "Accept invitation",
     type: "invite",
   }),
@@ -114,20 +114,40 @@ async function main() {
   }
 
   const key = env.RESEND_API_KEY;
-  const from = env.EMAIL_FROM ?? "";
-  const m = from.match(/^\s*(?:"?([^"<]*?)"?\s*)?<([^>]+)>\s*$/) ?? [null, "", from.trim()];
-  const senderName = (m[1] || "Honic Company Limited").trim();
-  const adminEmail = (m[2] || "").trim();
+  const fromCandidates = [
+    env.EMAIL_FROM,
+    env.SMTP_SENDER_EMAIL_NOREPLY
+      ? `Honic Company Limited <${env.SMTP_SENDER_EMAIL_NOREPLY}>`
+      : "",
+    "Honic Company Limited <noreply@mail.honiccompanystore.com>",
+  ].filter(Boolean);
   if (!key) throw new Error("RESEND_API_KEY is missing (add it to .env.local).");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail)) throw new Error('EMAIL_FROM must look like "Honic Company Limited <portal@honiccompany.com>".');
 
-  const domain = adminEmail.split("@")[1];
   const res = await fetch("https://api.resend.com/domains", { headers: { Authorization: `Bearer ${key}` } });
   if (!res.ok) throw new Error(`Resend rejected the API key (${res.status}). Use a key with full access.`);
   const domains = (await res.json()).data ?? [];
-  const d = domains.find((x) => x.name === domain);
-  if (!d) throw new Error(`Add ${domain} in Resend (Domains) first.`);
-  if (d.status !== "verified") throw new Error(`${domain} is "${d.status}" in Resend. Add the DNS records Resend shows, wait for "verified", then run this again.`);
+  const verified = new Set(domains.filter((x) => x.status === "verified").map((x) => x.name));
+
+  let senderName = "Honic Company Limited";
+  let adminEmail = "";
+  for (const from of fromCandidates) {
+    const m = from.match(/^\s*(?:"?([^"<]*?)"?\s*)?<([^>]+)>\s*$/) ?? [null, "", from.trim()];
+    const name = (m[1] || "Honic Company Limited").trim();
+    const email = (m[2] || "").trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) continue;
+    const domain = email.split("@")[1];
+    if (verified.has(domain)) {
+      senderName = name;
+      adminEmail = email;
+      break;
+    }
+  }
+  if (!adminEmail) {
+    const listed = domains.map((x) => `${x.name} (${x.status})`).join(", ") || "(none)";
+    throw new Error(
+      `No Resend-verified sender domain. Set EMAIL_FROM to an address on a verified domain. Domains: ${listed}`,
+    );
+  }
 
   await api("/config/auth", {
     method: "PATCH",

@@ -1,0 +1,188 @@
+UG PROJECTS 
+S.No 
+TITLE 
+Name of the 
+Students 
+YEAR 
+1.  Spatial Spectral Mamba Attention Network for 
+Spectral Super-Resolution 
+Lok Visnu V 
+Rupesh N U 
+2026 
+2.  Scalable FPGA Architectures for Streaming 
+Kernel Extraction & MTF Analysis 
+Sam Nathanael 
+Thilagarajan 
+2026 
+3.  Automated flow for asynchronous state machine Hemanaathan D 2026 
+4.  
+Deep Spectral Spatial attention network for HIS 
+super resolution using adaptive feature embedding 
+Gondala 
+ShivaTeja, 
+Chebrolu 
+Rajarsha 
+2025 
+5.  
+Mamba based Knowledge Distillation Network for 
+Sunflower Leaf Disease Detection 
+Aniket Tiwari, 
+Mohammad 
+Maaz Akhtar 
+2025 
+6.  
+Deep Learning Based Image Super Resolution for 
+Plant Disease Classification 
+Sammeta 
+Kushal, M. 
+Tharun Kumar 
+2024 
+7.  
+Super Resolution and Classification of Chest CT 
+Scan Images 
+Amal S 
+Pradeep, Joe 
+Babu 
+2024 
+8.  
+Deep Convolution Neural Network based 
+Agricultural Image Super Resolution 
+Sai Sanika 
+Mualidhar, 
+Sriram Prakash 
+2023 
+9.  
+X-Ray Image Super Resolution using EBSR 
+Ananya Khera, 
+Garvit Tyagi 
+2023 
+10.  
+Identifying Agricultural Leaf Diseases using Deep 
+Learning Techniques and a Chatbot 
+Kavin R, 
+Hirthickkesh 
+PR 
+2023 
+11.  
+Underwater Image Super-Resolution 
+Sidharth Sajan, 
+Raghavender 
+Gangula 
+2022 
+12.  
+Deep Sea Debris Detection using Convolutional 
+Neural Network 
+Sharan 
+Rajamanoharan, 
+V. Sai Vignesh 
+2022 
+13.  Plant Leaf Disease Detection Using Deep 
+Learning Based on Convolutional Neural 
+Networks 
+Deepak Kumar, 
+Preity M 2022 
+14.  
+Performance Analysis of CNN Architecture for 
+Person Identification Using Ear Biometrics 
+Deepanshu 
+Dwande, 
+Ganesh Kumar 
+Agrawal, Nikhil 
+Phulwari 
+2021 
+15.  
+Development of Mobile Person Identifier and 
+Follower Robot 
+Aswin Gururaj, 
+Naven S R, Sri 
+Krishna 
+2020 
+16.  
+MRI Brain Tumour Detection and classification 
+Mylavan V, 
+Narottaman, T. 
+Ezhil Maran 
+2020 
+17.  Classification of Different Corrosion Types Based 
+on Electrochemical Noise Data Using Deep 
+Neural Networks 
+D. Abhishek, 
+V. Sai Kiran 2019 
+18.  
+Detection of Corrosion using R-CNN 
+Arutselvan D,  
+G. Pravin 
+Kumar 
+2019 
+19.  
+Classification of Crack Propagation in Materials 
+Using Acoustic Emission by Deep Learning 
+Damarla 
+Kuvalaya Datta, 
+Kethavath 
+Rakesh, 
+Mudavath 
+Kurmaiah 
+2019 
+20.  SINC Function Based Adaptive Gamma 
+Correction Using Grey Level Co-Occurrence 
+Matrix for Contrast Enhancement of dark images 
+Anirudha S, M. 
+Sreevatsan 2017 
+21.  
+An Effective Technique for Reducing Transient 
+Response in Digital IIR Notch Filter 
+B. Banu Prasad, 
+D. Naga Shiva 
+Sai Pavan 
+Kumar, N. 
+Jayanth 
+2017 
+22.  Denoising and Enhancement of Dark Images 
+Using Multiwavelets 
+Kilari Sai 
+Charan 
+2016 
+23.  
+Image Denoising Using Double Density Dual Tree 
+Discrete Wavelet Transform 
+Sangeetha M, 
+Agni Lokayatha 
+M. V 
+2015 
+24.  
+Detection of Midge Damage in Wheat Kernels 
+A Kannan 
+Karuppiah 
+2013 
+25.  
+Border Noise Removal, Image Classification of 
+Text and Graphics 
+B. Harinivash, 
+Raj Kamal 
+Ganesan, 
+Sibinanth M 
+2013 
+26.  
+Template Based Character Recognition System 
+Sarath S, Nitin 
+R 
+2012 
+27.  
+Salt and Pepper Noise Removal Using Modified 
+TSAMF and Wavelet Thresholding Techniques 
+D.Suyambu 
+Anand, Ramesh 
+Krishnan R, 
+Vipin Lal P. V 
+2009 
+28.  
+Impulse Noise Removal Using Robust Estimation 
+Method 
+Karthi M.S, 
+Thangadurai N, 
+Visshnu Ram 
+P.V, Arvindhan 
+S 
+2009 
+ 

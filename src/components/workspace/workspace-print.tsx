@@ -407,7 +407,7 @@ export function WorkspacePrint({ bundle, kind, period }: { bundle: WorkspaceBund
         <>
           <header className="flex items-center gap-4 border-b-2 border-sky-700 pb-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.jpg" alt="Honic" className="h-12 w-auto" />
+            <img src="/logo-nexis-brand.jpg" alt="Honic Nexis" className="h-12 w-auto rounded-xl" />
             <div>
               <p className="text-xs font-semibold tracking-widest text-sky-800 uppercase">Honic Company Limited · Innovation and Research</p>
               <h1 className="text-xl font-bold">{titles[kind]}</h1>

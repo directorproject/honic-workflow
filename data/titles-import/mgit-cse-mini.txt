@@ -1,0 +1,74 @@
+S.No. ROLL NO. Name of the student Guide Project Title 
+1 18265A0522 PARAVASTU VIVEK Dr A.Nagesh Securing data with Blockchain and AI 
+2 18261A0561 AAYUSH SRIVASTAVA k.Irfanbabu BRENT CRUDE OIL PRICE PREDICTION 
+3 18261A0562 ADITYA GOLLAPALLI k.Irfanbabu CUSTOMER SEGMENTATION USING MACHINE LEARNING 
+4 18261A0563 AEMIREDDY VARUN REDDY k.Irfanbabu Photosketching- Inferring contour drawings from images 
+5 18261A0564 BAYANA NARASIMHA VARA PRANAV 
+REDDY k.Irfanbabu Crop and Fertiliser Adviser 
+6 18261A0565 BHYRU CHANDU k.Irfanbabu Stock price prediction using knearest neighbour(KNN) algorithm 
+7 18261A0566 BODDU SRIVATSA G.Gousiya Begum Pulmonary CT Scan Image Segmentation using U-Net Architecture 
+8 18261A0567 CHANDAN B V S G.Gousiya Begum Skin Cancer Detection using Machine Learning 
+9 18261A0568 DEEPAK AGGARWAL G.Gousiya Begum SONAR ROCK OR MINE PREDICTION IN MACHINE LEARNING 
+10 18261A0569 DHARMA ASHRITHA G.Gousiya Begum Youtube Transcript Summariser 
+11 18261A0570 DIVITI SAI TEJA G.Gousiya Begum Youtube comment spam detection 
+12 18261A0571 EATHAMUKKALA AKARSH REDDY Ms.K.Sunitha Desktop Notifications For Google Meet 
+13 18261A0572 EDULAKANTI PRASHANTH Ms.K.Sunitha AN AUTOMATIC GARBAGE CLASSIFICATION SYSTEM BASED ON DEEPLEARNING 
+14 18261A0573 GADIPELLY SRINIDHI Ms.K.Sunitha CNN- based deep fake face detector 
+15 18261A0574 GANGADHAR DHEERAJ Ms.K.Sunitha Examination Surveillance 
+16 18261A0575 GARA SRUTHI Ms.K.Sunitha Medical Insurance cost prediction using ML 
+17 18261A0576 GUJJAR MOHAN MANJUNATH Ms.G.Nagasujini Picture Styling using Deep Neural Networks 
+18 18261A0577 GUNDU UTTEJ Ms.G.Nagasujini Web attack detection using machine learning 
+19 18261A0578 GUNTAKA NAGARJUNA REDDY Ms.G.Nagasujini Rock paper scissor game using neural networks 
+20 18261A0580 HARSH SHARMA Ms.G.Nagasujini Fake currency detector 
+21 18261A0582 JENNIFER JOYCE BHOOMPAGU Ms.P.Poornima Black Friday Sales Prediction Analysis 
+22 18261A0583 KATHULA MADHAVI Ms.P.Poornima PASSWORD MANAGER USING CRYPTOGRAPHIC TECHNIQUES 
+23 18261A0584 KONDAKINDHI VIVEK REDDY Ms.P.Poornima Online Shoppers’ Intention Using ML 
+24 18261A0585 KONDURI THARUN TEJA Ms.P.Poornima BIGMART SALES PREDICTION 
+25 18261A0586 M NAGA MOHAN REDDY Ms.S.Vijaya Lakshmi Analysis of reviews data using text mining in big data analytics 
+26 18261A0587 MANDA SHREYA CHANDANA Ms.S.Vijaya Lakshmi Real Time Sign Language Detection 
+27 18261A0588 MAYAWAR HEMANTH Ms.S.Vijaya Lakshmi Time series analysis of covid-19 
+28 18261A0589 MD SAMEER Ms.S.Vijaya Lakshmi Onlne Payment Fraud Detection in Credit Card using Logistic Regression 
+29 18261A0590 MINNAM RAKESH REDDY Ms.S.Vijaya Lakshmi Certificate Revocation in Identification of bird species using deep learning 
+30 18261A0591 MOHAMMED FARHAN AHMED Ms.N.Musrat Sultana FACE RECOGNITION ATTENDANCE SYSTEM 
+31 18261A0592 MULLAPUTI PENCHALA SAI PRIYA Ms.N.Musrat Sultana Secure e-voting using block chain technology 
+32 18261A0593 NAGOTHU ANIRUDH Ms.N.Musrat Sultana Evaluation Of Printed Multiple Choice Answer Sheet 
+33 18261A0594 NEMANI HIMAJA SAARVANI Ms.N.Musrat Sultana A Three Layer Privacy Preserving Cloud Storage Scheme based on Computational 
+Intelligence in Fog Computing 
+34 18261A0595 P PRAJITH REDDY Ms.N.Musrat Sultana MEDICAL DIAGNOSIS EXPERT SYSTEM 
+MAHATMA GANDHI INSTITUTE OF TECHNOLOGY 
+Department of CSE 
+AY 2021-22 IV B.Tech CSE-II INDUSTRY ORIENTED MINI PROJECT(Mini Project) Titles 
+S.No. ROLL NO. Name of the student Guide Project Title 
+35 18261A0596 PALLE SAI CHANDRA Ms.K.Rajitha Iot approach for smart helmet system 
+36 18261A0597 PAMU LAHARI REDDY Ms.K.Rajitha Experiment and Availability Analytical model of cloud computing based on backup 
+resource sharing and probabilistic protection guarantee 
+37 18261A0598 PETLA PRAMOD Ms.K.Rajitha SMART SURVEILLANCE TO HOMES AGANIST THEFT 
+38 18261A0599 POLAKI CHANDRIKA Ms.K.Rajitha BLOCKCHAIN BASED CONTRACT MANAGEMENT 
+39 18261A05A0 POTTIPALLI SUSHANTH Ms.K.Rajitha Brain tumor Detection using CNN 
+40 18261A05A1 PULGARI RAJITHA Mr.P.Shyam Sunder Measuring calorie and nutrition from food image 
+41 18261A05A2 PUSAPATI SHIVAKUMAR Mr.P.Shyam Sunder An Alternative method for Predicting severity of accidents using deep forest algorithm 
+42 18261A05A3 PUSULURI VINAY Mr.P.Shyam Sunder Exploratory Data Analysis on Geolocational Data 
+43 18261A05A4 R DIVYA Mr.P.Shyam Sunder Rice quality analysis and classification using Image Processing 
+44 18261A05A5 RAHUL VARMA INDUKURI Mr.P.Sathya Shekar Varma Suppressing Uncertainties with Large-Scale Facial Expression Recognition 
+45 18261A05A6 REDDI MEGHNA Mr.P.Sathya Shekar Varma Yolov4: Optimal speed and Accuracy of object detection 
+46 18261A05A7 RUPANI ANUSHA Mr.P.Sathya Shekar Varma Deep captcha - a deep learning based captcha solver for vulnerability assessment 
+47 18261A05A8 S LAXMI PRANITHA Mr.P.Sathya Shekar Varma Medical image enhancement using evolutionary algorithm 
+48 18261A05A9 S RISHABLOK SINGH Ms.K.Shirisha Bug Tracking System 
+49 18261A05B0 SANGISHETTY NAVYA AKSHITHA Ms.K.Shirisha Real-Time Face Mask Detection using Deep Learning Network 
+50 18261A05B1 SHAIK NASREEN Ms.K.Shirisha Exploring data analysis of students performance 
+51 18261A05B2 SRI KRISHNA CAITANYA Ms.K.Shirisha Clothing recommendation system 
+52 18261A05B3 SUNKARI SRIKRUTHI Ms.J.Sreedevi Stock Analysis using time forecasting methods 
+53 18261A05B4 TEKULA NAVNEETH RAO Ms.J.Sreedevi Fire Smoke detection using Image processing 
+54 18261A05B5 THUMMA HEMANTH Ms.J.Sreedevi HUMAN ACTIVITY RECOGNITION USING OPENCV AND DEEP LEARNING 
+55 18261A05B6 VADDEPALLY ABHIGNA KUMAR Ms.J.Sreedevi Loan Eligible Prediction using various Machine Learning Models 
+56 18261A05B7 VAISHANT BABU KURRA Ms A Swapna Water Quality Analysis using Machine Learning 
+57 18261A05B8 VALIGONDA SHIVANI Ms A Swapna Identifying and counting animals in camara trap images 
+58 18261A05B9 VASAMSHETTI UDAY KUMAR Ms A Swapna Custom digit recognition 
+59 18261A05C0 VELDI SUSHRUTH Ms A Swapna Diamond data analysis and price prediction using machine learning 
+60 19265A0507 DUDDUKURI VAMSI KRISHNA Dr B.Prasanthi Cyber Security using Natural Language Processing and Key Logging 
+61 19265A0508 JAMANLA KESHAVULU R.Srinivas Windows Widgets 
+62 19265A0509 MADIGA MALLAYOLLA SATHISH 
+KUMAR D.Depika Heart disease prediction using Machine Learning 
+63 19265A0510 R GEETHANJALI D.S.Bhavani Loan Default Prediction Using Supervised Machine Learning Algorithm 
+64 19265A0511 SARALA GNANESHWARI A.Ratnaraju Cryptanalysis of bloom filters used for privacy preserving record linkage 
+65 19265A0512 YASA ESHWAR REDDY G.Nagireddy ONLINE DOCTOR APPOINTMENT SYSTEM 

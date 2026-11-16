@@ -691,7 +691,7 @@ export async function acceptInviteAction(token: string): Promise<ActionResult> {
   try {
     const actor = await getSessionActor();
     if (!actor) throw new Error("Sign in first, then open the invitation link again.");
-    if (actor.kind !== "student") throw new Error("Staff accounts cannot join a student team.");
+    if (actor.kind !== "student") throw new Error("This account cannot join a student team.");
     const { data: invite } = await actor.db
       .from("portal_workspace_invites")
       .select("id, workspace_id, email, accepted_at")

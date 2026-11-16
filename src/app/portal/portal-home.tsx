@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { Suspense } from "react";
 
+import { ExploreFeaturePanel } from "@/components/portal/explore-feature-panel";
 import { MyProjectsPanel } from "@/components/portal/my-projects-panel";
 import { PaymentsBoard } from "@/components/portal/payments-board";
 import { PortalShell } from "@/components/portal/portal-shell";
@@ -37,6 +39,24 @@ const PROJECT_NOTICES: Record<string, string> = {
   signin: "Sign in to claim a title.",
 };
 
+/** Desk tools shown in the side nav — free users can open them, but services stay locked. */
+const DESK_EXPLORE_TABS = new Set([
+  "gantt",
+  "calendar",
+  "field",
+  "review",
+  "documents",
+  "corrections",
+  "files",
+  "team",
+  "messages",
+  "progress",
+  "tasks",
+  "logbook",
+  "data",
+  "references",
+]);
+
 export async function PortalHome({
   state,
   tab,
@@ -51,76 +71,125 @@ export async function PortalHome({
 
   const db = getSupabaseAdminClient();
   const membership = db ? await findMembership(db, user.id) : null;
-  const bundle = membership && db ? await loadWorkspaceBundle(db, membership.workspaceId) : null;
   const linked = Boolean(profile.trackedProjectId);
   const hasProgress = linked;
+  const paid = hasActiveDeskPlan(profile.deskExpiresAt);
   const viewerDetail = [profile.courseOther ?? profile.courseCode, profile.institution, user.email].filter(Boolean).join(" · ");
 
-  const choices = db ? await loadTitleChoices(db, user.id, profile) : { mine: state.myTitle ? [state.myTitle] : [], available: [] };
-  const claims = db ? await claimsForUser(db, user.id) : [];
-  const catalogue = db ? await listOwnershipCatalogue(db) : [];
-  const confirmedTargets = claims
-    .filter((c) => c.status === "confirmed" && c.targetKind && c.targetId)
-    .map((c) => ({ kind: c.targetKind!, id: c.targetId! }));
-  const engagementMap = db && confirmedTargets.length ? await engagementForTargets(db, confirmedTargets) : new Map();
-  const engagementByTarget = Object.fromEntries(
-    [...engagementMap.entries()].map(([k, v]) => [k, v]),
-  );
-  // Ensure confirmed claims without a row still resolve to zeros via key lookup.
-  for (const t of confirmedTargets) {
-    const key = engagementKey(t.kind, t.id);
-    if (!engagementByTarget[key]) {
-      engagementByTarget[key] = { targetKind: t.kind, targetId: t.id, clickCount: 0, buyCount: 0 };
+  const onProjects = tab === "projects" || tab === "title";
+  const onPayments = tab === "payments";
+  const onAccount = tab === "account";
+  const onProgress = tab === "progress";
+  const onHome = tab === "home" || !tab;
+  const onDeskTool = DESK_EXPLORE_TABS.has(tab);
+  const freeExplore = !paid && (onHome || onDeskTool);
+
+  // Skip the heavy workspace bundle on free explore screens and account-only views.
+  const needsBundle = Boolean(membership && db && !freeExplore && !onAccount && (onHome || onDeskTool || onProjects || onPayments || onProgress));
+  const bundle = needsBundle && membership && db ? await loadWorkspaceBundle(db, membership.workspaceId) : null;
+
+  const needsProjectsData = onProjects;
+  const needsPaymentsData = onPayments;
+  const needsChoices = needsProjectsData || (onHome && paid && !bundle);
+
+  const choices = needsChoices && db
+    ? await loadTitleChoices(db, user.id, profile)
+    : { mine: state.myTitle ? [state.myTitle] : [], available: [] };
+
+  let projectsPanel: React.ReactNode = null;
+  if (needsProjectsData) {
+    const [claims, catalogue] = await Promise.all([
+      db ? claimsForUser(db, user.id) : Promise.resolve([]),
+      db ? listOwnershipCatalogue(db) : Promise.resolve([]),
+    ]);
+    const confirmedTargets = claims
+      .filter((c) => c.status === "confirmed" && c.targetKind && c.targetId)
+      .map((c) => ({ kind: c.targetKind!, id: c.targetId! }));
+    const engagementMap = db && confirmedTargets.length ? await engagementForTargets(db, confirmedTargets) : new Map();
+    const engagementByTarget = Object.fromEntries([...engagementMap.entries()].map(([k, v]) => [k, v]));
+    for (const t of confirmedTargets) {
+      const key = engagementKey(t.kind, t.id);
+      if (!engagementByTarget[key]) {
+        engagementByTarget[key] = { targetKind: t.kind, targetId: t.id, clickCount: 0, buyCount: 0 };
+      }
     }
+    const entitlement = titleHideEntitlement({
+      deskExpiresAt: profile.deskExpiresAt,
+      changeCredits: profile.changeCredits,
+      selectedCount: choices.mine.length,
+      hiddenCount: choices.mine.filter((t) => t.hiddenFromPeers).length,
+    });
+    projectsPanel = (
+      <div className="space-y-4">
+        {notice && PROJECT_NOTICES[notice] ? (
+          <p className="border-dash-border bg-dash-card rounded-2xl border px-4 py-3 text-sm">{PROJECT_NOTICES[notice]}</p>
+        ) : null}
+        <MyProjectsPanel
+          selected={choices.mine}
+          phone={profile.phone}
+          changeCredits={profile.changeCredits}
+          projectStarted={linked}
+          claims={claims}
+          catalogue={catalogue}
+          entitlement={entitlement}
+          deskExpiresAt={profile.deskExpiresAt}
+          deskPlan={profile.deskPlan}
+          engagementByTarget={engagementByTarget}
+        />
+      </div>
+    );
   }
-  const payments = db ? await listPaymentsForUser(db, user.id).catch(() => []) : [];
-  const payoutAccount = db ? await loadPayoutAccount(db, user.id).catch(() => null) : null;
-  const payoutEligible = claims.some((c) => c.status === "confirmed");
-  const paymentsLedger = {
-    payments,
-    registeredName: profile.fullName,
-    payoutEligible,
-    payoutAccount,
-  };
-  const entitlement = titleHideEntitlement({
-    deskExpiresAt: profile.deskExpiresAt,
-    changeCredits: profile.changeCredits,
-    selectedCount: choices.mine.length,
-    hiddenCount: choices.mine.filter((t) => t.hiddenFromPeers).length,
-  });
-  const paymentsPanel = (
-    <PaymentsBoard
-      payments={payments}
-      invoices={bundle?.invoices ?? []}
-      registeredName={profile.fullName}
-      payoutEligible={payoutEligible}
-      payoutAccount={payoutAccount}
-      canPayInvoices={Boolean(bundle)}
-    />
-  );
-  const projectsPanel = (
-    <div className="space-y-4">
-      {notice && PROJECT_NOTICES[notice] ? (
-        <p className="border-dash-border bg-dash-card rounded-2xl border px-4 py-3 text-sm">{PROJECT_NOTICES[notice]}</p>
-      ) : null}
-      <MyProjectsPanel
-        selected={choices.mine}
-        phone={profile.phone}
-        changeCredits={profile.changeCredits}
-        projectStarted={linked}
-        claims={claims}
-        catalogue={catalogue}
-        entitlement={entitlement}
-        deskExpiresAt={profile.deskExpiresAt}
-        deskPlan={profile.deskPlan}
-        engagementByTarget={engagementByTarget}
+
+  let paymentsPanel: React.ReactNode = null;
+  let paymentsLedger:
+    | {
+        payments: Awaited<ReturnType<typeof listPaymentsForUser>>;
+        registeredName: string;
+        payoutEligible: boolean;
+        payoutAccount: Awaited<ReturnType<typeof loadPayoutAccount>>;
+      }
+    | undefined;
+  if (needsPaymentsData) {
+    const [payments, payoutAccount, claims] = await Promise.all([
+      db ? listPaymentsForUser(db, user.id).catch(() => []) : Promise.resolve([]),
+      db ? loadPayoutAccount(db, user.id).catch(() => null) : Promise.resolve(null),
+      db ? claimsForUser(db, user.id) : Promise.resolve([]),
+    ]);
+    const payoutEligible = claims.some((c) => c.status === "confirmed");
+    paymentsLedger = {
+      payments,
+      registeredName: profile.fullName,
+      payoutEligible,
+      payoutAccount,
+    };
+    paymentsPanel = (
+      <PaymentsBoard
+        payments={payments}
+        invoices={bundle?.invoices ?? []}
+        registeredName={profile.fullName}
+        payoutEligible={payoutEligible}
+        payoutAccount={payoutAccount}
+        canPayInvoices={Boolean(bundle)}
       />
-    </div>
-  );
+    );
+  }
+
   const accountPanel = <ProfileForm courses={state.courses} profile={profile} cancelHref="/portal/home" suggestedName={user.suggestedName} />;
 
   let body: React.ReactNode;
-  if (bundle) {
+  if (onPayments) {
+    body = paymentsPanel;
+  } else if (onProjects) {
+    body = projectsPanel;
+  } else if (onAccount) {
+    body = accountPanel;
+  } else if (freeExplore) {
+    body = onHome ? (
+      <FreeHomeExplore name={profile.fullName} />
+    ) : (
+      <ExploreFeaturePanel featureKey={tab} hasPaidPlan={false} hasWorkspace={Boolean(membership)} />
+    );
+  } else if (bundle) {
     body = (
       <WorkspaceView
         bundle={bundle}
@@ -129,7 +198,7 @@ export async function PortalHome({
           userId: user.id,
           name: profile.fullName,
           canEdit: true,
-          hasPaidDesk: hasActiveDeskPlan(profile.deskExpiresAt),
+          hasPaidDesk: paid,
         }}
         tab={tab}
         basePath="/portal/home"
@@ -142,17 +211,13 @@ export async function PortalHome({
           account: accountPanel,
           title: projectsPanel,
           paymentsLedger,
-          progress: hasProgress ? (tab === "progress" ? await renderHonicProgress(profile.trackedProjectId!) : <span />) : undefined,
+          progress: hasProgress ? (onProgress ? await renderHonicProgress(profile.trackedProjectId!) : <span />) : undefined,
         }}
       />
     );
-  } else if (tab === "payments") {
-    body = paymentsPanel;
-  } else if (tab === "projects" || tab === "title") {
-    body = projectsPanel;
-  } else if (tab === "account") {
-    body = accountPanel;
-  } else if (tab === "progress" && linked) {
+  } else if (onDeskTool) {
+    body = <ExploreFeaturePanel featureKey={tab} hasPaidPlan={paid} hasWorkspace={false} />;
+  } else if (onProgress && linked) {
     body = await renderHonicProgress(profile.trackedProjectId!);
   } else {
     const invites = db ? await loadInvitesFor(db, user.email) : [];
@@ -172,13 +237,61 @@ export async function PortalHome({
     <Suspense fallback={<main className="bg-dash-canvas min-h-screen" />}>
       <PortalShell
         viewer={{ name: profile.fullName, detail: viewerDetail }}
-        hasWorkspace={Boolean(bundle)}
+        hasWorkspace={Boolean(membership)}
         hasProgress={hasProgress}
         deskExpiresAt={profile.deskExpiresAt}
       >
         {body}
       </PortalShell>
     </Suspense>
+  );
+}
+
+function FreeHomeExplore({ name }: { name: string }) {
+  return (
+    <div className="space-y-6">
+      <div className="border-dash-border bg-dash-card overflow-hidden rounded-2xl border">
+        <div className="border-dash-border border-b bg-gradient-to-br from-[color-mix(in_oklab,var(--dash-accent)_14%,transparent)] to-transparent px-5 py-6 sm:px-8">
+          <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">Welcome</p>
+          <h2 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+            Hi {name.split(" ")[0] || "there"}, explore Honic Nexis
+          </h2>
+          <p className="text-dash-muted-foreground mt-3 max-w-2xl text-sm leading-relaxed">
+            Every side-nav link is open so you can see what the portal offers. Desk tools unlock with a Nexis Desk plan.
+            Literature browse and Jobs listings stay free.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link
+              href="/portal/packs"
+              className="bg-dash-accent inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white"
+            >
+              View plans
+            </Link>
+            <Link
+              href="/portal/titles"
+              className="border-dash-border text-dash-foreground inline-flex items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-semibold"
+            >
+              Browse literature
+            </Link>
+            <Link href="/portal/jobs" className="text-dash-accent inline-flex items-center text-sm font-semibold">
+              Browse jobs →
+            </Link>
+          </div>
+        </div>
+        <div className="grid gap-3 px-5 py-5 sm:grid-cols-3 sm:px-8">
+          {[
+            { href: "/portal/home?tab=gantt", t: "Gantt & plan", d: "Timeline and milestones" },
+            { href: "/portal/home?tab=review", t: "Review docs", d: "Drafts and corrections" },
+            { href: "/portal/home?tab=messages", t: "Help desk", d: "Message Honic staff" },
+          ].map((card) => (
+            <Link key={card.href} href={card.href} className="border-dash-border hover:border-dash-accent/40 rounded-xl border px-4 py-3 transition">
+              <p className="text-dash-foreground text-sm font-semibold">{card.t}</p>
+              <p className="text-dash-muted-foreground mt-1 text-xs">{card.d}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 

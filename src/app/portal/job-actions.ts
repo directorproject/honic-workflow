@@ -20,7 +20,7 @@ import type { PortalResult } from "@/app/portal/auth-actions";
 async function requireStudent() {
   const user = await getPortalUser();
   if (!user) throw new Error("Please sign in again.");
-  if (isStaffUser(user)) throw new Error("Staff accounts cannot use the student portal.");
+  if (isStaffUser(user)) throw new Error("This account cannot use the student portal.");
   const db = getSupabaseAdminClient();
   if (!db) throw new Error("Service unavailable. Please try again later.");
   return { user, db };

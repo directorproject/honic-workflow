@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
+import { NexisBrandBar } from "@/components/brand/nexis-brand-bar";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { WorkspaceView } from "@/components/workspace/workspace-view";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
@@ -27,7 +27,7 @@ export default async function SupervisorPage(props: { params: Promise<{ token: s
   return (
     <main className="bg-dash-canvas text-dash-foreground flex min-h-screen flex-col">
       <div className="border-dash-border bg-dash-canvas/95 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
-        <CompanyBrandBar variant="full" />
+        <NexisBrandBar />
       </div>
       <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
         <div className="border-dash-border bg-dash-card mb-6 flex flex-wrap items-start justify-between gap-3 rounded-md border px-4 py-3 text-sm">

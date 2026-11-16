@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
+import { NexisBrandBar } from "@/components/brand/nexis-brand-bar";
 import { SiteFooter } from "@/components/portal/site-footer";
 
 /** Shared /portal and /supervisor auth chrome — respects light and dark theme. */
@@ -11,8 +11,8 @@ export function AuthPageShell({ children }: { children: ReactNode }) {
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(1200px_600px_at_10%_-10%,color-mix(in_oklab,var(--dash-accent)_22%,transparent),transparent_55%),radial-gradient(900px_500px_at_90%_10%,color-mix(in_oklab,var(--dash-foreground)_8%,transparent),transparent_50%)] dark:bg-[radial-gradient(1200px_600px_at_10%_-10%,color-mix(in_oklab,var(--dash-accent)_18%,transparent),transparent_55%),radial-gradient(900px_500px_at_90%_12%,color-mix(in_oklab,var(--dash-accent)_10%,transparent),transparent_50%)]"
       />
-      <div className="border-dash-border bg-dash-canvas/85 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
-        <CompanyBrandBar variant="full" />
+      <div className="sticky top-0 z-30 shrink-0">
+        <NexisBrandBar />
       </div>
       <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">{children}</div>
       <SiteFooter />

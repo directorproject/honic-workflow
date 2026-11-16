@@ -40,7 +40,7 @@ export function TitleJumpNav({ jumps }: { jumps: [string, string][] }) {
   }, [idsKey]);
 
   return (
-    <div className="border-dash-border -mx-1 mt-5 flex gap-x-1 overflow-x-auto border-b px-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible">
+    <div className="border-dash-border -mx-3 mt-5 flex flex-wrap gap-x-1 gap-y-0 border-b px-3 sm:mx-0 sm:px-0">
       {jumps.map(([href, label]) => {
         const id = href.replace(/^#/, "");
         const on = active === id;
@@ -50,7 +50,7 @@ export function TitleJumpNav({ jumps }: { jumps: [string, string][] }) {
             href={href}
             aria-current={on ? "true" : undefined}
             onClick={() => setActive(id)}
-            className={`shrink-0 border-b-2 px-2.5 py-2 text-xs font-semibold whitespace-nowrap transition-colors ${
+            className={`border-b-2 px-2 py-2 text-[11px] font-semibold whitespace-nowrap transition-colors sm:px-2.5 sm:text-xs ${
               on
                 ? "border-dash-foreground text-dash-foreground"
                 : "text-dash-muted-foreground border-transparent hover:text-dash-foreground"

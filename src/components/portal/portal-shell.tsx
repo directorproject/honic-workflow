@@ -1,8 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
+import { NexisWordmark } from "@/components/brand/nexis-wordmark";
+import { GuestPreviewBanner } from "@/components/portal/guest-preview-banner";
 import { PlanModeChip } from "@/components/portal/plan-mode-chip";
 import { PortalNavLinks, usePortalActiveLabel, type PortalNavMode } from "@/components/portal/portal-nav";
 import { SiteFooter } from "@/components/portal/site-footer";
@@ -18,6 +21,7 @@ export function PortalShell({
   mode = "student",
   workspaceBase,
   deskExpiresAt = null,
+  guest = false,
   children,
 }: {
   viewer: { name: string; detail: string | null };
@@ -28,9 +32,11 @@ export function PortalShell({
   workspaceBase?: string;
   /** Student desk membership end date; used to show Free plan / Paid plan in the top bar. */
   deskExpiresAt?: string | null;
+  /** Anonymous browse: full nav visible, actions locked, sign-in CTA. */
+  guest?: boolean;
   children: ReactNode;
 }) {
-  const hasPaidDesk = mode !== "student" || hasActiveDeskPlan(deskExpiresAt);
+  const hasPaidDesk = guest ? false : mode !== "student" || hasActiveDeskPlan(deskExpiresAt);
   const pathname = usePathname();
   const search = useSearchParams();
   const tab = search.get("tab") ?? "home";
@@ -77,7 +83,7 @@ export function PortalShell({
         id={navId}
         aria-hidden={sidebarVisible ? undefined : true}
         inert={!sidebarVisible ? true : undefined}
-        className={`bg-dash-sidebar fixed inset-y-0 left-0 z-50 w-[17rem] -translate-x-full overflow-y-auto px-3 py-5 shadow-xl transition-transform duration-200 ease-out motion-reduce:transition-none lg:translate-x-0 ${drawer ? "max-lg:translate-x-0" : "max-lg:pointer-events-none"}`}
+        className={`bg-dash-sidebar fixed inset-y-0 left-0 z-50 flex w-[17rem] -translate-x-full flex-col overflow-y-auto pb-5 shadow-xl transition-transform duration-200 ease-out motion-reduce:transition-none lg:translate-x-0 ${drawer ? "max-lg:translate-x-0" : "max-lg:pointer-events-none"}`}
       >
         <PortalNavLinks
           mode={mode}
@@ -86,6 +92,7 @@ export function PortalShell({
           hasPaidDesk={hasPaidDesk}
           workspaceBase={workspaceBase}
           onSide
+          showSignOut={!guest}
         />
       </aside>
 
@@ -95,7 +102,7 @@ export function PortalShell({
             scrolled ? "shadow-[0_8px_24px_-16px_rgba(15,23,42,0.55)]" : ""
           }`}
         >
-          <div className="flex items-center gap-1.5 px-2.5 py-2 sm:gap-4 sm:px-6 sm:py-3">
+          <div className="flex min-h-[3.6rem] items-center gap-x-1.5 gap-y-1 px-2.5 py-1.5 sm:h-[4.25rem] sm:gap-4 sm:px-6 sm:py-0">
             <button
               type="button"
               className="hover:bg-dash-muted inline-flex shrink-0 rounded-lg p-2 lg:hidden"
@@ -106,21 +113,39 @@ export function PortalShell({
             >
               {drawer ? <CloseIcon /> : <MenuIcon />}
             </button>
-            <div className="min-w-0 flex-1 pr-1">
-              <h1 className="text-dash-foreground truncate text-[0.95rem] leading-tight font-semibold tracking-tight sm:text-xl">
+            {/* Phone: brand only. Wider phones/desktop show page title instead of both competing. */}
+            <div className="min-w-0 flex-1 pr-1 max-[380px]:flex-1 min-[381px]:hidden lg:hidden">
+              <NexisWordmark
+                href={mode === "supervisor" ? "/supervisor" : "/portal/home"}
+                size="sm"
+              />
+            </div>
+            <div className="hidden min-w-0 flex-1 pr-1 min-[381px]:block lg:block">
+              <h1 className="text-dash-foreground truncate text-sm leading-tight font-semibold tracking-tight sm:text-[0.95rem] lg:text-xl">
                 {activeLabel}
               </h1>
-              <p className="text-dash-muted-foreground mt-0.5 truncate text-[11px] leading-snug sm:text-sm">
+              <p className="text-dash-muted-foreground mt-0.5 hidden truncate text-[11px] leading-snug sm:block sm:text-sm lg:block">
                 {viewer.detail ?? viewer.name}
               </p>
             </div>
-            <div className="border-dash-border flex shrink-0 items-center gap-1 border-l pl-1.5 sm:gap-2 sm:pl-3">
+            <div className="border-dash-border flex shrink-0 items-center gap-0.5 border-l pl-1.5 sm:gap-2 sm:pl-3">
               <ThemeToggle />
-              {mode === "student" ? <PlanModeChip deskExpiresAt={deskExpiresAt} compact /> : null}
-              <span className="bg-dash-accent hidden h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white sm:inline-flex">
-                {viewer.name.slice(0, 1).toUpperCase()}
-              </span>
-              <span className="hidden max-w-[10rem] truncate text-xs font-medium md:inline">{viewer.name}</span>
+              {mode === "student" && !guest ? <PlanModeChip deskExpiresAt={deskExpiresAt} compact /> : null}
+              {guest ? (
+                <Link
+                  href="/portal?auth=signin"
+                  className="bg-dash-accent inline-flex items-center justify-center rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white sm:px-3 sm:text-sm"
+                >
+                  Sign in
+                </Link>
+              ) : (
+                <>
+                  <span className="bg-dash-accent hidden h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white sm:inline-flex">
+                    {viewer.name.slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="hidden max-w-[10rem] truncate text-xs font-medium md:inline">{viewer.name}</span>
+                </>
+              )}
               {mode === "supervisor" ? (
                 <span className="bg-violet-500/15 text-violet-800 dark:text-violet-200 hidden rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase sm:inline">
                   Supervisor
@@ -133,7 +158,10 @@ export function PortalShell({
         {/* Matches fixed header height so content is not covered. */}
         <div className="h-[3.6rem] shrink-0 sm:h-[4.25rem]" aria-hidden />
 
-        <div className="min-w-0 flex-1 px-3 py-4 sm:px-6 sm:py-5 lg:px-8">{children}</div>
+        <div className="min-w-0 flex-1 px-3 py-4 sm:px-6 sm:py-5 lg:px-8">
+          {guest ? <GuestPreviewBanner /> : null}
+          {children}
+        </div>
         <SiteFooter />
       </div>
     </div>

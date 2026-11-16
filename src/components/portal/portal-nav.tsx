@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { portalSignOutAction } from "@/app/portal/auth-actions";
 import { supervisorSignOutAction } from "@/app/supervisor/auth-actions";
+import { NexisWordmark } from "@/components/brand/nexis-wordmark";
 import { tabHref } from "@/lib/workspace/links";
 
 export type PortalNavItem = {
@@ -35,7 +35,6 @@ export function portalNavGroups(opts: {
   hasPaidDesk?: boolean;
 }): PortalNavGroup[] {
   const mode = opts.mode ?? "student";
-  const hasPaidDesk = opts.hasPaidDesk !== false;
 
   if (mode === "supervisor") {
     const base = opts.workspaceBase ?? "";
@@ -80,6 +79,7 @@ export function portalNavGroups(opts: {
   }
 
   const base = opts.workspaceBase ?? "/portal/home";
+  /** Full menu always — free users can open every link; screens gate the real service. */
   const plan: PortalNavItem[] = [
     { key: "gantt", label: "Gantt chart", href: tabHref(base, "gantt"), tabs: ["gantt"] },
     { key: "calendar", label: "Calendar", href: tabHref(base, "calendar"), tabs: ["calendar"] },
@@ -87,38 +87,27 @@ export function portalNavGroups(opts: {
   ];
   const honic: PortalNavItem[] = [
     { key: "jobs", label: "Jobs", href: "/portal/jobs", external: true },
+    { key: "messages", label: "Help desk", href: tabHref(base, "messages"), tabs: ["messages"] },
+    { key: "progress", label: "Honic progress", href: tabHref(base, "progress"), tabs: ["progress"] },
   ];
-  if (opts.hasWorkspace) {
-    honic.push({
-      key: "messages",
-      label: hasPaidDesk ? "Help desk" : "Help desk · plan",
-      href: tabHref(base, "messages"),
-      tabs: ["messages"],
-    });
-  }
-  if (opts.hasProgress) honic.push({ key: "progress", label: "Honic progress", href: tabHref(base, "progress"), tabs: ["progress"] });
 
   return [
     {
       label: "Workspace",
       items: [{ key: "home", label: "Home", href: base, tabs: ["home"] }],
     },
-    ...(opts.hasWorkspace
-      ? [
-          { label: "Plan", items: plan },
-          {
-            label: "Work",
-            items: [
-              { key: "review", label: "Review", href: tabHref(base, "review"), tabs: ["review", "documents", "corrections"] },
-              { key: "files", label: "Project files", href: tabHref(base, "files"), tabs: ["files"] },
-            ],
-          },
-          {
-            label: "Team & supervisor",
-            items: [{ key: "team", label: "Team & supervisor", href: tabHref(base, "team"), tabs: ["team"] }],
-          },
-        ]
-      : []),
+    { label: "Plan", items: plan },
+    {
+      label: "Work",
+      items: [
+        { key: "review", label: "Review", href: tabHref(base, "review"), tabs: ["review", "documents", "corrections"] },
+        { key: "files", label: "Project files", href: tabHref(base, "files"), tabs: ["files"] },
+      ],
+    },
+    {
+      label: "Team & supervisor",
+      items: [{ key: "team", label: "Team & supervisor", href: tabHref(base, "team"), tabs: ["team"] }],
+    },
     { label: "Honic", items: honic },
     {
       label: "You",
@@ -184,28 +173,32 @@ export function PortalNavLinks({
   const tab = search.get("tab") ?? "home";
   const groups = portalNavGroups({ mode, hasWorkspace, hasProgress, workspaceBase, hasPaidDesk });
   const homeHref = mode === "supervisor" ? "/supervisor" : "/portal/home";
-  const brandTitle = mode === "supervisor" ? "Supervisor portal" : "Honic Nexis";
   const signOut = mode === "supervisor" ? supervisorSignOutAction : portalSignOutAction;
 
   return (
-    <div className={`flex h-full flex-col gap-6 ${onSide ? "" : "space-y-4"}`}>
+    <div className={`flex h-full flex-col ${onSide ? "gap-0" : "gap-4 space-y-0"}`}>
       {brand && onSide ? (
-        <div className="flex items-center gap-3 px-3">
-          <Link href={homeHref} className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-white">
-            <Image src="/logo.jpg" alt="" fill className="object-contain" sizes="48px" priority />
-          </Link>
-          <div className="min-w-0">
-            <Link href={homeHref} className="block truncate text-sm font-semibold text-white">
-              {brandTitle}
-            </Link>
-            <p className="truncate text-xs text-white/70">Honic Company Limited</p>
+        <div className="bg-dash-sidebar sticky top-0 z-20 shrink-0">
+          {/* Same height as main header (see portal-shell spacer). Stays put while filters/nav scroll. */}
+          <div className="relative flex h-[3.6rem] items-center px-3 sm:h-[4.25rem]">
+            <NexisWordmark
+              href={homeHref}
+              tone="dark"
+              size="sm"
+              subtitle={mode === "supervisor" ? "Supervisor portal" : "Student portal"}
+            />
+            {/* Bold blue rule: starts at center of logo strip, ends at right edge of nav. */}
+            <span aria-hidden className="pointer-events-none absolute right-0 bottom-0 left-1/2 h-[3px] bg-[#38bdf8]" />
           </div>
         </div>
       ) : null}
 
-      {topExtras}
+      {topExtras ? <div className={onSide ? "mt-4 px-3" : undefined}>{topExtras}</div> : null}
 
-      <nav aria-label={mode === "supervisor" ? "Supervisor" : "Portal"} className={onSide ? "space-y-5 px-2" : "space-y-4"}>
+      <nav
+        aria-label={mode === "supervisor" ? "Supervisor" : "Portal"}
+        className={onSide ? "mt-4 space-y-5 px-3" : "space-y-4"}
+      >
         {groups.map((group) => (
           <div key={group.label}>
             <p className={`px-3 pb-1 text-[10px] font-semibold tracking-widest uppercase ${onSide ? "text-white/45" : "text-dash-muted-foreground"}`}>
@@ -218,6 +211,7 @@ export function PortalNavLinks({
                   <li key={item.key}>
                     <Link
                       href={item.href}
+                      prefetch
                       aria-current={on ? "page" : undefined}
                       className={
                         onSide
@@ -238,7 +232,7 @@ export function PortalNavLinks({
       {extras}
 
       {showSignOut ? (
-        <form action={signOut} className={onSide ? "mt-auto px-3" : undefined}>
+        <form action={signOut} className={onSide ? "mt-auto px-3 pt-4" : undefined}>
           <button type="submit" className={onSide ? "text-sm text-white/70 hover:text-white" : "text-dash-muted-foreground text-sm font-semibold"}>
             Sign out
           </button>

@@ -220,9 +220,57 @@ export function amountsMatch(expectedTsh: number, paidValue: unknown): boolean {
   return Number.isFinite(paid) && Number.isFinite(expected) && paid === expected && paid > 0;
 }
 
+function isProdRuntime() {
+  return process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+}
+
+/** Tunnel / loopback hosts are for local Snippe callbacks only — never in production. */
+function isDevWebhookHost(hostname: string) {
+  const host = hostname.toLowerCase();
+  return (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host.endsWith(".trycloudflare.com") ||
+    host.endsWith(".ngrok-free.app") ||
+    host.endsWith(".ngrok.io") ||
+    host.endsWith(".loca.lt")
+  );
+}
+
+/**
+ * Webhook base origin:
+ * - Local/dev: set SNIPPE_WEBHOOK_BASE_URL to your tunnel (e.g. trycloudflare).
+ * - Production: omit the tunnel var; uses NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN
+ *   (or set SNIPPE_WEBHOOK_BASE_URL=https://share.honiccompany.com on Vercel).
+ */
+function webhookBaseUrl(): string {
+  const override = (process.env.SNIPPE_WEBHOOK_BASE_URL || "").trim().replace(/\/$/, "");
+  if (override) {
+    let host = "";
+    try {
+      host = new URL(override).hostname;
+    } catch {
+      throw new Error("SNIPPE_WEBHOOK_BASE_URL is invalid.");
+    }
+    if (isProdRuntime() && isDevWebhookHost(host)) {
+      throw new Error(
+        "SNIPPE_WEBHOOK_BASE_URL points at a local tunnel. Unset it in production (or set https://share.honiccompany.com).",
+      );
+    }
+    return override;
+  }
+  const share = (process.env.NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN || "").trim().replace(/\/$/, "");
+  const app = (process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/$/, "");
+  return share || app;
+}
+
 export function publicWebhookUrl(): string {
-  const base = (process.env.SNIPPE_WEBHOOK_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/$/, "");
-  if (!base) throw new Error("SNIPPE_WEBHOOK_BASE_URL or NEXT_PUBLIC_APP_URL is required for Snippe webhooks.");
+  const base = webhookBaseUrl();
+  if (!base) {
+    throw new Error(
+      "Set SNIPPE_WEBHOOK_BASE_URL (local tunnel) or NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN (production) for Snippe webhooks.",
+    );
+  }
   const url = `${base}/api/payments/snippe/webhook`;
   assertSecureWebhookUrl(url);
   return url;

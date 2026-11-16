@@ -30,52 +30,44 @@ import {
 import { formatTsh } from "@/lib/workspace/constants";
 import { formatDate, formatDateTime } from "@/lib/workspace/dates";
 
-function JobsTabs({ active }: { active: "browse" | "mine" }) {
-  const tab = "rounded-sm px-3 py-1.5 text-sm font-medium transition";
-  const on = "bg-dash-accent text-white";
-  const off = "text-dash-muted-foreground hover:text-dash-foreground";
-  return (
-    <nav className="inline-flex items-center gap-1" aria-label="Jobs pages">
-      <Link href="/portal/jobs" className={`${tab} ${active === "browse" ? on : off}`}>
-        My jobs
-      </Link>
-      <Link href="/portal/jobs/mine" className={`${tab} ${active === "mine" ? on : off}`}>
-        Manage jobs
-      </Link>
-    </nav>
-  );
-}
-
-/** Browse open jobs (view free; apply needs paid plan). */
+/** Browse open posted jobs only (view free; apply needs paid plan). */
 export function JobsBrowseBoard({
   openJobs,
   canUseJobs,
+  guest = false,
 }: {
   openJobs: PortalJob[];
   canUseJobs: boolean;
+  guest?: boolean;
 }) {
   return (
     <div className="mx-auto max-w-5xl space-y-8 pb-10">
       <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.22em] uppercase">Honic Nexis</p>
-          <h1 className="text-dash-foreground mt-1 text-3xl font-semibold tracking-tight">My jobs</h1>
+          <h1 className="text-dash-foreground mt-1 text-3xl font-semibold tracking-tight">Posted jobs</h1>
           <p className="text-dash-muted-foreground mt-1 text-sm">
             {canUseJobs
-              ? "Open listings — view details and apply."
-              : "Free plan: view all jobs. Upgrade to apply."}
+              ? "Open listings only — view details and apply."
+              : guest
+                ? "Preview: read every listing. Sign in (then a Desk plan) to apply."
+                : "Free plan: view posted jobs. Upgrade to apply."}
           </p>
         </div>
-        <JobsTabs active="browse" />
+        <Link href={guest ? "/portal?auth=signin" : "/portal/jobs/mine"} className={`${PRIMARY} shrink-0`}>
+          {guest ? "Sign in to manage" : "Manage my jobs"}
+        </Link>
       </header>
 
       {!canUseJobs ? (
         <div className="border-dash-border bg-dash-card flex flex-wrap items-center justify-between gap-3 rounded-md border px-4 py-3">
           <p className="text-dash-muted-foreground text-sm">
-            You can open any job to read it. Applying needs an active Nexis Desk plan.
+            {guest
+              ? "You can open any posted job to read it. Sign in to apply or post."
+              : "You can open any posted job to read it. Applying needs an active Nexis Desk plan."}
           </p>
-          <Link href="/portal/packs" className={`${PRIMARY} shrink-0`}>
-            View plans
+          <Link href={guest ? "/portal?auth=signin" : "/portal/packs"} className={`${PRIMARY} shrink-0`}>
+            {guest ? "Sign in" : "View plans"}
           </Link>
         </div>
       ) : null}
@@ -93,7 +85,7 @@ export function JobsBrowseBoard({
           </ul>
         ) : (
           <div className="border-dash-border bg-dash-card rounded-md border px-5 py-8 text-center">
-            <p className="text-dash-muted-foreground text-sm">No open jobs yet.</p>
+            <p className="text-dash-muted-foreground text-sm">No posted jobs yet.</p>
             {canUseJobs ? (
               <Link href="/portal/jobs/mine" className={`${PRIMARY} mt-4 inline-flex`}>
                 Post a job
@@ -126,12 +118,20 @@ function JobsPlanGate({ action }: { action: "post" | "apply" }) {
         {action === "post" ? "Posting needs a paid plan" : "You can view this job · apply needs a paid plan"}
       </h2>
       <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
-        Free plan can read every listing.{" "}
-        {action === "post" ? "Posting" : "Applying"} needs an active semester or full-year Nexis Desk plan.
+        Browse listings freely. {action === "post" ? "Posting" : "Applying"} needs sign-in plus an active semester or
+        full-year Nexis Desk plan.
       </p>
-      <Link href="/portal/packs" className={`${PRIMARY} mt-4 inline-flex`}>
-        View plans
-      </Link>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link href="/portal?auth=signin" className={`${PRIMARY} inline-flex`}>
+          Sign in
+        </Link>
+        <Link
+          href="/portal/packs"
+          className="border-dash-border text-dash-foreground inline-flex items-center justify-center rounded-sm border px-4 py-2.5 text-sm font-semibold"
+        >
+          View plans
+        </Link>
+      </div>
     </div>
   );
 }
@@ -149,16 +149,21 @@ export function MyJobsBoard({
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-10">
       <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.22em] uppercase">Honic Nexis</p>
-          <h1 className="text-dash-foreground mt-1 text-3xl font-semibold tracking-tight">Manage jobs</h1>
+          <h1 className="text-dash-foreground mt-1 text-3xl font-semibold tracking-tight">Manage my jobs</h1>
           <p className="text-dash-muted-foreground mt-1 text-sm">
             {canUseJobs
-              ? "Post work and track applications."
-              : "Browse is free. Posting and applying need an active Nexis Desk plan."}
+              ? "Post work and track applications on your listings."
+              : "Browse posted jobs is free. Posting and applying need an active Nexis Desk plan."}
           </p>
         </div>
-        <JobsTabs active="mine" />
+        <Link
+          href="/portal/jobs"
+          className="border-dash-border text-dash-foreground hover:bg-dash-muted inline-flex shrink-0 items-center justify-center rounded-sm border px-4 py-2.5 text-sm font-semibold transition"
+        >
+          Posted jobs
+        </Link>
       </header>
 
       <div className="text-dash-muted-foreground flex flex-wrap gap-x-5 gap-y-1 text-sm">
@@ -230,7 +235,7 @@ export function MyJobsBoard({
                 <p className="text-dash-muted-foreground text-sm">
                   No applications yet.{" "}
                   <Link href="/portal/jobs" className="text-dash-accent font-semibold">
-                    Browse My jobs
+                    Browse posted jobs
                   </Link>
                 </p>
               </div>
@@ -616,7 +621,7 @@ function JobCard({ job, canApply }: { job: PortalJob; canApply: boolean }) {
           <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase">
             {jobRefLabel(job.publicId)} · {job.categoryLabel}
           </p>
-          <h3 className="text-dash-foreground mt-1 text-base font-semibold">{job.title}</h3>
+          <h3 className="text-dash-foreground mt-1 text-base font-semibold break-words">{job.title}</h3>
           <p className="text-dash-muted-foreground mt-1 line-clamp-2 text-sm leading-relaxed">{job.description}</p>
           <p className="text-dash-muted-foreground mt-2 text-xs">
             {job.posterLabel} · {formatDate(job.createdAt)} · {job.priceMode === "negotiable" ? "Negotiable" : "Fixed"}
@@ -669,13 +674,13 @@ export function JobDetailPanel({
           href="/portal/jobs"
           className="text-dash-muted-foreground hover:text-dash-foreground rounded-sm px-3 py-1.5 text-sm font-medium"
         >
-          ← My jobs
+          ← Posted jobs
         </Link>
         <Link
           href="/portal/jobs/mine"
           className="bg-dash-accent rounded-sm px-3 py-1.5 text-sm font-medium text-white"
         >
-          Manage jobs
+          Manage my jobs
         </Link>
       </div>
 

@@ -2,11 +2,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { academicYearLabel, academicYearOf } from "@/lib/academic-year";
 import { OTHER_COURSE_CODE } from "@/lib/portal/config";
-import { confirmedProposalIds } from "@/lib/portal/title-claims";
+import { rankTitles, type PortalTitle, type StudentProfile } from "@/lib/portal/data";
+import { polishBriefText, polishReferencesText } from "@/lib/portal/pdf-sections";
+import { cachedConfirmedProposalIds, cachedLastYearProjects } from "@/lib/portal/portal-catalogue-cache";
+import { MAX_TITLE_CHOICES, titleHideEntitlement } from "@/lib/portal/title-limits";
 import { titleTermsStatus } from "@/lib/portal/title-terms";
 import { academicYearFromText } from "@/lib/title-bank";
-import { rankTitles, type PortalTitle, type StudentProfile } from "@/lib/portal/data";
-import { MAX_TITLE_CHOICES, titleHideEntitlement } from "@/lib/portal/title-limits";
 
 export { MAX_TITLE_CHOICES };
 
@@ -56,6 +57,10 @@ export type ReviewItem = {
   problemStatement: string | null;
   objectives: string | null;
   specificObjectives: string | null;
+  /** Recommendations (preferred) or legacy limitations text from the source report. */
+  limitations: string | null;
+  /** Up to 5 bibliography entries taken from the source report REFERENCES chapter. */
+  references: string | null;
   literatureNote: string | null;
   /** Earlier student work is read-only. A starting point may be taken, then changed. */
   kind: "earlier" | "study";
@@ -66,14 +71,26 @@ export type ReviewItem = {
   isHiddenFromPeers?: boolean;
 };
 
-/** Notes from import use ## Main objective / Specific objectives / Literature and source. */
+/** Notes from import / PDF enrich use ## Problem / Main / Specific / Limitations / Literature. */
 export function parseTitleBrief(notes: string | null | undefined): {
+  problemStatement: string | null;
   objectives: string | null;
   specificObjectives: string | null;
+  limitations: string | null;
+  references: string | null;
   literatureNote: string | null;
 } {
   const raw = typeof notes === "string" ? notes.trim() : "";
-  if (!raw) return { objectives: null, specificObjectives: null, literatureNote: null };
+  if (!raw) {
+    return {
+      problemStatement: null,
+      objectives: null,
+      specificObjectives: null,
+      limitations: null,
+      references: null,
+      literatureNote: null,
+    };
+  }
   const section = (heading: string) => {
     const re = new RegExp(`##\\s*${heading}\\s*\\n([\\s\\S]*?)(?=\\n##\\s|$)`, "i");
     const match = raw.match(re);
@@ -81,8 +98,17 @@ export function parseTitleBrief(notes: string | null | undefined): {
     return body || null;
   };
   return {
-    objectives: section("Main objective"),
-    specificObjectives: section("Specific objectives"),
+    problemStatement: polishBriefText(section("Problem statement"), "problem"),
+    objectives: polishBriefText(section("Main objective"), "main"),
+    specificObjectives: polishBriefText(section("Specific objectives"), "specific"),
+    limitations: polishBriefText(
+      section("Recommendations") ??
+        section("Project limitations") ??
+        section("Project weakness") ??
+        section("Limitations"),
+      "recommendations",
+    ),
+    references: polishReferencesText(section("References")),
     literatureNote: section("Literature and source"),
   };
 }
@@ -134,12 +160,19 @@ function asPortalTitle(item: ReviewItem): PortalTitle {
   };
 }
 
+export type LoadLiteratureOptions = {
+  /** Parse enriched ## notes (heavy). Use on title detail only. */
+  includeBriefs?: boolean;
+};
+
 /** Earlier projects plus titles a student may study. Pass a profile to hide titles already taken in that group. */
 export async function loadLiterature(
   db: SupabaseClient,
   userId: string | null,
   profile: StudentProfile | null,
+  options?: LoadLiteratureOptions,
 ): Promise<{ mine: ReviewItem[]; items: ReviewItem[] }> {
+  const includeBriefs = options?.includeBriefs ?? false;
   const viewerKey = profile
     ? cohortKey({
         institution: profile.institution,
@@ -150,34 +183,74 @@ export async function loadLiterature(
       })
     : "";
 
-  const [{ data: proposals, error: titleError }, { data: selections, error: selectionError }, { data: earlier, error: earlierError }, { data: workspaces, error: workspaceError }] =
-    await Promise.all([
-      db
+  const needsPeerVisibility = Boolean(profile && userId);
+  const needsWorkspaceOverlay = includeBriefs;
+
+  const proposalsQuery = includeBriefs
+    ? db
         .from("title_proposals")
-        .select("id, title, summary, hardware, communication, course_code, institution, batch, notes, origin_ref, status, selected_by, created_at")
-        .neq("status", "dropped"),
-      // `title` is required for earlier:* picks (proposal_id is null; id is encoded in title).
-      db
+        .select(
+          "id, title, summary, hardware, communication, course_code, institution, batch, notes, origin_ref, status, selected_by, created_at",
+        )
+        .neq("status", "dropped")
+    : db
+        .from("title_proposals")
+        .select(
+          "id, title, summary, hardware, communication, course_code, institution, batch, origin_ref, status, selected_by, created_at",
+        )
+        .neq("status", "dropped");
+
+  const selectionsQuery = needsPeerVisibility
+    ? db
         .from("title_selections")
         .select("user_id, proposal_id, title, selected_at, hidden_at")
         .is("released_at", null)
-        .order("selected_at", { ascending: true }),
-      db.from("last_year_projects").select("id, programme, source, title"),
-      db.from("portal_workspaces").select("title_proposal_id, problem_statement, objectives").not("title_proposal_id", "is", null),
-    ]);
+        .order("selected_at", { ascending: true })
+    : Promise.resolve({
+        data: [] as {
+          user_id: string;
+          proposal_id: string | null;
+          title: string;
+          selected_at: string;
+          hidden_at: string | null;
+        }[],
+        error: null,
+      });
+
+  const workspacesQuery = needsWorkspaceOverlay
+    ? db.from("portal_workspaces").select("title_proposal_id, problem_statement, objectives").not("title_proposal_id", "is", null)
+    : Promise.resolve({
+        data: [] as { title_proposal_id: string | null; problem_statement: string | null; objectives: string | null }[],
+        error: null,
+      });
+
+  const [
+    { data: proposals, error: titleError },
+    { data: selections, error: selectionError },
+    earlier,
+    { data: workspaces, error: workspaceError },
+    owned,
+  ] = await Promise.all([
+    proposalsQuery,
+    selectionsQuery,
+    cachedLastYearProjects(),
+    workspacesQuery,
+    cachedConfirmedProposalIds(),
+  ]);
   if (titleError) throw new Error(titleError.message);
   if (selectionError) throw new Error(selectionError.message);
-  if (earlierError) throw new Error(earlierError.message);
   if (workspaceError && !/does not exist|schema cache|portal_workspaces/i.test(workspaceError.message)) throw new Error(workspaceError.message);
 
   const workspaceByTitle = new Map<string, { problem: string | null; objectives: string | null }>();
-  for (const row of workspaces ?? []) {
-    const titleId = row.title_proposal_id ? String(row.title_proposal_id) : "";
-    if (!titleId) continue;
-    workspaceByTitle.set(titleId, {
-      problem: typeof row.problem_statement === "string" && row.problem_statement.trim() ? row.problem_statement.trim() : null,
-      objectives: typeof row.objectives === "string" && row.objectives.trim() ? row.objectives.trim() : null,
-    });
+  if (needsWorkspaceOverlay) {
+    for (const row of workspaces ?? []) {
+      const titleId = row.title_proposal_id ? String(row.title_proposal_id) : "";
+      if (!titleId) continue;
+      workspaceByTitle.set(titleId, {
+        problem: typeof row.problem_statement === "string" && row.problem_statement.trim() ? row.problem_statement.trim() : null,
+        objectives: typeof row.objectives === "string" && row.objectives.trim() ? row.objectives.trim() : null,
+      });
+    }
   }
 
   const holderIds = new Set<string>();
@@ -233,7 +306,6 @@ export async function loadLiterature(
   }
 
   const text = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
-  const owned = await confirmedProposalIds(db);
   const studies: ReviewItem[] = (proposals ?? []).map((row) => {
     const created = text(row.created_at);
     const createdDate = created ? new Date(created) : null;
@@ -241,8 +313,9 @@ export async function loadLiterature(
     const id = String(row.id);
     const reserved = String(row.status) === "reserved";
     const workspace = workspaceByTitle.get(id);
-    const brief = parseTitleBrief(text(row.notes));
     const summary = text(row.summary);
+    const notes = includeBriefs && "notes" in row ? text(row.notes) : null;
+    const brief = notes ? parseTitleBrief(notes) : null;
     const sourceUrl = asHttpUrl(text(row.origin_ref));
     return {
       id,
@@ -257,10 +330,12 @@ export async function loadLiterature(
       sourceUrl,
       year,
       yearLabel: yearLabel(year),
-      problemStatement: workspace?.problem ?? summary,
-      objectives: workspace?.objectives ?? brief.objectives,
-      specificObjectives: brief.specificObjectives,
-      literatureNote: brief.literatureNote,
+      problemStatement: workspace?.problem ?? brief?.problemStatement ?? summary,
+      objectives: workspace?.objectives ?? brief?.objectives ?? null,
+      specificObjectives: brief?.specificObjectives ?? null,
+      limitations: brief?.limitations ?? null,
+      references: brief?.references ?? null,
+      literatureNote: brief?.literatureNote ?? null,
       kind: "study",
       canChoose: Boolean(profile) && !reserved && !owned.has(id) && !mineIds.has(id) && !hidden.has(id),
       isSelected: mineIds.has(id),
@@ -268,7 +343,7 @@ export async function loadLiterature(
     };
   });
 
-  const past: ReviewItem[] = (earlier ?? []).map((row) => {
+  const past: ReviewItem[] = earlier.map((row) => {
     const source = text(row.source);
     const year = source ? yearFromSource(source) : null;
     const id = `earlier:${String(row.id)}`;
@@ -288,6 +363,8 @@ export async function loadLiterature(
       problemStatement: null,
       objectives: null,
       specificObjectives: null,
+      limitations: null,
+      references: null,
       literatureNote: null,
       kind: "earlier",
       canChoose: Boolean(profile) && !mineIds.has(id) && !hidden.has(id),
@@ -318,21 +395,142 @@ export async function findReviewItem(
   profile: StudentProfile | null,
   id: string,
 ): Promise<ReviewItem | null> {
-  const review = await loadLiterature(db, userId, profile);
-  return [...review.mine, ...review.items].find((item) => item.id === id) ?? null;
+  const { item } = await loadReviewItemWithCatalogue(db, userId, profile, id);
+  return item;
 }
 
-/** Titles this student can still choose, plus the ones they already hold. */
+/**
+ * Light catalogue for the frame/sidebar plus one title with full brief (notes parsed once).
+ */
+export async function loadReviewItemWithCatalogue(
+  db: SupabaseClient,
+  userId: string | null,
+  profile: StudentProfile | null,
+  id: string,
+  prefetchedReview?: { mine: ReviewItem[]; items: ReviewItem[] },
+): Promise<{ item: ReviewItem | null; review: { mine: ReviewItem[]; items: ReviewItem[] } }> {
+  const review = prefetchedReview ?? (await loadLiterature(db, userId, profile, { includeBriefs: false }));
+  let item = [...review.mine, ...review.items].find((entry) => entry.id === id) ?? null;
+  if (!item) return { item: null, review };
+
+  if (item.kind === "earlier" || id.startsWith("earlier:")) {
+    return { item, review };
+  }
+
+  const [proposalRes, workspaceRes] = await Promise.all([
+    db
+      .from("title_proposals")
+      .select("id, title, summary, notes, origin_ref, status")
+      .eq("id", id)
+      .neq("status", "dropped")
+      .maybeSingle(),
+    db.from("portal_workspaces").select("problem_statement, objectives").eq("title_proposal_id", id).limit(1).maybeSingle(),
+  ]);
+  const { data: row, error } = proposalRes;
+  if (error) throw new Error(error.message);
+  if (!row) return { item: null, review };
+  const workspace =
+    workspaceRes.error && !/does not exist|schema cache|portal_workspaces/i.test(workspaceRes.error.message)
+      ? null
+      : workspaceRes.data;
+
+  const text = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
+  const brief = parseTitleBrief(text(row.notes));
+  const summary = text(row.summary);
+
+  item = {
+    ...item,
+    summary: summary ?? item.summary,
+    problemStatement: text(workspace?.problem_statement) ?? brief.problemStatement ?? summary ?? item.problemStatement,
+    objectives: text(workspace?.objectives) ?? brief.objectives ?? item.objectives,
+    specificObjectives: brief.specificObjectives,
+    limitations: brief.limitations,
+    references: brief.references,
+    literatureNote: brief.literatureNote,
+  };
+
+  return { item, review };
+}
+
+/**
+ * Shortlist for home / my projects. Intentionally light — does not load the
+ * full literature catalogue (that belongs on /portal/titles only).
+ */
 export async function loadTitleChoices(db: SupabaseClient, userId: string, profile: StudentProfile): Promise<TitleChoiceState> {
-  const review = await loadLiterature(db, userId, profile);
+  const [{ data: selections, error: selectionError }, { data: assigned, error: assignedError }] = await Promise.all([
+    db
+      .from("title_selections")
+      .select("proposal_id, title, hidden_at")
+      .eq("user_id", userId)
+      .is("released_at", null),
+    db
+      .from("title_proposals")
+      .select("id, title, summary, hardware, communication, course_code, institution")
+      .eq("selected_by", userId),
+  ]);
+  if (selectionError) throw new Error(selectionError.message);
+  if (assignedError) throw new Error(assignedError.message);
+
+  const proposalIds = [...new Set((selections ?? []).map((row) => row.proposal_id).filter(Boolean).map(String))];
+  const { data: proposalRows, error: proposalError } = proposalIds.length
+    ? await db
+        .from("title_proposals")
+        .select("id, title, summary, hardware, communication, course_code, institution")
+        .in("id", proposalIds)
+    : { data: [] as Record<string, unknown>[], error: null };
+  if (proposalError) throw new Error(proposalError.message);
+
+  const byId = new Map<string, PortalTitle>();
+  for (const row of [...(assigned ?? []), ...(proposalRows ?? [])]) {
+    const title = choiceTitleFromRow(row as Record<string, unknown>);
+    byId.set(title.id, title);
+  }
+
+  const hidden = new Set<string>();
+  for (const row of selections ?? []) {
+    const key = selectionKey(row.proposal_id, row.title);
+    if (!key) continue;
+    if (row.hidden_at) hidden.add(key);
+    if (byId.has(key)) continue;
+    // Earlier picks encode id in title (`earlier:<id>|<label>`).
+    if (!key.startsWith("earlier:")) continue;
+    const raw = typeof row.title === "string" ? row.title : key;
+    const label = raw.includes("|") ? raw.slice(raw.indexOf("|") + 1).trim() : key;
+    byId.set(key, {
+      id: key,
+      title: label || key,
+      summary: null,
+      hardware: null,
+      communication: null,
+      courseCode: null,
+      institution: null,
+      recommended: false,
+    });
+  }
+
+  const mine = [...byId.values()].map((item) => ({
+    ...item,
+    hiddenFromPeers: hidden.has(item.id),
+  }));
+
   return {
     profile,
-    mine: rankTitles(review.mine.map(asPortalTitle), profile, userId),
-    available: rankTitles(
-      review.items.filter((item) => item.canChoose).map(asPortalTitle),
-      profile,
-      userId,
-    ),
+    mine: rankTitles(mine, profile, userId),
+    available: [],
+  };
+}
+
+function choiceTitleFromRow(row: Record<string, unknown>): PortalTitle {
+  const s = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  return {
+    id: String(row.id),
+    title: String(row.title ?? ""),
+    summary: s(row.summary),
+    hardware: s(row.hardware),
+    communication: s(row.communication),
+    courseCode: s(row.course_code),
+    institution: s(row.institution),
+    recommended: false,
   };
 }
 
@@ -349,7 +547,7 @@ export async function chooseTitle(db: SupabaseClient, userId: string, profile: S
   }
   const id = String(proposalId ?? "").trim();
   if (!id) throw new Error("Choose a title.");
-  const review = await loadLiterature(db, userId, profile);
+  const review = await loadLiterature(db, userId, profile, { includeBriefs: false });
   const held = review.mine;
   if (held.length >= MAX_TITLE_CHOICES) throw new Error(`You can shortlist up to ${MAX_TITLE_CHOICES} titles.`);
   if (held.some((title) => title.id === id)) throw new Error("You already chose this title.");
@@ -378,7 +576,7 @@ export async function hideTitleFromPeers(
   const id = String(proposalId ?? "").trim();
   if (!id) throw new Error("Choose a title to hide.");
 
-  const review = await loadLiterature(db, userId, profile);
+  const review = await loadLiterature(db, userId, profile, { includeBriefs: false });
   const held = review.mine.find((item) => item.id === id);
   if (!held) throw new Error("Select this title first, then hide it from classmates.");
   if (held.isHiddenFromPeers) throw new Error("This title is already hidden from classmates.");

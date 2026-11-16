@@ -1,12 +1,12 @@
 import Link from "next/link";
+import { after } from "next/server";
 import type { ReactNode } from "react";
 
 import { publishTitleDocument } from "@/app/portal/title-claim-actions";
-import { CompanyBrandBar } from "@/components/brand/company-brand-bar";
+import { NexisBrandBar } from "@/components/brand/nexis-brand-bar";
 import { TitlesFrame } from "@/components/portal/cohort-title-board";
+import { DocumentsUnlockPanel } from "@/components/portal/documents-unlock-panel";
 import { LinkifiedText } from "@/components/portal/linkified-text";
-import { PortalAuth } from "@/components/portal/portal-auth";
-import { isPortalGoogleSignInEnabled } from "@/lib/portal/google-signin";
 import { ProfileForm } from "@/components/portal/profile-form";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { TitleJumpNav } from "@/components/portal/title-jump-nav";
@@ -15,18 +15,18 @@ import { TitleSelectAction } from "@/components/portal/title-select-panel";
 import { TitleTermsGate } from "@/components/portal/title-terms-gate";
 import { studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
+import { hasProjectDocumentsAccess } from "@/lib/portal/document-access";
 import { TitleEngagementStats } from "@/components/portal/title-engagement-stats";
 import { claimsForTarget, publishedDocuments, type TitleClaim, type TitleTargetKind } from "@/lib/portal/title-claims";
 import { engagementForTargets, recordTitleClick, type TitleEngagement } from "@/lib/portal/title-engagement";
 import { projectMark } from "@/lib/portal/project-mark";
-import { loadLiterature, type ReviewItem } from "@/lib/portal/title-choices";
+import { loadGuestLiteratureCatalogue, loadStudentLiteratureCatalogue } from "@/lib/portal/literature-guest-cache";
+import { loadReviewItemWithCatalogue, type ReviewItem } from "@/lib/portal/title-choices";
 import {
-  MAX_TITLE_CHOICES,
   planModeLabel,
   titleHideEntitlement,
   type TitleHideEntitlement,
 } from "@/lib/portal/title-limits";
-import { titleTermsStatus } from "@/lib/portal/title-terms";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { findMembership } from "@/lib/workspace/access";
 import { formatDate } from "@/lib/workspace/dates";
@@ -41,7 +41,7 @@ const NOTICES: Record<string, string> = {
   claimed: "Your claim was sent. It stays hidden until an admin confirms it.",
   waiting: "You already asked for this project. It is waiting for an admin.",
   taken: "Someone already owns this project.",
-  published: "The document is published. Anyone who opens this title can read it.",
+  published: "The document is published. Viewers need a Nexis Desk plan or documents unlock to open it.",
   missing: "Add the missing name or file.",
   large: "That file is larger than 25 MB.",
   owner: "Only the confirmed owner can publish documents.",
@@ -61,13 +61,6 @@ export default async function PortalTitlePage(props: {
   const { user, profile } = state;
   const db = getSupabaseAdminClient();
 
-  if (!user) {
-    return (
-      <Gate>
-        <PortalAuth initialStatus={null} googleEnabled={isPortalGoogleSignInEnabled()} />
-      </Gate>
-    );
-  }
   if (!db) {
     return (
       <Gate>
@@ -75,64 +68,99 @@ export default async function PortalTitlePage(props: {
       </Gate>
     );
   }
-  if (!state.isStaff && !profile) {
+
+  const guest = !user;
+  if (user && !state.isStaff && !profile) {
     return (
       <Gate>
         <ProfileForm courses={state.courses} profile={profile} suggestedName={user.suggestedName} />
       </Gate>
     );
   }
-  let acceptedAt: string | null = null;
-  if (!state.isStaff && profile) {
-    const account = await db.auth.admin.getUserById(user.id);
-    if (account.error) throw new Error(account.error.message);
-    const terms = titleTermsStatus(account.data.user?.user_metadata);
-    acceptedAt = terms.acceptedAt;
-    if (!terms.accepted) {
-      return (
-        <Gate>
-          <TitleTermsGate step={terms.policyAccepted ? "rules" : "policy"} />
-        </Gate>
-      );
-    }
+  const terms = state.titleTerms ?? { accepted: false, policyAccepted: false, rulesAccepted: false, acceptedAt: null };
+  const acceptedAt = terms.acceptedAt;
+  if (user && !state.isStaff && profile && !terms.accepted) {
+    return (
+      <Gate>
+        <TitleTermsGate step={terms.policyAccepted ? "rules" : "policy"} />
+      </Gate>
+    );
   }
 
   const routeId = decodeURIComponent(id);
-  const review = await loadLiterature(db, state.isStaff ? null : user.id, state.isStaff ? null : profile);
-  const item = [...review.mine, ...review.items].find((entry) => entry.id === routeId) ?? null;
+  const cataloguePromise =
+    guest || state.isStaff
+      ? loadGuestLiteratureCatalogue()
+      : loadStudentLiteratureCatalogue(user!.id, profile!);
+  const membershipPromise =
+    user && !state.isStaff && db ? findMembership(db, user.id) : Promise.resolve(null);
+
+  const [prefetched, membership] = await Promise.all([cataloguePromise, membershipPromise]);
+
+  const { item, review } = await loadReviewItemWithCatalogue(
+    db,
+    guest || state.isStaff ? null : user!.id,
+    guest || state.isStaff ? null : profile,
+    routeId,
+    prefetched,
+  );
   const courseName = new Map(state.courses.map((course) => [course.code, course.name]));
   const notice = search.notice ? NOTICES[search.notice] : null;
   const target = item ? titleTarget(item) : null;
   const claims = target ? await claimsForTarget(db, target.kind, target.id) : [];
   const confirmed = claims.filter((claim) => claim.status === "confirmed");
-  const documents = await publishedDocuments(db, confirmed.map((claim) => claim.id));
+  const mineClaim =
+    !guest && !state.isStaff && user ? confirmed.find((claim) => claim.requesterId === user.id) ?? null : null;
+  const ownerId = confirmed[0]?.requesterId ?? null;
+
+  const [documents, canViewDocuments, engagementMap] = await Promise.all([
+    confirmed.length ? publishedDocuments(db, confirmed.map((claim) => claim.id)) : Promise.resolve([]),
+    !guest && user
+      ? hasProjectDocumentsAccess(db, {
+          userId: user.id,
+          deskExpiresAt: profile?.deskExpiresAt ?? null,
+          isStaff: state.isStaff,
+          isDocumentOwner: Boolean(mineClaim),
+        })
+      : Promise.resolve(false),
+    target && confirmed.length
+      ? engagementForTargets(db, [target])
+      : Promise.resolve(new Map<string, TitleEngagement>()),
+  ]);
+
   const files = documents.map((document) => ({
     id: document.id,
     name: document.name,
-    href: `/api/portal/title-documents/${document.id}`,
+    href: canViewDocuments ? `/api/portal/title-documents/${document.id}` : null,
   }));
-  const mineClaim = !state.isStaff && user ? confirmed.find((claim) => claim.requesterId === user.id) ?? null : null;
-  const ownerId = confirmed[0]?.requesterId ?? null;
-  if (target && confirmed.length) {
-    await recordTitleClick(db, {
-      targetKind: target.kind,
-      targetId: target.id,
-      viewerId: user.id,
-      ownerId,
-      isStaff: state.isStaff,
-    });
+
+  if (!guest && user && target && confirmed.length) {
+    after(() =>
+      recordTitleClick(db, {
+        targetKind: target.kind,
+        targetId: target.id,
+        viewerId: user.id,
+        ownerId,
+        isStaff: state.isStaff,
+      }),
+    );
   }
-  const engagementMap =
-    target && confirmed.length ? await engagementForTargets(db, [target]) : new Map<string, TitleEngagement>();
+
   const engagement = target ? engagementMap.get(`${target.kind}:${target.id}`) ?? null : null;
   const isMine = Boolean(item && review.mine.some((entry) => entry.id === item.id));
-  const viewer = state.isStaff
-    ? { name: user.email, detail: "Staff · reading only", homeHref: null }
-    : {
-        name: profile?.fullName || user.email,
-        detail: profile ? [profile.courseOther ?? profile.courseCode, studyLevelLabel(profile.studyLevel, profile.studyLevelOther), profile.institution].filter(Boolean).join(" · ") || null : null,
-        homeHref: "/portal",
-      };
+  const viewer = guest
+    ? { name: "Guest", detail: "Preview · sign in to use", homeHref: "/portal/home" as string | null }
+    : state.isStaff
+      ? { name: user!.email, detail: "Staff · reading only", homeHref: null }
+      : {
+          name: profile?.fullName || user!.email,
+          detail: profile
+            ? [profile.courseOther ?? profile.courseCode, studyLevelLabel(profile.studyLevel, profile.studyLevelOther), profile.institution]
+                .filter(Boolean)
+                .join(" · ") || null
+            : null,
+          homeHref: "/portal",
+        };
   const others = item ? [...review.mine, ...review.items].filter((entry) => entry.id !== item.id) : [];
   const related = item
     ? {
@@ -142,16 +170,17 @@ export default async function PortalTitlePage(props: {
       }
     : null;
 
-  const membership = !state.isStaff && user ? await findMembership(db, user.id) : null;
+  const locked = guest || state.isStaff;
 
   return (
     <TitlesFrame
       items={review.items}
       mine={review.mine}
       courses={state.courses}
-      studentYear={state.isStaff ? null : profile?.academicYear ?? null}
+      studentYear={guest || state.isStaff ? null : profile?.academicYear ?? null}
       acceptedOn={acceptedAt ? formatDate(acceptedAt) : null}
-      readOnly={state.isStaff}
+      readOnly={locked}
+      guest={guest}
       viewer={viewer}
       hasWorkspace={Boolean(membership)}
       hasProgress={Boolean(profile?.trackedProjectId)}
@@ -159,6 +188,15 @@ export default async function PortalTitlePage(props: {
       catalogueTools={false}
     >
       <article className="w-full px-4 pt-4 pb-10 sm:px-6 sm:pt-5 lg:px-8">
+        {guest ? (
+          <p className="border-dash-border bg-dash-card mb-6 rounded-xl border px-4 py-3 text-sm">
+            Preview mode — read the brief and references.{" "}
+            <Link href="/portal?auth=signin" className="text-dash-accent font-semibold">
+              Sign in
+            </Link>{" "}
+            to shortlist, claim, or open source files.
+          </p>
+        ) : null}
         {notice ? <p className="border-dash-border mb-6 rounded-lg border bg-emerald-500/10 px-3 py-2 text-sm">{notice}</p> : null}
         {item && target && related ? (
           <TitleDetail
@@ -171,8 +209,10 @@ export default async function PortalTitlePage(props: {
             related={related}
             isMine={isMine}
             selectedCount={review.mine.length}
-            readOnly={state.isStaff}
+            readOnly={locked}
+            readOnlyReason={guest ? "guest" : "staff"}
             phone={profile?.phone ?? ""}
+            canViewDocuments={canViewDocuments}
             entitlement={
               profile
                 ? titleHideEntitlement({
@@ -205,7 +245,7 @@ function Gate({ children }: { children: ReactNode }) {
   return (
     <main className="bg-dash-canvas text-dash-foreground flex min-h-screen flex-col">
       <div className="border-dash-border bg-dash-canvas/95 sticky top-0 z-30 shrink-0 border-b backdrop-blur-md">
-        <CompanyBrandBar variant="full" />
+        <NexisBrandBar />
       </div>
       <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">{children}</div>
       <SiteFooter />
@@ -236,7 +276,9 @@ function TitleDetail({
   isMine,
   selectedCount,
   readOnly,
+  readOnlyReason = "staff",
   phone,
+  canViewDocuments,
   entitlement,
   isHiddenFromPeers,
   planMode,
@@ -251,7 +293,9 @@ function TitleDetail({
   isMine: boolean;
   selectedCount: number;
   readOnly: boolean;
+  readOnlyReason?: "staff" | "guest";
   phone: string;
+  canViewDocuments: boolean;
   entitlement: TitleHideEntitlement | null;
   isHiddenFromPeers: boolean;
   planMode: { deskExpiresAt?: string | null; deskPlan?: string | null } | null;
@@ -268,17 +312,17 @@ function TitleDetail({
     ["Institution", item.institution],
     ["Group", item.batch],
   ].filter((entry): entry is [string, string] => Boolean(entry[1]));
+  const hasSourceFile = Boolean(files.length || item.sourceUrl);
+  const sectionTitle = "text-blue-600 text-sm font-semibold dark:text-blue-400";
   const jumps: [string, string][] = [
     ["#details", "Details"],
-    ["#brief", "Problem"],
-    ["#explanation", "Explanation"],
+    ["#brief", "Problem & objectives"],
+    ["#recommendations", "Recommendations"],
+    ["#references", "References"],
     ...(item.hardware ? [["#hardware", "Hardware"] as [string, string]] : []),
-    ["#literature", "Literature"],
     ["#documents", "Documents"],
     ["#more", "Related"],
   ];
-  const slotsFull = selectedCount >= MAX_TITLE_CHOICES;
-
   return (
     <div className="w-full min-w-0 pb-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
@@ -286,7 +330,7 @@ function TitleDetail({
           <Link href="/portal/titles" className="text-dash-muted-foreground hover:text-dash-foreground text-xs font-semibold">
             ← All titles
           </Link>
-          <p className="text-dash-muted-foreground mt-4 text-[11px] leading-relaxed tracking-wide uppercase">
+          <p className="text-dash-muted-foreground mt-4 text-[11px] leading-relaxed tracking-wide break-words uppercase">
             <span>{mark.year}</span>
             <span aria-hidden="true"> | </span>
             <span>{mark.group}</span>
@@ -300,7 +344,7 @@ function TitleDetail({
             {mark.institute ? (
               <>
                 <span aria-hidden="true"> | </span>
-                <span>{mark.institute}</span>
+                <span className="break-words">{mark.institute}</span>
               </>
             ) : null}
           </p>
@@ -311,7 +355,7 @@ function TitleDetail({
           <p className="mt-2 max-w-3xl text-xs leading-relaxed text-red-700 italic dark:text-red-400">{mark.note}</p>
           {!readOnly && plan ? (
             <div className="mt-3 space-y-1.5">
-              <p className="text-xs">
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
                 <span
                   className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                     plan.mode === "paid"
@@ -321,7 +365,7 @@ function TitleDetail({
                 >
                   {plan.title}
                 </span>
-                <span className="text-dash-muted-foreground ml-2">
+                <span className="text-dash-muted-foreground break-words">
                   {selectedCount} shortlisted
                   {entitlement ? ` · ${entitlement.hiddenCount} hidden from classmates` : null}
                   {entitlement?.hasPaidPlan ? ` · ${entitlement.freeRemaining} free hides left` : null}
@@ -341,6 +385,7 @@ function TitleDetail({
             isHiddenFromPeers={isHiddenFromPeers}
             selectedCount={selectedCount}
             readOnly={readOnly}
+            readOnlyReason={readOnlyReason}
             needsPayment={Boolean(entitlement?.needsPayment)}
             hasPaidPlan={Boolean(entitlement?.hasPaidPlan)}
             freeRemaining={entitlement?.freeRemaining ?? 0}
@@ -355,7 +400,7 @@ function TitleDetail({
       <div className="mt-8 grid gap-10 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start xl:gap-12">
         <div className="min-w-0">
           {facts.length ? (
-            <dl id="details" className="border-dash-border scroll-mt-24 border-t">
+            <dl id="details" className="border-dash-border scroll-mt-[5.5rem] border-t sm:scroll-mt-28">
               {facts.map(([label, value]) => (
                 <div key={label} className="border-dash-border grid gap-1 border-b py-3 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-6">
                   <dt className="text-dash-muted-foreground text-xs font-semibold">{label}</dt>
@@ -365,112 +410,116 @@ function TitleDetail({
             </dl>
           ) : null}
 
-          <section id="brief" className="mt-10 scroll-mt-24 space-y-5">
+          <section id="brief" className="mt-10 scroll-mt-[5.5rem] space-y-5 sm:scroll-mt-28">
             <div>
-              <h2 className="text-dash-foreground text-sm font-semibold">Problem statement</h2>
+              <h2 className={sectionTitle}>Problem statement</h2>
               <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words whitespace-pre-wrap">
                 <LinkifiedText
                   text={
                     item.problemStatement ??
-                    (item.summary ? item.summary : "No problem statement has been published yet for this title.")
+                    (item.summary ? item.summary : "No problem statement was found in the source document yet.")
                   }
                 />
               </p>
             </div>
             <div>
-              <h2 className="text-dash-foreground text-sm font-semibold">Main objective</h2>
+              <h2 className={sectionTitle}>Main objective</h2>
               <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                <LinkifiedText text={item.objectives ?? "No main objective has been published yet for this title."} />
+                <LinkifiedText text={item.objectives ?? "No main objective was found in the source document yet."} />
               </p>
             </div>
-            {item.specificObjectives ? (
-              <div>
-                <h2 className="text-dash-foreground text-sm font-semibold">Specific objectives</h2>
-                <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                  <LinkifiedText text={item.specificObjectives} />
-                </p>
-              </div>
-            ) : null}
+            <div>
+              <h2 className={sectionTitle}>Specific objectives</h2>
+              <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                <LinkifiedText
+                  text={item.specificObjectives ?? "No specific objectives were found in the source document yet."}
+                />
+              </p>
+            </div>
           </section>
 
-          <section id="explanation" className="mt-10 scroll-mt-24">
-            <h2 className="text-dash-foreground text-sm font-semibold">Explanation</h2>
+          <section id="recommendations" className="mt-10 scroll-mt-[5.5rem] sm:scroll-mt-28">
+            <h2 className={sectionTitle}>Recommendations</h2>
             <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words whitespace-pre-wrap">
-              <LinkifiedText text={item.summary ?? "No explanation was recorded for this title."} />
+              <LinkifiedText
+                text={
+                  item.limitations ??
+                  "No recommendations section was found in the source document yet."
+                }
+              />
+            </p>
+          </section>
+
+          <section id="references" className="mt-10 scroll-mt-[5.5rem] sm:scroll-mt-28">
+            <h2 className={sectionTitle}>References</h2>
+            <p className="text-dash-muted-foreground mt-1 text-xs">Up to 5 from the source report. Open the full document for the complete list.</p>
+            <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words whitespace-pre-wrap">
+              <LinkifiedText
+                text={
+                  item.references ??
+                  "No references were found in the source document yet."
+                }
+              />
             </p>
           </section>
 
           {item.hardware ? (
-            <section id="hardware" className="mt-10 scroll-mt-24">
-              <h2 className="text-dash-foreground text-sm font-semibold">Hardware</h2>
+            <section id="hardware" className="mt-10 scroll-mt-[5.5rem] sm:scroll-mt-28">
+              <h2 className={sectionTitle}>Hardware</h2>
               <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words">{item.hardware}</p>
             </section>
           ) : null}
-          {item.communication ? (
-            <section id="communication" className="mt-10 scroll-mt-24">
-              <h2 className="text-dash-foreground text-sm font-semibold">Communication</h2>
-              <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words">{item.communication}</p>
-            </section>
-          ) : null}
 
-          <section id="literature" className="mt-10 scroll-mt-24">
-            <h2 className="text-dash-foreground text-sm font-semibold">Literature and source</h2>
-            {item.literatureNote ? (
-              <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                <LinkifiedText text={item.literatureNote} />
-              </p>
-            ) : (
-              <p className="text-dash-muted-foreground mt-2 text-sm">No literature note yet for this title.</p>
-            )}
-            {item.sourceUrl ? (
-              <a
-                href={item.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-3 inline-block text-sm font-semibold break-all text-blue-700 underline decoration-blue-700/40 underline-offset-2 hover:text-blue-900 dark:text-blue-400 dark:decoration-blue-400/40 dark:hover:text-blue-300"
-              >
-                Open source page
-              </a>
-            ) : null}
-          </section>
-
-          <section id="documents" className="mt-10 scroll-mt-24">
-            <h2 className="text-dash-foreground text-sm font-semibold">Project documents</h2>
-            {files.length || item.sourceUrl ? (
-              <ul className="mt-3 space-y-2">
-                {files.map((file) => (
-                  <li key={file.id}>
-                    {file.href ? (
-                      <a href={file.href} className="text-dash-accent text-sm font-semibold" target="_blank" rel="noreferrer">
-                        {file.name}
+          <section id="documents" className="mt-10 scroll-mt-[5.5rem] sm:scroll-mt-28">
+            <h2 className={sectionTitle}>Project source file</h2>
+            {hasSourceFile ? (
+              canViewDocuments ? (
+                <ul className="mt-3 space-y-2">
+                  {files.map((file) => (
+                    <li key={file.id}>
+                      {file.href ? (
+                        <a
+                          href={file.href}
+                          className="text-dash-accent text-sm font-semibold"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View {file.name}
+                        </a>
+                      ) : (
+                        <span className="text-dash-muted-foreground text-sm">{file.name}</span>
+                      )}
+                    </li>
+                  ))}
+                  {item.sourceUrl ? (
+                    <li>
+                      <a
+                        href={item.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-dash-accent text-sm font-semibold"
+                      >
+                        {/catalogue-docs/i.test(item.sourceUrl)
+                          ? "View project report (PDF)"
+                          : /github\.com/i.test(item.sourceUrl)
+                            ? "Open source repository"
+                            : "Open source page"}
                       </a>
-                    ) : (
-                      <span className="text-dash-muted-foreground text-sm">{file.name}</span>
-                    )}
-                  </li>
-                ))}
-                {item.sourceUrl ? (
-                  <li>
-                    <a
-                      href={item.sourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-dash-accent text-sm font-semibold break-all"
-                    >
-                      {/catalogue-docs/i.test(item.sourceUrl)
-                        ? "Project report (PDF)"
-                        : /github\.com/i.test(item.sourceUrl)
-                          ? "Source repository (GitHub)"
-                          : "Source project page"}
-                    </a>
-                    <p className="text-dash-muted-foreground mt-0.5 text-xs">
-                      {/catalogue-docs/i.test(item.sourceUrl)
-                        ? "Full report attached for this title. Sign in to open."
-                        : "Linked document / code from the project source."}
-                    </p>
-                  </li>
-                ) : null}
-              </ul>
+                      <p className="text-dash-muted-foreground mt-0.5 text-xs">
+                        Opens in the browser for viewing. Download is discouraged.
+                      </p>
+                    </li>
+                  ) : null}
+                </ul>
+              ) : (
+                <>
+                  <p className="text-dash-muted-foreground mt-2 text-sm">
+                    A source file is attached, but it stays locked until payment. Active Nexis Desk plans unlock viewing;
+                    or pay once for project documents access.
+                  </p>
+                  {!readOnly ? <DocumentsUnlockPanel phone={phone} /> : null}
+                </>
+              )
             ) : (
               <p className="text-dash-muted-foreground mt-2 text-sm">No full report or source document is stored here yet.</p>
             )}

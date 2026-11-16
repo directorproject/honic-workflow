@@ -1,0 +1,131 @@
+Batch No. Roll No. Student Name Project Title In House/ Industry Name of Supervisor 
+15E11A0507 BEKKARI AKSHITHA 
+15E11A0560 YINTI Y.SRI SOWMYA 
+15E11A0545 Rachamalla vaishnavi 
+15E11A0503 ADULLA SARIKA 
+15E11A0514 DONDA VINAY KUMAR REDDY 
+15E11A0544 PUJARI SHIV KUMAR 
+15E11A0513 DASARI VAMSHI KRISHNA 
+15E11A0553 SYED YOUSUF 
+15E11A0528 KESI REDDY RAVINDRA REDDY 
+15E11A0505 PERALA GOUTHAMI 
+15E11A0541 PALSA ARCHANA 
+15E11A0556 TANDRA SAHANA REDDY 
+15E11A0515 EDDU JERUSHAH KETURAH 
+15E11A0529 KORE AKHILA 
+15E11A0506 ARTHAM BHARATHKUMAR 
+15E11A0547 Rangapuri Sarath Chandra 
+15E11A0552 SANKATI RAJU 
+15E11A0554 TADAKAMALLA SRIKAR 
+15E11A0557 TULLURI SAI KUMAR 
+15E11A0535 MOGILABOINA MOUNIKA 
+15E11A0559 Vasam Sowjanya 
+15E11A0504 ARRA SHRUTHI 
+15E11A0555 TALUSANI NAVYA 
+15E11A0537 NELANTI MAHITHA 
+15E11A0532 M A KHADER FARHAN 
+15E11A0558 VARALA SRIKANTH REDDY 
+15E11A0538 NUTHI AJAY KUMAR 
+15E11A0501 ALLURI KUNALREDDY 
+15E11A0511 Cholleti Pravallika 
+15E11A0546 RAMGIRI LAVANYA 
+15E11A0539 POTHUGANTI SHIREESHA 
+15E11A0523 KOPPOLU NANDINI 
+15E11A0550 S JASWANTH REDDY 
+15E11A0512 Cholleti shivasai 
+15E11A0509 PRANITH 
+15E11A0520 JAKKULA RAHUL SAI 
+15E11A0534 MANDALOJI MADHURI 
+15E11A0533 MADDIREDDY SPANDANA 
+15E11A0517 GATTU SNIGDHA 
+15E11A0522 Kandukuri supriya 
+15E11A0540 P SIDDU 
+15E11A0542 KAMBLE VIVEK 
+15E11A0527 KALVA PRAVEEN KUMAR 
+15E11A0525 KOMIRISETTI PRUDHVI DAYAKAR 
+15E11A0519 gurram raghavendra 
+15E11A0549 SUNKIREDDY ABHISHEK REDDY 
+15E11A0510 CHALLA VINITH REDDY 
+15E11A0502 ALASAKANI SAI ANVESH 
+15E11A0530 KOTTI SRI SAI RAMA TEJA 
+15E11A0526 KALLEM YASHWANTH KUMAR 
+15E11A0543 ponugoti vijay kumar rao 
+15E11A0531 KUMMARI RAJINIKANTH 
+PROJECT COORDINATOR ACADEMIC IN- 
+CHARGE 
+Advanced street lighting 
+system using IOT 
+IOT based automated toll tax 
+collection 
+Fishing websites 
+classification using neural 
+networks 
+country level location 
+classification of world wide 
+tweets 
+An efficient and secure 
+seduplication scheme for 
+cloud assiste ehealth systems 
+Water level monitoring 
+management of dams using 
+IOT 
+Performance analysis of 
+machine learning algorithms 
+for gender classification 
+CSA15MP-1 Dr. R. Madana Mohana                                
+Associate Professor 
+High performance network 
+intrusion detection engine 
+CSA15MP-5 P Srinivasarao 
+Assistant Professor 
+CSA15MP-2 Dr.P.Velmurugan 
+Associate Professor 
+CSA15MP-3 
+CSA15MP-4 
+CSA15MP-9 
+CSA15MP-6 Mr.sharath 
+Assistant Professor 
+CSA15MP-7 
+Mrs.sudeshana 
+Associate Professor 
+CSA15MP-12 Ms.Sailaja                    
+Assistant Professor 
+Mr. Tirupal reddy 
+Assistant Professor 
+CSA15MP-11 
+CSA15MP-10 
+Dr.J.R.V.Jeny                     
+Associate Professor 
+Mrs Sudheshna 
+Assistant Professor In House 
+ Mrs. G. Kalyani 
+Assistant Professor 
+Malaware detection using 
+Machine learning 
+Asolution of online weighted 
+extreme learning machine 
+Secure data sharing for 
+mobile cloud computing 
+logic bug detection and 
+localization using sybmolic 
+error detection 
+CSA15MP-8 
+In House 
+In House 
+In House 
+In House 
+In House 
+Ms.Sailaja                    
+Assistant Professor 
+Ms.P.Kiranmai 
+Assistant Professor 
+In House 
+In House 
+In House 
+BHARAT INSTITUTE OF ENGINEERING AND TECHNOLOGY 
+Department of Computer Science and Engineering 
+MAJOR PROJECT(2018-2019) 
+IV-II CSE-A 
+In House 
+In House 
+In House 

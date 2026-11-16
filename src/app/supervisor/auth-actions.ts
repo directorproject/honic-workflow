@@ -86,7 +86,7 @@ export async function supervisorSignInAction(email: string, password: string): P
   }
   if (isStaffUser(data.user)) {
     await supabase.auth.signOut();
-    return { ok: false, message: "Staff accounts sign in on the staff site." };
+    return { ok: false, message: "This account cannot use the supervisor portal. Use a supervisor account." };
   }
   const meta = (data.user?.user_metadata ?? {}) as { full_name?: string; name?: string };
   const name = clean(meta.full_name || meta.name, 120) || "Supervisor";

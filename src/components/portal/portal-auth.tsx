@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState, useState, type ReactNode } from "react";
+import { useActionState, useState } from "react";
 
 import {
   portalAuthFormAction,
@@ -17,8 +17,10 @@ export type PortalAuthRole = "student" | "supervisor";
 
 const INPUT =
   "border-dash-border bg-white/90 text-dash-foreground focus:ring-dash-accent/30 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none focus:ring-2 dark:bg-dash-card/90";
-const BTN =
-  "bg-dash-accent inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-md px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:opacity-60";
+const BTN_PRIMARY =
+  "bg-dash-accent inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:opacity-60";
+const BTN_GHOST =
+  "text-dash-muted-foreground hover:text-dash-foreground inline-flex flex-1 cursor-pointer items-center justify-center rounded-md px-4 py-3 text-sm font-semibold transition disabled:opacity-60";
 const SECONDARY =
   "border-dash-border bg-dash-card text-dash-foreground hover:bg-dash-muted/40 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-semibold transition disabled:opacity-60";
 
@@ -73,52 +75,30 @@ function GoogleButton({ role }: { role: PortalAuthRole }) {
   );
 }
 
-function ModeButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      className={`rounded-sm px-3.5 py-1.5 text-sm font-semibold transition ${
-        active ? "bg-dash-accent text-white" : "text-dash-muted-foreground hover:text-dash-foreground"
-      }`}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  );
-}
-
 const ROLE_COPY: Record<
   PortalAuthRole,
   { eyebrow: string; headline: string; blurb: string; formTitle: string; formSub: string }
 > = {
   student: {
-    eyebrow: "Honic · Student",
-    headline: "Build your project workspace with clear ownership",
-    blurb: "Register once, pick a plan, claim a title, and share progress with your supervisor.",
+    eyebrow: "Honic Nexis",
+    headline: "Student Portal",
+    blurb: "Sign in with the email you use for your project workspace.",
     formTitle: "Student portal",
-    formSub: "Use your school or personal email. Staff sign in on Inova separately.",
+    formSub: "Use your school or personal email.",
   },
   supervisor: {
-    eyebrow: "Honic · Supervisor",
-    headline: "Guide student projects with a clear, shared view",
-    blurb: "Sign in with the email your student saved. Review plans, shared documents, and progress in one place.",
+    eyebrow: "Honic Nexis",
+    headline: "Supervisor Portal",
+    blurb: "Sign in with the email you can share with your students.",
     formTitle: "Supervisor portal",
-    formSub: "Use the same email the student listed for you.",
+    formSub: "Use the same email students list for you.",
   },
 };
 
 export function PortalAuth({
   initialStatus,
   googleEnabled = false,
-  initialMode = "signup",
+  initialMode = "signin",
   initialRole = "student",
   prefillEmail = "",
   projectHint = "",
@@ -133,7 +113,7 @@ export function PortalAuth({
   /** When true, hide role picker (e.g. deep-link from student share). */
   lockRole?: boolean;
 }) {
-  const [mode, setMode] = useState<PortalAuthMode>(initialMode);
+  const [mode, setMode] = useState<PortalAuthMode>(initialMode === "signup" ? "signup" : initialMode === "forgot" ? "forgot" : "signin");
   const [role, setRole] = useState<PortalAuthRole>(initialRole);
   const [state, formAction, pending] = useActionState<PortalAuthFormState, FormData>(
     portalAuthFormAction,
@@ -141,16 +121,6 @@ export function PortalAuth({
   );
 
   const copy = ROLE_COPY[role];
-  const submitLabel =
-    mode === "forgot"
-      ? "Send reset link"
-      : mode === "signup"
-        ? role === "supervisor"
-          ? "Create supervisor account"
-          : "Create student account"
-        : role === "supervisor"
-          ? "Sign in to projects"
-          : "Sign in securely";
 
   return (
     <div className="border-dash-border bg-dash-card/95 grid overflow-hidden rounded-md border shadow-[0_24px_60px_-28px_rgba(15,23,42,0.45)] backdrop-blur-md lg:grid-cols-2">
@@ -174,8 +144,8 @@ export function PortalAuth({
       <div className="flex flex-col justify-center p-5 sm:p-8">
         {projectHint ? (
           <p className="border-dash-border bg-dash-muted/40 text-dash-muted-foreground mb-4 rounded-md border px-3 py-2 text-xs leading-relaxed">
-            Shared by a student for <strong className="text-dash-foreground">{projectHint}</strong>. Create an account or
-            sign in to open their workspace.
+            Shared by a student for <strong className="text-dash-foreground">{projectHint}</strong>. Sign in or create an
+            account to open their workspace.
           </p>
         ) : null}
 
@@ -184,18 +154,9 @@ export function PortalAuth({
           <p className="text-dash-muted-foreground mt-1 text-sm">{copy.formSub}</p>
         </div>
 
-        {mode !== "forgot" ? (
-          <div className="bg-dash-muted/50 mb-5 inline-flex rounded-md p-1">
-            <ModeButton active={mode === "signin"} onClick={() => setMode("signin")}>
-              Sign in
-            </ModeButton>
-            <ModeButton active={mode === "signup"} onClick={() => setMode("signup")}>
-              Create account
-            </ModeButton>
-          </div>
-        ) : (
+        {mode === "forgot" ? (
           <p className="text-dash-muted-foreground mb-5 text-sm">We email a secure link to set a new password.</p>
-        )}
+        ) : null}
 
         {googleEnabled && mode !== "forgot" ? <GoogleButton role={role} /> : null}
 
@@ -237,8 +198,17 @@ export function PortalAuth({
 
           {mode !== "forgot" ? (
             <label className="block">
-              <span className="text-dash-muted-foreground mb-1.5 block text-xs font-semibold tracking-wide uppercase">
-                Password
+              <span className="mb-1.5 flex items-center justify-between gap-3">
+                <span className="text-dash-muted-foreground text-xs font-semibold tracking-wide uppercase">Password</span>
+                {mode === "signin" ? (
+                  <button
+                    type="button"
+                    className="text-dash-accent text-xs font-semibold"
+                    onClick={() => setMode("forgot")}
+                  >
+                    Forgot password?
+                  </button>
+                ) : null}
               </span>
               <input
                 name="password"
@@ -268,92 +238,75 @@ export function PortalAuth({
             <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{state.message}</p>
           ) : null}
 
-          <button type="submit" disabled={pending} className={BTN}>
-            {pending ? <Spinner /> : null}
-            {pending ? "Please wait…" : submitLabel}
-          </button>
+          {mode === "forgot" ? (
+            <div className="space-y-3">
+              <button type="submit" disabled={pending} className={`${BTN_PRIMARY} w-full`}>
+                {pending ? <Spinner /> : null}
+                {pending ? "Please wait…" : "Send reset link"}
+              </button>
+              <button type="button" className="text-dash-accent text-sm font-semibold" onClick={() => setMode("signin")}>
+                Back to sign in
+              </button>
+            </div>
+          ) : (
+            <div className="bg-dash-muted/50 flex rounded-md p-1">
+              {mode === "signin" ? (
+                <button type="submit" disabled={pending} className={BTN_PRIMARY}>
+                  {pending ? <Spinner /> : null}
+                  {pending ? "Please wait…" : "Sign in"}
+                </button>
+              ) : (
+                <button type="button" disabled={pending} className={BTN_GHOST} onClick={() => setMode("signin")}>
+                  Sign in
+                </button>
+              )}
+              {mode === "signup" ? (
+                <button type="submit" disabled={pending} className={BTN_PRIMARY}>
+                  {pending ? <Spinner /> : null}
+                  {pending ? "Please wait…" : "Create account"}
+                </button>
+              ) : (
+                <button type="button" disabled={pending} className={BTN_GHOST} onClick={() => setMode("signup")}>
+                  Create account
+                </button>
+              )}
+            </div>
+          )}
         </form>
 
-        <div className="text-dash-muted-foreground mt-5 space-y-2 text-xs leading-relaxed">
-          {mode === "signin" ? (
-            <>
-              <p>
-                <button type="button" className="text-dash-accent font-semibold" onClick={() => setMode("forgot")}>
-                  Forgot password?
-                </button>
-              </p>
-              <p>
-                New here?{" "}
+        {!lockRole && mode !== "forgot" ? (
+          <p className="text-dash-muted-foreground mt-5 text-xs leading-relaxed">
+            {role === "supervisor" ? (
+              <>
+                Are you a student?{" "}
                 <button
                   type="button"
                   className="text-dash-accent font-semibold"
                   onClick={() => {
                     setRole("student");
-                    setMode("signup");
+                    setMode("signin");
                   }}
                 >
-                  Create an account
+                  Switch to student portal
                 </button>
-              </p>
-            </>
-          ) : null}
-          {mode === "signup" ? (
-            <p>
-              Already registered?{" "}
-              <button type="button" className="text-dash-accent font-semibold" onClick={() => setMode("signin")}>
-                Sign in
-              </button>
-            </p>
-          ) : null}
-          {mode === "forgot" ? (
-            <p>
-              Remembered it?{" "}
-              <button type="button" className="text-dash-accent font-semibold" onClick={() => setMode("signin")}>
-                Back to sign in
-              </button>
-            </p>
-          ) : null}
-          {!lockRole && mode !== "forgot" ? (
-            <p>
-              {role === "supervisor" ? (
-                <>
-                  Need a student account?{" "}
-                  <button
-                    type="button"
-                    className="text-dash-accent font-semibold"
-                    onClick={() => {
-                      setRole("student");
-                      setMode("signup");
-                    }}
-                  >
-                    Create an account
-                  </button>
-                </>
-              ) : (
-                <>
-                  Supervising a project?{" "}
-                  <button
-                    type="button"
-                    className="text-dash-accent font-semibold"
-                    onClick={() => {
-                      setRole("supervisor");
-                      setMode("signup");
-                    }}
-                  >
-                    Supervisor account
-                  </button>
-                </>
-              )}
-            </p>
-          ) : null}
-          <p>
-            Staff accounts belong on{" "}
-            <a className="text-dash-accent font-semibold" href="https://inova.honiccompany.com/login">
-              inova.honiccompany.com
-            </a>
-            .
+              </>
+            ) : (
+              <>
+                Supervising a project?{" "}
+                <button
+                  type="button"
+                  className="text-dash-accent font-semibold"
+                  onClick={() => {
+                    setRole("supervisor");
+                    setMode("signin");
+                  }}
+                >
+                  Switch to supervisor portal
+                </button>
+              </>
+            )}
           </p>
-        </div>
+        ) : null}
       </div>
     </div>
   );

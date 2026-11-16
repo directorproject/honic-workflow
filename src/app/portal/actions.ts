@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
+import { revalidatePortalCatalogue } from "@/lib/portal/portal-catalogue-cache";
+
 import { isStaffUser } from "@/lib/auth-staff";
 import {
   deskPlanAmount,
@@ -28,13 +30,15 @@ import {
   PAYMENT_NETWORKS,
   PAYMENT_PROVIDER,
   PROJECT_CATEGORIES,
+  PROJECT_DOCUMENTS_ACCESS_TSH,
   STUDY_LEVELS,
   TITLE_CHANGE_FEE_TSH,
   YEARS_OF_STUDY,
 } from "@/lib/portal/config";
 import { getPortalUser } from "@/lib/portal/data";
+import { hasProjectDocumentsAccess } from "@/lib/portal/document-access";
 import { chooseTitle, hideTitleFromPeers, loadLiterature } from "@/lib/portal/title-choices";
-import { titleHideEntitlement } from "@/lib/portal/title-limits";
+import { hasActiveDeskPlan, titleHideEntitlement } from "@/lib/portal/title-limits";
 import { POLICY_VERSION, TITLE_RULES_VERSION, titleTermsStatus } from "@/lib/portal/title-terms";
 import { paymentUnavailableMessage, toUserError } from "@/lib/portal/user-errors";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
@@ -49,7 +53,7 @@ function clean(v: unknown, max = 200): string {
 async function requireStudent() {
   const user = await getPortalUser();
   if (!user) throw new Error("Please sign in again.");
-  if (isStaffUser(user)) throw new Error("Staff accounts cannot use the student portal.");
+  if (isStaffUser(user)) throw new Error("This account cannot use the student portal.");
   const db = getSupabaseAdminClient();
   if (!db) throw new Error("Service unavailable. Please try again later.");
   return { user, db };
@@ -184,6 +188,7 @@ export async function portalChooseTitleAction(proposalId: string): Promise<Porta
       deskPlan: row.desk_plan ? String(row.desk_plan) : null,
     };
     await chooseTitle(db, user.id, profile, proposalId);
+    revalidatePortalCatalogue(user.id);
     revalidatePath("/portal");
     revalidatePath("/portal/titles");
     revalidatePath(`/portal/titles/${encodeURIComponent(proposalId)}`);
@@ -229,7 +234,7 @@ export async function portalOwnAndHideTitleAction(proposalId: string): Promise<P
       deskPlan: row.desk_plan ? String(row.desk_plan) : null,
     };
 
-    const review = await loadLiterature(db, user.id, profile);
+    const review = await loadLiterature(db, user.id, profile, { includeBriefs: false });
     const mine = review.mine.find((t) => t.id === String(proposalId).trim());
     if (!mine) {
       await chooseTitle(db, user.id, profile, proposalId);
@@ -250,6 +255,7 @@ export async function portalOwnAndHideTitleAction(proposalId: string): Promise<P
     }
 
     await hideTitleFromPeers(db, user.id, profile, proposalId);
+    revalidatePortalCatalogue();
     revalidatePath("/portal");
     revalidatePath("/portal/titles");
     revalidatePath(`/portal/titles/${encodeURIComponent(proposalId)}`);
@@ -290,6 +296,7 @@ export async function portalHideTitleAction(proposalId: string): Promise<PortalR
       deskPlan: row.desk_plan ? String(row.desk_plan) : null,
     };
     await hideTitleFromPeers(db, user.id, profile, proposalId);
+    revalidatePortalCatalogue();
     revalidatePath("/portal");
     revalidatePath("/portal/titles");
     revalidatePath(`/portal/titles/${encodeURIComponent(proposalId)}`);
@@ -331,10 +338,10 @@ const PAY_ERRORS: Record<string, string> = {
 };
 
 function parsePayContact(network: string, phone: string): PortalResult | { net: string; tel: string } {
-  const net = clean(network, 40);
-  if (!(PAYMENT_NETWORKS as readonly string[]).includes(net)) return { ok: false, message: "Choose a payment network." };
-  const tel = clean(phone, 20).replace(/\s/g, "");
-  if (!/^(\+?255|0)\d{9}$/.test(tel)) return { ok: false, message: "Enter a valid Tanzanian mobile number." };
+    const net = clean(network, 40);
+    if (!(PAYMENT_NETWORKS as readonly string[]).includes(net)) return { ok: false, message: "Choose a payment network." };
+    const tel = clean(phone, 20).replace(/\s/g, "");
+    if (!/^(\+?255|0)\d{9}$/.test(tel)) return { ok: false, message: "Enter a valid Tanzanian mobile number." };
   return { net, tel };
 }
 
@@ -811,6 +818,135 @@ export async function portalPayForMembershipAction(
     return {
       ok: true,
       message: `Simulated membership payment received (ref ${reference}). Your ${planId} plan is active.`,
+    };
+  } catch (err) {
+    return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };
+  }
+}
+
+/** Unlock catalogue / published project source files (view-only) via Snippe. */
+export async function portalPayForDocumentsAction(network: string, phone: string): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    const contact = parsePayContact(network, phone);
+    if ("ok" in contact) return contact;
+    if (!toSnippePhone(contact.tel)) {
+      return { ok: false, message: "Enter a valid Tanzanian mobile number (e.g. 07XX XXX XXX)." };
+    }
+
+    const { data: profile } = await db
+      .from("student_profiles")
+      .select("full_name, desk_expires_at")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!profile) return { ok: false, message: PAY_ERRORS.no_profile };
+
+    const deskExpiresAt = profile.desk_expires_at ? String(profile.desk_expires_at) : null;
+    if (hasActiveDeskPlan(deskExpiresAt)) {
+      return { ok: true, message: "Your active Nexis Desk plan already unlocks project source files." };
+    }
+    if (await hasProjectDocumentsAccess(db, { userId: user.id, deskExpiresAt })) {
+      return { ok: true, message: "Project documents are already unlocked on your account." };
+    }
+
+    const amount = PROJECT_DOCUMENTS_ACCESS_TSH;
+    const reference = makeIdempotencyKey("DOC");
+    const live = useSnippe();
+    if (!live && PAYMENT_PROVIDER === "snippe") {
+      return { ok: false, message: paymentUnavailableMessage() };
+    }
+    if (!live && !simulatedPaymentsAllowed()) {
+      return { ok: false, message: paymentUnavailableMessage() };
+    }
+
+    await expireStalePendingPayments(db, { userId: user.id, referencePrefix: "DOC" });
+    const { data: openPay } = await db
+      .from("title_change_payments")
+      .select("id, reference, created_at, expires_at")
+      .eq("user_id", user.id)
+      .eq("status", "pending")
+      .ilike("reference", "DOC%")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (
+      openPay &&
+      !isPendingExpired({
+        status: "pending",
+        expiresAt: openPay.expires_at ? String(openPay.expires_at) : null,
+        createdAt: openPay.created_at ? String(openPay.created_at) : null,
+      })
+    ) {
+      return {
+        ok: true,
+        message: `A documents payment is already open (ref ${openPay.reference}). Check your phone before it expires.`,
+      };
+    }
+
+    const pendingExpires = live ? defaultPendingExpiresAt() : null;
+    const { data: paymentRow, error: insertError } = await db
+      .from("title_change_payments")
+      .insert({
+        user_id: user.id,
+        amount,
+        currency: "TZS",
+        provider: live ? "snippe" : "simulated",
+        network: contact.net,
+        phone: contact.tel,
+        status: live ? "pending" : "paid",
+        reference,
+        selection_id: null,
+        expires_at: pendingExpires,
+        paid_at: live ? null : new Date().toISOString(),
+      })
+      .select("id, user_id, status, reference, amount")
+      .single();
+    if (insertError) return { ok: false, message: insertError.message };
+
+    if (live) {
+      try {
+        const name = splitName(profile.full_name);
+        const payment = await createMobilePayment({
+          amountTsh: amount,
+          phoneNumber: contact.tel,
+          customer: { ...name, email: user.email || "student@honiccompany.com" },
+          orderId: reference,
+          webhookUrl: publicWebhookUrl(),
+          idempotencyKey: reference,
+          metadata: { purpose: "project_documents" },
+        });
+        const expiresAt = resolvePendingExpiresAt(payment.expiresAt);
+        await db
+          .from("title_change_payments")
+          .update({ provider_txn_id: payment.reference, network: contact.net, expires_at: expiresAt })
+          .eq("id", paymentRow.id);
+      } catch (err) {
+        await db.from("title_change_payments").update({ status: "failed" }).eq("id", paymentRow.id);
+        return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };
+      }
+      revalidatePath("/portal/titles");
+      revalidatePath("/portal/packs");
+      return {
+        ok: true,
+        message: `Check your phone for the mobile-money prompt (ref ${reference}). Approve before it expires (~15 min). Source files unlock when payment is confirmed.`,
+      };
+    }
+
+    const fulfilled = await fulfillTitleChangePayment(db, {
+      id: String(paymentRow.id),
+      user_id: user.id,
+      selection_id: null,
+      status: "pending",
+      reference,
+      amount,
+    });
+    if (!fulfilled.ok) return { ok: false, message: toUserError(fulfilled.message, paymentUnavailableMessage()) };
+
+    revalidatePath("/portal/titles");
+    revalidatePath("/portal/packs");
+    return {
+      ok: true,
+      message: `Simulated payment received (ref ${reference}). Project source files are unlocked for viewing.`,
     };
   } catch (err) {
     return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };

@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
 
 import { portalPayForMembershipAction, type PortalResult } from "@/app/portal/actions";
+import { DocumentsUnlockPanel } from "@/components/portal/documents-unlock-panel";
 import { Field, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
 import { formatTsh, PRICING_BOARD } from "@/lib/portal/document-packs";
 import {
   EXTRA_TITLE_HIDE_FEE_TSH,
-  FREE_PLAN_FILE_STORAGE_BYTES,
   FREE_TITLE_SLOTS,
   PAID_PLAN_FILE_STORAGE_BYTES,
   PAYMENT_NETWORKS,
@@ -19,7 +19,6 @@ import {
   formatStorageQuota,
 } from "@/lib/portal/config";
 
-const FREE_STORAGE = formatStorageQuota(FREE_PLAN_FILE_STORAGE_BYTES);
 const PAID_STORAGE = formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES);
 
 export function DocumentPacksBoard({
@@ -67,9 +66,9 @@ export function DocumentPacksBoard({
               free. Pay or use a paid plan to hide and make a title yours. It is not a purchase of the idea.
             </p>
           </div>
-          <div className="border-dash-border bg-dash-canvas/70 shrink-0 rounded-2xl border px-4 py-3 backdrop-blur-sm">
+          <div className="border-dash-border bg-dash-canvas/70 w-full min-w-0 max-w-full shrink-0 rounded-2xl border px-4 py-3 backdrop-blur-sm sm:max-w-xs lg:w-auto">
             <p className="text-dash-muted-foreground text-[10px] font-semibold tracking-[0.18em] uppercase">Your plan</p>
-            <p className="text-dash-foreground mt-1 text-sm font-semibold">{planLabel}</p>
+            <p className="text-dash-foreground mt-1 text-sm font-semibold break-words">{planLabel}</p>
             {planActive && deskExpiresAt ? (
               <p className="text-dash-muted-foreground mt-1 text-xs tabular-nums">
                 {deskPlan === "semester" ? "Semester" : "Year"} · until{" "}
@@ -165,7 +164,22 @@ export function DocumentPacksBoard({
           title="Project documents"
           body={PRICING_BOARD.projectDocuments.note}
           price={PROJECT_DOCUMENTS_ACCESS_TSH}
-          note="One unlock for published study files on literature titles."
+          note="One unlock for published study files on literature titles. View in browser after payment."
+          action={
+            signedIn ? (
+              planActive ? (
+                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                  Included with your active Nexis Desk plan.
+                </p>
+              ) : (
+                <DocumentsUnlockPanel phone={phone} compact />
+              )
+            ) : (
+              <Link href="/portal" className="text-dash-accent text-sm font-semibold">
+                Sign in to unlock →
+              </Link>
+            )
+          }
         />
       </section>
 
@@ -284,7 +298,6 @@ function FreePlanCard({ active }: { active: boolean }) {
           "Select titles for free (keep in front)",
           "Browse Jobs listings",
           "Pay per hide to make a title yours",
-          `File storage up to ${FREE_STORAGE}`,
           "No Help desk · no Jobs post/apply/message",
         ].map((p) => (
           <li key={p} className="flex gap-2.5">

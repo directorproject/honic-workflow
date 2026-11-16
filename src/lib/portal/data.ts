@@ -1,6 +1,10 @@
 import type { User } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
+import { cache } from "react";
 
 import { isStaffUser } from "@/lib/auth-staff";
+import { PORTAL_COURSES_TAG } from "@/lib/portal/portal-catalogue-cache";
+import { titleTermsStatus, type TermsProgress } from "@/lib/portal/title-terms";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
@@ -83,6 +87,8 @@ export type PortalState = {
   myTitle: PortalTitle | null;
   hasSelectedBefore: boolean;
   availableTitles: PortalTitle[];
+  /** From the session user — avoids a slow auth admin lookup on every page. */
+  titleTerms: TermsProgress | null;
 };
 
 export async function getPortalUser(): Promise<User | null> {
@@ -109,14 +115,22 @@ function toTitle(r: Record<string, unknown>): PortalTitle {
   };
 }
 
-export async function loadCourses(): Promise<Course[]> {
+const fetchActiveCourses = async (): Promise<Course[]> => {
   const db = getSupabaseAdminClient();
   if (!db) return [];
   const { data } = await db.from("courses").select("code, name").eq("is_active", true).order("sort_order").order("code");
   return (data ?? []).map((c) => ({ code: String(c.code), name: String(c.name) }));
-}
+};
 
-export async function loadPortalState(): Promise<PortalState> {
+export const loadCourses = cache(async (): Promise<Course[]> =>
+  unstable_cache(fetchActiveCourses, ["portal-courses-v1"], { revalidate: 600, tags: [PORTAL_COURSES_TAG] })(),
+);
+
+/**
+ * Shared portal session + profile. Kept light on purpose: every portal page
+ * calls this, so it must not pull the full literature catalogue.
+ */
+export const loadPortalState = cache(async (): Promise<PortalState> => {
   const user = await getPortalUser();
   const courses = await loadCourses();
   const empty: PortalState = {
@@ -127,20 +141,30 @@ export async function loadPortalState(): Promise<PortalState> {
     myTitle: null,
     hasSelectedBefore: false,
     availableTitles: [],
+    titleTerms: null,
   };
   if (!user) return empty;
 
   const meta = (user.user_metadata ?? {}) as { full_name?: unknown; name?: unknown };
   const suggestedName = [meta.full_name, meta.name].find((v): v is string => typeof v === "string" && v.trim() !== "") ?? null;
+  const titleTerms = titleTermsStatus(user.user_metadata);
   const base = {
     ...empty,
     user: { id: user.id, email: user.email ?? "", suggestedName },
     isStaff: isStaffUser(user),
+    titleTerms,
   };
   const db = getSupabaseAdminClient();
   if (!db || base.isStaff) return base;
 
-  const { data: p } = await db.from("student_profiles").select("*").eq("user_id", user.id).maybeSingle();
+  const [{ data: p }, mine] = await Promise.all([
+    db.from("student_profiles").select("*").eq("user_id", user.id).maybeSingle(),
+    db
+      .from("title_proposals")
+      .select("id, title, summary, hardware, communication, course_code, institution")
+      .eq("selected_by", user.id)
+      .maybeSingle(),
+  ]);
   if (!p) return base;
 
   const profile: StudentProfile = {
@@ -162,18 +186,9 @@ export async function loadPortalState(): Promise<PortalState> {
     deskPlan: p.desk_plan ? String(p.desk_plan) : null,
   };
 
-  const cols = "id, title, summary, hardware, communication, course_code, institution";
-  const [mine, prior, available] = await Promise.all([
-    db.from("title_proposals").select(cols).eq("selected_by", user.id).maybeSingle(),
-    db.from("title_selections").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-    db.from("title_proposals").select(cols).eq("status", "available").is("selected_by", null),
-  ]);
-
   return {
     ...base,
     profile,
     myTitle: mine.data ? toTitle(mine.data) : null,
-    hasSelectedBefore: (prior.count ?? 0) > 0,
-    availableTitles: rankTitles((available.data ?? []).map(toTitle), profile, user.id),
   };
-}
+});

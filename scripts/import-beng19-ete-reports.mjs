@@ -113,25 +113,56 @@ function parseYear(text) {
   return m2?.[1] ?? "2022/2023";
 }
 
-function buildNotes({ title, abstract, docUrl, year }) {
-  const problem =
-    abstract ||
-    `This BEng Electronics and Telecommunications Engineering (ETE) project report from Dar es Salaam Institute of Technology covers “${title}”. Read the attached PDF for the full problem statement, objectives, and design.`;
-  return [
-    "## Main objective",
-    `Study and adapt the BEng ETE project “${title}” using the attached report as prior work.`,
-    "",
-    "## Specific objectives",
-    "1. Read the attached project report and extract the problem, objectives, and method.",
-    "2. Identify what to improve or localise for your own OD / BEng requirements.",
-    "3. Design and build your prototype, then test it against those requirements.",
-    "4. Document results, limits, and recommendations.",
-    "",
-    "## Literature and source",
-    `Source report (PDF): ${docUrl}`,
-    `Batch: BENG 19 ETE · Academic year ${year}`,
-    "Institution: Dar es Salaam Institute of Technology (DIT), Department of Electronics and Telecommunications Engineering.",
-  ].join("\n");
+function buildNotesFromPdfText(text, { title, abstract }) {
+  // Prefer heading extraction; fall back to abstract only for problem.
+  const PROBLEM =
+    /(?:statement\s+of\s+the\s+problem|problem\s+statement|(?:1\.\s*2|1\.2)\s+problem(?:\s+statement)?)\b/i;
+  const SPECIFIC =
+    /(?:specific\s+objectives?|(?:1\.\s*3\.\s*2|1\.3\.2)\s+specific\s+objectives?)\b/i;
+  const LIMIT =
+    /(?:limitations?\s+of\s+(?:the\s+)?(?:study|project|research)|project\s+limitations?|project\s+weakness(?:es)?|delimitations?)\b/i;
+  const NEXT =
+    /\n\s*(?:\d+(?:\.\d+){1,3}\.?\s+)(?:[A-Z][A-Za-z].{0,90}|problem|objective|limitation|weakness|organization|chapter)/i;
+
+  function slice(bodyStart) {
+    const rest = text.slice(bodyStart);
+    const next = rest.search(NEXT);
+    const end = next > 12 ? next : Math.min(rest.length, 2200);
+    return clean(rest.slice(0, end), 3500);
+  }
+  function byHeading(re) {
+    const m = new RegExp(`(?:^|\\n)\\s*(?:\\d+(?:\\.\\d+)*\\.?\\s+)?${re.source}\\s*(?:\\n|:|\\-|–)?`, "i").exec(text);
+    if (!m) return null;
+    const body = slice(m.index + m[0].length);
+    return body.length >= 20 ? body : null;
+  }
+
+  const problem = byHeading(PROBLEM) || abstract || null;
+  let specific = byHeading(SPECIFIC);
+  let main =
+    byHeading(/(?:general\s+objectives?|main\s+objectives?|overall\s+objectives?)\b/i) ||
+    byHeading(/aim\s+of\s+(?:the\s+)?(?:study|project)\b/i);
+  if (!main) {
+    const block = byHeading(/(?:1\.\s*3|1\.3)\s+objectives?\b/i);
+    if (block) {
+      const at = block.search(/\n\s*specific\s+objectives?\b/i);
+      if (at > 20) {
+        main = clean(block.slice(0, at), 2000);
+        if (!specific) specific = clean(block.slice(at).replace(/^[^\n]*\n/, ""), 3000);
+      } else {
+        main = clean(block, 2000);
+      }
+    }
+  }
+  const limits = byHeading(LIMIT);
+
+  const parts = ["## Enriched from PDF"];
+  if (problem) parts.push(`## Problem statement\n${problem}`);
+  else parts.push(`## Problem statement\nReview the attached BEng ETE report for “${title}”.`);
+  if (main) parts.push(`## Main objective\n${main}`);
+  if (specific) parts.push(`## Specific objectives\n${specific}`);
+  if (limits) parts.push(`## Project limitations\n${limits}`);
+  return parts.join("\n\n");
 }
 
 const files = fs
@@ -149,7 +180,7 @@ const failures = [];
 for (const file of files) {
   const full = path.join(pdfDir, file);
   try {
-    const text = await extractText(full, 5);
+    const text = await extractText(full, 16);
     const title = parseTitle(text, file);
     if (!title || title.length < 12) {
       skipped += 1;
@@ -177,11 +208,9 @@ for (const file of files) {
     });
     if (upErr) throw new Error(`upload: ${upErr.message}`);
 
-    const summary = clean(
-      abstract ||
-        `BEng ETE project report (DIT): ${title}. Open the attached PDF for the full explanation, objectives, and design.`,
-      1800,
-    );
+    const notes = buildNotesFromPdfText(text, { title, abstract });
+    const problemMatch = notes.match(/##\s*Problem statement\s*\n([\s\S]*?)(?=\n##\s|$)/i);
+    const summary = clean(problemMatch?.[1] || abstract || title, 1800);
 
     const row = {
       seed_key: seed,
@@ -191,11 +220,11 @@ for (const file of files) {
       title,
       summary,
       hardware: null,
-      communication: "Electronics and Telecommunications Engineering",
+      communication: null,
       status: "available",
       institution: "Dar es Salaam Institute of Technology (DIT)",
       course_code: "ETE",
-      notes: buildNotes({ title, abstract, docUrl, year }),
+      notes,
       updated_at: new Date().toISOString(),
     };
 

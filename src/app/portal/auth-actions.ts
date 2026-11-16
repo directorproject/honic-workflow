@@ -124,7 +124,7 @@ export async function portalSignInAction(
   }
   if (isStaffUser(data.user)) {
     await supabase.auth.signOut();
-    return { ok: false, message: "Staff accounts sign in at inova.honiccompany.com." };
+    return { ok: false, message: "This account cannot use the student portal. Use a student or supervisor account." };
   }
 
   const meta = (data.user?.user_metadata ?? {}) as { full_name?: string; name?: string; role?: string };

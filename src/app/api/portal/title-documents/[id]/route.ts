@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { hasProjectDocumentsAccess } from "@/lib/portal/document-access";
 import { recordTitleDocumentBuy } from "@/lib/portal/title-engagement";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { getSessionActor } from "@/lib/workspace/access";
@@ -9,10 +10,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Open a published title document (signed-in students/staff only).
- * Counts a buy for the confirmed owner (non-owner viewers; once per viewer per document).
+ * View a published title document (signed-in; paid desk / DOC unlock / owner).
+ * Streams inline when possible — avoids handing out a long-lived download URL.
  */
-export async function GET(request: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+export async function GET(_request: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const actor = await getSessionActor();
   if (!actor) {
     return new NextResponse("Sign in to open this document.", { status: 401 });
@@ -43,6 +44,30 @@ export async function GET(request: NextRequest, ctx: { params: Promise<{ id: str
   }
 
   const isStaff = actor.kind === "staff";
+  const isOwner = String(claim.requester_id) === actor.userId;
+  let deskExpiresAt: string | null = null;
+  if (!isStaff && !isOwner) {
+    const { data: profile } = await db
+      .from("student_profiles")
+      .select("desk_expires_at")
+      .eq("user_id", actor.userId)
+      .maybeSingle();
+    deskExpiresAt = profile?.desk_expires_at ? String(profile.desk_expires_at) : null;
+  }
+
+  const allowed = await hasProjectDocumentsAccess(db, {
+    userId: actor.userId,
+    deskExpiresAt,
+    isStaff,
+    isDocumentOwner: isOwner,
+  });
+  if (!allowed) {
+    return new NextResponse(
+      "Project source files unlock with an active Nexis Desk plan or a project-documents payment.",
+      { status: 402 },
+    );
+  }
+
   await recordTitleDocumentBuy(db, {
     targetKind: claim.target_kind as "proposal" | "earlier",
     targetId: String(claim.target_id),
@@ -52,9 +77,23 @@ export async function GET(request: NextRequest, ctx: { params: Promise<{ id: str
     isStaff,
   });
 
-  const signed = await db.storage.from(STORAGE_BUCKET).createSignedUrl(String(doc.storage_path), 60 * 5);
-  if (!signed.data?.signedUrl) return new NextResponse("Could not open file.", { status: 502 });
+  const downloaded = await db.storage.from(STORAGE_BUCKET).download(String(doc.storage_path));
+  if (downloaded.error || !downloaded.data) {
+    return new NextResponse("Could not open file.", { status: 502 });
+  }
 
-  const url = new URL(signed.data.signedUrl);
-  return NextResponse.redirect(url.toString(), 302);
+  const bytes = await downloaded.data.arrayBuffer();
+  const mime = String(doc.mime_type || "application/pdf");
+  const safeName = String(doc.name || "document").replace(/"/g, "");
+  const disposition = mime.includes("pdf") ? "inline" : "inline";
+  return new NextResponse(bytes, {
+    status: 200,
+    headers: {
+      "Content-Type": mime,
+      "Content-Disposition": `${disposition}; filename="${safeName}"`,
+      "Cache-Control": "private, no-store, max-age=0",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Length": String(bytes.byteLength),
+    },
+  });
 }

@@ -10,7 +10,8 @@
     "auth:ensure-operator": "node scripts/ensure-operator-user.mjs",
     "auth:delete-non-staff": "node scripts/delete-all-non-staff-accounts.mjs",
     "db:migrate": "node scripts/db-migrate.mjs",
-    "email:setup": "node scripts/setup-auth-email.mjs"
+    "email:setup": "node scripts/setup-auth-email.mjs",
+    "auth:google": "node scripts/setup-auth-google.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
