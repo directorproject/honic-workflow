@@ -4,16 +4,21 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import type { ReviewItem } from "@/lib/portal/title-choices";
+import { titleDetailHref } from "@/lib/portal/title-list-filters";
+import type { TitleListFilters } from "@/lib/portal/title-list-filters";
 
 type Tab = "department" | "institution" | "year";
 
 export function TitleRelated({
   item,
   related,
+  listFilters,
 }: {
   item: ReviewItem;
   related: { department: ReviewItem[]; institution: ReviewItem[]; year: ReviewItem[] };
+  listFilters?: TitleListFilters;
 }) {
+  const filters = listFilters;
   const tabs = useMemo(() => {
     const list: { id: Tab; label: string; items: ReviewItem[]; href: string | null; empty: string }[] = [
       {
@@ -82,7 +87,10 @@ export function TitleRelated({
         <ul className="border-dash-border mt-4 divide-y border-t">
           {current.items.map((entry) => (
             <li key={entry.id} className="py-3">
-              <Link href={`/portal/titles/${encodeURIComponent(entry.id)}`} className="text-dash-foreground block text-sm leading-snug font-medium hover:underline">
+              <Link
+                href={filters ? titleDetailHref(entry.id, filters) : `/portal/titles/${encodeURIComponent(entry.id)}`}
+                className="text-dash-foreground block text-sm leading-snug font-medium hover:underline"
+              >
                 {entry.title}
               </Link>
               <p className="text-dash-muted-foreground mt-1 text-[11px] uppercase tracking-wide">

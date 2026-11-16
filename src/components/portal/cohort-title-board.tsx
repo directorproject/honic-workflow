@@ -3,6 +3,7 @@
 import { createContext, Suspense, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { portalSignOutAction } from "@/app/portal/auth-actions";
 import { GuestPreviewBanner } from "@/components/portal/guest-preview-banner";
@@ -15,12 +16,18 @@ import type { Course } from "@/lib/portal/data";
 import { projectMark } from "@/lib/portal/project-mark";
 import type { ReviewItem } from "@/lib/portal/title-choices";
 import { hasActiveDeskPlan, MAX_TITLE_CHOICES } from "@/lib/portal/title-limits";
+import {
+  EMPTY_TITLE_LIST_FILTERS,
+  parseTitleListFilters,
+  pushTitleListFilters,
+  TITLE_FILTER_ALL,
+  TITLE_FILTER_NONE,
+  titleDetailHref,
+  type TitleListFilters,
+} from "@/lib/portal/title-list-filters";
 
 const LINE =
   "border-dash-foreground/30 text-dash-foreground placeholder:text-dash-muted-foreground w-full border-0 border-b bg-transparent px-0 py-2 text-sm outline-none focus:border-dash-accent";
-
-const ALL = "all";
-const NONE = "none";
 
 type FrameValue = {
   items: ReviewItem[];
@@ -36,6 +43,7 @@ type FrameValue = {
   groups: [string, ReviewItem[]][];
   completedCount: number;
   proposalCount: number;
+  listFilters: TitleListFilters;
 };
 
 const FrameContext = createContext<FrameValue | null>(null);
@@ -66,7 +74,15 @@ export function CohortTitleBoard(props: {
   );
 }
 
-export function TitlesFrame({
+export function TitlesFrame(props: Parameters<typeof TitlesFrameBody>[0]) {
+  return (
+    <Suspense fallback={<main className="bg-dash-canvas min-h-screen" aria-busy="true" />}>
+      <TitlesFrameBody {...props} />
+    </Suspense>
+  );
+}
+
+function TitlesFrameBody({
   items,
   mine,
   courses,
@@ -96,9 +112,11 @@ export function TitlesFrame({
   catalogueTools?: boolean;
   children: ReactNode;
 }) {
-  const [year, setYear] = useState(ALL);
-  const [institution, setInstitution] = useState(ALL);
-  const [department, setDepartment] = useState(ALL);
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const onListPage = pathname === "/portal/titles";
+  const urlFilters = onListPage ? parseTitleListFilters(searchParams) : EMPTY_TITLE_LIST_FILTERS;
   const [order, setOrder] = useState<Map<string, number> | null>(null);
   const [drawer, setDrawer] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -108,17 +126,24 @@ export function TitlesFrame({
   useEffect(() => {
     queueMicrotask(() => setOrder(shuffle(items.map((item) => item.id))));
   }, [items]);
-  useEffect(() => {
-    queueMicrotask(() => {
-      const params = new URLSearchParams(window.location.search);
-      const nextYear = params.get("year");
-      const nextDepartment = params.get("department");
-      const nextInstitution = params.get("institution");
-      if (nextYear) setYear(nextYear);
-      if (nextDepartment) setDepartment(nextDepartment);
-      if (nextInstitution) setInstitution(nextInstitution);
-    });
-  }, []);
+  const year = onListPage ? urlFilters.year : TITLE_FILTER_ALL;
+  const institution = onListPage ? urlFilters.institution : TITLE_FILTER_ALL;
+  const department = onListPage ? urlFilters.department : TITLE_FILTER_ALL;
+  const listFilters = onListPage ? urlFilters : parseTitleListFilters(searchParams);
+
+  const setYear = (value: string) => {
+    if (!onListPage) return;
+    pushTitleListFilters(router, pathname, { ...urlFilters, year: value });
+  };
+  const setInstitution = (value: string) => {
+    if (!onListPage) return;
+    pushTitleListFilters(router, pathname, { ...urlFilters, institution: value });
+  };
+  const setDepartment = (value: string) => {
+    if (!onListPage) return;
+    pushTitleListFilters(router, pathname, { ...urlFilters, department: value });
+  };
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
@@ -156,12 +181,18 @@ export function TitlesFrame({
   const departments = unique(items.map((item) => item.courseCode));
   const missingInstitution = items.some((item) => !item.institution);
   const slotsLeft = MAX_TITLE_CHOICES - mine.length;
-  const filtering = year !== ALL || institution !== ALL || department !== ALL;
+  const filtering =
+    year !== TITLE_FILTER_ALL || institution !== TITLE_FILTER_ALL || department !== TITLE_FILTER_ALL;
 
   const matched = items.filter((item) => {
-    if (year !== ALL && item.yearLabel !== year) return false;
-    if (department !== ALL && item.courseCode !== department) return false;
-    if (institution === NONE ? Boolean(item.institution) : institution !== ALL && item.institution !== institution) return false;
+    if (year !== TITLE_FILTER_ALL && item.yearLabel !== year) return false;
+    if (department !== TITLE_FILTER_ALL && item.courseCode !== department) return false;
+    if (
+      institution === TITLE_FILTER_NONE
+        ? Boolean(item.institution)
+        : institution !== TITLE_FILTER_ALL && item.institution !== institution
+    )
+      return false;
     return true;
   });
 
@@ -180,9 +211,8 @@ export function TitlesFrame({
   const proposalCount = matched.filter((item) => item.kind === "study").length;
 
   function clearFilters() {
-    setYear(ALL);
-    setInstitution(ALL);
-    setDepartment(ALL);
+    if (!onListPage) return;
+    router.replace("/portal/titles", { scroll: false });
   }
 
   const field =
@@ -209,7 +239,7 @@ export function TitlesFrame({
             fieldClass={field}
             labelClass={labelTone}
             options={[
-              { value: ALL, label: "All years" },
+              { value: TITLE_FILTER_ALL, label: "All years" },
               ...years.map((value) => ({
                 value,
                 label: `${yearSpan(value)}${studentYear && value < studentYear ? " · before your year" : ""}`,
@@ -223,7 +253,7 @@ export function TitlesFrame({
             fieldClass={field}
             labelClass={labelTone}
             options={[
-              { value: ALL, label: "All departments" },
+              { value: TITLE_FILTER_ALL, label: "All departments" },
               ...departments.map((code) => ({ value: code, label: courseName.get(code) ?? code })),
             ]}
           />
@@ -234,8 +264,8 @@ export function TitlesFrame({
             fieldClass={field}
             labelClass={labelTone}
             options={[
-              { value: ALL, label: "All institutions" },
-              ...(missingInstitution ? [{ value: NONE, label: "Not recorded" }] : []),
+              { value: TITLE_FILTER_ALL, label: "All institutions" },
+              ...(missingInstitution ? [{ value: TITLE_FILTER_NONE, label: "Not recorded" }] : []),
               ...institutions.map((value) => ({ value, label: value })),
             ]}
           />
@@ -249,7 +279,10 @@ export function TitlesFrame({
             <ul className="mt-3 space-y-2">
               {mine.map((item) => (
                 <li key={item.id}>
-                  <Link href={`/portal/titles/${encodeURIComponent(item.id)}`} className="text-sm leading-snug font-medium text-white hover:underline">
+                  <Link
+                    href={titleDetailHref(item.id, listFilters)}
+                    className="text-sm leading-snug font-medium text-white hover:underline"
+                  >
                     {item.title}
                   </Link>
                 </li>
@@ -379,6 +412,7 @@ export function TitlesFrame({
     groups,
     completedCount,
     proposalCount,
+    listFilters,
   };
 
   return (
@@ -783,6 +817,7 @@ function emptyProblem(item: ReviewItem): string {
 }
 
 function TitleRow({ item, courseName }: { item: ReviewItem; courseName: Map<string, string> }) {
+  const { listFilters } = useTitlesFrame();
   const [open, setOpen] = useState(false);
   const mark = projectMark(item);
   const courseFull = mark.courseCode ? (courseName.get(mark.courseCode) ?? mark.courseCode) : null;
@@ -844,7 +879,7 @@ function TitleRow({ item, courseName }: { item: ReviewItem; courseName: Map<stri
               </div>
               {item.sourceUrl ? (
                 <Link
-                  href={`/portal/titles/${encodeURIComponent(item.id)}#documents`}
+                  href={`${titleDetailHref(item.id, listFilters)}#documents`}
                   className="text-dash-accent inline-block text-sm font-semibold"
                 >
                   Source file on title page (unlock to view)
@@ -854,7 +889,10 @@ function TitleRow({ item, courseName }: { item: ReviewItem; courseName: Map<stri
           ) : null}
         </div>
         <div className="flex shrink-0 items-center gap-4 sm:flex-col sm:items-end sm:gap-2">
-          <Link href={`/portal/titles/${encodeURIComponent(item.id)}`} className="text-dash-foreground border-b border-current text-sm font-semibold">
+          <Link
+            href={titleDetailHref(item.id, listFilters)}
+            className="text-dash-foreground border-b border-current text-sm font-semibold"
+          >
             Select
           </Link>
           <button

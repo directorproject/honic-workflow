@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import {
@@ -13,6 +13,7 @@ import {
 import { Field, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
 import { PAYMENT_NETWORKS } from "@/lib/portal/config";
 import { EXTRA_TITLE_HIDE_FEE_TSH, MAX_TITLE_CHOICES } from "@/lib/portal/title-limits";
+import { parseTitleListFilters, titleDetailHrefWithNotice } from "@/lib/portal/title-list-filters";
 
 export function TitleSelectAction({
   proposalId,
@@ -43,6 +44,8 @@ export function TitleSelectAction({
   phone?: string;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const listFilters = parseTitleListFilters(searchParams);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [payOpen, setPayOpen] = useState(false);
@@ -67,7 +70,7 @@ export function TitleSelectAction({
         return;
       }
       router.refresh();
-      router.push(`/portal/titles/${encodeURIComponent(proposalId)}?notice=owned`);
+      router.push(titleDetailHrefWithNotice(proposalId, "owned", listFilters));
     });
   }
 
@@ -90,7 +93,7 @@ export function TitleSelectAction({
       setPayStatus(res);
       if (res.ok) {
         router.refresh();
-        router.push(`/portal/titles/${encodeURIComponent(proposalId)}?notice=owned`);
+        router.push(titleDetailHrefWithNotice(proposalId, "owned", listFilters));
       }
     });
   }
@@ -234,7 +237,7 @@ export function TitleSelectAction({
               return;
             }
             router.refresh();
-            router.push(`/portal/titles/${encodeURIComponent(proposalId)}?notice=selected`);
+            router.push(titleDetailHrefWithNotice(proposalId, "selected", listFilters));
           });
         }}
         className="border-dash-border text-dash-foreground inline-flex w-full items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-semibold disabled:opacity-60"

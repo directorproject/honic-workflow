@@ -29,6 +29,7 @@ import {
 } from "@/lib/portal/title-limits";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { findMembership } from "@/lib/workspace/access";
+import { parseTitleListFiltersFromRecord, titleListHref } from "@/lib/portal/title-list-filters";
 import { formatDate } from "@/lib/workspace/dates";
 
 export const dynamic = "force-dynamic";
@@ -51,12 +52,14 @@ const NOTICES: Record<string, string> = {
 
 export default async function PortalTitlePage(props: {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ notice?: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const [{ id }, search] = await Promise.all([
     props.params,
-    props.searchParams ?? Promise.resolve({} as { notice?: string }),
+    props.searchParams ?? Promise.resolve({} as Record<string, string | string[] | undefined>),
   ]);
+  const listFilters = parseTitleListFiltersFromRecord(search);
+  const listHref = titleListHref(listFilters);
   const state = await loadPortalState();
   const { user, profile } = state;
   const db = getSupabaseAdminClient();
@@ -105,7 +108,9 @@ export default async function PortalTitlePage(props: {
     prefetched,
   );
   const courseName = new Map(state.courses.map((course) => [course.code, course.name]));
-  const notice = search.notice ? NOTICES[search.notice] : null;
+  const noticeKey =
+    typeof search.notice === "string" ? search.notice : Array.isArray(search.notice) ? search.notice[0] : undefined;
+  const notice = noticeKey ? NOTICES[noticeKey] : null;
   const target = item ? titleTarget(item) : null;
   const claims = target ? await claimsForTarget(db, target.kind, target.id) : [];
   const confirmed = claims.filter((claim) => claim.status === "confirmed");
@@ -200,6 +205,8 @@ export default async function PortalTitlePage(props: {
         {notice ? <p className="border-dash-border mb-6 rounded-lg border bg-emerald-500/10 px-3 py-2 text-sm">{notice}</p> : null}
         {item && target && related ? (
           <TitleDetail
+            listHref={listHref}
+            listFilters={listFilters}
             item={item}
             routeId={routeId}
             department={item.courseCode ? (courseName.get(item.courseCode) ?? item.courseCode) : null}
@@ -234,7 +241,7 @@ export default async function PortalTitlePage(props: {
             }
           />
         ) : (
-          <MissingTitle />
+          <MissingTitle listHref={listHref} />
         )}
       </article>
     </TitlesFrame>
@@ -253,12 +260,12 @@ function Gate({ children }: { children: ReactNode }) {
   );
 }
 
-function MissingTitle() {
+function MissingTitle({ listHref }: { listHref: string }) {
   return (
     <div>
       <h1 className="text-dash-foreground text-2xl font-semibold tracking-tight">This title is not available</h1>
       <p className="text-dash-muted-foreground mt-3 text-sm leading-relaxed">It may be hidden for your group, or it is no longer on the list.</p>
-      <Link href="/portal/titles" className="text-dash-accent mt-4 inline-block text-sm font-semibold">
+      <Link href={listHref} className="text-dash-accent mt-4 inline-block text-sm font-semibold">
         Back to all titles
       </Link>
     </div>
@@ -266,6 +273,8 @@ function MissingTitle() {
 }
 
 function TitleDetail({
+  listHref,
+  listFilters,
   item,
   routeId,
   department,
@@ -283,6 +292,8 @@ function TitleDetail({
   isHiddenFromPeers,
   planMode,
 }: {
+  listHref: string;
+  listFilters: ReturnType<typeof parseTitleListFiltersFromRecord>;
   item: ReviewItem;
   routeId: string;
   department: string | null;
@@ -327,7 +338,7 @@ function TitleDetail({
     <div className="w-full min-w-0 pb-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
         <div className="min-w-0 flex-1">
-          <Link href="/portal/titles" className="text-dash-muted-foreground hover:text-dash-foreground text-xs font-semibold">
+          <Link href={listHref} className="text-dash-muted-foreground hover:text-dash-foreground text-xs font-semibold">
             ← All titles
           </Link>
           <p className="text-dash-muted-foreground mt-4 text-[11px] leading-relaxed tracking-wide break-words uppercase">
@@ -553,7 +564,7 @@ function TitleDetail({
         </div>
 
         <aside className="min-w-0 xl:sticky xl:top-28">
-          <TitleRelated item={item} related={related} />
+          <TitleRelated item={item} related={related} listFilters={listFilters} />
         </aside>
       </div>
     </div>
