@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { portalFixedHeaderTop } from "@/lib/portal/fixed-header";
+
 export function TitleJumpNav({ jumps }: { jumps: [string, string][] }) {
   const ids = jumps.map(([href]) => href.replace(/^#/, ""));
   const idsKey = ids.join("|");
@@ -40,7 +42,9 @@ export function TitleJumpNav({ jumps }: { jumps: [string, string][] }) {
   }, [idsKey]);
 
   return (
-    <div className="border-dash-border -mx-3 mt-5 flex flex-wrap gap-x-1 gap-y-0 border-b px-3 sm:mx-0 sm:px-0">
+    <div
+      className={`border-dash-border bg-dash-canvas/95 supports-[backdrop-filter]:bg-dash-canvas/85 sticky z-20 mt-5 flex flex-wrap gap-x-1 gap-y-0 border-b backdrop-blur-md ${portalFixedHeaderTop}`}
+    >
       {jumps.map(([href, label]) => {
         const id = href.replace(/^#/, "");
         const on = active === id;

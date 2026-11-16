@@ -30,6 +30,10 @@ import {
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { findMembership } from "@/lib/workspace/access";
 import { parseTitleListFiltersFromRecord, titleListHref } from "@/lib/portal/title-list-filters";
+import {
+  portalFixedHeaderAsideSticky,
+  portalTitleSectionScrollMt,
+} from "@/lib/portal/fixed-header";
 import { formatDate } from "@/lib/workspace/dates";
 
 export const dynamic = "force-dynamic";
@@ -334,10 +338,27 @@ function TitleDetail({
     ["#documents", "Documents"],
     ["#more", "Related"],
   ];
+  const selectPanel = (
+    <TitleSelectAction
+      proposalId={item.id}
+      canChoose={item.canChoose}
+      isMine={isMine}
+      isHiddenFromPeers={isHiddenFromPeers}
+      selectedCount={selectedCount}
+      readOnly={readOnly}
+      readOnlyReason={readOnlyReason}
+      needsPayment={Boolean(entitlement?.needsPayment)}
+      hasPaidPlan={Boolean(entitlement?.hasPaidPlan)}
+      freeRemaining={entitlement?.freeRemaining ?? 0}
+      hideCredits={entitlement?.hideCredits ?? 0}
+      phone={phone}
+    />
+  );
+
   return (
     <div className="w-full min-w-0 pb-8">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
-        <div className="min-w-0 flex-1">
+      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-12">
+        <div className="min-w-0">
           <Link href={listHref} className="text-dash-muted-foreground hover:text-dash-foreground text-xs font-semibold">
             ← All titles
           </Link>
@@ -387,31 +408,13 @@ function TitleDetail({
               ) : null}
             </div>
           ) : null}
-        </div>
-        <div className="w-full shrink-0 lg:w-64 lg:pt-8">
-          <TitleSelectAction
-            proposalId={item.id}
-            canChoose={item.canChoose}
-            isMine={isMine}
-            isHiddenFromPeers={isHiddenFromPeers}
-            selectedCount={selectedCount}
-            readOnly={readOnly}
-            readOnlyReason={readOnlyReason}
-            needsPayment={Boolean(entitlement?.needsPayment)}
-            hasPaidPlan={Boolean(entitlement?.hasPaidPlan)}
-            freeRemaining={entitlement?.freeRemaining ?? 0}
-            hideCredits={entitlement?.hideCredits ?? 0}
-            phone={phone}
-          />
-        </div>
-      </div>
 
-      <TitleJumpNav jumps={jumps} />
+          <div className="mt-6 xl:hidden">{selectPanel}</div>
 
-      <div className="mt-8 grid gap-10 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start xl:gap-12">
-        <div className="min-w-0">
+          <TitleJumpNav jumps={jumps} />
+
           {facts.length ? (
-            <dl id="details" className="border-dash-border scroll-mt-[5.5rem] border-t sm:scroll-mt-28">
+            <dl id="details" className={`border-dash-border mt-8 border-t ${portalTitleSectionScrollMt}`}>
               {facts.map(([label, value]) => (
                 <div key={label} className="border-dash-border grid gap-1 border-b py-3 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-6">
                   <dt className="text-dash-muted-foreground text-xs font-semibold">{label}</dt>
@@ -421,7 +424,7 @@ function TitleDetail({
             </dl>
           ) : null}
 
-          <section id="brief" className="mt-10 scroll-mt-[5.5rem] space-y-5 sm:scroll-mt-28">
+          <section id="brief" className={`mt-10 space-y-5 ${portalTitleSectionScrollMt}`}>
             <div>
               <h2 className={sectionTitle}>Problem statement</h2>
               <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words whitespace-pre-wrap">
@@ -449,7 +452,7 @@ function TitleDetail({
             </div>
           </section>
 
-          <section id="recommendations" className="mt-10 scroll-mt-[5.5rem] sm:scroll-mt-28">
+          <section id="recommendations" className={`mt-10 ${portalTitleSectionScrollMt}`}>
             <h2 className={sectionTitle}>Recommendations</h2>
             <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words whitespace-pre-wrap">
               <LinkifiedText
@@ -461,7 +464,7 @@ function TitleDetail({
             </p>
           </section>
 
-          <section id="references" className="mt-10 scroll-mt-[5.5rem] sm:scroll-mt-28">
+          <section id="references" className={`mt-10 ${portalTitleSectionScrollMt}`}>
             <h2 className={sectionTitle}>References</h2>
             <p className="text-dash-muted-foreground mt-1 text-xs">Up to 5 from the source report. Open the full document for the complete list.</p>
             <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words whitespace-pre-wrap">
@@ -475,13 +478,13 @@ function TitleDetail({
           </section>
 
           {item.hardware ? (
-            <section id="hardware" className="mt-10 scroll-mt-[5.5rem] sm:scroll-mt-28">
+            <section id="hardware" className={`mt-10 ${portalTitleSectionScrollMt}`}>
               <h2 className={sectionTitle}>Hardware</h2>
               <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words">{item.hardware}</p>
             </section>
           ) : null}
 
-          <section id="documents" className="mt-10 scroll-mt-[5.5rem] sm:scroll-mt-28">
+          <section id="documents" className={`mt-10 ${portalTitleSectionScrollMt}`}>
             <h2 className={sectionTitle}>Project source file</h2>
             {hasSourceFile ? (
               canViewDocuments ? (
@@ -563,8 +566,11 @@ function TitleDetail({
           ) : null}
         </div>
 
-        <aside className="min-w-0 xl:sticky xl:top-28">
-          <TitleRelated item={item} related={related} listFilters={listFilters} />
+        <aside
+          className={`min-w-0 space-y-8 xl:sticky xl:max-h-[calc(100dvh-3.6rem)] xl:overflow-y-auto xl:pr-0.5 sm:xl:max-h-[calc(100dvh-4.25rem)] ${portalFixedHeaderAsideSticky}`}
+        >
+          <div className="hidden xl:block">{selectPanel}</div>
+          <TitleRelated item={item} related={related} listFilters={listFilters} className="mt-0" />
         </aside>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import type { ReviewItem } from "@/lib/portal/title-choices";
 import { titleDetailHref } from "@/lib/portal/title-list-filters";
+import { portalTitleSectionScrollMt } from "@/lib/portal/fixed-header";
 import type { TitleListFilters } from "@/lib/portal/title-list-filters";
 
 type Tab = "department" | "institution" | "year";
@@ -13,10 +14,12 @@ export function TitleRelated({
   item,
   related,
   listFilters,
+  className = "",
 }: {
   item: ReviewItem;
   related: { department: ReviewItem[]; institution: ReviewItem[]; year: ReviewItem[] };
   listFilters?: TitleListFilters;
+  className?: string;
 }) {
   const filters = listFilters;
   const tabs = useMemo(() => {
@@ -51,7 +54,7 @@ export function TitleRelated({
   const current = tabs.find((tab) => tab.id === active) ?? tabs[0];
 
   return (
-    <section id="more" className="mt-10 scroll-mt-24">
+    <section id="more" className={`${portalTitleSectionScrollMt} ${className ?? "mt-10"}`}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-dash-foreground text-sm font-semibold">Related titles</h2>
