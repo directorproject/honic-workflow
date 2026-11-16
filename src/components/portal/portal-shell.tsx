@@ -98,7 +98,7 @@ export function PortalShell({
 
       <div className="flex min-h-screen min-w-0 flex-col lg:pl-[17rem]">
         <header
-          className={`border-dash-border bg-dash-card/95 supports-[backdrop-filter]:bg-dash-card/80 fixed top-0 right-0 left-0 z-30 border-b backdrop-blur-md transition-shadow duration-300 lg:left-[17rem] ${
+          className={`border-dash-border bg-dash-card/95 supports-[backdrop-filter]:bg-dash-card/80 relative fixed top-0 right-0 left-0 z-30 border-b backdrop-blur-md transition-shadow duration-300 lg:left-[17rem] ${
             scrolled ? "shadow-[0_8px_24px_-16px_rgba(15,23,42,0.55)]" : ""
           }`}
         >
@@ -153,7 +153,10 @@ export function PortalShell({
               ) : null}
             </div>
           </div>
-          <span className={`bg-dash-accent block h-0.5 origin-left transition-transform duration-500 ${scrolled ? "scale-x-100" : "scale-x-0"}`} />
+          <span
+            aria-hidden
+            className={`bg-dash-accent pointer-events-none absolute inset-x-0 bottom-0 h-0.5 origin-left transition-transform duration-500 ${scrolled ? "scale-x-100" : "scale-x-0"}`}
+          />
         </header>
         {/* Matches fixed header height so content is not covered. */}
         <div className="h-[3.6rem] shrink-0 sm:h-[4.25rem]" aria-hidden />

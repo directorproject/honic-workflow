@@ -188,7 +188,7 @@ export function PortalNavLinks({
               subtitle={mode === "supervisor" ? "Supervisor portal" : "Student portal"}
             />
             {/* Bold blue rule: starts at center of logo strip, ends at right edge of nav. */}
-            <span aria-hidden className="pointer-events-none absolute right-0 bottom-0 left-1/2 h-[3px] bg-[#38bdf8]" />
+            <span aria-hidden className="bg-dash-accent pointer-events-none absolute right-0 bottom-0 left-1/2 h-0.5" />
           </div>
         </div>
       ) : null}
