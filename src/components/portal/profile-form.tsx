@@ -3,7 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { portalSaveProfileAction, type PortalResult } from "@/app/portal/actions";
+import {
+  portalSaveProfileAction,
+  portalSkipProfileAction,
+  type PortalResult,
+} from "@/app/portal/actions";
 import { Card, Field, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
 import { SearchSelect } from "@/components/portal/search-select";
 import { Spinner } from "@/components/ui/spinner";
@@ -14,7 +18,6 @@ import {
   OTHER_OPTION,
   PROJECT_CATEGORIES,
   STUDY_LEVELS,
-  YEARS_OF_STUDY,
 } from "@/lib/portal/config";
 import type { Course, StudentProfile } from "@/lib/portal/data";
 
@@ -23,15 +26,20 @@ function ChoiceChips({
   options,
   value,
   onChange,
+  optional,
 }: {
   label: string;
   options: readonly { value: string; label: string }[];
   value: string;
   onChange: (value: string) => void;
+  optional?: boolean;
 }) {
   return (
     <div className="sm:col-span-2" role="radiogroup" aria-label={label}>
-      <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">{label}</span>
+      <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">
+        {label}
+        {optional ? " (optional)" : ""}
+      </span>
       <div className="flex flex-wrap gap-2">
         {options.map((o) => {
           const active = o.value === value;
@@ -41,7 +49,7 @@ function ChoiceChips({
               type="button"
               role="radio"
               aria-checked={active}
-              onClick={() => onChange(o.value)}
+              onClick={() => onChange(value === o.value ? "" : o.value)}
               className={`rounded-xl border px-3.5 py-2 text-sm font-medium transition-colors ${
                 active
                   ? "border-dash-accent bg-dash-accent/15 text-dash-foreground ring-dash-accent/30 ring-2"
@@ -80,16 +88,23 @@ export function ProfileForm({
   const [projectCategory, setProjectCategory] = useState(profile?.projectCategory ?? "");
 
   const listedCourses = courses.filter((c) => c.code !== OTHER_COURSE_CODE);
+  const afterSavePath = profile ? "/portal/home?tab=account" : "/portal/titles";
+
+  function goNext() {
+    router.push(afterSavePath);
+    router.refresh();
+  }
 
   return (
-    <Card title={profile ? "Edit your details" : "Your details"} subtitle="Your course and institution help us put the best titles for you first.">
+    <Card
+      title={profile ? "Edit your details" : "Your details"}
+      subtitle="Add what you know now — phone is only needed when you pay. You can update everything later under My account."
+    >
       <form
         onSubmit={(e) => {
           e.preventDefault();
           const fd = new FormData(e.currentTarget);
           const get = (k: string) => String(fd.get(k) ?? "");
-          if (!studyLevel) return setStatus({ ok: false, message: "Choose your level of study." });
-          if (!projectCategory) return setStatus({ ok: false, message: "Choose your project type." });
           setStatus(null);
           startTransition(async () => {
             const res = await portalSaveProfileAction({
@@ -101,12 +116,10 @@ export function ProfileForm({
               studyLevel,
               studyLevelOther: studyLevel === "other" ? get("studyLevelOther") : "",
               projectCategory,
-              yearOfStudy: get("yearOfStudy"),
               academicYear: get("academicYear"),
-              partner: get("partner"),
             });
             setStatus(res);
-            if (res.ok) router.push(profile ? "/portal" : "/portal/titles");
+            if (res.ok) goNext();
           });
         }}
         className="grid gap-3 sm:grid-cols-2"
@@ -114,8 +127,8 @@ export function ProfileForm({
         <Field label="Full name *">
           <input name="fullName" required maxLength={120} className={INPUT} defaultValue={profile?.fullName ?? suggestedName ?? ""} />
         </Field>
-        <Field label="Phone (mobile money) *">
-          <input name="phone" required maxLength={30} placeholder="07XX XXX XXX" className={INPUT} defaultValue={profile?.phone} />
+        <Field label="Phone (mobile money, optional)">
+          <input name="phone" maxLength={30} placeholder="07XX XXX XXX — add before paying" className={INPUT} defaultValue={profile?.phone ?? ""} />
         </Field>
 
         <Field label="Institution *" wide>
@@ -168,7 +181,7 @@ export function ProfileForm({
           </Field>
         ) : null}
 
-        <ChoiceChips label="Level of study *" options={STUDY_LEVELS} value={studyLevel} onChange={setStudyLevel} />
+        <ChoiceChips label="Level of study" options={STUDY_LEVELS} value={studyLevel} onChange={setStudyLevel} optional />
         {studyLevel === "other" ? (
           <Field label="Your level of study *" wide>
             <input
@@ -183,27 +196,36 @@ export function ProfileForm({
         ) : null}
 
         <ChoiceChips
-          label="Project type *"
+          label="Project type"
           options={PROJECT_CATEGORIES}
           value={projectCategory}
           onChange={setProjectCategory}
+          optional
         />
 
-        <Field label="Year of study (optional)">
-          <select name="yearOfStudy" className={INPUT} defaultValue={profile?.yearOfStudy ?? ""}>
-            <option value="">Not specified</option>
-            {YEARS_OF_STUDY.map((y) => (
-              <option key={y}>{y}</option>
-            ))}
-          </select>
+        <Field label="Academic year (optional)" wide>
+          <input name="academicYear" maxLength={20} placeholder="2026/2027" className={INPUT} defaultValue={profile?.academicYear ?? "2026/2027"} />
         </Field>
-        <Field label="Academic year *">
-          <input name="academicYear" required maxLength={20} placeholder="2026/2027" className={INPUT} defaultValue={profile?.academicYear ?? "2026/2027"} />
-        </Field>
-        <Field label="Group partner (optional)" wide>
-          <input name="partner" maxLength={160} placeholder="Partner's name" className={INPUT} defaultValue={profile?.partner ?? ""} />
-        </Field>
+
         <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+          {!profile ? (
+            <button
+              type="button"
+              disabled={pending}
+              className={SECONDARY}
+              onClick={() => {
+                setStatus(null);
+                startTransition(async () => {
+                  const res = await portalSkipProfileAction();
+                  setStatus(res);
+                  if (res.ok) goNext();
+                });
+              }}
+            >
+              {pending ? <Spinner /> : null}
+              Skip for now
+            </button>
+          ) : null}
           {cancelHref ? (
             <a href={cancelHref} className={SECONDARY}>
               Cancel
@@ -211,7 +233,7 @@ export function ProfileForm({
           ) : null}
           <button type="submit" disabled={pending} aria-busy={pending} className={PRIMARY}>
             {pending ? <Spinner /> : null}
-            {pending ? "Saving…" : profile ? "Save details" : "Save and see titles"}
+            {pending ? "Saving…" : profile ? "Save details" : "Save and continue"}
           </button>
           <StatusText status={status} />
         </div>

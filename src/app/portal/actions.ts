@@ -33,7 +33,6 @@ import {
   PROJECT_DOCUMENTS_ACCESS_TSH,
   STUDY_LEVELS,
   TITLE_CHANGE_FEE_TSH,
-  YEARS_OF_STUDY,
 } from "@/lib/portal/config";
 import { getPortalUser } from "@/lib/portal/data";
 import { hasProjectDocumentsAccess } from "@/lib/portal/document-access";
@@ -69,46 +68,77 @@ export type ProfileInput = {
   studyLevel: string;
   studyLevelOther: string;
   projectCategory: string;
-  yearOfStudy: string;
   academicYear: string;
-  partner: string;
 };
+
+export async function portalSkipProfileAction(): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    const meta = (user.user_metadata ?? {}) as { full_name?: string; name?: string };
+    const fullName =
+      clean(meta.full_name, 120) || clean(meta.name, 120) || clean(user.email?.split("@")[0], 120) || "Student";
+    const { data: course } = await db.from("courses").select("code").eq("is_active", true).order("sort_order").limit(1).maybeSingle();
+    const courseCode = course?.code ? String(course.code) : "ETE";
+    const { DEFAULT_INSTITUTION } = await import("@/lib/portal/config");
+    const row = {
+      user_id: user.id,
+      full_name: fullName,
+      phone: null,
+      institution: DEFAULT_INSTITUTION,
+      course_code: courseCode,
+      course_other: null,
+      study_level: null,
+      study_level_other: null,
+      project_category: null,
+      year_of_study: null,
+      academic_year: "2026/2027",
+      partner: null,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await db.from("student_profiles").upsert(row, { onConflict: "user_id" });
+    if (error) return { ok: false, message: error.message };
+    revalidatePath("/portal");
+    revalidatePath("/portal/titles");
+    revalidatePath("/portal/home");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not continue." };
+  }
+}
 
 export async function portalSaveProfileAction(input: ProfileInput): Promise<PortalResult> {
   try {
     const { user, db } = await requireStudent();
     const courseCode = clean(input.courseCode, 12).toUpperCase();
     const studyLevel = clean(input.studyLevel, 30);
+    const phone = clean(input.phone, 30);
     const row = {
       full_name: clean(input.fullName, 120),
-      phone: clean(input.phone, 30),
+      phone: phone || null,
       institution: clean(input.institution, 160),
       course_code: courseCode,
       course_other: courseCode === OTHER_COURSE_CODE ? clean(input.courseOther, 120) || null : null,
-      study_level: studyLevel,
+      study_level: studyLevel || null,
       study_level_other: studyLevel === "other" ? clean(input.studyLevelOther, 80) || null : null,
-      project_category: clean(input.projectCategory, 30),
-      year_of_study: clean(input.yearOfStudy, 60) || null,
-      academic_year: clean(input.academicYear, 20),
-      partner: clean(input.partner, 160) || null,
+      project_category: clean(input.projectCategory, 30) || null,
+      year_of_study: null,
+      academic_year: clean(input.academicYear, 20) || "2026/2027",
+      partner: null,
     };
-    if (!row.full_name || !row.phone || !row.institution || !row.academic_year) {
-      return { ok: false, message: "Fill in all required fields." };
+    if (!row.full_name || !row.institution) {
+      return { ok: false, message: "Enter your name and institution." };
     }
     if (courseCode === OTHER_COURSE_CODE && !row.course_other) {
       return { ok: false, message: "Type the name of your course." };
     }
-    if (!STUDY_LEVELS.some((l) => l.value === row.study_level)) {
+    if (row.study_level && !STUDY_LEVELS.some((l) => l.value === row.study_level)) {
       return { ok: false, message: "Choose your level of study." };
     }
     if (row.study_level === "other" && !row.study_level_other) {
       return { ok: false, message: "Type your level of study." };
     }
-    if (!PROJECT_CATEGORIES.some((c) => c.value === row.project_category)) {
+    if (row.project_category && !PROJECT_CATEGORIES.some((c) => c.value === row.project_category)) {
       return { ok: false, message: "Choose your project type." };
-    }
-    if (row.year_of_study && !(YEARS_OF_STUDY as readonly string[]).includes(row.year_of_study)) {
-      return { ok: false, message: "Choose a year of study from the list." };
     }
     const { data: course } = await db.from("courses").select("code").eq("code", row.course_code).eq("is_active", true).maybeSingle();
     if (!course) return { ok: false, message: "Choose your course." };

@@ -170,7 +170,7 @@ export const loadPortalState = cache(async (): Promise<PortalState> => {
   const profile: StudentProfile = {
     fullName: String(p.full_name),
     regNo: p.reg_no ? String(p.reg_no) : null,
-    phone: String(p.phone),
+    phone: p.phone ? String(p.phone) : "",
     institution: String(p.institution),
     courseCode: String(p.course_code),
     courseOther: p.course_other ? String(p.course_other) : null,
