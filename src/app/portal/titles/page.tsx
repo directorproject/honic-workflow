@@ -61,7 +61,14 @@ export default async function PortalTitlesPage() {
       />
     );
   } else if (!profile || !db) {
-    content = <ProfileForm courses={state.courses} profile={profile} suggestedName={user.suggestedName} />;
+    content = (
+      <ProfileForm
+        courses={state.courses}
+        profile={profile}
+        suggestedName={user.suggestedName}
+        needsPasswordSetup={user.needsPasswordSetup}
+      />
+    );
   } else {
     const terms = state.titleTerms ?? { accepted: false, policyAccepted: false, rulesAccepted: false, acceptedAt: null };
     if (!terms.accepted) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 
 import {
   portalSaveProfileAction,
@@ -65,18 +65,32 @@ function ChoiceChips({
   );
 }
 
+function essentialsFromForm(fd: FormData) {
+  const get = (k: string) => String(fd.get(k) ?? "");
+  return {
+    fullName: get("fullName"),
+    phone: get("phone"),
+    password: get("password"),
+    password2: get("password2"),
+  };
+}
+
 export function ProfileForm({
   courses,
   profile,
   cancelHref,
   suggestedName,
+  needsPasswordSetup = false,
 }: {
   courses: Course[];
   profile: StudentProfile | null;
   cancelHref?: string;
   suggestedName?: string | null;
+  /** Google and other OAuth sign-ins must set a password here; email sign-up already has one. */
+  needsPasswordSetup?: boolean;
 }) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<PortalResult | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -89,6 +103,8 @@ export function ProfileForm({
 
   const listedCourses = courses.filter((c) => c.code !== OTHER_COURSE_CODE);
   const afterSavePath = profile ? "/portal/home?tab=account" : "/portal/titles";
+  const onboarding = !profile;
+  const showPasswordFields = onboarding && needsPasswordSetup;
 
   function goNext() {
     router.push(afterSavePath);
@@ -98,9 +114,14 @@ export function ProfileForm({
   return (
     <Card
       title={profile ? "Edit your details" : "Your details"}
-      subtitle="Add what you know now — phone is only needed when you pay. You can update everything later under My account."
+      subtitle={
+        onboarding
+          ? "Name, phone, and password (if you used Google) are required. You can skip course and institution for now."
+          : "Update your account and course details any time."
+      }
     >
       <form
+        ref={formRef}
         onSubmit={(e) => {
           e.preventDefault();
           const fd = new FormData(e.currentTarget);
@@ -108,8 +129,7 @@ export function ProfileForm({
           setStatus(null);
           startTransition(async () => {
             const res = await portalSaveProfileAction({
-              fullName: get("fullName"),
-              phone: get("phone"),
+              ...essentialsFromForm(fd),
               institution: institutionChoice === OTHER_OPTION ? get("institutionOther") : institutionChoice,
               courseCode: courseChoice,
               courseOther: courseChoice === OTHER_COURSE_CODE ? get("courseOther") : "",
@@ -124,14 +144,53 @@ export function ProfileForm({
         }}
         className="grid gap-3 sm:grid-cols-2"
       >
+        <p className="text-dash-foreground sm:col-span-2 text-sm font-semibold">Account</p>
+
         <Field label="Full name *">
           <input name="fullName" required maxLength={120} className={INPUT} defaultValue={profile?.fullName ?? suggestedName ?? ""} />
         </Field>
-        <Field label="Phone (mobile money, optional)">
-          <input name="phone" maxLength={30} placeholder="07XX XXX XXX — add before paying" className={INPUT} defaultValue={profile?.phone ?? ""} />
+        <Field label={onboarding ? "Phone (mobile money) *" : "Phone (mobile money, optional)"}>
+          <input
+            name="phone"
+            maxLength={30}
+            required={onboarding}
+            placeholder="07XX XXX XXX"
+            className={INPUT}
+            defaultValue={profile?.phone ?? ""}
+          />
         </Field>
 
-        <Field label="Institution *" wide>
+        {showPasswordFields ? (
+          <>
+            <Field label="Password *">
+              <input
+                name="password"
+                type="password"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className={INPUT}
+              />
+            </Field>
+            <Field label="Confirm password *">
+              <input
+                name="password2"
+                type="password"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className={INPUT}
+              />
+            </Field>
+          </>
+        ) : null}
+
+        <div className="border-dash-border sm:col-span-2 mt-2 border-t pt-4">
+          <p className="text-dash-foreground text-sm font-semibold">Course & institution</p>
+          <p className="text-dash-muted-foreground mt-1 text-xs">Optional now — you can fill these in later under My account.</p>
+        </div>
+
+        <Field label="Institution" wide>
           <SearchSelect
             value={institutionChoice}
             onChange={setInstitutionChoice}
@@ -144,10 +203,9 @@ export function ProfileForm({
           />
         </Field>
         {institutionChoice === OTHER_OPTION ? (
-          <Field label="Your institution *" wide>
+          <Field label="Your institution" wide>
             <input
               name="institutionOther"
-              required
               maxLength={160}
               placeholder="Full name of your university or college"
               className={INPUT}
@@ -156,7 +214,7 @@ export function ProfileForm({
           </Field>
         ) : null}
 
-        <Field label="Course *" wide>
+        <Field label="Course" wide>
           <SearchSelect
             value={courseChoice}
             onChange={setCourseChoice}
@@ -208,22 +266,24 @@ export function ProfileForm({
         </Field>
 
         <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
-          {!profile ? (
+          {onboarding ? (
             <button
               type="button"
               disabled={pending}
               className={SECONDARY}
               onClick={() => {
+                const form = formRef.current;
+                if (!form) return;
                 setStatus(null);
                 startTransition(async () => {
-                  const res = await portalSkipProfileAction();
+                  const res = await portalSkipProfileAction(essentialsFromForm(new FormData(form)));
                   setStatus(res);
                   if (res.ok) goNext();
                 });
               }}
             >
               {pending ? <Spinner /> : null}
-              Skip for now
+              Skip optional details
             </button>
           ) : null}
           {cancelHref ? (

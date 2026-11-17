@@ -7,6 +7,10 @@
 export const SUBSCRIPTION_YEAR_TSH = 22_000;
 /** Six-month / one-semester plan (slightly more than half year so annual is the better deal). */
 export const SUBSCRIPTION_SEMESTER_TSH = 12_000;
+/** Pay-as-you-go Nexis Desk — billed per calendar month at checkout. */
+export const SUBSCRIPTION_MONTH_TSH = 3_000;
+/** Max consecutive months purchasable in one monthly checkout. */
+export const MAX_MEMBERSHIP_MONTHS = 12;
 
 /** Free hides included with an active paid desk plan. */
 export const PAID_PLAN_FREE_HIDES = 2;

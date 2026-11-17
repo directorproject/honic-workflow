@@ -22,7 +22,12 @@ export default async function ZimamotoPage() {
   if (user && !state.isStaff && !profile) {
     return (
       <main className="bg-dash-canvas text-dash-foreground mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 py-8 sm:px-6">
-        <ProfileForm courses={state.courses} profile={profile} suggestedName={user.suggestedName} />
+        <ProfileForm
+          courses={state.courses}
+          profile={profile}
+          suggestedName={user.suggestedName}
+          needsPasswordSetup={user.needsPasswordSetup}
+        />
       </main>
     );
   }

@@ -57,7 +57,7 @@ export function TitleTermsGate({ step }: { step: "policy" | "rules" }) {
         router.refresh();
         return;
       }
-      router.push("/portal/titles");
+      router.push("/portal/packs");
       router.refresh();
     });
   }
@@ -88,7 +88,7 @@ export function TitleTermsGate({ step }: { step: "policy" | "rules" }) {
         <p className="text-dash-foreground text-base font-semibold sm:text-lg">
           {policy
             ? "Read the four lines, then the full policy below. Accept it to open the title rules."
-            : "Read the four lines, then the full title rules below. Accept them to open the titles."}
+            : "Read the four lines, then the full title rules below. Accept them to continue to plans & access."}
         </p>
         <PointLedger points={points} />
         <FullText key={view} label={policy ? "Full policy" : "Full title rules"} clauses={full} startOpen />
@@ -119,7 +119,7 @@ export function TitleTermsGate({ step }: { step: "policy" | "rules" }) {
                 disabled={!accepted || pending}
                 onClick={acceptAndContinue}
               >
-                {pending ? "Saving…" : policy ? "Continue to the title rules" : "Open the titles"}
+                {pending ? "Saving…" : policy ? "Continue to the title rules" : "Open plans & access"}
               </button>
             </div>
           </>

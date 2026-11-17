@@ -32,7 +32,12 @@ export function planModeLabel(input: {
       detail: "",
     };
   }
-  const plan = input.deskPlan === "semester" ? "Nexis Desk · Semester" : "Nexis Desk · Full year";
+  const plan =
+    input.deskPlan === "semester"
+      ? "Nexis Desk · Semester"
+      : input.deskPlan === "monthly"
+        ? "Nexis Desk · Monthly"
+        : "Nexis Desk · Full year";
   const until = input.deskExpiresAt
     ? new Date(input.deskExpiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
     : "";

@@ -199,7 +199,15 @@ export async function PortalHome({
     );
   }
 
-  const accountPanel = <ProfileForm courses={state.courses} profile={profile} cancelHref="/portal/home" suggestedName={user.suggestedName} />;
+  const accountPanel = (
+    <ProfileForm
+      courses={state.courses}
+      profile={profile}
+      cancelHref="/portal/home"
+      suggestedName={user.suggestedName}
+      needsPasswordSetup={user.needsPasswordSetup}
+    />
+  );
 
   let body: React.ReactNode;
   if (onPayments) {

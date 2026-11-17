@@ -4,6 +4,7 @@ import {
   FREE_TITLE_SLOTS,
   PAID_PLAN_FILE_STORAGE_BYTES,
   PROJECT_DOCUMENTS_ACCESS_TSH,
+  SUBSCRIPTION_MONTH_TSH,
   SUBSCRIPTION_SEMESTER_TSH,
   SUBSCRIPTION_YEAR_TSH,
   formatStorageQuota,
@@ -72,6 +73,13 @@ export function honicShareTsh(priceTsh: number): number {
 export const PRICING_BOARD = {
   membership: [
     {
+      id: "monthly",
+      name: "Monthly",
+      priceTsh: SUBSCRIPTION_MONTH_TSH,
+      period: "1+ months",
+      summary: `Full Nexis Desk billed month by month (${SUBSCRIPTION_MONTH_TSH.toLocaleString("en-TZ")} TSh per month at checkout). Stack up to 12 months in one payment.`,
+    },
+    {
       id: "year",
       name: "Full year",
       priceTsh: SUBSCRIPTION_YEAR_TSH,
@@ -92,7 +100,7 @@ export const PRICING_BOARD = {
     note: `Paid plan: hide ${FREE_TITLE_SLOTS} titles free; each extra hide is ${EXTRA_TITLE_HIDE_FEE_TSH.toLocaleString("en-TZ")} TSh. Free plan: every hide costs ${EXTRA_TITLE_HIDE_FEE_TSH.toLocaleString("en-TZ")} TSh.`,
   },
   jobs: {
-    note: "Browse Jobs listings on any plan. Posting, applying, and messaging need an active Nexis Desk (semester or full year) plan.",
+    note: "Browse Jobs listings on any plan. Posting, applying, and messaging need an active paid Nexis Desk plan.",
   },
   projectDocuments: {
     priceTsh: PROJECT_DOCUMENTS_ACCESS_TSH,

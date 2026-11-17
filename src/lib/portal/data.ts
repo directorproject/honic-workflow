@@ -79,8 +79,12 @@ export function rankTitles(titles: PortalTitle[], profile: StudentProfile, seed:
   return [...top, ...rest];
 }
 
+export function studentNeedsPasswordSetup(user: User): boolean {
+  return !(user.identities ?? []).some((identity) => identity.provider === "email");
+}
+
 export type PortalState = {
-  user: { id: string; email: string; suggestedName: string | null } | null;
+  user: { id: string; email: string; suggestedName: string | null; needsPasswordSetup: boolean } | null;
   isStaff: boolean;
   profile: StudentProfile | null;
   courses: Course[];
@@ -150,7 +154,12 @@ export const loadPortalState = cache(async (): Promise<PortalState> => {
   const titleTerms = titleTermsStatus(user.user_metadata);
   const base = {
     ...empty,
-    user: { id: user.id, email: user.email ?? "", suggestedName },
+    user: {
+      id: user.id,
+      email: user.email ?? "",
+      suggestedName,
+      needsPasswordSetup: studentNeedsPasswordSetup(user),
+    },
     isStaff: isStaffUser(user),
     titleTerms,
   };

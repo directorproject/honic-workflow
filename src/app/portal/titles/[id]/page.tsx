@@ -80,7 +80,12 @@ export default async function PortalTitlePage(props: {
   if (user && !state.isStaff && !profile) {
     return (
       <Gate>
-        <ProfileForm courses={state.courses} profile={profile} suggestedName={user.suggestedName} />
+        <ProfileForm
+          courses={state.courses}
+          profile={profile}
+          suggestedName={user.suggestedName}
+          needsPasswordSetup={user.needsPasswordSetup}
+        />
       </Gate>
     );
   }

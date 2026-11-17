@@ -14,6 +14,8 @@ import {
   PAID_PLAN_FILE_STORAGE_BYTES,
   PAYMENT_NETWORKS,
   PROJECT_DOCUMENTS_ACCESS_TSH,
+  MAX_MEMBERSHIP_MONTHS,
+  SUBSCRIPTION_MONTH_TSH,
   SUBSCRIPTION_SEMESTER_TSH,
   SUBSCRIPTION_YEAR_TSH,
   formatStorageQuota,
@@ -71,7 +73,12 @@ export function DocumentPacksBoard({
             <p className="text-dash-foreground mt-1 text-sm font-semibold break-words">{planLabel}</p>
             {planActive && deskExpiresAt ? (
               <p className="text-dash-muted-foreground mt-1 text-xs tabular-nums">
-                {deskPlan === "semester" ? "Semester" : "Year"} · until{" "}
+                {deskPlan === "semester"
+                  ? "Semester"
+                  : deskPlan === "monthly"
+                    ? "Monthly"
+                    : "Year"}{" "}
+                · until{" "}
                 {new Date(deskExpiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
               </p>
             ) : (
@@ -86,13 +93,18 @@ export function DocumentPacksBoard({
           <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.2em] uppercase">Subscriptions</p>
           <h2 className="text-dash-foreground mt-1 text-2xl font-semibold tracking-tight">Choose how you work</h2>
           <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
-            Compare free access with semester or full-year membership. Paid plans include {FREE_TITLE_SLOTS} free classmate
-            hides, plus Jobs posting and applying.
+            Compare free access with monthly, semester, or full-year membership. Paid plans include {FREE_TITLE_SLOTS}{" "}
+            free classmate hides, plus Jobs posting and applying.
           </p>
         </div>
 
-        <div className="grid items-stretch gap-4 lg:grid-cols-3">
+        <div className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <FreePlanCard active={!planActive} />
+          <MonthlySubscriptionCard
+            signedIn={signedIn}
+            phone={phone}
+            active={planActive && deskPlan === "monthly"}
+          />
           <SubscriptionCard
             planId="semester"
             name="Semester"
@@ -140,7 +152,7 @@ export function DocumentPacksBoard({
           title="Jobs board"
           body={PRICING_BOARD.jobs.note}
           price={null}
-          note="Browse free · post and apply with semester or full-year Nexis Desk."
+          note="Browse free · post and apply with any paid Nexis Desk plan."
           action={
             <Link href="/portal/jobs" className="text-dash-accent text-sm font-semibold">
               Open Jobs →
@@ -312,6 +324,148 @@ function FreePlanCard({ active }: { active: boolean }) {
       >
         Browse literature
       </Link>
+    </article>
+  );
+}
+
+function MonthlySubscriptionCard({
+  signedIn,
+  phone,
+  active,
+}: {
+  signedIn: boolean;
+  phone: string;
+  active?: boolean;
+}) {
+  const router = useRouter();
+  const [months, setMonths] = useState(1);
+  const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const [status, setStatus] = useState<PortalResult | null>(null);
+  const price = SUBSCRIPTION_MONTH_TSH * months;
+
+  function pay(fd: FormData) {
+    setStatus(null);
+    startTransition(async () => {
+      const res = await portalPayForMembershipAction(
+        "monthly",
+        String(fd.get("network") ?? ""),
+        String(fd.get("phone") ?? ""),
+        months,
+      );
+      setStatus(res);
+      if (res.ok) router.refresh();
+    });
+  }
+
+  const monthOptions = Array.from({ length: MAX_MEMBERSHIP_MONTHS }, (_, i) => i + 1);
+
+  return (
+    <article className="relative flex flex-col overflow-hidden rounded-[1.5rem] border border-dash-border bg-dash-card p-5 transition duration-300 hover:-translate-y-0.5 hover:border-dash-foreground/20 sm:p-6">
+      {active ? (
+        <span className="absolute top-4 right-4 rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-800 uppercase dark:text-emerald-200">
+          Active
+        </span>
+      ) : null}
+
+      <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">
+        Pay monthly · stack months
+      </p>
+      <h3 className="text-dash-foreground mt-2 text-xl font-semibold tracking-tight sm:text-2xl">Monthly</h3>
+      <p className="text-dash-foreground mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <span className="text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">{formatTsh(price)}</span>
+        <span className="text-dash-muted-foreground text-xs tabular-nums">
+          {formatTsh(SUBSCRIPTION_MONTH_TSH)} / month × {months}
+        </span>
+      </p>
+
+      <div className="mt-4">
+        <Field label="How many months?">
+          <select
+            className={INPUT}
+            value={months}
+            onChange={(e) => setMonths(Number(e.target.value))}
+            disabled={open && pending}
+          >
+            {monthOptions.map((m) => (
+              <option key={m} value={m}>
+                {m} {m === 1 ? "month" : "months"} · {formatTsh(SUBSCRIPTION_MONTH_TSH * m)}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+
+      {active ? (
+        <p className="mt-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300">Currently active on your account</p>
+      ) : (
+        <p className="text-dash-muted-foreground mt-2 text-xs">Start small · extend anytime</p>
+      )}
+
+      <ul className="text-dash-muted-foreground mt-6 flex-1 space-y-2.5 text-sm leading-relaxed">
+        {[
+          "Same full Nexis Desk tools as longer plans",
+          "Jobs post, apply, and message",
+          `${FREE_TITLE_SLOTS} free title hides included`,
+          `File storage up to ${PAID_STORAGE}`,
+          "Renewals stack on your current expiry",
+        ].map((p) => (
+          <li key={p} className="flex gap-2.5">
+            <CheckIcon className="text-dash-accent mt-0.5 shrink-0" />
+            <span>{p}</span>
+          </li>
+        ))}
+      </ul>
+
+      {!open ? (
+        <button
+          type="button"
+          disabled={!signedIn}
+          onClick={() => {
+            setOpen(true);
+            setStatus(null);
+          }}
+          className={`${PRIMARY} mt-6 w-full disabled:cursor-not-allowed disabled:opacity-50`}
+        >
+          {active ? "Extend securely" : `Subscribe · ${formatTsh(price)}`}
+        </button>
+      ) : (
+        <form
+          className="border-dash-border mt-6 grid gap-3 border-t pt-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            pay(new FormData(e.currentTarget));
+          }}
+        >
+          <p className="text-dash-foreground text-sm font-semibold">
+            Secure checkout · {months} {months === 1 ? "month" : "months"} · {formatTsh(price)}
+          </p>
+          <Field label="Pay with">
+            <select name="network" className={INPUT} defaultValue={PAYMENT_NETWORKS[0]}>
+              {PAYMENT_NETWORKS.map((n) => (
+                <option key={n}>{n}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Mobile number">
+            <input name="phone" type="tel" className={INPUT} defaultValue={phone} required autoComplete="tel" />
+          </Field>
+          <div className="flex flex-wrap gap-2">
+            <button type="submit" disabled={pending} className={`${PRIMARY} flex-1 disabled:opacity-60`}>
+              {pending ? "Sending prompt…" : "Pay now"}
+            </button>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => setOpen(false)}
+              className={`${SECONDARY} shrink-0 disabled:opacity-60`}
+            >
+              Back
+            </button>
+          </div>
+          {status ? <StatusText status={status} /> : null}
+        </form>
+      )}
     </article>
   );
 }

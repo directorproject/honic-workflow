@@ -1,15 +1,47 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { SUBSCRIPTION_SEMESTER_TSH, SUBSCRIPTION_YEAR_TSH } from "@/lib/portal/config";
+import {
+  MAX_MEMBERSHIP_MONTHS,
+  SUBSCRIPTION_MONTH_TSH,
+  SUBSCRIPTION_SEMESTER_TSH,
+  SUBSCRIPTION_YEAR_TSH,
+} from "@/lib/portal/config";
 
-export type DeskPlanId = "year" | "semester";
+export type DeskPlanId = "year" | "semester" | "monthly";
 
-export function deskPlanDays(plan: DeskPlanId): number {
-  return plan === "year" ? 365 : 183;
+export function normalizeMembershipMonths(plan: DeskPlanId, months?: number | string | null): number {
+  if (plan !== "monthly") return 0;
+  const m = Math.round(Number(months));
+  if (!Number.isFinite(m) || m < 1 || m > MAX_MEMBERSHIP_MONTHS) return NaN;
+  return m;
 }
 
-export function deskPlanAmount(plan: DeskPlanId): number {
-  return plan === "year" ? SUBSCRIPTION_YEAR_TSH : SUBSCRIPTION_SEMESTER_TSH;
+/** @deprecated Prefer calendar extension via `computeDeskExpiresAt`. */
+export function deskPlanDays(plan: DeskPlanId, months = 1): number {
+  if (plan === "year") return 365;
+  if (plan === "semester") return 183;
+  return 30 * months;
+}
+
+export function deskPlanAmount(plan: DeskPlanId, months = 1): number {
+  if (plan === "year") return SUBSCRIPTION_YEAR_TSH;
+  if (plan === "semester") return SUBSCRIPTION_SEMESTER_TSH;
+  const m = normalizeMembershipMonths("monthly", months);
+  if (!Number.isFinite(m)) return NaN;
+  return SUBSCRIPTION_MONTH_TSH * m;
+}
+
+export function computeDeskExpiresAt(baseMs: number, plan: DeskPlanId, months = 1): string {
+  const base = new Date(baseMs);
+  if (plan === "year") {
+    base.setDate(base.getDate() + 365);
+  } else if (plan === "semester") {
+    base.setDate(base.getDate() + 183);
+  } else {
+    const m = normalizeMembershipMonths("monthly", months);
+    base.setMonth(base.getMonth() + (Number.isFinite(m) ? m : 1));
+  }
+  return base.toISOString();
 }
 
 /**
@@ -31,10 +63,16 @@ export async function fulfillMembershipPayment(
     providerTxnId?: string | null;
     webhookEventId?: string | null;
   },
+  months?: number | null,
 ): Promise<{ ok: boolean; message?: string; fulfilled?: boolean }> {
   if (payment.status === "paid") return { ok: true, message: "Already paid.", fulfilled: false };
 
-  const expected = deskPlanAmount(plan);
+  const monthCount = plan === "monthly" ? normalizeMembershipMonths(plan, months) : 0;
+  if (plan === "monthly" && !Number.isFinite(monthCount)) {
+    return { ok: false, message: "Invalid monthly plan duration." };
+  }
+
+  const expected = deskPlanAmount(plan, plan === "monthly" ? monthCount : 1);
   if (payment.amount != null && Math.round(payment.amount) !== expected) {
     return { ok: false, message: "Membership amount does not match the plan. Entitlement blocked." };
   }
@@ -69,7 +107,11 @@ export async function fulfillMembershipPayment(
   const now = Date.now();
   const current = profile.desk_expires_at ? new Date(String(profile.desk_expires_at)).getTime() : 0;
   const base = Number.isFinite(current) && current > now ? current : now;
-  const expires = new Date(base + deskPlanDays(plan) * 24 * 60 * 60 * 1000).toISOString();
+  const expires = computeDeskExpiresAt(
+    base,
+    plan,
+    plan === "monthly" ? monthCount : 1,
+  );
 
   const { error: deskErr } = await db
     .from("student_profiles")

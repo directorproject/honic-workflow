@@ -9,8 +9,10 @@ import {
   deskPlanAmount,
   fulfillMembershipPayment,
   fulfillTitleChangePayment,
+  normalizeMembershipMonths,
   type DeskPlanId,
 } from "@/lib/payments/fulfill";
+import { MAX_MEMBERSHIP_MONTHS } from "@/lib/portal/config";
 import {
   defaultPendingExpiresAt,
   expireStalePendingPayments,
@@ -26,6 +28,7 @@ import {
   toSnippePhone,
 } from "@/lib/payments/snippe";
 import {
+  DEFAULT_INSTITUTION,
   OTHER_COURSE_CODE,
   PAYMENT_NETWORKS,
   PAYMENT_PROVIDER,
@@ -34,7 +37,7 @@ import {
   STUDY_LEVELS,
   TITLE_CHANGE_FEE_TSH,
 } from "@/lib/portal/config";
-import { getPortalUser } from "@/lib/portal/data";
+import { getPortalUser, studentNeedsPasswordSetup } from "@/lib/portal/data";
 import { hasProjectDocumentsAccess } from "@/lib/portal/document-access";
 import { chooseTitle, hideTitleFromPeers, loadLiterature } from "@/lib/portal/title-choices";
 import { hasActiveDeskPlan, titleHideEntitlement } from "@/lib/portal/title-limits";
@@ -62,6 +65,8 @@ async function requireStudent() {
 export type ProfileInput = {
   fullName: string;
   phone: string;
+  password?: string;
+  password2?: string;
   institution: string;
   courseCode: string;
   courseOther: string;
@@ -71,19 +76,59 @@ export type ProfileInput = {
   academicYear: string;
 };
 
-export async function portalSkipProfileAction(): Promise<PortalResult> {
+export type ProfileEssentialsInput = {
+  fullName: string;
+  phone: string;
+  password?: string;
+  password2?: string;
+};
+
+async function defaultActiveCourseCode(db: Awaited<ReturnType<typeof requireStudent>>["db"]): Promise<string> {
+  const { data: course } = await db
+    .from("courses")
+    .select("code")
+    .eq("is_active", true)
+    .order("sort_order")
+    .limit(1)
+    .maybeSingle();
+  return course?.code ? String(course.code) : "ETE";
+}
+
+async function validateAndApplyProfileEssentials(
+  user: Awaited<ReturnType<typeof requireStudent>>["user"],
+  input: ProfileEssentialsInput,
+): Promise<PortalResult | { fullName: string; phone: string }> {
+  const fullName = clean(input.fullName, 120);
+  if (!fullName) return { ok: false, message: "Enter your full name." };
+  const phone = clean(input.phone, 30);
+  if (!phone) return { ok: false, message: "Enter your mobile number." };
+  if (!toSnippePhone(phone)) {
+    return { ok: false, message: "Enter a valid Tanzanian mobile number (e.g. 07XX XXX XXX)." };
+  }
+  if (studentNeedsPasswordSetup(user)) {
+    const password = String(input.password ?? "");
+    const password2 = String(input.password2 ?? "");
+    if (password.length < 8) return { ok: false, message: "Choose a password with at least 8 characters." };
+    if (password !== password2) return { ok: false, message: "The two passwords do not match." };
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) return { ok: false, message: error.message };
+  }
+  return { fullName, phone };
+}
+
+/** Save only account essentials; course and institution use defaults until you update them later. */
+export async function portalSkipProfileAction(input: ProfileEssentialsInput): Promise<PortalResult> {
   try {
     const { user, db } = await requireStudent();
-    const meta = (user.user_metadata ?? {}) as { full_name?: string; name?: string };
-    const fullName =
-      clean(meta.full_name, 120) || clean(meta.name, 120) || clean(user.email?.split("@")[0], 120) || "Student";
-    const { data: course } = await db.from("courses").select("code").eq("is_active", true).order("sort_order").limit(1).maybeSingle();
-    const courseCode = course?.code ? String(course.code) : "ETE";
-    const { DEFAULT_INSTITUTION } = await import("@/lib/portal/config");
+    const essentials = await validateAndApplyProfileEssentials(user, input);
+    if ("ok" in essentials) return essentials;
+
+    const courseCode = await defaultActiveCourseCode(db);
     const row = {
       user_id: user.id,
-      full_name: fullName,
-      phone: null,
+      full_name: essentials.fullName,
+      phone: essentials.phone,
       institution: DEFAULT_INSTITUTION,
       course_code: courseCode,
       course_other: null,
@@ -100,6 +145,7 @@ export async function portalSkipProfileAction(): Promise<PortalResult> {
     revalidatePath("/portal");
     revalidatePath("/portal/titles");
     revalidatePath("/portal/home");
+    revalidatePath("/portal/packs");
     return { ok: true };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not continue." };
@@ -109,13 +155,26 @@ export async function portalSkipProfileAction(): Promise<PortalResult> {
 export async function portalSaveProfileAction(input: ProfileInput): Promise<PortalResult> {
   try {
     const { user, db } = await requireStudent();
-    const courseCode = clean(input.courseCode, 12).toUpperCase();
+    const { data: existingProfile } = await db
+      .from("student_profiles")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const isNewProfile = !existingProfile;
+
+    if (isNewProfile) {
+      const essentials = await validateAndApplyProfileEssentials(user, input);
+      if ("ok" in essentials) return essentials;
+    }
+
+    let courseCode = clean(input.courseCode, 12).toUpperCase();
+    if (!courseCode) courseCode = await defaultActiveCourseCode(db);
     const studyLevel = clean(input.studyLevel, 30);
     const phone = clean(input.phone, 30);
     const row = {
       full_name: clean(input.fullName, 120),
-      phone: phone || null,
-      institution: clean(input.institution, 160),
+      phone: isNewProfile ? phone : phone || null,
+      institution: clean(input.institution, 160) || DEFAULT_INSTITUTION,
       course_code: courseCode,
       course_other: courseCode === OTHER_COURSE_CODE ? clean(input.courseOther, 120) || null : null,
       study_level: studyLevel || null,
@@ -125,8 +184,10 @@ export async function portalSaveProfileAction(input: ProfileInput): Promise<Port
       academic_year: clean(input.academicYear, 20) || "2026/2027",
       partner: null,
     };
-    if (!row.full_name || !row.institution) {
-      return { ok: false, message: "Enter your name and institution." };
+    if (!row.full_name) return { ok: false, message: "Enter your full name." };
+    if (isNewProfile && !row.phone) return { ok: false, message: "Enter your mobile number." };
+    if (isNewProfile && row.phone && !toSnippePhone(row.phone)) {
+      return { ok: false, message: "Enter a valid Tanzanian mobile number (e.g. 07XX XXX XXX)." };
     }
     if (courseCode === OTHER_COURSE_CODE && !row.course_other) {
       return { ok: false, message: "Type the name of your course." };
@@ -191,7 +252,8 @@ export async function portalAcceptTitleTermsAction(step: "policy" | "rules"): Pr
     const supabase = await createSupabaseServerClient();
     await supabase.auth.updateUser({ data: merged });
     revalidatePath("/portal/titles");
-    return { ok: true, message: step === "rules" ? "titles_open" : undefined };
+    if (step === "rules") revalidatePath("/portal/packs");
+    return { ok: true, message: step === "rules" ? "plans_next" : undefined };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not save your acceptance." };
   }
@@ -724,15 +786,27 @@ export async function portalPayForHideAction(network: string, phone: string, tit
   }
 }
 
-/** Buy or renew Nexis Desk membership (year / semester) via Snippe. */
+/** Buy or renew Nexis Desk membership (monthly / semester / year) via Snippe. */
 export async function portalPayForMembershipAction(
   plan: string,
   network: string,
   phone: string,
+  months?: number,
 ): Promise<PortalResult> {
   try {
-    const planId = (plan === "semester" ? "semester" : plan === "year" ? "year" : null) as DeskPlanId | null;
-    if (!planId) return { ok: false, message: "Choose the full year or one semester plan." };
+    let planId: DeskPlanId | null =
+      plan === "semester" ? "semester" : plan === "year" ? "year" : plan === "monthly" ? "monthly" : null;
+    if (!planId) {
+      return { ok: false, message: "Choose monthly, semester, or full year membership." };
+    }
+    const monthCount =
+      planId === "monthly" ? normalizeMembershipMonths("monthly", months ?? 1) : 0;
+    if (planId === "monthly" && !Number.isFinite(monthCount)) {
+      return {
+        ok: false,
+        message: `Choose between 1 and ${MAX_MEMBERSHIP_MONTHS} months for the monthly plan.`,
+      };
+    }
 
     const { user, db } = await requireStudent();
     const contact = parsePayContact(network, phone);
@@ -748,8 +822,10 @@ export async function portalPayForMembershipAction(
       .maybeSingle();
     if (!profile) return { ok: false, message: PAY_ERRORS.no_profile };
 
-    const amount = deskPlanAmount(planId);
-    const reference = makeIdempotencyKey(planId === "year" ? "MEMY" : "MEMS");
+    const amount = deskPlanAmount(planId, planId === "monthly" ? monthCount : 1);
+    const reference = makeIdempotencyKey(
+      planId === "year" ? "MEMY" : planId === "semester" ? "MEMS" : "MEMM",
+    );
     const live = useSnippe();
 
     if (!live && PAYMENT_PROVIDER === "snippe") {
@@ -814,7 +890,10 @@ export async function portalPayForMembershipAction(
           orderId: reference,
           webhookUrl: publicWebhookUrl(),
           idempotencyKey: reference,
-          metadata: { purpose: "membership", plan: planId },
+          metadata:
+            planId === "monthly"
+              ? { purpose: "membership", plan: planId, months: String(monthCount) }
+              : { purpose: "membership", plan: planId },
         });
         const expiresAt = resolvePendingExpiresAt(payment.expiresAt);
         await db
@@ -843,15 +922,23 @@ export async function portalPayForMembershipAction(
         amount,
       },
       planId,
+      undefined,
+      planId === "monthly" ? monthCount : null,
     );
     if (!fulfilled.ok) return { ok: false, message: toUserError(fulfilled.message, paymentUnavailableMessage()) };
 
     revalidatePath("/portal");
     revalidatePath("/portal/packs");
     revalidatePath("/portal/titles");
+    const planLabel =
+      planId === "monthly"
+        ? `${monthCount}-month monthly`
+        : planId === "semester"
+          ? "semester"
+          : "full year";
     return {
       ok: true,
-      message: `Simulated membership payment received (ref ${reference}). Your ${planId} plan is active.`,
+      message: `Simulated membership payment received (ref ${reference}). Your ${planLabel} plan is active.`,
     };
   } catch (err) {
     return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };

@@ -2,9 +2,10 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import {
-  fulfillInvoicePayment,
   fulfillMembershipPayment,
+  fulfillInvoicePayment,
   fulfillTitleChangePayment,
+  normalizeMembershipMonths,
   type DeskPlanId,
 } from "@/lib/payments/fulfill";
 import {
@@ -12,7 +13,12 @@ import {
   fetchSnippePayment,
   verifySnippeWebhook,
 } from "@/lib/payments/snippe";
-import { SUBSCRIPTION_SEMESTER_TSH, SUBSCRIPTION_YEAR_TSH } from "@/lib/portal/config";
+import {
+  MAX_MEMBERSHIP_MONTHS,
+  SUBSCRIPTION_MONTH_TSH,
+  SUBSCRIPTION_SEMESTER_TSH,
+  SUBSCRIPTION_YEAR_TSH,
+} from "@/lib/portal/config";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -26,14 +32,14 @@ type SnippeEvent = {
     reference?: string;
     status?: string;
     amount?: { value?: number; currency?: string };
-    metadata?: { order_id?: string; purpose?: string; plan?: string };
+    metadata?: { order_id?: string; purpose?: string; plan?: string; months?: number | string };
     channel?: { provider?: string; type?: string };
     customer?: { phone?: string };
   };
   reference?: string;
   status?: string;
   amount?: { value?: number; currency?: string };
-  metadata?: { order_id?: string; purpose?: string; plan?: string };
+  metadata?: { order_id?: string; purpose?: string; plan?: string; months?: number | string };
 };
 
 function json(status: number, body: Record<string, unknown>) {
@@ -188,13 +194,31 @@ export async function POST(request: Request) {
 
     const purpose = String(body.data?.metadata?.purpose ?? body.metadata?.purpose ?? "").toLowerCase();
     const planRaw = String(body.data?.metadata?.plan ?? body.metadata?.plan ?? "").toLowerCase();
+    const monthsRaw = body.data?.metadata?.months ?? body.metadata?.months ?? null;
     const isMembership =
       purpose === "membership" || String(titlePay.reference).toUpperCase().startsWith("MEM");
-    let plan: DeskPlanId = planRaw === "semester" ? "semester" : "year";
+    let plan: DeskPlanId =
+      planRaw === "semester" ? "semester" : planRaw === "monthly" ? "monthly" : "year";
+    let membershipMonths: number | null = null;
+    if (plan === "monthly") {
+      membershipMonths = normalizeMembershipMonths("monthly", monthsRaw);
+      if (!Number.isFinite(membershipMonths)) {
+        await markOutcome(db, eventId, "invalid_monthly_plan");
+        return json(409, { ok: false, message: "Invalid monthly membership duration in metadata." });
+      }
+    }
     if (isMembership && !planRaw) {
       const amt = Math.round(Number(titlePay.amount));
       if (amt === SUBSCRIPTION_SEMESTER_TSH) plan = "semester";
       else if (amt === SUBSCRIPTION_YEAR_TSH) plan = "year";
+      else if (
+        amt >= SUBSCRIPTION_MONTH_TSH &&
+        amt % SUBSCRIPTION_MONTH_TSH === 0 &&
+        amt <= SUBSCRIPTION_MONTH_TSH * MAX_MEMBERSHIP_MONTHS
+      ) {
+        plan = "monthly";
+        membershipMonths = amt / SUBSCRIPTION_MONTH_TSH;
+      }
     }
 
     const result = isMembership
@@ -213,6 +237,7 @@ export async function POST(request: Request) {
             providerTxnId: snippeRef || null,
             webhookEventId: eventId,
           },
+          membershipMonths,
         )
       : await fulfillTitleChangePayment(
           db,
