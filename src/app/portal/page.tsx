@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
 import { AuthPageShell } from "@/components/portal/auth-page-shell";
-import { PortalAuthFeaturesHeader } from "@/components/portal/portal-auth-features";
 import { PortalAuth } from "@/components/portal/portal-auth";
 import { loadPortalState } from "@/lib/portal/data";
 import { safePortalNextPath } from "@/lib/portal/safe-next";
@@ -105,7 +104,6 @@ export default async function PortalAuthPage(props: {
 
   return (
     <AuthPageShell>
-      <PortalAuthFeaturesHeader />
       <PortalAuth
         key={`${authMode}-${initialRole}-${sp.notice ?? ""}-${sp.auth_error ?? ""}-${sp.next ?? ""}`}
         initialStatus={initial}

@@ -40,11 +40,20 @@ function GoogleIcon() {
   );
 }
 
-function GoogleButton({ role }: { role: PortalAuthRole }) {
+function GoogleSignIn({ role, nextPath }: { role: PortalAuthRole; nextPath: string | null }) {
   const [msg, setMsg] = useState<PortalResult | null>(null);
   const [pending, setPending] = useState(false);
   return (
-    <>
+    <div className="mt-5 space-y-2 border-t border-dash-border pt-5">
+      <div className="text-dash-muted-foreground flex items-center gap-3 text-xs">
+        <span className="bg-dash-border h-px flex-1" />
+        or continue with Google
+        <span className="bg-dash-border h-px flex-1" />
+      </div>
+      <p className="text-dash-muted-foreground text-[11px] leading-relaxed">
+        Google may list our auth host (<span className="font-mono text-[10px]">…supabase.co</span>) instead of &ldquo;Honic Nexis&rdquo; — that is normal for Supabase sign-in. You are opening{" "}
+        <strong className="text-dash-foreground">Honic Nexis</strong> on share.honiccompany.com.
+      </p>
       <button
         type="button"
         disabled={pending}
@@ -53,9 +62,17 @@ function GoogleButton({ role }: { role: PortalAuthRole }) {
         onClick={() => {
           setMsg(null);
           setPending(true);
-          void portalGoogleSignInAction(role)
+          void portalGoogleSignInAction(role, nextPath)
             .then((res) => {
-              if (!res.ok) setMsg(res);
+              if (!res.ok) {
+                setMsg(res);
+                return;
+              }
+              if (res.ok && res.url) {
+                window.location.assign(res.url);
+                return;
+              }
+              setMsg({ ok: false, message: "Google sign-in did not return a link. Try email instead." });
             })
             .catch(() => {
               setMsg({ ok: false, message: "Google sign-in failed. Try email instead." });
@@ -64,15 +81,10 @@ function GoogleButton({ role }: { role: PortalAuthRole }) {
         }}
       >
         {pending ? <Spinner /> : <GoogleIcon />}
-        {pending ? "Connecting…" : "Proceed with Google"}
+        {pending ? "Connecting…" : "Continue with Google"}
       </button>
       {msg && !msg.ok ? <p className="text-sm font-medium text-rose-600 dark:text-rose-300">{msg.message}</p> : null}
-      <div className="text-dash-muted-foreground my-4 flex items-center gap-3 text-xs">
-        <span className="bg-dash-border h-px flex-1" />
-        or with email
-        <span className="bg-dash-border h-px flex-1" />
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -162,8 +174,6 @@ export function PortalAuth({
         {mode === "forgot" ? (
           <p className="text-dash-muted-foreground mb-5 text-sm">We email a secure link to set a new password.</p>
         ) : null}
-
-        {googleEnabled && mode !== "forgot" ? <GoogleButton role={role} /> : null}
 
         {safeNext ? (
           <p className="text-dash-muted-foreground mb-4 rounded-md border border-dash-border bg-dash-muted/30 px-3 py-2 text-xs leading-relaxed">
@@ -285,6 +295,8 @@ export function PortalAuth({
             </div>
           )}
         </form>
+
+        {googleEnabled && mode !== "forgot" ? <GoogleSignIn role={role} nextPath={safeNext} /> : null}
 
         {!lockRole && mode !== "forgot" ? (
           <p className="text-dash-muted-foreground mt-5 text-xs leading-relaxed">

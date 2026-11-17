@@ -9,7 +9,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { safePortalNextPath } from "@/lib/portal/safe-next";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
-export type PortalResult = { ok: true; message?: string } | { ok: false; message: string };
+export type PortalResult =
+  | { ok: true; message?: string; url?: string }
+  | { ok: false; message: string };
 export type PortalAuthFormState = PortalResult | null;
 export type PortalAuthRole = "student" | "supervisor";
 
@@ -203,9 +205,13 @@ export async function portalAuthFormAction(
   return { ok: false, message: "Unknown sign-in mode." };
 }
 
-export async function portalGoogleSignInAction(role: PortalAuthRole = "student"): Promise<PortalResult> {
+export async function portalGoogleSignInAction(
+  role: PortalAuthRole = "student",
+  afterNext: string | null = null,
+): Promise<PortalResult> {
   const preferred = role === "supervisor" ? "supervisor" : "student";
-  const next = preferred === "supervisor" ? "/supervisor" : "/portal/packs";
+  const defaultNext = preferred === "supervisor" ? "/supervisor" : "/portal/home";
+  const next = safePortalNextPath(afterNext) ?? defaultNext;
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -218,7 +224,7 @@ export async function portalGoogleSignInAction(role: PortalAuthRole = "student")
   if (error || !data.url) {
     return { ok: false, message: error?.message ?? "Google sign-in is not available right now." };
   }
-  redirect(data.url);
+  return { ok: true, url: data.url };
 }
 
 export async function portalSignOutAction(): Promise<void> {

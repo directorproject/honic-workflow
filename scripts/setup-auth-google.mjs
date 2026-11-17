@@ -90,6 +90,7 @@ async function main() {
   await api("/config/auth", {
     method: "PATCH",
     body: JSON.stringify({
+      site_url: share,
       external_google_enabled: true,
       external_google_client_id: clientId,
       external_google_secret: clientSecret,
