@@ -54,7 +54,10 @@ export function TitleTermsGate({ step }: { step: "policy" | "rules" }) {
       if (savingPolicy) {
         setPolicySaved(true);
         setView("rules");
+        router.refresh();
+        return;
       }
+      router.push("/portal/titles");
       router.refresh();
     });
   }

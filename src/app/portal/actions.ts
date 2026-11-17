@@ -41,6 +41,7 @@ import { chooseTitle, hideTitleFromPeers, loadLiterature } from "@/lib/portal/ti
 import { hasActiveDeskPlan, titleHideEntitlement } from "@/lib/portal/title-limits";
 import { POLICY_VERSION, TITLE_RULES_VERSION, titleTermsStatus } from "@/lib/portal/title-terms";
 import { paymentUnavailableMessage, toUserError } from "@/lib/portal/user-errors";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
 import type { PortalResult } from "@/app/portal/auth-actions";
@@ -152,12 +153,15 @@ export async function portalAcceptTitleTermsAction(step: "policy" | "rules"): Pr
       step === "policy"
         ? { portal_policy_version: POLICY_VERSION, portal_policy_accepted_at: now }
         : { title_rules_version: TITLE_RULES_VERSION, title_rules_accepted_at: now };
+    const merged = { ...existing, ...patch };
     const { error: updateError } = await db.auth.admin.updateUserById(user.id, {
-      user_metadata: { ...existing, ...patch },
+      user_metadata: merged,
     });
     if (updateError) return { ok: false, message: updateError.message };
+    const supabase = await createSupabaseServerClient();
+    await supabase.auth.updateUser({ data: merged });
     revalidatePath("/portal/titles");
-    return { ok: true };
+    return { ok: true, message: step === "rules" ? "titles_open" : undefined };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not save your acceptance." };
   }

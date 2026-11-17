@@ -83,7 +83,7 @@ export default async function PortalAuthPage(props: {
     const qs = q.toString();
     if (qs) redirect(`/portal/home?${qs}`);
     const paid = hasActiveDeskPlan(state.profile?.deskExpiresAt);
-    redirect(paid ? "/portal/home" : "/portal/packs");
+    redirect(paid ? "/portal/home" : "/portal/titles");
   }
 
   const notices: Record<string, { ok: boolean; message: string }> = {
