@@ -69,7 +69,7 @@ export function CohortTitleBoard(props: {
 }) {
   return (
     <TitlesFrame {...props} catalogueTools>
-      <TitleCatalogue />
+      <TitlesMainPanel />
     </TitlesFrame>
   );
 }
@@ -296,14 +296,20 @@ function TitlesFrameBody({
     </div>
   ) : null;
 
+  const policyOpen = onListPage && searchParams.get("view") === "policy";
   const catalogueExtras = catalogueTools ? (
-    <div className="border-white/10 space-y-5 border-t pt-5">
-      <details className="px-3">
-        <summary className="cursor-pointer text-sm text-white/80">Policy and rules</summary>
-        <div className="bg-dash-card text-dash-foreground mt-3 rounded-xl p-3">
-          <TitleRules />
-        </div>
-      </details>
+    <div className="border-white/10 border-t pt-5">
+      <Link
+        href="/portal/titles?view=policy"
+        prefetch
+        aria-current={policyOpen ? "page" : undefined}
+        onClick={() => setDrawer(false)}
+        className={`mx-3 block rounded-lg px-3 py-2 text-sm font-medium ${
+          policyOpen ? "bg-white/15 text-white" : "text-white/75 hover:bg-white/10 hover:text-white"
+        }`}
+      >
+        Policy and rules
+      </Link>
     </div>
   ) : null;
 
@@ -473,6 +479,30 @@ function TitlesFrameBody({
       </div>
     </div>
     </FrameContext.Provider>
+  );
+}
+
+function TitlesMainPanel() {
+  const searchParams = useSearchParams();
+  if (searchParams.get("view") === "policy") {
+    return <TitlePolicyPanel />;
+  }
+  return <TitleCatalogue />;
+}
+
+function TitlePolicyPanel() {
+  return (
+    <div className="mx-3 mb-10 sm:mx-8">
+      <div className="border-dash-border bg-dash-card rounded-lg border p-4 sm:p-8">
+        <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
+          <h2 className="text-dash-foreground text-xl font-semibold tracking-tight">Policy and rules</h2>
+          <Link href="/portal/titles" className="text-dash-accent text-sm font-semibold">
+            ← Back to titles
+          </Link>
+        </div>
+        <TitleRules />
+      </div>
+    </div>
   );
 }
 
