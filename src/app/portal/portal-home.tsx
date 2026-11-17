@@ -20,7 +20,9 @@ import { createProjectShareLink } from "@/lib/project-share";
 import { loadProjectDetail } from "@/lib/projects-data";
 import { shareLinkPathClientSlug } from "@/lib/share-link-origin";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
+import { createWorkspaceAction } from "@/app/portal/workspace-actions";
 import { findMembership } from "@/lib/workspace/access";
+import { defaultEndDate, todayIso } from "@/lib/workspace/dates";
 import { loadWorkspaceBundle } from "@/lib/workspace/load";
 
 const PROJECT_NOTICES: Record<string, string> = {
@@ -70,7 +72,7 @@ export async function PortalHome({
   if (!user || !profile) return null;
 
   const db = getSupabaseAdminClient();
-  const membership = db ? await findMembership(db, user.id) : null;
+  let membership = db ? await findMembership(db, user.id) : null;
   const linked = Boolean(profile.trackedProjectId);
   const hasProgress = linked;
   const paid = hasActiveDeskPlan(profile.deskExpiresAt);
@@ -83,6 +85,29 @@ export async function PortalHome({
   const onHome = tab === "home" || !tab;
   const onDeskTool = DESK_EXPLORE_TABS.has(tab);
   const freeExplore = !paid && (onHome || onDeskTool);
+
+  /** Paid plan includes the full desk — open tools immediately without a manual “start workspace” step. */
+  if (paid && db && !membership && !onAccount && (onHome || onDeskTool || onProjects || onPayments || onProgress)) {
+    const { data: pickedTitle } = await db
+      .from("title_proposals")
+      .select("title")
+      .eq("selected_by", user.id)
+      .maybeSingle();
+    const firstName = profile.fullName.trim().split(/\s+/)[0] || "My";
+    const projectName = String(pickedTitle?.title ?? "").trim() || `${firstName} project`;
+    const start = todayIso();
+    const created = await createWorkspaceAction({
+      name: projectName,
+      category: profile.projectCategory ?? "fyp",
+      startDate: start,
+      endDate: defaultEndDate(start),
+      defenceDate: "",
+      withPlan: true,
+    });
+    if (created.ok) {
+      membership = await findMembership(db, user.id);
+    }
+  }
 
   // Skip the heavy workspace bundle on free explore screens and account-only views.
   const needsBundle = Boolean(membership && db && !freeExplore && !onAccount && (onHome || onDeskTool || onProjects || onPayments || onProgress));

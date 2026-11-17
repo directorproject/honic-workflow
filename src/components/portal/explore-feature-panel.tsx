@@ -93,7 +93,8 @@ export function ExploreFeaturePanel({
   };
 
   const blockedByPlan = !needsSignIn && feature.needsPlan && !hasPaidPlan;
-  const blockedByWorkspace = !needsSignIn && Boolean(feature.needsWorkspace && hasPaidPlan && !hasWorkspace);
+  /** Paid Nexis Desk opens real workspace tools; do not show the extra “start workspace” wall. */
+  const blockedByWorkspace = !needsSignIn && Boolean(feature.needsWorkspace && !hasPaidPlan && !hasWorkspace);
 
   return (
     <div className="border-dash-border bg-dash-card overflow-hidden rounded-2xl border">
