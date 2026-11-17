@@ -44,6 +44,19 @@ function missingZimamoto(message: string): boolean {
   return /zimamoto_|does not exist|schema cache/i.test(message);
 }
 
+function titleFromFileName(fileName: string): string {
+  const base = fileName.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim();
+  return (base || fileName).slice(0, 200);
+}
+
+function resolveZimamotoPostTitle(rawTitle: string, body: string, paperFileName: string | null | undefined): string {
+  const explicit = rawTitle.trim();
+  if (explicit) return explicit.slice(0, 200);
+  if (paperFileName) return titleFromFileName(paperFileName);
+  if (body.trim()) return body.trim().slice(0, 80);
+  return "Shared post";
+}
+
 async function profileNames(db: SupabaseClient, userIds: string[]): Promise<Map<string, string>> {
   if (!userIds.length) return new Map();
   const unique = [...new Set(userIds)];
@@ -299,9 +312,12 @@ export async function createZimamotoPost(
     if (!member) return { ok: false, message: "Join this group before posting." };
   }
 
-  const title = input.title.trim().slice(0, 200);
   const body = input.body.trim().slice(0, 8000);
-  if (title.length < 4) return { ok: false, message: "Add a clearer title for this paper or post." };
+  const hasPaper = Boolean(input.paper?.storagePath);
+  if (!hasPaper && !body && !input.title.trim()) {
+    return { ok: false, message: "Attach a file or add a short note." };
+  }
+  const title = resolveZimamotoPostTitle(input.title, body, input.paper?.fileName);
 
   const { error } = await db.from("zimamoto_posts").insert({
     public_id: newPublicId(),
@@ -334,8 +350,7 @@ export async function saveZimamotoDoc(
   const member = await isGroupMember(db, input.groupId, input.userId);
   if (!member) return { ok: false, message: "You must be in the group to save documents." };
 
-  const title = input.title.trim().slice(0, 200);
-  if (title.length < 2) return { ok: false, message: "Name this document so your group can find it later." };
+  const title = input.title.trim() ? input.title.trim().slice(0, 200) : titleFromFileName(input.fileName);
   if (!input.storagePath.startsWith(`zimamoto/${input.groupId}/`)) {
     return { ok: false, message: "Invalid upload path." };
   }

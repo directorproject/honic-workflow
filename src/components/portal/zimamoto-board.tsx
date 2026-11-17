@@ -54,8 +54,8 @@ export function ZimamotoBoard({
         <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.2em] uppercase">Honic Nexis</p>
         <h1 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Zimamoto</h1>
         <p className="text-dash-muted-foreground mt-3 max-w-2xl text-sm leading-relaxed sm:text-base">
-          A study forum: share papers on the public board, create groups with classmates, and keep a private document library
-          your group can open anytime.
+          A study forum for every signed-in student — free plan included. Share papers on the public board, create groups with
+          classmates, and keep a private document library your group can open anytime.
         </p>
       </header>
 
@@ -241,6 +241,10 @@ function SharePostForm({ groupId, groupLabel }: { groupId: string | null; groupL
   const [pending, start] = useTransition();
 
   function submit() {
+    if (!file && !title.trim() && !body.trim()) {
+      setStatus({ ok: false, message: "Attach a file or add a short note." });
+      return;
+    }
     start(async () => {
       setStatus(null);
       let paperPath: string | null = null;
@@ -281,15 +285,15 @@ function SharePostForm({ groupId, groupLabel }: { groupId: string | null; groupL
   }
 
   return (
-    <Card title={`Share in ${groupLabel}`} subtitle="Post notes and optionally attach a PDF or document.">
+    <Card title={`Share in ${groupLabel}`} subtitle="Attach a file only, or add title and notes if you want.">
       <div className="space-y-4">
-        <Field label="Title">
-          <input className={INPUT} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Paper or topic title" />
+        <Field label="Title (optional)">
+          <input className={INPUT} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Uses file name when left blank" />
         </Field>
-        <Field label="Notes" wide>
+        <Field label="Notes (optional)" wide>
           <textarea className={`${INPUT} min-h-[88px]`} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Summary, chapter, or context" />
         </Field>
-        <Field label="Attach paper (optional)" wide>
+        <Field label="Attach paper" wide>
           <input type="file" className="text-sm" onChange={(e) => setFile(e.target.files?.[0] ?? null)} accept=".pdf,.doc,.docx,.ppt,.pptx,image/*" />
         </Field>
         <StatusText status={status} />
@@ -348,10 +352,10 @@ function SaveDocForm({ groupId }: { groupId: string }) {
   return (
     <Card title="Save to group library" subtitle="Private to group members — available anytime.">
       <div className="space-y-4">
-        <Field label="Document name">
-          <input className={INPUT} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Draft Chapter 2" />
+        <Field label="Document name (optional)">
+          <input className={INPUT} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Defaults to file name" />
         </Field>
-        <Field label="Notes" wide>
+        <Field label="Notes (optional)" wide>
           <input className={INPUT} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional" />
         </Field>
         <Field label="File" wide>
