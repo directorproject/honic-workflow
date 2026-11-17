@@ -136,8 +136,8 @@ export function PortalAuth({
   const safeNext = safePortalNextPath(nextPath);
 
   return (
-    <div className="border-dash-border bg-dash-card/95 grid overflow-hidden rounded-md border shadow-[0_24px_60px_-28px_rgba(15,23,42,0.45)] backdrop-blur-md lg:grid-cols-2">
-      <div className="relative min-h-[14rem] lg:min-h-full">
+    <div className="border-dash-border bg-dash-card/95 mx-auto grid w-full max-w-lg overflow-hidden rounded-md border shadow-[0_24px_60px_-28px_rgba(15,23,42,0.45)] backdrop-blur-md lg:max-w-none lg:grid-cols-2">
+      <div className="relative order-2 min-h-[12rem] lg:order-none lg:min-h-full">
         <Image
           src={PORTAL_AUTH_HERO_IMAGE}
           alt="Students and supervisors collaborating on a project"
@@ -154,7 +154,7 @@ export function PortalAuth({
         </div>
       </div>
 
-      <div className="flex flex-col justify-center p-5 sm:p-8">
+      <div className="order-1 flex flex-col justify-center p-5 sm:p-8 lg:order-none">
         {projectHint ? (
           <p className="border-dash-border bg-dash-muted/40 text-dash-muted-foreground mb-4 rounded-md border px-3 py-2 text-xs leading-relaxed">
             Shared by a student for <strong className="text-dash-foreground">{projectHint}</strong>. Sign in or create an

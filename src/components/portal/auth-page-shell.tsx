@@ -6,7 +6,7 @@ import { SiteFooter } from "@/components/portal/site-footer";
 /** Shared /portal and /supervisor auth chrome — respects light and dark theme. */
 export function AuthPageShell({ children }: { children: ReactNode }) {
   return (
-    <main className="bg-dash-canvas text-dash-foreground relative flex min-h-screen flex-col overflow-hidden">
+    <main className="bg-dash-canvas text-dash-foreground relative flex min-h-screen flex-col overflow-x-hidden overflow-y-auto">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(1200px_600px_at_10%_-10%,color-mix(in_oklab,var(--dash-accent)_22%,transparent),transparent_55%),radial-gradient(900px_500px_at_90%_10%,color-mix(in_oklab,var(--dash-foreground)_8%,transparent),transparent_50%)] dark:bg-[radial-gradient(1200px_600px_at_10%_-10%,color-mix(in_oklab,var(--dash-accent)_18%,transparent),transparent_55%),radial-gradient(900px_500px_at_90%_12%,color-mix(in_oklab,var(--dash-accent)_10%,transparent),transparent_50%)]"

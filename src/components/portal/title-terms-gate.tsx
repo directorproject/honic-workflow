@@ -63,7 +63,7 @@ export function TitleTermsGate({ step }: { step: "policy" | "rules" }) {
   }
 
   return (
-    <section className="border-dash-foreground grid border sm:grid-cols-[10.5rem_minmax(0,1fr)]">
+    <section className="border-dash-foreground grid border md:grid-cols-[10.5rem_minmax(0,1fr)]">
       <aside className="bg-dash-sidebar text-white px-4 py-5 sm:px-5 sm:py-6">
         <p className="text-dash-sidebar-muted font-mono text-xs tracking-[0.18em]">{policy ? "01 / 02" : "02 / 02"}</p>
         <h1 className="mt-4 text-2xl leading-none font-semibold sm:mt-8 sm:text-3xl">{policy ? "Policy" : "Rules"}</h1>
@@ -158,7 +158,7 @@ function PointLedger({ points }: { points: ShortPoint[] }) {
   return (
     <ol className="border-dash-foreground mt-5 border-t">
       {points.map((point, index) => (
-        <li key={point.headline} className="border-dash-foreground/15 grid grid-cols-[2.75rem_1fr] gap-x-4 border-b py-4 sm:grid-cols-[3rem_11rem_1fr] sm:items-baseline">
+        <li key={point.headline} className="border-dash-foreground/15 grid grid-cols-[2.75rem_1fr] gap-x-4 border-b py-4 md:grid-cols-[3rem_11rem_1fr] md:items-baseline">
           <span className="text-dash-accent font-mono text-sm">{String(index + 1).padStart(2, "0")}</span>
           <p className="text-dash-foreground font-semibold">{point.headline}</p>
           <p className="text-dash-muted-foreground col-start-2 text-sm leading-relaxed sm:col-start-3">{point.line}</p>
