@@ -44,16 +44,7 @@ function GoogleSignIn({ role, nextPath }: { role: PortalAuthRole; nextPath: stri
   const [msg, setMsg] = useState<PortalResult | null>(null);
   const [pending, setPending] = useState(false);
   return (
-    <div className="mt-5 space-y-2 border-t border-dash-border pt-5">
-      <div className="text-dash-muted-foreground flex items-center gap-3 text-xs">
-        <span className="bg-dash-border h-px flex-1" />
-        or continue with Google
-        <span className="bg-dash-border h-px flex-1" />
-      </div>
-      <p className="text-dash-muted-foreground text-[11px] leading-relaxed">
-        Google may list our auth host (<span className="font-mono text-[10px]">…supabase.co</span>) instead of &ldquo;Honic Nexis&rdquo; — that is normal for Supabase sign-in. You are opening{" "}
-        <strong className="text-dash-foreground">Honic Nexis</strong> on share.honiccompany.com.
-      </p>
+    <div className="space-y-3">
       <button
         type="button"
         disabled={pending}
@@ -84,6 +75,11 @@ function GoogleSignIn({ role, nextPath }: { role: PortalAuthRole; nextPath: stri
         {pending ? "Connecting…" : "Continue with Google"}
       </button>
       {msg && !msg.ok ? <p className="text-sm font-medium text-rose-600 dark:text-rose-300">{msg.message}</p> : null}
+      <div className="text-dash-muted-foreground flex items-center gap-3 text-xs">
+        <span className="bg-dash-border h-px flex-1" />
+        or use email
+        <span className="bg-dash-border h-px flex-1" />
+      </div>
     </div>
   );
 }
@@ -175,10 +171,10 @@ export function PortalAuth({
           <p className="text-dash-muted-foreground mb-5 text-sm">We email a secure link to set a new password.</p>
         ) : null}
 
-        {safeNext ? (
-          <p className="text-dash-muted-foreground mb-4 rounded-md border border-dash-border bg-dash-muted/30 px-3 py-2 text-xs leading-relaxed">
-            Sign in to open <span className="text-dash-foreground font-semibold">{safeNext.replace(/^\//, "")}</span>
-          </p>
+        {googleEnabled && mode !== "forgot" ? (
+          <div className="mb-5">
+            <GoogleSignIn role={role} nextPath={safeNext} />
+          </div>
         ) : null}
 
         <form action={formAction} className="space-y-3.5" autoComplete="on" aria-busy={pending}>
@@ -295,8 +291,6 @@ export function PortalAuth({
             </div>
           )}
         </form>
-
-        {googleEnabled && mode !== "forgot" ? <GoogleSignIn role={role} nextPath={safeNext} /> : null}
 
         {!lockRole && mode !== "forgot" ? (
           <p className="text-dash-muted-foreground mt-5 text-xs leading-relaxed">
