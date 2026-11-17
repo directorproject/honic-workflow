@@ -23,6 +23,10 @@ export function RegisteredUsersTable({ rows }: { rows: RegisteredUserRow[] }) {
   );
 
   const needle = query.trim().toLowerCase();
+  function formatTsh(n: number): string {
+    return n > 0 ? `TSh ${n.toLocaleString("en-US")}` : "—";
+  }
+
   const list = rows.filter((row) => {
     const haystack = `${row.name ?? ""} ${row.email} ${row.phone ?? ""}`.toLowerCase();
     if (needle && !haystack.includes(needle)) return false;
@@ -71,15 +75,19 @@ export function RegisteredUsersTable({ rows }: { rows: RegisteredUserRow[] }) {
       ) : (
         <div className="border-dash-border bg-dash-card overflow-hidden rounded-2xl border shadow-sm">
           <div className="overflow-x-auto">
-            <table className="min-w-[980px] w-full text-sm">
+            <table className="min-w-[1400px] w-full text-sm">
               <thead className="bg-dash-muted/80 text-dash-muted-foreground text-left text-xs font-semibold tracking-wide uppercase">
                 <tr>
                   <th className="px-4 py-3">User</th>
                   <th className="px-4 py-3">Institution</th>
                   <th className="px-4 py-3">Course</th>
+                  <th className="px-4 py-3">Plan</th>
+                  <th className="px-4 py-3">Titles</th>
+                  <th className="px-4 py-3">Claims</th>
+                  <th className="px-4 py-3">Jobs</th>
+                  <th className="px-4 py-3">Groups</th>
+                  <th className="px-4 py-3">Paid</th>
                   <th className="px-4 py-3">Registered</th>
-                  <th className="px-4 py-3">Account</th>
-                  <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -96,31 +104,63 @@ export function RegisteredUsersTable({ rows }: { rows: RegisteredUserRow[] }) {
                     </td>
                     <td className="text-dash-foreground px-4 py-3">{row.institution ?? "—"}</td>
                     <td className="text-dash-foreground px-4 py-3">{row.course ?? "—"}</td>
-                    <td className="text-dash-foreground px-4 py-3 whitespace-nowrap">{row.registeredOn}</td>
                     <td className="px-4 py-3">
-                      <p className="text-dash-foreground">{row.staff ? "Staff" : "Student"}</p>
-                      <p className="text-dash-muted-foreground text-xs">
-                        {[row.blocked ? "Sign-in blocked" : null, row.staff ? null : row.profileComplete ? "Details saved" : "Details missing"]
-                          .filter(Boolean)
-                          .join(" · ") || "—"}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3">
-                      {row.projectId ? (
-                        <Link href={`/projects/${row.projectId}`} className="text-dash-accent font-medium underline-offset-2 hover:underline">
-                          {row.projectTitle}
-                        </Link>
-                      ) : (
-                        <span className="text-dash-muted-foreground">—</span>
-                      )}
-                      {row.workspaceId ? (
-                        <p className="mt-1">
-                          <Link href={`/students/${row.workspaceId}`} className="text-dash-accent text-xs font-medium underline-offset-2 hover:underline">
-                            {row.workspaceName}
-                          </Link>
+                      <p className="text-dash-foreground text-xs font-semibold">{row.staff ? "Staff" : row.planLabel}</p>
+                      {!row.staff ? (
+                        <p className="text-dash-muted-foreground text-xs">
+                          {row.profileComplete ? "Profile saved" : "Details missing"}
+                          {row.blocked ? " · Blocked" : ""}
                         </p>
                       ) : null}
                     </td>
+                    <td className="px-4 py-3">
+                      {row.heldTitleName ? (
+                        <p className="text-dash-foreground text-xs font-medium" title={row.heldTitleId ?? undefined}>
+                          {row.heldTitleName.slice(0, 42)}
+                          {row.heldTitleName.length > 42 ? "…" : ""}
+                        </p>
+                      ) : (
+                        <span className="text-dash-muted-foreground text-xs">—</span>
+                      )}
+                      <p className="text-dash-muted-foreground mt-0.5 text-xs">Shortlist {row.shortlistCount}</p>
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      {row.claimsTotal ? (
+                        <>
+                          <span className="text-dash-foreground font-semibold">{row.claimsTotal}</span>
+                          {row.claimsPending ? (
+                            <span className="text-amber-700 dark:text-amber-300"> · {row.claimsPending} pending</span>
+                          ) : null}
+                        </>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      {row.jobsPosted ? (
+                        <div>
+                          <p className="text-dash-foreground font-semibold">{row.jobsPosted}</p>
+                          <p className="text-dash-muted-foreground mt-0.5 font-mono text-[10px]" title={row.jobPublicIds.join(", ")}>
+                            {row.jobPublicIds.slice(0, 2).join(", ")}
+                            {row.jobPublicIds.length > 2 ? ` +${row.jobPublicIds.length - 2}` : ""}
+                          </p>
+                        </div>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      {row.groupsCreated ? (
+                        <div>
+                          <p className="text-dash-foreground font-semibold">{row.groupsCreated}</p>
+                          <p className="text-dash-muted-foreground mt-0.5 font-mono text-[10px]">{row.groupPublicIds.slice(0, 2).join(", ")}</p>
+                        </div>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="text-dash-foreground px-4 py-3 text-xs tabular-nums">{formatTsh(row.paidTotalTsh)}</td>
+                    <td className="text-dash-foreground px-4 py-3 whitespace-nowrap">{row.registeredOn}</td>
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/users/${row.id}`}

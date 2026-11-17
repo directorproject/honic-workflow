@@ -6,6 +6,7 @@ import { isInAcademicYear, type AcademicYearSelection } from "@/lib/academic-yea
 import { isStaffUser } from "@/lib/auth-staff";
 import { ensurePortalAccount, ensurePortalAccounts, resolveStaffUserRef } from "@/lib/portal/accounts";
 import { projectCategoryLabel, studyLevelLabel } from "@/lib/portal/config";
+import { loadPortalUserMetrics, loadUserPortalDetailMetrics } from "@/lib/staff/portal-user-metrics";
 import { formatDate, formatDateTime } from "@/lib/workspace/dates";
 
 export type RegisteredUserRow = {
@@ -29,6 +30,19 @@ export type RegisteredUserRow = {
   projectTitle: string | null;
   workspaceId: string | null;
   workspaceName: string | null;
+  planLabel: string;
+  deskExpiresAt: string | null;
+  shortlistCount: number;
+  heldTitleId: string | null;
+  heldTitleName: string | null;
+  claimsTotal: number;
+  claimsPending: number;
+  jobsPosted: number;
+  jobPublicIds: string[];
+  groupsCreated: number;
+  groupPublicIds: string[];
+  paidTotalTsh: number;
+  paymentCount: number;
 };
 
 function isSignInBlocked(bannedUntil: string | null | undefined): boolean {
@@ -65,7 +79,9 @@ export async function fetchRegisteredUsers(
     await Promise.all([
       db
         .from("student_profiles")
-        .select("user_id, full_name, phone, institution, course_code, course_other, tracked_project_id"),
+        .select(
+          "user_id, full_name, phone, institution, course_code, course_other, tracked_project_id, desk_plan, desk_expires_at",
+        ),
       db.from("portal_workspace_members").select("user_id, workspace_id, role"),
       db.from("portal_workspaces").select("id, name"),
     ]);
@@ -108,6 +124,13 @@ export async function fetchRegisteredUsers(
     inYear.map((user) => user.id),
   );
 
+  const profilePlans = (profiles ?? []).map((row) => ({
+    user_id: String(row.user_id),
+    desk_plan: row.desk_plan ? String(row.desk_plan) : null,
+    desk_expires_at: row.desk_expires_at ? String(row.desk_expires_at) : null,
+  }));
+  const metrics = await loadPortalUserMetrics(db, inYear.map((user) => user.id), profilePlans).catch(() => new Map());
+
   return inYear
     .map((user) => {
       const profile = profileByUser.get(user.id);
@@ -117,6 +140,7 @@ export async function fetchRegisteredUsers(
       const workspace = workspaceByUser.get(user.id) ?? null;
       const publicId = publicIds.get(user.id);
       if (!publicId) return null;
+      const m = metrics.get(user.id);
       return {
         id: publicId,
         userId: user.id,
@@ -135,6 +159,19 @@ export async function fetchRegisteredUsers(
         projectTitle: projectId ? (projectTitle.get(projectId) ?? "Linked project") : null,
         workspaceId: workspace?.id ?? null,
         workspaceName: workspace?.name ?? null,
+        planLabel: m?.planLabel ?? (profile ? "Free plan" : "—"),
+        deskExpiresAt: m?.deskExpiresAt ?? null,
+        shortlistCount: m?.shortlistCount ?? 0,
+        heldTitleId: m?.heldTitleId ?? null,
+        heldTitleName: m?.heldTitleName ?? null,
+        claimsTotal: m?.claimsTotal ?? 0,
+        claimsPending: m?.claimsPending ?? 0,
+        jobsPosted: m?.jobsPosted ?? 0,
+        jobPublicIds: m?.jobPublicIds ?? [],
+        groupsCreated: m?.groupsCreated ?? 0,
+        groupPublicIds: m?.groupPublicIds ?? [],
+        paidTotalTsh: m?.paidTotalTsh ?? 0,
+        paymentCount: m?.paymentCount ?? 0,
       };
     })
     .filter((row): row is RegisteredUserRow => Boolean(row))
@@ -170,6 +207,22 @@ export type RegisteredUserDetail = {
   titles: { id: string; title: string }[];
   workspaces: { id: string; name: string; role: string }[];
   activity: { who: string; action: string; when: string }[];
+  planLabel: string;
+  deskPlan: string | null;
+  deskExpiresAt: string | null;
+  shortlistCount: number;
+  jobs: { id: string; publicId: string; title: string; status: string; offerTsh: number }[];
+  zimamotoGroups: { publicId: string; name: string }[];
+  payments: {
+    id: string;
+    reference: string;
+    purpose: string | null;
+    amount: number;
+    status: string;
+    createdAt: string;
+    paidAt: string | null;
+  }[];
+  paidTotalTsh: number;
 };
 
 /** One account by opaque public id (or legacy auth UUID for redirects). */
@@ -233,6 +286,7 @@ export async function fetchRegisteredUser(db: SupabaseClient, ref: string): Prom
 
   const workspaceName = new Map((workspaces ?? []).map((row) => [String(row.id), String(row.name ?? "Workspace")]));
   const courseOther = profile?.course_other?.trim();
+  const extraMetrics = await loadUserPortalDetailMetrics(db, user.id).catch(() => null);
   return toDetail(user, publicId, {
     name: profile?.full_name?.trim() || null,
     phone: profile?.phone?.trim() || null,
@@ -260,6 +314,30 @@ export async function fetchRegisteredUser(db: SupabaseClient, ref: string): Prom
       action: String(row.action ?? ""),
       when: formatDateTime(row.created_at ? String(row.created_at) : null),
     })),
+    planLabel: extraMetrics?.planLabel ?? "No profile",
+    deskPlan: extraMetrics?.deskPlan ?? null,
+    deskExpiresAt: extraMetrics?.deskExpiresAt ?? null,
+    shortlistCount: extraMetrics?.shortlistCount ?? 0,
+    jobs: (extraMetrics?.jobs ?? []).map((j) => ({
+      id: j.id,
+      publicId: j.publicId,
+      title: j.title,
+      status: j.status,
+      offerTsh: j.offerTsh,
+    })),
+    zimamotoGroups: extraMetrics?.groups ?? [],
+    payments: (extraMetrics?.payments ?? []).map((p) => ({
+      id: p.id,
+      reference: p.reference,
+      purpose: p.purpose,
+      amount: p.amount,
+      status: p.status,
+      createdAt: p.createdAt,
+      paidAt: p.paidAt,
+    })),
+    paidTotalTsh: (extraMetrics?.payments ?? [])
+      .filter((p) => p.status === "paid")
+      .reduce((sum, p) => sum + p.amount, 0),
   });
 }
 

@@ -99,6 +99,12 @@ const navSections: NavSection[] = [
           p === "/users" || (p.startsWith("/users/") && !p.startsWith("/users/requests")),
       },
       {
+        href: "/finance",
+        label: "Finance",
+        top: true,
+        isActive: (p) => p === "/finance" || p.startsWith("/finance/"),
+      },
+      {
         href: "/users/requests",
         label: "Requested titles",
         top: true,

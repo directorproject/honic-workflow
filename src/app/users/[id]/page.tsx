@@ -94,6 +94,21 @@ export default async function RegisteredUserPage(props: { params: Promise<{ id: 
                 <Fact label="Partner" value={user.partner} />
                 <Fact label="Project type" value={user.projectCategory} />
                 <Fact label="Change credits" value={String(user.changeCredits)} />
+                <Fact label="Nexis plan" value={user.planLabel} />
+                <Fact
+                  label="Desk until"
+                  value={
+                    user.deskExpiresAt
+                      ? new Date(user.deskExpiresAt).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : null
+                  }
+                />
+                <Fact label="Paid on portal" value={`TSh ${user.paidTotalTsh.toLocaleString("en-US")}`} />
+                <Fact label="Shortlisted titles" value={String(user.shortlistCount)} />
                 <Fact label="Registered" value={user.registeredOn} />
                 <Fact label="Last sign-in" value={user.lastSignIn} />
               </div>
@@ -142,6 +157,87 @@ export default async function RegisteredUserPage(props: { params: Promise<{ id: 
               </div>
             </Card>
           </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card title="Jobs posted">
+              {user.jobs.length ? (
+                <ul className="space-y-2 text-sm">
+                  {user.jobs.map((job) => (
+                    <li key={job.id} className="border-dash-border border-b pb-2 last:border-b-0 last:pb-0">
+                      <p className="text-dash-foreground font-semibold">{job.title}</p>
+                      <p className="text-dash-muted-foreground text-xs">
+                        ID <span className="font-mono">{job.publicId}</span> · {job.status} · TSh{" "}
+                        {job.offerTsh.toLocaleString("en-US")}
+                      </p>
+                      <Link
+                        href={`https://share.honiccompany.com/portal/jobs/${encodeURIComponent(job.publicId)}`}
+                        className="text-dash-accent text-xs font-semibold"
+                      >
+                        Open on portal →
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-dash-muted-foreground text-sm">No job posts.</p>
+              )}
+            </Card>
+
+            <Card title="Zimamoto groups created">
+              {user.zimamotoGroups.length ? (
+                <ul className="space-y-2 text-sm">
+                  {user.zimamotoGroups.map((g) => (
+                    <li key={g.publicId}>
+                      <p className="text-dash-foreground font-semibold">{g.name}</p>
+                      <p className="text-dash-muted-foreground font-mono text-xs">{g.publicId}</p>
+                      <Link
+                        href={`https://share.honiccompany.com/portal/zimamoto/g/${encodeURIComponent(g.publicId)}`}
+                        className="text-dash-accent text-xs font-semibold"
+                      >
+                        Open group →
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-dash-muted-foreground text-sm">No groups owned.</p>
+              )}
+            </Card>
+          </div>
+
+          <Card title="Portal payments">
+            {user.payments.length ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-[640px] w-full text-sm">
+                  <thead className="text-dash-muted-foreground text-left text-xs font-semibold uppercase">
+                    <tr>
+                      <th className="pr-4 pb-2">Reference</th>
+                      <th className="pr-4 pb-2">Purpose</th>
+                      <th className="pr-4 pb-2">Amount</th>
+                      <th className="pb-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-dash-border divide-y">
+                    {user.payments.map((p) => (
+                      <tr key={p.id}>
+                        <td className="py-2 font-mono text-xs">{p.reference}</td>
+                        <td className="py-2">{p.purpose ?? "—"}</td>
+                        <td className="py-2 tabular-nums">TSh {p.amount.toLocaleString("en-US")}</td>
+                        <td className="py-2 capitalize">{p.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-dash-muted-foreground text-sm">No payment rows yet.</p>
+            )}
+            <p className="text-dash-muted-foreground mt-3 text-xs">
+              <Link href="/finance" className="text-dash-accent font-semibold">
+                Full finance ledger →
+              </Link>
+            </p>
+          </Card>
 
           {user.activity.length ? (
             <Card title="Recent activity">

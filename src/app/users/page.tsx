@@ -38,7 +38,10 @@ export default async function RegisteredUsersPage() {
       statusDotClass={error ? "bg-amber-500" : "bg-emerald-500"}
     >
       <p className="text-dash-muted-foreground mb-5 text-sm">
-        Students sign up on the portal with their own email. This list is everyone created in the selected year, including staff. View opens details, titles, workspace, and staff actions. Use Requested titles for ownership claims and Help desk for portal chat.
+        Students sign up on the portal with their own email. The table shows plan, titles, claims, jobs, Zimamoto groups, and portal payments. Open a row for full detail.{" "}
+        <Link href="/finance" className="text-dash-accent font-semibold">
+          Finance ledger →
+        </Link>
       </p>
 
       <UsersRequestLinks totalUsers={totalUsers} pendingRequests={pendingCount} />
