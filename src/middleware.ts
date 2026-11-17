@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth-internal-host";
 import { isPublicAppPath } from "@/lib/auth-public-paths";
 import { isStaffUser } from "@/lib/auth-staff";
+import { portalAppRequiresSignIn } from "@/lib/portal/safe-next";
 import { updateSession } from "@/lib/supabase/middleware";
 
 /** Hostname for strict “share-only” routing (from NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN). */
@@ -80,7 +81,16 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/portal", request.url));
     }
     if (isPortalPath(pathname) || pathname.toLowerCase() === "/supervisor" || pathname.toLowerCase().startsWith("/supervisor/")) {
-      const { supabaseResponse } = await updateSession(request);
+      const { supabaseResponse, user } = await updateSession(request);
+      const lower = pathname.toLowerCase();
+      if (!user && portalAppRequiresSignIn(lower)) {
+        const signIn = request.nextUrl.clone();
+        signIn.pathname = "/portal";
+        signIn.searchParams.set("auth", "signin");
+        const returnPath = `${lower}${request.nextUrl.search}`;
+        signIn.searchParams.set("next", returnPath);
+        return NextResponse.redirect(signIn);
+      }
       return supabaseResponse;
     }
     if (isAllowedOnShareHost(pathname)) {

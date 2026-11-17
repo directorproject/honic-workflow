@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 
 import { AuthPageShell } from "@/components/portal/auth-page-shell";
+import { PortalAuthFeaturesHeader } from "@/components/portal/portal-auth-features";
 import { PortalAuth } from "@/components/portal/portal-auth";
 import { loadPortalState } from "@/lib/portal/data";
+import { safePortalNextPath } from "@/lib/portal/safe-next";
 import { isPortalGoogleSignInEnabled } from "@/lib/portal/google-signin";
 import { hasActiveDeskPlan } from "@/lib/portal/title-limits";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -50,6 +52,7 @@ export default async function PortalAuthPage(props: {
     role: typeof raw.role === "string" ? raw.role : undefined,
     auth_error: typeof raw.auth_error === "string" ? raw.auth_error : undefined,
     notice: typeof raw.notice === "string" ? raw.notice : undefined,
+    next: typeof raw.next === "string" ? raw.next : undefined,
   };
 
   // Never allow passwords in the URL (old GET form leak / shared links).
@@ -62,6 +65,7 @@ export default async function PortalAuthPage(props: {
 
   const state = await loadPortalState();
   const { user } = state;
+  const nextPath = safePortalNextPath(sp.next);
 
   // Staff session cannot use the student portal — clear it and show the student form.
   if (user && state.isStaff) {
@@ -70,8 +74,9 @@ export default async function PortalAuthPage(props: {
     redirect("/portal?auth=signup&notice=student_only");
   }
 
-  // Logged-in students: new / free accounts land on Plans; paid go to home (or deep-link tab).
+  // Logged-in students: honour ?next=, else tab/notices, else plans or home.
   if (user) {
+    if (nextPath) redirect(nextPath);
     const q = new URLSearchParams();
     if (sp.tab) q.set("tab", sp.tab);
     if (sp.edit) q.set("edit", sp.edit);
@@ -100,36 +105,15 @@ export default async function PortalAuthPage(props: {
 
   return (
     <AuthPageShell>
-      <div className="mx-auto w-full max-w-5xl space-y-6">
-        <div className="border-dash-border bg-dash-card rounded-2xl border px-4 py-4 sm:px-6">
-          <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase">Browse first</p>
-          <p className="text-dash-foreground mt-1 text-sm leading-relaxed">
-            Look around Honic Nexis without an account — literature, jobs, plans, and Desk previews. Sign in when you want
-            to use them.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-3 text-sm font-semibold">
-            <a href="/portal/home" className="text-dash-accent">
-              Open portal home →
-            </a>
-            <a href="/portal/titles" className="text-dash-accent">
-              Literature
-            </a>
-            <a href="/portal/jobs" className="text-dash-accent">
-              Jobs
-            </a>
-            <a href="/portal/packs" className="text-dash-accent">
-              Plans
-            </a>
-          </div>
-        </div>
-        <PortalAuth
-          key={`${authMode}-${initialRole}-${sp.notice ?? ""}-${sp.auth_error ?? ""}`}
-          initialStatus={initial}
-          initialMode={authMode}
-          initialRole={initialRole}
-          googleEnabled={isPortalGoogleSignInEnabled()}
-        />
-      </div>
+      <PortalAuthFeaturesHeader />
+      <PortalAuth
+        key={`${authMode}-${initialRole}-${sp.notice ?? ""}-${sp.auth_error ?? ""}-${sp.next ?? ""}`}
+        initialStatus={initial}
+        initialMode={authMode}
+        initialRole={initialRole}
+        nextPath={nextPath}
+        googleEnabled={isPortalGoogleSignInEnabled()}
+      />
     </AuthPageShell>
   );
 }

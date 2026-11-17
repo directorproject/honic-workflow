@@ -10,6 +10,7 @@ import {
   type PortalResult,
 } from "@/app/portal/auth-actions";
 import { Spinner } from "@/components/ui/spinner";
+import { safePortalNextPath } from "@/lib/portal/safe-next";
 import { toUserError } from "@/lib/portal/user-errors";
 
 export type PortalAuthMode = "signin" | "signup" | "forgot";
@@ -102,6 +103,7 @@ export function PortalAuth({
   initialRole = "student",
   prefillEmail = "",
   projectHint = "",
+  nextPath = null,
   lockRole = false,
 }: {
   initialStatus?: PortalResult | null;
@@ -110,6 +112,8 @@ export function PortalAuth({
   initialRole?: PortalAuthRole;
   prefillEmail?: string;
   projectHint?: string;
+  /** After sign-in, open this portal path (from ?next=). */
+  nextPath?: string | null;
   /** When true, hide role picker (e.g. deep-link from student share). */
   lockRole?: boolean;
 }) {
@@ -121,6 +125,7 @@ export function PortalAuth({
   );
 
   const copy = ROLE_COPY[role];
+  const safeNext = safePortalNextPath(nextPath);
 
   return (
     <div className="border-dash-border bg-dash-card/95 grid overflow-hidden rounded-md border shadow-[0_24px_60px_-28px_rgba(15,23,42,0.45)] backdrop-blur-md lg:grid-cols-2">
@@ -160,9 +165,16 @@ export function PortalAuth({
 
         {googleEnabled && mode !== "forgot" ? <GoogleButton role={role} /> : null}
 
+        {safeNext ? (
+          <p className="text-dash-muted-foreground mb-4 rounded-md border border-dash-border bg-dash-muted/30 px-3 py-2 text-xs leading-relaxed">
+            Sign in to open <span className="text-dash-foreground font-semibold">{safeNext.replace(/^\//, "")}</span>
+          </p>
+        ) : null}
+
         <form action={formAction} className="space-y-3.5" autoComplete="on" aria-busy={pending}>
           <input type="hidden" name="mode" value={mode} />
           <input type="hidden" name="role" value={role} />
+          {safeNext ? <input type="hidden" name="next" value={safeNext} /> : null}
 
           {mode === "signup" ? (
             <label className="block">

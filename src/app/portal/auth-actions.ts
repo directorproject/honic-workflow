@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 
 import { isStaffUser } from "@/lib/auth-staff";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { safePortalNextPath } from "@/lib/portal/safe-next";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
 export type PortalResult = { ok: true; message?: string } | { ok: false; message: string };
@@ -109,7 +110,9 @@ export async function portalSignInAction(
   email: string,
   password: string,
   preferredRole: PortalAuthRole = "student",
+  afterNext: string | null = null,
 ): Promise<PortalResult> {
+  const nextPath = safePortalNextPath(afterNext);
   const e = clean(email, 254).toLowerCase();
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -147,11 +150,11 @@ export async function portalSignInAction(
         revalidatePath("/supervisor");
         redirect("/supervisor");
       }
-      // New student accounts (no profile yet) land on plans first.
+      // New student accounts (no profile yet) land on plans first unless opening a specific page.
       if (!profile) {
         revalidatePath("/portal");
         revalidatePath("/portal/packs");
-        redirect("/portal/packs");
+        redirect(nextPath ?? "/portal/packs");
       }
     } else if (preferredRole === "supervisor" && data.user?.id) {
       await upsertSupervisorProfile(data.user.id, e, name);
@@ -163,7 +166,7 @@ export async function portalSignInAction(
   }
   revalidatePath("/portal");
   revalidatePath("/portal/home");
-  redirect("/portal/home");
+  redirect(nextPath ?? "/portal/home");
 }
 
 export async function portalForgotPasswordAction(email: string): Promise<PortalResult> {
@@ -193,7 +196,10 @@ export async function portalAuthFormAction(
     if (password !== password2) return { ok: false, message: "The two passwords do not match." };
     return portalSignUpAction(email, password, role, fullName);
   }
-  if (mode === "signin") return portalSignInAction(email, password, role);
+  if (mode === "signin") {
+    const next = safePortalNextPath(clean(formData.get("next"), 500));
+    return portalSignInAction(email, password, role, next);
+  }
   return { ok: false, message: "Unknown sign-in mode." };
 }
 

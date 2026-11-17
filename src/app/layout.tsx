@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { getPublicAppUrlFromEnv } from "@/lib/site-url";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
@@ -57,6 +58,7 @@ export default function RootLayout({
       {/* Extensions often inject attributes on <body>; suppressHydrationWarning avoids noisy mismatches. */}
       <body suppressHydrationWarning className="bg-background text-foreground flex min-h-full min-w-0 flex-col overflow-x-hidden">
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+        <GoogleAnalytics />
         {children}
       </body>
     </html>

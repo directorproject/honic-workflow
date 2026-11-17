@@ -14,7 +14,7 @@ export function AuthPageShell({ children }: { children: ReactNode }) {
       <div className="sticky top-0 z-30 shrink-0">
         <NexisBrandBar />
       </div>
-      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">{children}</div>
+      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-10">{children}</div>
       <SiteFooter />
     </main>
   );
