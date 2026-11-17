@@ -12,7 +12,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/portal", "/portal/packs", "/portal/titles", "/portal/jobs", "/about", "/share-portal"],
+        allow: ["/", "/portal", "/portal/packs", "/portal/titles", "/portal/jobs", "/portal/zimamoto", "/about", "/share-portal"],
         disallow: [
           "/portal/home",
           "/portal/print",
