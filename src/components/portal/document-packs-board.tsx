@@ -46,34 +46,12 @@ export function DocumentPacksBoard({
   const semesterPerMonth = Math.round(SUBSCRIPTION_SEMESTER_TSH / 6);
 
   return (
-    <div className="packs-site -mx-3 sm:-mx-6 lg:-mx-8">
-      <style jsx>{`
-        .packs-site :global(.packs-fade) {
-          animation: packsFadeUp 0.7s ease-out both;
-        }
-        .packs-site :global(.packs-fade-delay) {
-          animation: packsFadeUp 0.8s ease-out 0.12s both;
-        }
-        .packs-site :global(.packs-fade-delay-2) {
-          animation: packsFadeUp 0.85s ease-out 0.22s both;
-        }
-        @keyframes packsFadeUp {
-          from {
-            opacity: 0;
-            transform: translateY(14px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
-
-      {/* Full-bleed hero — one composition */}
-      <section className="relative min-h-[min(72vh,36rem)] overflow-hidden">
+    <div className="packs-site -mx-3 -mt-4 sm:-mx-6 sm:-mt-5 lg:-mx-8">
+      {/* Shorter, narrower hero — works on phone and desktop */}
+      <section className="relative overflow-hidden">
         <div
           aria-hidden
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-[center_30%]"
           style={{ backgroundImage: `url(${HERO_IMAGE})` }}
         />
         <div
@@ -81,67 +59,50 @@ export function DocumentPacksBoard({
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(105deg, color-mix(in oklab, #0f172a 88%, transparent) 0%, color-mix(in oklab, #0f172a 72%, transparent) 48%, color-mix(in oklab, #0f172a 42%, transparent) 100%), radial-gradient(ellipse 60% 70% at 85% 20%, color-mix(in oklab, #06b6d4 35%, transparent), transparent 55%)",
+              "linear-gradient(160deg, color-mix(in oklab, #0f172a 92%, transparent) 0%, color-mix(in oklab, #0f172a 78%, transparent) 55%, color-mix(in oklab, #0f172a 55%, transparent) 100%), radial-gradient(ellipse 50% 60% at 90% 10%, color-mix(in oklab, #06b6d4 28%, transparent), transparent 55%)",
           }}
         />
-        <div className="relative mx-auto flex min-h-[min(72vh,36rem)] max-w-6xl flex-col justify-end px-4 pb-12 pt-16 sm:px-8 sm:pb-16 lg:px-10">
-          <p className="packs-fade text-[11px] font-semibold tracking-[0.28em] text-cyan-200/90 uppercase sm:text-xs">
-            Honic Nexis
-          </p>
-          <h1 className="packs-fade-delay mt-3 max-w-xl text-4xl leading-[1.05] font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Your desk. Your pace.
-          </h1>
-          <p className="packs-fade-delay-2 mt-4 max-w-md text-base leading-relaxed text-white/75 sm:text-lg">
-            Choose a Nexis Desk plan for workspace tools, peer help, and free title hides — paid with mobile money.
-          </p>
-          <div className="packs-fade-delay-2 mt-8 flex flex-wrap gap-3">
-            <a
-              href="#plans"
-              className="bg-dash-accent inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
-            >
-              See plans
-            </a>
-            <Link
-              href="/portal/titles"
-              className="inline-flex items-center justify-center rounded-md border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/15"
-            >
-              Browse literature
-            </Link>
+        <div className="relative mx-auto flex w-full max-w-5xl justify-center px-5 py-10 sm:px-8 sm:py-12 lg:justify-start lg:px-10 lg:py-14">
+          <div className="w-full max-w-[20rem] sm:max-w-sm lg:max-w-md">
+            <p className="text-[10px] font-semibold tracking-[0.26em] text-cyan-200/90 uppercase sm:text-[11px]">
+              Honic Nexis
+            </p>
+            <h1 className="mt-2 text-[1.85rem] leading-[1.1] font-semibold tracking-tight text-white sm:text-4xl">
+              Your desk. Your pace.
+            </h1>
+            <p className="mt-3 text-sm leading-relaxed text-white/75 sm:text-[0.95rem]">
+              Nexis Desk plans for workspace tools, peer help, and free title hides — paid with mobile money.
+            </p>
+            <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
+              <a
+                href="#plans"
+                className="bg-dash-accent inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+              >
+                See plans
+              </a>
+              <Link
+                href="/portal/titles"
+                className="inline-flex items-center justify-center rounded-md border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/15"
+              >
+                Browse literature
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Current status strip — outside hero */}
-      <div className="border-dash-border bg-dash-card/90 border-b px-4 py-3 sm:px-8">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
+      {/* Single status line — no duplicate expiry */}
+      <div className="border-dash-border bg-dash-card border-b px-5 py-2.5 sm:px-8">
+        <div className="mx-auto max-w-5xl">
           <p className="text-dash-muted-foreground text-sm">
             <span className="text-dash-foreground font-semibold">Your access · </span>
             {planLabel}
           </p>
-          {planActive && deskExpiresAt ? (
-            <p className="text-dash-muted-foreground text-xs tabular-nums">
-              {deskPlan === "semester"
-                ? "Semester"
-                : deskPlan === "monthly"
-                  ? "Monthly"
-                  : deskPlan === "year"
-                    ? "Year"
-                    : "Paid"}{" "}
-              · until{" "}
-              {new Date(deskExpiresAt).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </p>
-          ) : (
-            <p className="text-dash-muted-foreground text-xs">Select titles free · hide when you are ready</p>
-          )}
         </div>
       </div>
 
       {/* Plans */}
-      <section id="plans" className="relative scroll-mt-24 px-4 py-14 sm:px-8 sm:py-20">
+      <section id="plans" className="relative scroll-mt-24 px-5 py-10 sm:px-8 sm:py-14">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -150,16 +111,16 @@ export function DocumentPacksBoard({
               "radial-gradient(ellipse 50% 40% at 50% 0%, color-mix(in oklab, var(--dash-accent) 12%, transparent), transparent 70%)",
           }}
         />
-        <div className="relative mx-auto max-w-6xl">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-dash-foreground text-3xl font-semibold tracking-tight sm:text-4xl">Choose how you work</h2>
-            <p className="text-dash-muted-foreground mt-3 text-sm leading-relaxed sm:text-base">
+        <div className="relative mx-auto max-w-5xl">
+          <div className="max-w-xl">
+            <h2 className="text-dash-foreground text-2xl font-semibold tracking-tight sm:text-3xl">Choose how you work</h2>
+            <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
               Monthly, semester, or full year. Paid plans include {FREE_TITLE_SLOTS} free classmate hides and peer-help
               posting.
             </p>
           </div>
 
-          <div className="mt-10 grid items-stretch gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-8 grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
             <FreePlanCard active={!planActive} />
             <MonthlySubscriptionCard signedIn={signedIn} phone={phone} active={planActive && deskPlan === "monthly"} />
             <SubscriptionCard
@@ -205,13 +166,13 @@ export function DocumentPacksBoard({
       </section>
 
       {/* How titles work — one purpose */}
-      <section className="border-dash-border bg-dash-card border-y px-4 py-14 sm:px-8 sm:py-16">
-        <div className="mx-auto max-w-6xl">
+      <section className="border-dash-border bg-dash-card border-y px-5 py-10 sm:px-8 sm:py-12">
+        <div className="mx-auto max-w-5xl">
           <h2 className="text-dash-foreground text-2xl font-semibold tracking-tight sm:text-3xl">How titles work</h2>
-          <p className="text-dash-muted-foreground mt-2 max-w-xl text-sm leading-relaxed">
+          <p className="text-dash-muted-foreground mt-2 max-w-md text-sm leading-relaxed">
             Select stays free. Hiding protects your defence group — it is not buying the idea.
           </p>
-          <ol className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 n: "01",
@@ -241,7 +202,7 @@ export function DocumentPacksBoard({
               </li>
             ))}
           </ol>
-          <div className="mt-10">
+          <div className="mt-8">
             <Link
               href="/portal/titles"
               className="text-dash-accent inline-flex text-sm font-semibold underline-offset-4 hover:underline"
@@ -253,13 +214,13 @@ export function DocumentPacksBoard({
       </section>
 
       {/* Included tools — one strip, not three promo cards */}
-      <section className="px-4 py-14 sm:px-8 sm:py-16">
-        <div className="mx-auto max-w-6xl">
+      <section className="px-5 py-10 sm:px-8 sm:py-12">
+        <div className="mx-auto max-w-5xl">
           <h2 className="text-dash-foreground text-2xl font-semibold tracking-tight sm:text-3xl">What paid unlocks</h2>
-          <p className="text-dash-muted-foreground mt-2 max-w-xl text-sm leading-relaxed">
+          <p className="text-dash-muted-foreground mt-2 max-w-md text-sm leading-relaxed">
             Peer help, Help desk, and more storage come with any active Nexis Desk plan.
           </p>
-          <div className="mt-10 grid gap-10 md:grid-cols-3">
+          <div className="mt-8 grid gap-8 md:grid-cols-3">
             <div>
               <h3 className="text-dash-foreground text-base font-semibold">Peer help</h3>
               <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">{PRICING_BOARD.jobs.note}</p>
@@ -298,8 +259,8 @@ export function DocumentPacksBoard({
       </section>
 
       {/* Free vs paid — clean comparison */}
-      <section className="border-dash-border bg-dash-muted/40 border-t px-4 py-14 sm:px-8 sm:py-16">
-        <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-2">
+      <section className="border-dash-border bg-dash-muted/40 border-t px-5 py-10 sm:px-8 sm:py-12">
+        <div className="mx-auto grid max-w-5xl gap-10 md:grid-cols-2">
           <div>
             <h2 className="text-dash-foreground text-xl font-semibold tracking-tight">Always free</h2>
             <ul className="text-dash-muted-foreground mt-5 space-y-3 text-sm leading-relaxed">
@@ -326,11 +287,11 @@ export function DocumentPacksBoard({
       </section>
 
       {PRICING_BOARD.packs.length ? (
-        <section className="border-dash-border border-t px-4 py-14 sm:px-8">
-          <div className="mx-auto max-w-6xl">
+        <section className="border-dash-border border-t px-5 py-10 sm:px-8">
+          <div className="mx-auto max-w-5xl">
             <h2 className="text-dash-foreground text-xl font-semibold">Optional writing packs</h2>
             <p className="text-dash-muted-foreground mt-1 text-sm">Guides from Honic writers. Not required for membership.</p>
-            <div className="mt-8 grid gap-8 md:grid-cols-2">
+            <div className="mt-6 grid gap-6 md:grid-cols-2">
               {PRICING_BOARD.packs.map((pack) => (
                 <article key={pack.id} className="border-dash-border border-t pt-5">
                   <div className="flex items-baseline justify-between gap-3">
