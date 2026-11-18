@@ -60,13 +60,13 @@ export default async function PortalTitlesPage() {
         viewer={{ name: user.email, detail: "Staff · reading only", homeHref: null }}
       />
     );
-  } else if (!profile || !db) {
+  } else if (!db || !profile || state.profileAcademicPending) {
     content = (
       <ProfileForm
         courses={state.courses}
         profile={profile}
         suggestedName={user.suggestedName}
-        needsPasswordSetup={user.needsPasswordSetup}
+        academicStepPending={state.profileAcademicPending}
       />
     );
   } else {

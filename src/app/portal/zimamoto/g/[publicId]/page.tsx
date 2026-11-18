@@ -31,14 +31,14 @@ export default async function ZimamotoGroupRoute({ params }: Props) {
   const db = getSupabaseAdminClient();
   const guest = !user;
 
-  if (user && !state.isStaff && !profile) {
+  if (user && !state.isStaff && (!profile || state.profileAcademicPending)) {
     return (
       <main className="bg-dash-canvas text-dash-foreground mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 py-8 sm:px-6">
         <ProfileForm
           courses={state.courses}
           profile={profile}
           suggestedName={user.suggestedName}
-          needsPasswordSetup={user.needsPasswordSetup}
+          academicStepPending={state.profileAcademicPending}
         />
       </main>
     );

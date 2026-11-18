@@ -205,7 +205,7 @@ export async function PortalHome({
       profile={profile}
       cancelHref="/portal/home"
       suggestedName={user.suggestedName}
-      needsPasswordSetup={user.needsPasswordSetup}
+      academicStepPending={state.profileAcademicPending}
     />
   );
 

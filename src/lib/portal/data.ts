@@ -79,12 +79,16 @@ export function rankTitles(titles: PortalTitle[], profile: StudentProfile, seed:
   return [...top, ...rest];
 }
 
-export function studentNeedsPasswordSetup(user: User): boolean {
-  return !(user.identities ?? []).some((identity) => identity.provider === "email");
+export const PROFILE_ONBOARDING_ACADEMIC = "academic_pending" as const;
+
+export function profileAcademicStepPending(user: User | null): boolean {
+  if (!user) return false;
+  const meta = (user.user_metadata ?? {}) as { portal_profile_onboarding?: string };
+  return meta.portal_profile_onboarding === PROFILE_ONBOARDING_ACADEMIC;
 }
 
 export type PortalState = {
-  user: { id: string; email: string; suggestedName: string | null; needsPasswordSetup: boolean } | null;
+  user: { id: string; email: string; suggestedName: string | null } | null;
   isStaff: boolean;
   profile: StudentProfile | null;
   courses: Course[];
@@ -93,6 +97,8 @@ export type PortalState = {
   availableTitles: PortalTitle[];
   /** From the session user — avoids a slow auth admin lookup on every page. */
   titleTerms: TermsProgress | null;
+  /** Name and phone saved; course/institution step still open. */
+  profileAcademicPending: boolean;
 };
 
 export async function getPortalUser(): Promise<User | null> {
@@ -146,6 +152,7 @@ export const loadPortalState = cache(async (): Promise<PortalState> => {
     hasSelectedBefore: false,
     availableTitles: [],
     titleTerms: null,
+    profileAcademicPending: false,
   };
   if (!user) return empty;
 
@@ -154,14 +161,10 @@ export const loadPortalState = cache(async (): Promise<PortalState> => {
   const titleTerms = titleTermsStatus(user.user_metadata);
   const base = {
     ...empty,
-    user: {
-      id: user.id,
-      email: user.email ?? "",
-      suggestedName,
-      needsPasswordSetup: studentNeedsPasswordSetup(user),
-    },
+    user: { id: user.id, email: user.email ?? "", suggestedName },
     isStaff: isStaffUser(user),
     titleTerms,
+    profileAcademicPending: profileAcademicStepPending(user),
   };
   const db = getSupabaseAdminClient();
   if (!db || base.isStaff) return base;

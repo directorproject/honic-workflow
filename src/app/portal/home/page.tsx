@@ -42,14 +42,14 @@ export default async function PortalHomePage(props: {
     redirect(`/portal?${q.toString()}`);
   }
 
-  if (!profile) {
+  if (!profile || state.profileAcademicPending) {
     return (
       <main className="bg-dash-canvas text-dash-foreground mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 py-8 sm:px-6">
         <ProfileForm
           courses={state.courses}
-          profile={null}
+          profile={profile}
           suggestedName={user.suggestedName}
-          needsPasswordSetup={user.needsPasswordSetup}
+          academicStepPending={state.profileAcademicPending}
         />
       </main>
     );

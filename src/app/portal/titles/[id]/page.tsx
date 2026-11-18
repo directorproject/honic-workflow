@@ -77,14 +77,14 @@ export default async function PortalTitlePage(props: {
   }
 
   const guest = !user;
-  if (user && !state.isStaff && !profile) {
+  if (user && !state.isStaff && (!profile || state.profileAcademicPending)) {
     return (
       <Gate>
         <ProfileForm
           courses={state.courses}
           profile={profile}
           suggestedName={user.suggestedName}
-          needsPasswordSetup={user.needsPasswordSetup}
+          academicStepPending={state.profileAcademicPending}
         />
       </Gate>
     );

@@ -37,7 +37,11 @@ import {
   STUDY_LEVELS,
   TITLE_CHANGE_FEE_TSH,
 } from "@/lib/portal/config";
-import { getPortalUser, studentNeedsPasswordSetup } from "@/lib/portal/data";
+import {
+  getPortalUser,
+  PROFILE_ONBOARDING_ACADEMIC,
+  profileAcademicStepPending,
+} from "@/lib/portal/data";
 import { hasProjectDocumentsAccess } from "@/lib/portal/document-access";
 import { chooseTitle, hideTitleFromPeers, loadLiterature } from "@/lib/portal/title-choices";
 import { hasActiveDeskPlan, titleHideEntitlement } from "@/lib/portal/title-limits";
@@ -65,8 +69,6 @@ async function requireStudent() {
 export type ProfileInput = {
   fullName: string;
   phone: string;
-  password?: string;
-  password2?: string;
   institution: string;
   courseCode: string;
   courseOther: string;
@@ -79,9 +81,32 @@ export type ProfileInput = {
 export type ProfileEssentialsInput = {
   fullName: string;
   phone: string;
-  password?: string;
-  password2?: string;
 };
+
+async function clearProfileOnboardingMeta(userId: string): Promise<void> {
+  const db = getSupabaseAdminClient();
+  if (!db) return;
+  const { data, error } = await db.auth.admin.getUserById(userId);
+  if (error || !data.user) return;
+  const existing = (data.user.user_metadata ?? {}) as Record<string, unknown>;
+  const { portal_profile_onboarding: _drop, ...rest } = existing;
+  const merged = { ...rest };
+  await db.auth.admin.updateUserById(userId, { user_metadata: merged });
+  const supabase = await createSupabaseServerClient();
+  await supabase.auth.updateUser({ data: merged });
+}
+
+async function markProfileAcademicPending(userId: string): Promise<void> {
+  const db = getSupabaseAdminClient();
+  if (!db) return;
+  const { data, error } = await db.auth.admin.getUserById(userId);
+  if (error || !data.user) return;
+  const existing = (data.user.user_metadata ?? {}) as Record<string, unknown>;
+  const merged = { ...existing, portal_profile_onboarding: PROFILE_ONBOARDING_ACADEMIC };
+  await db.auth.admin.updateUserById(userId, { user_metadata: merged });
+  const supabase = await createSupabaseServerClient();
+  await supabase.auth.updateUser({ data: merged });
+}
 
 async function defaultActiveCourseCode(db: Awaited<ReturnType<typeof requireStudent>>["db"]): Promise<string> {
   const { data: course } = await db
@@ -94,10 +119,7 @@ async function defaultActiveCourseCode(db: Awaited<ReturnType<typeof requireStud
   return course?.code ? String(course.code) : "ETE";
 }
 
-async function validateAndApplyProfileEssentials(
-  user: Awaited<ReturnType<typeof requireStudent>>["user"],
-  input: ProfileEssentialsInput,
-): Promise<PortalResult | { fullName: string; phone: string }> {
+function validateProfileEssentials(input: ProfileEssentialsInput): PortalResult | { fullName: string; phone: string } {
   const fullName = clean(input.fullName, 120);
   if (!fullName) return { ok: false, message: "Enter your full name." };
   const phone = clean(input.phone, 30);
@@ -105,23 +127,14 @@ async function validateAndApplyProfileEssentials(
   if (!toSnippePhone(phone)) {
     return { ok: false, message: "Enter a valid Tanzanian mobile number (e.g. 07XX XXX XXX)." };
   }
-  if (studentNeedsPasswordSetup(user)) {
-    const password = String(input.password ?? "");
-    const password2 = String(input.password2 ?? "");
-    if (password.length < 8) return { ok: false, message: "Choose a password with at least 8 characters." };
-    if (password !== password2) return { ok: false, message: "The two passwords do not match." };
-    const supabase = await createSupabaseServerClient();
-    const { error } = await supabase.auth.updateUser({ password });
-    if (error) return { ok: false, message: error.message };
-  }
   return { fullName, phone };
 }
 
-/** Save only account essentials; course and institution use defaults until you update them later. */
-export async function portalSkipProfileAction(input: ProfileEssentialsInput): Promise<PortalResult> {
+/** Step 1: save full name and phone; course defaults until step 2 or skip. */
+export async function portalSaveProfileEssentialsAction(input: ProfileEssentialsInput): Promise<PortalResult> {
   try {
     const { user, db } = await requireStudent();
-    const essentials = await validateAndApplyProfileEssentials(user, input);
+    const essentials = validateProfileEssentials(input);
     if ("ok" in essentials) return essentials;
 
     const courseCode = await defaultActiveCourseCode(db);
@@ -142,6 +155,27 @@ export async function portalSkipProfileAction(input: ProfileEssentialsInput): Pr
     };
     const { error } = await db.from("student_profiles").upsert(row, { onConflict: "user_id" });
     if (error) return { ok: false, message: error.message };
+    await markProfileAcademicPending(user.id);
+    revalidatePath("/portal");
+    revalidatePath("/portal/home");
+    return { ok: true, message: "essentials_saved" };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not save your details." };
+  }
+}
+
+/** Step 2 skip: keep name and phone; course and institution stay on defaults. */
+export async function portalSkipProfileAction(): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    if (!profileAcademicStepPending(user)) {
+      return { ok: false, message: "Finish your name and phone first." };
+    }
+    const { data: profile } = await db.from("student_profiles").select("full_name, phone").eq("user_id", user.id).maybeSingle();
+    if (!profile?.full_name || !profile?.phone) {
+      return { ok: false, message: "Enter your name and phone on the previous step." };
+    }
+    await clearProfileOnboardingMeta(user.id);
     revalidatePath("/portal");
     revalidatePath("/portal/titles");
     revalidatePath("/portal/home");
@@ -161,9 +195,10 @@ export async function portalSaveProfileAction(input: ProfileInput): Promise<Port
       .eq("user_id", user.id)
       .maybeSingle();
     const isNewProfile = !existingProfile;
+    const academicPending = profileAcademicStepPending(user);
 
     if (isNewProfile) {
-      const essentials = await validateAndApplyProfileEssentials(user, input);
+      const essentials = validateProfileEssentials(input);
       if ("ok" in essentials) return essentials;
     }
 
@@ -185,8 +220,8 @@ export async function portalSaveProfileAction(input: ProfileInput): Promise<Port
       partner: null,
     };
     if (!row.full_name) return { ok: false, message: "Enter your full name." };
-    if (isNewProfile && !row.phone) return { ok: false, message: "Enter your mobile number." };
-    if (isNewProfile && row.phone && !toSnippePhone(row.phone)) {
+    if ((isNewProfile || academicPending) && !row.phone) return { ok: false, message: "Enter your mobile number." };
+    if (row.phone && !toSnippePhone(row.phone)) {
       return { ok: false, message: "Enter a valid Tanzanian mobile number (e.g. 07XX XXX XXX)." };
     }
     if (courseCode === OTHER_COURSE_CODE && !row.course_other) {
@@ -214,7 +249,11 @@ export async function portalSaveProfileAction(input: ProfileInput): Promise<Port
       .from("student_profiles")
       .upsert({ user_id: user.id, ...row, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
     if (error) return { ok: false, message: error.message };
+    if (academicPending || isNewProfile) await clearProfileOnboardingMeta(user.id);
     revalidatePath("/portal");
+    revalidatePath("/portal/titles");
+    revalidatePath("/portal/home");
+    revalidatePath("/portal/packs");
     return { ok: true };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not save." };
