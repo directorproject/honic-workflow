@@ -45,7 +45,13 @@ export default async function DocumentPacksPage() {
   const planLabel = guest
     ? "Preview · create an account to activate"
     : planActive
-      ? `Active · ${profile?.deskPlan === "semester" ? "Semester" : "Full year"} · until ${formatShort(profile?.deskExpiresAt)}`
+      ? `Active · ${
+          profile?.deskPlan === "semester"
+            ? "Semester"
+            : profile?.deskPlan === "monthly"
+              ? "Monthly"
+              : "Full year"
+        } · until ${formatShort(profile?.deskExpiresAt)}`
       : "Free plan · pay to hide and make yours";
 
   return (
