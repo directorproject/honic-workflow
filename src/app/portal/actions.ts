@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { revalidatePortalCatalogue } from "@/lib/portal/portal-catalogue-cache";
 
@@ -158,7 +159,7 @@ export async function portalSaveProfileEssentialsAction(input: ProfileEssentials
     await markProfileAcademicPending(user.id);
     revalidatePath("/portal");
     revalidatePath("/portal/home");
-    return { ok: true, message: "essentials_saved" };
+    return { ok: true };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not save your details." };
   }
@@ -166,8 +167,10 @@ export async function portalSaveProfileEssentialsAction(input: ProfileEssentials
 
 /** Step 2 skip: keep name and phone; course and institution stay on defaults. */
 export async function portalSkipProfileAction(): Promise<PortalResult> {
+  let userId: string;
   try {
     const { user, db } = await requireStudent();
+    userId = user.id;
     if (!profileAcademicStepPending(user)) {
       return { ok: false, message: "Finish your name and phone first." };
     }
@@ -175,18 +178,19 @@ export async function portalSkipProfileAction(): Promise<PortalResult> {
     if (!profile?.full_name || !profile?.phone) {
       return { ok: false, message: "Enter your name and phone on the previous step." };
     }
-    await clearProfileOnboardingMeta(user.id);
-    revalidatePath("/portal");
-    revalidatePath("/portal/titles");
-    revalidatePath("/portal/home");
-    revalidatePath("/portal/packs");
-    return { ok: true };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not continue." };
   }
+  await clearProfileOnboardingMeta(userId);
+  revalidatePath("/portal");
+  revalidatePath("/portal/titles");
+  revalidatePath("/portal/home");
+  revalidatePath("/portal/packs");
+  redirect("/portal/packs");
 }
 
 export async function portalSaveProfileAction(input: ProfileInput): Promise<PortalResult> {
+  let goToPlans = false;
   try {
     const { user, db } = await requireStudent();
     const { data: existingProfile } = await db
@@ -249,15 +253,19 @@ export async function portalSaveProfileAction(input: ProfileInput): Promise<Port
       .from("student_profiles")
       .upsert({ user_id: user.id, ...row, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
     if (error) return { ok: false, message: error.message };
-    if (academicPending || isNewProfile) await clearProfileOnboardingMeta(user.id);
+    const finishedOnboarding = academicPending || isNewProfile;
+    if (finishedOnboarding) await clearProfileOnboardingMeta(user.id);
     revalidatePath("/portal");
     revalidatePath("/portal/titles");
     revalidatePath("/portal/home");
     revalidatePath("/portal/packs");
+    goToPlans = academicPending;
     return { ok: true };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not save." };
   }
+  if (goToPlans) redirect("/portal/packs");
+  return { ok: true };
 }
 
 const SELECT_ERRORS: Record<string, string> = {

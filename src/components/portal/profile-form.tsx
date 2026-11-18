@@ -96,10 +96,10 @@ export function ProfileForm({
   const [projectCategory, setProjectCategory] = useState(profile?.projectCategory ?? "");
 
   const listedCourses = courses.filter((c) => c.code !== OTHER_COURSE_CODE);
-  const afterSavePath = editMode ? "/portal/home?tab=account" : "/portal/titles";
+  const afterSavePath = editMode ? "/portal/home?tab=account" : "/portal/packs";
 
   function goNext() {
-    router.push(afterSavePath);
+    router.replace(afterSavePath);
     router.refresh();
   }
 
@@ -138,7 +138,7 @@ export function ProfileForm({
                 academicYear: get("academicYear"),
               });
               setStatus(res);
-              if (res.ok) goNext();
+              if (res.ok && editMode) goNext();
             });
           }}
           showAccountFields
@@ -151,11 +151,11 @@ export function ProfileForm({
 
   return (
     <Card
-      title={onboardingStep === "essentials" ? "Your account" : "Course & institution"}
+      title={onboardingStep === "essentials" ? "Step 1 · Account credentials" : "Step 2 · Course & institution"}
       subtitle={
         onboardingStep === "essentials"
-          ? "Step 1 of 2 — same for email and Google sign-in. Enter your full name and mobile number."
-          : "Step 2 of 2 — pick your course and institution, or skip and set them later under My account."
+          ? "Same for email and Google sign-in."
+          : "You can skip and add these later under My account."
       }
     >
       {onboardingStep === "essentials" ? (
@@ -170,15 +170,16 @@ export function ProfileForm({
                 fullName: String(fd.get("fullName") ?? ""),
                 phone: String(fd.get("phone") ?? ""),
               });
-              setStatus(res);
               if (res.ok) {
+                setStatus(null);
                 setOnboardingStep("academic");
                 router.refresh();
+              } else {
+                setStatus(res);
               }
             });
           }}
         >
-          <p className="text-dash-muted-foreground text-xs font-semibold uppercase tracking-wide">Step 1 / 2</p>
           <Field label="Full name *">
             <input
               name="fullName"
@@ -238,10 +239,9 @@ export function ProfileForm({
                 academicYear: get("academicYear"),
               });
               setStatus(res);
-              if (res.ok) goNext();
+              // Step 2 completion redirects server-side to /portal/packs.
             });
           }}
-          stepBadge="Step 2 / 2"
           submitLabel="Save and continue"
           extraActions={
             <>
@@ -253,8 +253,8 @@ export function ProfileForm({
                   setStatus(null);
                   startTransition(async () => {
                     const res = await portalSkipProfileAction();
-                    setStatus(res);
-                    if (res.ok) goNext();
+                    if (!res.ok) setStatus(res);
+                    // Success redirects server-side to /portal/packs.
                   });
                 }}
               >
@@ -288,7 +288,6 @@ function AcademicDetailsForm({
   status,
   onSubmit,
   showAccountFields,
-  stepBadge,
   submitLabel,
   extraActions,
 }: {
@@ -310,7 +309,6 @@ function AcademicDetailsForm({
   status: PortalResult | null;
   onSubmit: (get: (key: string) => string) => void;
   showAccountFields?: boolean;
-  stepBadge?: string;
   submitLabel: string;
   extraActions?: ReactNode;
 }) {
@@ -324,10 +322,6 @@ function AcademicDetailsForm({
         onSubmit(get);
       }}
     >
-      {stepBadge ? (
-        <p className="text-dash-muted-foreground sm:col-span-2 text-xs font-semibold uppercase tracking-wide">{stepBadge}</p>
-      ) : null}
-
       {showAccountFields ? (
         <>
           <Field label="Full name *">

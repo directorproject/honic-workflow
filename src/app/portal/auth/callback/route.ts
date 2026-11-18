@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     const staffBlock = await rejectStaffOnPortal(supabase, origin);
     if (staffBlock) return staffBlock;
     if (type === "recovery") next = "/portal/reset";
-    if (type === "signup" && (next === "/portal" || next === "/portal/home" || next === "/portal/packs")) next = "/portal/titles";
+    if (type === "signup" && (next === "/portal" || next === "/portal/home")) next = "/portal/packs";
     return NextResponse.redirect(`${origin}${next}`);
   }
 
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
         role,
       });
       if (role === "supervisor" && !next.startsWith("/supervisor")) next = "/supervisor";
-      if (role === "student" && (next === "/portal" || next === "/portal/home")) next = "/portal/titles";
+      if (role === "student" && (next === "/portal" || next === "/portal/home")) next = "/portal/packs";
     }
 
     return NextResponse.redirect(`${origin}${next}`);

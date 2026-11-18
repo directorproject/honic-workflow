@@ -67,7 +67,7 @@ export async function portalSignUpAction(
   if (!name) return { ok: false, message: "Enter your name." };
 
   const isSupervisor = role === "supervisor";
-  const nextPath = isSupervisor ? "/supervisor" : "/portal/titles";
+  const nextPath = isSupervisor ? "/supervisor" : "/portal/packs";
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
     email: e,
@@ -102,8 +102,8 @@ export async function portalSignUpAction(
     }
     revalidatePath("/portal");
     revalidatePath("/portal/home");
-    revalidatePath("/portal/titles");
-    redirect("/portal/titles");
+    revalidatePath("/portal/packs");
+    redirect("/portal/packs");
   }
   redirect(isSupervisor ? "/supervisor?auth=signin&notice=check_email" : "/portal?auth=signin&notice=check_email");
 }
@@ -152,11 +152,11 @@ export async function portalSignInAction(
         revalidatePath("/supervisor");
         redirect("/supervisor");
       }
-      // New student accounts (no profile yet) land on literature first unless opening a specific page.
+      // New students finish profile on Plans first unless opening a specific page.
       if (!profile) {
         revalidatePath("/portal");
-        revalidatePath("/portal/titles");
-        redirect(nextPath ?? "/portal/titles");
+        revalidatePath("/portal/packs");
+        redirect(nextPath ?? "/portal/packs");
       }
     } else if (preferredRole === "supervisor" && data.user?.id) {
       await upsertSupervisorProfile(data.user.id, e, name);
