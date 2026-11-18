@@ -28,3 +28,9 @@ export const PEER_HELP_FORBIDDEN_HINT = "Do not ask for whole reports, exam answ
 export function peerHelpRulesError(): string {
   return "Accept the peer-help rules before you continue.";
 }
+export const PEER_HELP_METADATA_KEY = "peer_help_rules_version";
+
+/** True when this student has accepted the current version of the peer-help rules. */
+export function peerHelpAccepted(user: { user_metadata?: Record<string, unknown> } | null | undefined): boolean {
+  return (user?.user_metadata?.[PEER_HELP_METADATA_KEY] ?? null) === PEER_HELP_RULES_VERSION;
+}

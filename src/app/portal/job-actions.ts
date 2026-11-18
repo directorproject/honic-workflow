@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 
 import { isStaffUser } from "@/lib/auth-staff";
 import { getPortalUser } from "@/lib/portal/data";
-import { peerHelpRulesError } from "@/lib/portal/jobs-peer-help";
+import { peerHelpAccepted, PEER_HELP_METADATA_KEY, PEER_HELP_RULES_VERSION, peerHelpRulesError } from "@/lib/portal/jobs-peer-help";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   acceptApplication,
   applyToJob,
@@ -33,11 +34,10 @@ export async function portalPostJobAction(input: {
   description: string;
   offerTsh: number;
   priceMode: string;
-  peerHelpRulesAccepted?: boolean;
 }): Promise<PortalResult> {
   try {
-    if (!input.peerHelpRulesAccepted) return { ok: false, message: peerHelpRulesError() };
     const { user, db } = await requireStudent();
+    if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
     const priceMode: JobPriceMode = input.priceMode === "negotiable" ? "negotiable" : "fixed";
     const result = await createJob(db, {
       userId: user.id,
@@ -63,11 +63,10 @@ export async function portalUpdateJobAction(input: {
   description: string;
   offerTsh: number;
   priceMode: string;
-  peerHelpRulesAccepted?: boolean;
 }): Promise<PortalResult> {
   try {
-    if (!input.peerHelpRulesAccepted) return { ok: false, message: peerHelpRulesError() };
     const { user, db } = await requireStudent();
+    if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
     const priceMode: JobPriceMode = input.priceMode === "negotiable" ? "negotiable" : "fixed";
     const jobPublicId = String(input.jobPublicId ?? "");
     const result = await updateJob(db, {
@@ -108,11 +107,10 @@ export async function portalApplyJobAction(input: {
   jobPublicId: string;
   message: string;
   proposedTsh?: number | null;
-  peerHelpRulesAccepted?: boolean;
 }): Promise<PortalResult> {
   try {
-    if (!input.peerHelpRulesAccepted) return { ok: false, message: peerHelpRulesError() };
     const { user, db } = await requireStudent();
+    if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
     const result = await applyToJob(db, {
       userId: user.id,
       jobPublicId: String(input.jobPublicId ?? ""),
@@ -135,6 +133,7 @@ export async function portalApplyJobAction(input: {
 export async function portalAcceptJobApplicationAction(applicationPublicId: string): Promise<PortalResult> {
   try {
     const { user, db } = await requireStudent();
+    if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
     const result = await acceptApplication(db, {
       userId: user.id,
       applicationPublicId: String(applicationPublicId ?? ""),
@@ -151,6 +150,7 @@ export async function portalAcceptJobApplicationAction(applicationPublicId: stri
 export async function portalJobMessageAction(applicationPublicId: string, body: string): Promise<PortalResult> {
   try {
     const { user, db } = await requireStudent();
+    if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
     const result = await postJobMessage(db, {
       userId: user.id,
       applicationPublicId: String(applicationPublicId ?? ""),
@@ -162,5 +162,30 @@ export async function portalJobMessageAction(applicationPublicId: string, body: 
     return { ok: true, message: "Message sent." };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not send message." };
+  }
+}
+
+
+/** Records the student's acceptance of the current peer-help rules. Required before any post, offer, or message. */
+export async function portalAcceptPeerHelpRulesAction(): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    const { data, error } = await db.auth.admin.getUserById(user.id);
+    if (error) return { ok: false, message: error.message };
+    if (!data.user) return { ok: false, message: "Please sign in again." };
+    const merged = {
+      ...((data.user.user_metadata ?? {}) as Record<string, unknown>),
+      [PEER_HELP_METADATA_KEY]: PEER_HELP_RULES_VERSION,
+      peer_help_rules_accepted_at: new Date().toISOString(),
+    };
+    const { error: updateError } = await db.auth.admin.updateUserById(user.id, { user_metadata: merged });
+    if (updateError) return { ok: false, message: updateError.message };
+    const supabase = await createSupabaseServerClient();
+    await supabase.auth.updateUser({ data: merged });
+    revalidatePath("/portal/jobs");
+    revalidatePath("/portal/jobs/mine");
+    return { ok: true, message: "Thanks. You can now use peer help." };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not save your acceptance." };
   }
 }

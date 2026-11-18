@@ -87,6 +87,7 @@ export default async function PortalMyJobsPage() {
           myJobs={myJobs}
           myApplications={myApplications}
           canUseJobs={hasActiveDeskPlan(profile?.deskExpiresAt)}
+          needsPolicy={Boolean(user) && !state.isStaff && !state.peerHelpAccepted}
         />
       </PortalShell>
     </Suspense>

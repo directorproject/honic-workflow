@@ -50,6 +50,7 @@ export default async function PortalJobsPage() {
           .join(" · ") || user!.email;
 
   const canUseJobs = !guest && hasActiveDeskPlan(profile?.deskExpiresAt);
+  const needsPolicy = !guest && !state.isStaff && !state.peerHelpAccepted;
 
   return (
     <Suspense fallback={<main className="bg-dash-canvas min-h-screen" />}>
@@ -60,7 +61,7 @@ export default async function PortalJobsPage() {
         hasProgress={Boolean(profile?.trackedProjectId)}
         deskExpiresAt={profile?.deskExpiresAt ?? null}
       >
-        <JobsBrowseBoard openJobs={openJobs} canUseJobs={canUseJobs} guest={guest} />
+        <JobsBrowseBoard openJobs={openJobs} canUseJobs={canUseJobs} guest={guest} needsPolicy={needsPolicy} />
       </PortalShell>
     </Suspense>
   );

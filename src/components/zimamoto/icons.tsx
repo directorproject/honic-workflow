@@ -161,3 +161,52 @@ export const IconBell = (p: IconProps) => (
     <path d="M10 20.5a2 2 0 0 0 4 0" />
   </Icon>
 );
+
+export const IconBook = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z" />
+    <path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" />
+  </Icon>
+);
+export const IconShield = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 3 4.5 6v5.5c0 4.5 3.2 8.3 7.5 9.5 4.3-1.2 7.5-5 7.5-9.5V6L12 3Z" />
+    <path d="m9 12 2 2 4-4" />
+  </Icon>
+);
+export const IconWallet = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h12.5v4" />
+    <rect x="3.5" y="9" width="17" height="11" rx="2.5" />
+    <circle cx="16.5" cy="14.5" r="1" />
+  </Icon>
+);
+export const IconClock = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+  </Icon>
+);
+export const IconInbox = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3 13.5 6 5h12l3 8.5V19a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19v-5.5Z" />
+    <path d="M3 13.5h5l1.5 2.5h5l1.5-2.5h5" />
+  </Icon>
+);
+export const IconSparkle = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6" />
+  </Icon>
+);
+export const IconTag = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3 12V4.5A1.5 1.5 0 0 1 4.5 3H12l9 9-9 9-9-9Z" />
+    <circle cx="8" cy="8" r="1.5" />
+  </Icon>
+);
+export const IconEdit = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 20h4L19 9l-4-4L4 16v4Z" />
+    <path d="m13.5 6.5 4 4" />
+  </Icon>
+);

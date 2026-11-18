@@ -170,7 +170,7 @@ export function ProfileForm({
 
         {onboardingStep === "essentials" ? (
           <form
-            className="grid gap-3"
+            className="grid gap-4 sm:grid-cols-2 sm:gap-5"
             onSubmit={(e) => {
               e.preventDefault();
               const fd = new FormData(e.currentTarget);
@@ -209,7 +209,7 @@ export function ProfileForm({
                 defaultValue={profile?.phone ?? ""}
               />
             </Field>
-            <div className="mt-1 flex flex-col gap-2">
+            <div className="mt-1 flex flex-col gap-2 sm:col-span-2">
               <button type="submit" disabled={pending} className={`${PRIMARY} w-full`}>
                 {pending ? <Spinner /> : null}
                 {pending ? "Saving…" : "Continue"}

@@ -6,7 +6,10 @@ import { SiteFooter } from "@/components/portal/site-footer";
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1600&q=80";
 
-/** Full-page website chrome for first-time student profile setup (not a doc card). */
+/**
+ * First-time student profile setup. A short hero band sits above the form on every screen size,
+ * and the form uses the full width on desktop.
+ */
 export function OnboardingShell({
   step,
   children,
@@ -20,45 +23,43 @@ export function OnboardingShell({
         <NexisBrandBar href="/portal" subtitle="Student portal" />
       </div>
 
-      <div className="grid flex-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        {/* Brand panel — website feel on desktop; compact band on mobile */}
-        <aside className="relative overflow-hidden lg:min-h-[calc(100vh-3.5rem)]">
-          <div
-            aria-hidden
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${HERO_IMAGE})` }}
-          />
-          <div
-            aria-hidden
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(165deg, color-mix(in oklab, #0f172a 90%, transparent) 0%, color-mix(in oklab, #0f172a 72%, transparent) 55%, color-mix(in oklab, #0f172a 50%, transparent) 100%), radial-gradient(ellipse 55% 50% at 80% 15%, color-mix(in oklab, #06b6d4 32%, transparent), transparent 60%)",
-            }}
-          />
-          <div className="relative flex min-h-[11rem] flex-col justify-end px-5 py-8 sm:min-h-[13rem] sm:px-8 sm:py-10 lg:min-h-full lg:px-12 lg:py-14">
-            <p className="text-[10px] font-semibold tracking-[0.26em] text-cyan-200/90 uppercase sm:text-[11px]">
-              Honic Nexis
-            </p>
-            <h1 className="mt-2 max-w-sm text-2xl leading-tight font-semibold tracking-tight text-white sm:text-3xl lg:text-4xl">
-              {step === 1 ? "Set up your account" : "Almost ready"}
-            </h1>
-            <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/75 sm:mt-3">
-              {step === 1
-                ? "Name and phone first — same for email and Google. Then you can open plans."
-                : "Add your course and institution, or skip and finish later."}
-            </p>
-            <p className="mt-5 font-mono text-xs tracking-wide text-white/50">
-              Step {step} of 2
-            </p>
+      {/* Compact hero band (phone height on all screens) */}
+      <aside className="relative overflow-hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${HERO_IMAGE})` }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(165deg, color-mix(in oklab, #0f172a 92%, transparent) 0%, color-mix(in oklab, #0f172a 75%, transparent) 60%, color-mix(in oklab, #0f172a 55%, transparent) 100%), radial-gradient(ellipse 55% 60% at 85% 10%, color-mix(in oklab, #06b6d4 30%, transparent), transparent 60%)",
+          }}
+        />
+        <div className="relative mx-auto flex h-36 w-full max-w-5xl flex-col justify-end px-5 pb-5 sm:h-40 sm:px-8 sm:pb-6 lg:px-10">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold tracking-[0.26em] text-cyan-200/90 uppercase sm:text-[11px]">Honic Nexis</p>
+              <h1 className="mt-1 text-xl leading-tight font-semibold tracking-tight text-white sm:text-2xl">
+                {step === 1 ? "Set up your account" : "Almost ready"}
+              </h1>
+              <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/75 sm:text-sm">
+                {step === 1
+                  ? "Name and phone first — same for email and Google. Then you can open plans."
+                  : "Add your course and institution, or skip and finish later."}
+              </p>
+            </div>
+            <p className="font-mono text-[11px] tracking-wide text-white/60">Step {step} of 2</p>
           </div>
-        </aside>
+        </div>
+      </aside>
 
-        {/* Form column */}
-        <section className="flex flex-col justify-center px-4 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-16">
-          <div className="mx-auto w-full max-w-[22rem] sm:max-w-sm">{children}</div>
-        </section>
-      </div>
+      {/* Form: full width on desktop, phone width on small screens */}
+      <section className="flex-1 px-4 py-6 sm:px-8 sm:py-10 lg:px-10">
+        <div className="mx-auto w-full max-w-3xl">{children}</div>
+      </section>
 
       <SiteFooter />
     </main>

@@ -70,6 +70,7 @@ export default async function PortalJobDetailPage(props: { params: Promise<{ id:
           myApplication={myApplication}
           messagesByApplicationPublicId={messagesByApplicationPublicId}
           canUseJobs={!guest && hasActiveDeskPlan(profile?.deskExpiresAt)}
+          needsPolicy={Boolean(user) && !state.isStaff && !state.peerHelpAccepted}
         />
       </PortalShell>
     </Suspense>

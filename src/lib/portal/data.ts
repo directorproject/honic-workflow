@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { cache } from "react";
 
 import { isStaffUser } from "@/lib/auth-staff";
+import { peerHelpAccepted } from "@/lib/portal/jobs-peer-help";
 import { PORTAL_COURSES_TAG } from "@/lib/portal/portal-catalogue-cache";
 import { titleTermsStatus, type TermsProgress } from "@/lib/portal/title-terms";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -99,6 +100,8 @@ export type PortalState = {
   titleTerms: TermsProgress | null;
   /** Name and phone saved; course/institution step still open. */
   profileAcademicPending: boolean;
+  /** Student has accepted the current peer-help rules (stored on the account). */
+  peerHelpAccepted: boolean;
 };
 
 export async function getPortalUser(): Promise<User | null> {
@@ -153,6 +156,7 @@ export const loadPortalState = cache(async (): Promise<PortalState> => {
     availableTitles: [],
     titleTerms: null,
     profileAcademicPending: false,
+    peerHelpAccepted: false,
   };
   if (!user) return empty;
 
@@ -165,6 +169,7 @@ export const loadPortalState = cache(async (): Promise<PortalState> => {
     isStaff: isStaffUser(user),
     titleTerms,
     profileAcademicPending: profileAcademicStepPending(user),
+    peerHelpAccepted: peerHelpAccepted(user),
   };
   const db = getSupabaseAdminClient();
   if (!db || base.isStaff) return base;

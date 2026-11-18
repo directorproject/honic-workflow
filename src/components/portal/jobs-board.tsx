@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 
 import type { PortalResult } from "@/app/portal/auth-actions";
 import {
@@ -13,14 +13,26 @@ import {
   portalPostJobAction,
   portalUpdateJobAction,
 } from "@/app/portal/job-actions";
-import { PeerHelpRulesCheckbox, PeerHelpRulesSummary } from "@/components/portal/peer-help-rules-fields";
-import { Field, StatusText } from "@/components/portal/portal-ui";
+import { PeerHelpPolicyGate } from "@/components/portal/peer-help-policy-gate";
+import { Avatar, Chip } from "@/components/zimamoto/ui";
+import {
+  IconBack,
+  IconChat,
+  IconCheck,
+  IconClock,
+  IconEdit,
+  IconInbox,
+  IconLock,
+  IconPlus,
+  IconSearch,
+  IconSend,
+  IconShield,
+  IconSparkle,
+  IconTag,
+  IconTrash,
+  IconWallet,
+} from "@/components/zimamoto/icons";
 import { toUserError } from "@/lib/portal/user-errors";
-
-const INPUT =
-  "border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-sm border px-3 py-2.5 text-sm outline-none focus:ring-2";
-const PRIMARY =
-  "bg-dash-accent inline-flex cursor-pointer items-center justify-center gap-2 rounded-sm px-4 py-2.5 text-sm font-semibold text-white transition-opacity disabled:cursor-wait disabled:opacity-60";
 import {
   JOB_CATEGORIES,
   jobRefLabel,
@@ -31,229 +43,391 @@ import {
 import { formatTsh } from "@/lib/workspace/constants";
 import { formatDate, formatDateTime } from "@/lib/workspace/dates";
 
-/** Browse open posted jobs only (view free; apply needs paid plan). */
-export function JobsBrowseBoard({
-  openJobs,
-  canUseJobs,
-  guest = false,
+const INPUT =
+  "border-dash-border bg-dash-canvas text-dash-foreground placeholder:text-dash-muted-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none focus:ring-2";
+const PRIMARY =
+  "bg-dash-accent inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50";
+const SOFT =
+  "bg-dash-muted text-dash-foreground inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition hover:opacity-90";
+const CARD = "border-dash-border bg-dash-card rounded-2xl border";
+
+/** Peer-help policy gate wrapper: blocks the page until the student accepts the rules. */
+function PolicyWall({ needed, children }: { needed: boolean; children: ReactNode }) {
+  // The modal sits outside the inert wrapper so it stays clickable while the page behind is locked.
+  return (
+    <>
+      {needed ? <PeerHelpPolicyGate /> : null}
+      <div inert={needed ? true : undefined}>{children}</div>
+    </>
+  );
+}
+
+function Hero({
+  eyebrow,
+  title,
+  subtitle,
+  children,
 }: {
-  openJobs: PortalJob[];
-  canUseJobs: boolean;
-  guest?: boolean;
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  children?: ReactNode;
 }) {
   return (
-    <div className="mx-auto max-w-5xl space-y-8 pb-10">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.22em] uppercase">Honic Nexis</p>
-          <h1 className="text-dash-foreground mt-1 text-3xl font-semibold tracking-tight">Peer help</h1>
-          <p className="text-dash-muted-foreground mt-1 text-sm">
-            {canUseJobs
-              ? "Open help requests — view details and offer to help."
-              : guest
-                ? "Preview: read every request. Sign in (then a Desk plan) to post or offer help."
-                : "Free plan: browse peer help. Upgrade to post or offer help."}
-          </p>
+    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 p-6 text-white sm:p-8">
+      <div aria-hidden className="absolute -top-12 -right-12 h-48 w-48 rounded-full bg-white/10" />
+      <div aria-hidden className="absolute right-20 -bottom-16 h-36 w-36 rounded-full bg-white/10" />
+      <div className="relative flex flex-wrap items-end justify-between gap-5">
+        <div className="max-w-xl">
+          <p className="text-xs font-semibold tracking-[0.2em] text-white/80 uppercase">{eyebrow}</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
+          <p className="mt-2 text-sm text-white/85 sm:text-base">{subtitle}</p>
         </div>
-        <Link href={guest ? "/portal?auth=signin" : "/portal/jobs/mine"} className={`${PRIMARY} shrink-0`}>
-          {guest ? "Sign in to manage" : "My requests & offers"}
-        </Link>
-      </header>
+        {children ? <div className="flex flex-wrap gap-2">{children}</div> : null}
+      </div>
+    </section>
+  );
+}
 
-      <PeerHelpRulesSummary />
-
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">Open now</h2>
-          <p className="text-dash-muted-foreground text-sm tabular-nums">{openJobs.length}</p>
-        </div>
-        {openJobs.length ? (
-          <ul className="grid gap-3">
-            {openJobs.map((job) => (
-              <JobCard key={job.id} job={job} canApply={canUseJobs} />
-            ))}
-          </ul>
-        ) : (
-          <div className="border-dash-border bg-dash-card rounded-md border px-5 py-8 text-center">
-            <p className="text-dash-muted-foreground text-sm">No open help requests yet.</p>
-            {canUseJobs ? (
-              <Link href="/portal/jobs/mine" className={`${PRIMARY} mt-4 inline-flex`}>
-                Request help
-              </Link>
-            ) : (
-              <Link href="/portal/packs" className={`${PRIMARY} mt-4 inline-flex`}>
-                View plans to post
-              </Link>
-            )}
-          </div>
-        )}
-      </section>
+function Stat({ icon, label, value }: { icon: ReactNode; label: string; value: string | number }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl bg-white/15 px-4 py-3 backdrop-blur">
+      <span className="text-white">{icon}</span>
+      <span>
+        <span className="block text-lg leading-none font-bold tabular-nums">{value}</span>
+        <span className="text-[11px] text-white/80">{label}</span>
+      </span>
     </div>
   );
 }
 
-function StatusPill({ children }: { children: ReactNode }) {
+function StatusChip({ status }: { status: string }) {
+  const tone =
+    status === "open" || status === "pending"
+      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+      : status === "accepted" || status === "assigned"
+        ? "bg-sky-500/15 text-sky-700 dark:text-sky-300"
+        : "bg-dash-muted text-dash-muted-foreground";
+  return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize ${tone}`}>{status}</span>;
+}
+
+function LockNotice({ children, href, cta }: { children: ReactNode; href: string; cta: string }) {
   return (
-    <span className="border-dash-border text-dash-muted-foreground inline-flex rounded-sm border px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase">
-      {children}
-    </span>
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+      <p className="flex items-start gap-2 text-sm text-amber-900 dark:text-amber-200">
+        <IconLock size={16} className="mt-0.5 shrink-0" />
+        <span>{children}</span>
+      </p>
+      <Link href={href} className={`${PRIMARY} !py-2`}>
+        {cta}
+      </Link>
+    </div>
   );
 }
 
 function JobsPlanGate({ action }: { action: "post" | "apply" }) {
   return (
-    <div className="border-dash-border bg-dash-card rounded-md border px-4 py-5 sm:px-5">
-      <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">Nexis Desk</p>
-      <h2 className="text-dash-foreground mt-1 text-base font-semibold">
-        {action === "post"
-          ? "Requesting help needs a paid plan"
-          : "You can read this request · offering help needs a paid plan"}
+    <div className={`${CARD} p-5`}>
+      <span className="bg-dash-accent/10 text-dash-accent inline-flex h-10 w-10 items-center justify-center rounded-xl">
+        <IconLock size={18} />
+      </span>
+      <h2 className="text-dash-foreground mt-3 text-base font-bold">
+        {action === "post" ? "Requesting help needs a plan" : "Offering help needs a plan"}
       </h2>
-      <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
-        Browse freely. {action === "post" ? "Posting a help request" : "Offering to help"} needs sign-in plus an active
+      <p className="text-dash-muted-foreground mt-1.5 text-sm leading-relaxed">
+        You can read every request for free. {action === "post" ? "Posting" : "Offering to help"} needs sign-in and an active
         Nexis Desk plan.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <Link href="/portal?auth=signin" className={`${PRIMARY} inline-flex`}>
+        <Link href="/portal?auth=signin" className={PRIMARY}>
           Sign in
         </Link>
-        <Link
-          href="/portal/packs"
-          className="border-dash-border text-dash-foreground inline-flex items-center justify-center rounded-sm border px-4 py-2.5 text-sm font-semibold"
-        >
-          View plans
+        <Link href="/portal/packs#plans" className={SOFT}>
+          See plans
         </Link>
       </div>
     </div>
   );
 }
 
-/** Post and manage your own jobs + applications. */
+/* ---------------------------------------------------------------- Browse */
+
+/** Browse open requests. Anyone can read; posting and offering need a Desk plan. */
+export function JobsBrowseBoard({
+  openJobs,
+  canUseJobs,
+  guest = false,
+  needsPolicy = false,
+}: {
+  openJobs: PortalJob[];
+  canUseJobs: boolean;
+  guest?: boolean;
+  needsPolicy?: boolean;
+}) {
+  const [query, setQuery] = useState("");
+  const [cat, setCat] = useState<string>("all");
+  const [sort, setSort] = useState<"newest" | "price">("newest");
+
+  const list = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = openJobs.filter(
+      (j) =>
+        (cat === "all" || j.category === cat) &&
+        (!q || j.title.toLowerCase().includes(q) || j.description.toLowerCase().includes(q)),
+    );
+    return [...filtered].sort((a, b) => (sort === "price" ? b.offerTsh - a.offerTsh : a.createdAt < b.createdAt ? 1 : -1));
+  }, [openJobs, query, cat, sort]);
+
+  const categoriesInUse = new Set(openJobs.map((j) => j.category));
+
+  return (
+    <PolicyWall needed={needsPolicy}>
+      <div className="mx-auto max-w-6xl space-y-6 pb-12">
+        <Hero
+          eyebrow="Honic Nexis · Peer help"
+          title="Get help, give help"
+          subtitle={
+            canUseJobs
+              ? "Browse open requests, offer help, and chat anonymously. Peer help only, never ghostwriting."
+              : guest
+                ? "Preview: read every request. Sign in and join a Desk plan to post or offer help."
+                : "Browse for free. Posting and offering help unlock with a Nexis Desk plan."
+          }
+        >
+          <Stat icon={<IconInbox size={20} />} label="open requests" value={openJobs.length} />
+          {canUseJobs ? (
+            <Link href="/portal/jobs/mine" className="inline-flex items-center gap-2 self-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-teal-700">
+              <IconPlus size={16} /> Request help
+            </Link>
+          ) : guest ? (
+            <Link href="/portal?auth=signin" className="inline-flex items-center gap-2 self-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-teal-700">
+              Sign in
+            </Link>
+          ) : null}
+        </Hero>
+
+        {!canUseJobs && !guest ? (
+          <LockNotice href="/portal/packs#plans" cta="See plans">
+            Free plan: you can read any request. Posting and offering help need an active Nexis Desk plan.
+          </LockNotice>
+        ) : null}
+
+        {/* Search, sort, categories */}
+        <div className="space-y-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <label className="relative flex-1">
+              <IconSearch size={17} className="text-dash-muted-foreground absolute top-1/2 left-3.5 -translate-y-1/2" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search requests"
+                className={`${INPUT} pl-10`}
+              />
+            </label>
+            <select value={sort} onChange={(e) => setSort(e.target.value as "newest" | "price")} className={`${INPUT} sm:w-44`}>
+              <option value="newest">Newest first</option>
+              <option value="price">Highest offer</option>
+            </select>
+          </div>
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+            <CategoryChip active={cat === "all"} onClick={() => setCat("all")} label="All" />
+            {JOB_CATEGORIES.filter((c) => categoriesInUse.has(c.id)).map((c) => (
+              <CategoryChip key={c.id} active={cat === c.id} onClick={() => setCat(c.id)} label={c.label} />
+            ))}
+          </div>
+        </div>
+
+        {/* Feed */}
+        {list.length ? (
+          <ul className="grid gap-4 md:grid-cols-2">
+            {list.map((job) => (
+              <JobCard key={job.id} job={job} canApply={canUseJobs} />
+            ))}
+          </ul>
+        ) : (
+          <div className={`${CARD} px-6 py-14 text-center`}>
+            <span className="bg-dash-muted text-dash-muted-foreground mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl">
+              <IconSparkle size={24} />
+            </span>
+            <p className="text-dash-foreground mt-4 font-semibold">No requests match.</p>
+            <p className="text-dash-muted-foreground mt-1 text-sm">
+              {openJobs.length ? "Try another search or category." : "Be the first to ask for help."}
+            </p>
+            {canUseJobs ? (
+              <Link href="/portal/jobs/mine" className={`${PRIMARY} mt-5`}>
+                <IconPlus size={16} /> Request help
+              </Link>
+            ) : null}
+          </div>
+        )}
+      </div>
+    </PolicyWall>
+  );
+}
+
+function CategoryChip({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+        active ? "bg-dash-accent text-white shadow-sm" : "bg-dash-muted text-dash-muted-foreground hover:text-dash-foreground"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function JobCard({ job, canApply }: { job: PortalJob; canApply: boolean }) {
+  return (
+    <li className={`${CARD} group flex flex-col p-5 transition hover:-translate-y-0.5 hover:shadow-md`}>
+      <div className="flex items-start gap-3">
+        <Avatar name={job.posterLabel || "Student"} size={40} />
+        <div className="min-w-0 flex-1">
+          <p className="text-dash-muted-foreground truncate text-xs">
+            {job.posterLabel} · {formatDate(job.createdAt)}
+          </p>
+          <p className="text-dash-muted-foreground mt-0.5 flex items-center gap-1 text-[11px] font-semibold tracking-wide uppercase">
+            <IconTag size={12} /> {job.categoryLabel}
+          </p>
+        </div>
+        <Chip tone="neutral">{jobRefLabel(job.publicId)}</Chip>
+      </div>
+
+      <h3 className="text-dash-foreground mt-3 text-base font-bold leading-snug break-words">{job.title}</h3>
+      <p className="text-dash-muted-foreground mt-1.5 line-clamp-2 text-sm leading-relaxed">{job.description}</p>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-dash-foreground text-xl font-bold tabular-nums">{formatTsh(job.offerTsh)}</span>
+          <Chip tone="neutral">{job.priceMode === "negotiable" ? "Negotiable" : "Fixed"}</Chip>
+        </div>
+        <Link href={`/portal/jobs/${job.publicId}`} className={`${job.isMine ? SOFT : PRIMARY} !py-2`}>
+          {job.isMine ? "Manage" : canApply ? "View & offer" : "View"}
+        </Link>
+      </div>
+      {!job.isMine && !canApply ? <p className="text-dash-muted-foreground mt-2 text-[11px]">View only on the free plan</p> : null}
+    </li>
+  );
+}
+
+/* ---------------------------------------------------------------- My requests */
+
+/** Post and manage your own requests and offers. */
 export function MyJobsBoard({
   myJobs,
   myApplications,
   canUseJobs,
+  needsPolicy = false,
 }: {
   myJobs: PortalJob[];
   myApplications: PortalJobApplication[];
   canUseJobs: boolean;
+  needsPolicy?: boolean;
 }) {
+  const [tab, setTab] = useState<"requests" | "offers">("requests");
+
   return (
-    <div className="mx-auto max-w-6xl space-y-6 pb-10">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.22em] uppercase">Honic Nexis</p>
-          <h1 className="text-dash-foreground mt-1 text-3xl font-semibold tracking-tight">My requests & offers</h1>
-          <p className="text-dash-muted-foreground mt-1 text-sm">
-            {canUseJobs
-              ? "Request peer help and track offers on your listings."
-              : "Browsing peer help is free. Posting and offering help need an active Nexis Desk plan."}
-          </p>
-        </div>
-        <Link
-          href="/portal/jobs"
-          className="border-dash-border text-dash-foreground hover:bg-dash-muted inline-flex shrink-0 items-center justify-center rounded-sm border px-4 py-2.5 text-sm font-semibold transition"
+    <PolicyWall needed={needsPolicy}>
+      <div className="mx-auto max-w-6xl space-y-6 pb-12">
+        <Hero
+          eyebrow="Honic Nexis · Peer help"
+          title="My requests & offers"
+          subtitle={
+            canUseJobs
+              ? "Track the help you asked for and the offers you sent."
+              : "Browsing is free. Posting and offering help need an active Nexis Desk plan."
+          }
         >
-          Peer help board
-        </Link>
-      </header>
+          <Stat icon={<IconInbox size={20} />} label="requests" value={myJobs.length} />
+          <Stat icon={<IconSend size={20} />} label="offers" value={myApplications.length} />
+        </Hero>
 
-      <div className="text-dash-muted-foreground flex flex-wrap gap-x-5 gap-y-1 text-sm">
-        <span>
-          <strong className="text-dash-foreground tabular-nums">{myJobs.length}</strong> posts
-        </span>
-        <span>
-          <strong className="text-dash-foreground tabular-nums">{myApplications.length}</strong> applications
-        </span>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] lg:items-start">
-        <div className="space-y-6">
-          <section className="border-dash-border bg-dash-card overflow-hidden rounded-md border">
-            <div className="border-dash-border flex items-center justify-between gap-2 border-b px-4 py-3 sm:px-5">
-              <h2 className="text-dash-foreground text-base font-semibold">Your help requests</h2>
-              <span className="text-dash-muted-foreground text-xs tabular-nums">{myJobs.length}</span>
-            </div>
-            {myJobs.length ? (
-              <ul className="divide-dash-border divide-y">
-                {myJobs.map((job) => (
-                  <ManagedPostRow key={job.id} job={job} canManage={canUseJobs} />
-                ))}
-              </ul>
-            ) : (
-              <div className="px-4 py-8 text-center sm:px-5">
-                <p className="text-dash-muted-foreground text-sm">No requests yet. Use the form to ask for peer help.</p>
-              </div>
-            )}
-          </section>
-
-          <section className="border-dash-border bg-dash-card overflow-hidden rounded-md border">
-            <div className="border-dash-border flex items-center justify-between gap-2 border-b px-4 py-3 sm:px-5">
-              <h2 className="text-dash-foreground text-base font-semibold">Your offers to help</h2>
-              <span className="text-dash-muted-foreground text-xs tabular-nums">{myApplications.length}</span>
-            </div>
-            {myApplications.length ? (
-              <ul className="divide-dash-border divide-y">
-                {myApplications.map((app) => (
-                  <li key={app.id} className="flex flex-wrap items-start justify-between gap-3 px-4 py-4 sm:px-5">
-                    <div className="min-w-0 flex-1 space-y-1.5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <StatusPill>{app.status}</StatusPill>
-                        {app.jobPublicId ? (
-                          <span className="text-dash-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
-                            {jobRefLabel(app.jobPublicId)}
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="text-dash-muted-foreground line-clamp-2 text-sm">{app.message}</p>
-                      <p className="text-dash-muted-foreground text-xs">
-                        {formatDate(app.createdAt)}
-                        {app.proposedTsh != null ? ` · proposed ${formatTsh(app.proposedTsh)}` : ""}
-                      </p>
-                    </div>
-                    {app.jobPublicId ? (
-                      <Link
-                        href={`/portal/jobs/${app.jobPublicId}`}
-                        className="border-dash-border text-dash-foreground hover:bg-dash-muted shrink-0 rounded-sm border px-3 py-1.5 text-sm font-medium"
-                      >
-                        Open
-                      </Link>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="px-4 py-8 text-center sm:px-5">
-                <p className="text-dash-muted-foreground text-sm">
-                  No offers yet.{" "}
-                  <Link href="/portal/jobs" className="text-dash-accent font-semibold">
-                    Browse peer help
-                  </Link>
-                </p>
-              </div>
-            )}
-          </section>
+        <div className="flex items-center justify-between gap-3">
+          <div className="bg-dash-muted inline-flex rounded-full p-1 text-sm font-semibold">
+            {(
+              [
+                { id: "requests", label: "Requests", icon: <IconInbox size={15} /> },
+                { id: "offers", label: "Offers", icon: <IconSend size={15} /> },
+              ] as const
+            ).map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTab(t.id)}
+                className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 transition ${
+                  tab === t.id ? "bg-dash-card text-dash-foreground shadow-sm" : "text-dash-muted-foreground"
+                }`}
+              >
+                {t.icon}
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <Link href="/portal/jobs" className={SOFT}>
+            <IconBack size={15} /> Peer help board
+          </Link>
         </div>
 
-        <aside className="lg:sticky lg:top-24">
-          {canUseJobs ? (
-            <PostJobForm compact />
-          ) : (
-            <JobsPlanGate action="post" />
-          )}
-        </aside>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-start">
+          <div className="space-y-3">
+            {tab === "requests" ? (
+              myJobs.length ? (
+                myJobs.map((job) => <ManagedPostRow key={job.id} job={job} canManage={canUseJobs} />)
+              ) : (
+                <EmptyState title="No requests yet" body="Ask for peer help on a task. Your name stays hidden." />
+              )
+            ) : myApplications.length ? (
+              myApplications.map((app) => (
+                <div key={app.id} className={`${CARD} flex flex-wrap items-start justify-between gap-3 p-5`}>
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusChip status={app.status} />
+                      {app.jobPublicId ? <Chip tone="neutral">{jobRefLabel(app.jobPublicId)}</Chip> : null}
+                    </div>
+                    <p className="text-dash-muted-foreground line-clamp-2 text-sm">{app.message}</p>
+                    <p className="text-dash-muted-foreground text-xs">
+                      {formatDate(app.createdAt)}
+                      {app.proposedTsh != null ? ` · proposed ${formatTsh(app.proposedTsh)}` : ""}
+                    </p>
+                  </div>
+                  {app.jobPublicId ? (
+                    <Link href={`/portal/jobs/${app.jobPublicId}`} className={`${SOFT} !py-2`}>
+                      Open
+                    </Link>
+                  ) : null}
+                </div>
+              ))
+            ) : (
+              <EmptyState title="No offers yet" body="Browse requests and offer the help you can give." link={{ href: "/portal/jobs", label: "Browse peer help" }} />
+            )}
+          </div>
+
+          <aside className="lg:sticky lg:top-24">
+            {canUseJobs ? <PostJobForm /> : <JobsPlanGate action="post" />}
+          </aside>
+        </div>
       </div>
-    </div>
+    </PolicyWall>
   );
 }
 
-/** @deprecated use JobsBrowseBoard / MyJobsBoard */
-export function JobsBoard(props: {
-  openJobs: PortalJob[];
-  myJobs: PortalJob[];
-  myApplications: PortalJobApplication[];
-}) {
-  return <JobsBrowseBoard openJobs={props.openJobs} canUseJobs={false} />;
+function EmptyState({ title, body, link }: { title: string; body: string; link?: { href: string; label: string } }) {
+  return (
+    <div className={`${CARD} px-6 py-12 text-center`}>
+      <span className="bg-dash-muted text-dash-muted-foreground mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl">
+        <IconInbox size={22} />
+      </span>
+      <p className="text-dash-foreground mt-3 font-semibold">{title}</p>
+      <p className="text-dash-muted-foreground mt-1 text-sm">{body}</p>
+      {link ? (
+        <Link href={link.href} className={`${PRIMARY} mt-4`}>
+          {link.label}
+        </Link>
+      ) : null}
+    </div>
+  );
 }
 
 function ManagedPostRow({ job, canManage }: { job: PortalJob; canManage: boolean }) {
@@ -261,35 +435,26 @@ function ManagedPostRow({ job, canManage }: { job: PortalJob; canManage: boolean
   const canEdit = canManage && (job.status === "open" || job.status === "assigned");
 
   return (
-    <li className="px-4 py-4 sm:px-5">
+    <div className={`${CARD} p-5`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
-            <StatusPill>{job.status}</StatusPill>
-            <span className="text-dash-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
-              {jobRefLabel(job.publicId)} · {job.categoryLabel}
-            </span>
+            <StatusChip status={job.status} />
+            <Chip tone="neutral">{jobRefLabel(job.publicId)}</Chip>
+            <Chip tone="neutral">{job.categoryLabel}</Chip>
           </div>
-          <p className="text-dash-foreground text-sm font-semibold leading-snug">{job.title}</p>
+          <p className="text-dash-foreground text-base font-bold leading-snug">{job.title}</p>
           <p className="text-dash-muted-foreground text-xs">
-            {formatTsh(job.offerTsh)} · {job.priceMode === "negotiable" ? "Negotiable" : "Fixed"} ·{" "}
-            {formatDate(job.createdAt)}
+            {formatTsh(job.offerTsh)} · {job.priceMode === "negotiable" ? "Negotiable" : "Fixed"} · {formatDate(job.createdAt)}
           </p>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-1.5">
-          <Link
-            href={`/portal/jobs/${job.publicId}`}
-            className="bg-dash-accent rounded-sm px-3 py-1.5 text-sm font-medium text-white"
-          >
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Link href={`/portal/jobs/${job.publicId}`} className={`${PRIMARY} !py-2`}>
             Open
           </Link>
           {canEdit ? (
-            <button
-              type="button"
-              onClick={() => setEditing((v) => !v)}
-              className="border-dash-border text-dash-foreground hover:bg-dash-muted rounded-sm border px-3 py-1.5 text-sm font-medium"
-            >
-              {editing ? "Close" : "Edit"}
+            <button type="button" onClick={() => setEditing((v) => !v)} className={`${SOFT} !py-2`}>
+              <IconEdit size={15} /> {editing ? "Close" : "Edit"}
             </button>
           ) : null}
           {canManage ? <DeleteJobButton jobPublicId={job.publicId} redirectTo="/portal/jobs/mine" /> : null}
@@ -300,36 +465,37 @@ function ManagedPostRow({ job, canManage }: { job: PortalJob; canManage: boolean
           <EditJobForm job={job} onDone={() => setEditing(false)} />
         </div>
       ) : null}
-    </li>
+    </div>
   );
 }
 
-function OwnerJobTools({ job, canManage }: { job: PortalJob; canManage: boolean }) {
-  const [editing, setEditing] = useState(false);
-  const canEdit = canManage && (job.status === "open" || job.status === "assigned");
-
-  if (!canManage) {
-    return (
-      <JobsPlanGate action="post" />
-    );
-  }
-
+function PriceModeChoice({ value, onChange }: { value: "fixed" | "negotiable"; onChange: (v: "fixed" | "negotiable") => void }) {
+  const options = [
+    { id: "fixed" as const, label: "Fixed", body: "The amount you listed", icon: <IconWallet size={18} /> },
+    { id: "negotiable" as const, label: "Negotiable", body: "Talk about it in chat", icon: <IconChat size={18} /> },
+  ];
   return (
-    <div className="border-dash-border bg-dash-card space-y-3 rounded-md border p-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <p className="text-dash-foreground text-sm font-semibold">Your post</p>
-        {canEdit ? (
-          <button
-            type="button"
-            onClick={() => setEditing((v) => !v)}
-            className="border-dash-border text-dash-foreground hover:bg-dash-muted rounded-sm border px-3 py-1.5 text-sm font-medium"
-          >
-            {editing ? "Cancel edit" : "Edit job"}
-          </button>
-        ) : null}
-        <DeleteJobButton jobPublicId={job.publicId} redirectTo="/portal/jobs/mine" />
-      </div>
-      {editing && canEdit ? <EditJobForm job={job} onDone={() => setEditing(false)} /> : null}
+    <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Price">
+      {options.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          role="radio"
+          aria-checked={value === o.id}
+          onClick={() => onChange(o.id)}
+          className={`flex items-start gap-3 rounded-xl border p-3 text-left transition ${
+            value === o.id ? "border-dash-accent bg-dash-accent/5 ring-dash-accent/20 ring-2" : "border-dash-border hover:bg-dash-muted"
+          }`}
+        >
+          <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${value === o.id ? "bg-dash-accent text-white" : "bg-dash-muted text-dash-muted-foreground"}`}>
+            {o.icon}
+          </span>
+          <span>
+            <span className="text-dash-foreground block text-sm font-semibold">{o.label}</span>
+            <span className="text-dash-muted-foreground block text-xs">{o.body}</span>
+          </span>
+        </button>
+      ))}
     </div>
   );
 }
@@ -339,11 +505,10 @@ function EditJobForm({ job, onDone }: { job: PortalJob; onDone?: () => void }) {
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
   const [priceMode, setPriceMode] = useState<"fixed" | "negotiable">(job.priceMode);
-  const [rulesAccepted, setRulesAccepted] = useState(false);
 
   return (
     <form
-      className="border-dash-border grid gap-3 rounded-md border p-3"
+      className="border-dash-border bg-dash-canvas grid gap-3 rounded-2xl border p-4"
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
@@ -355,8 +520,7 @@ function EditJobForm({ job, onDone }: { job: PortalJob; onDone?: () => void }) {
             title: String(fd.get("title") ?? ""),
             description: String(fd.get("description") ?? ""),
             offerTsh: Number(fd.get("offerTsh")),
-            priceMode: String(fd.get("priceMode") ?? "fixed"),
-            peerHelpRulesAccepted: rulesAccepted,
+            priceMode,
           });
           setStatus(res);
           if (res.ok) {
@@ -366,7 +530,7 @@ function EditJobForm({ job, onDone }: { job: PortalJob; onDone?: () => void }) {
         });
       }}
     >
-      <Field label="Category">
+      <div className="grid gap-3 sm:grid-cols-2">
         <select name="category" className={INPUT} defaultValue={job.category} required>
           {JOB_CATEGORIES.map((c) => (
             <option key={c.id} value={c.id}>
@@ -374,85 +538,20 @@ function EditJobForm({ job, onDone }: { job: PortalJob; onDone?: () => void }) {
             </option>
           ))}
         </select>
-      </Field>
-      <Field label="Offering (TSh)">
-        <input
-          name="offerTsh"
-          type="number"
-          min={1000}
-          step={500}
-          required
-          className={INPUT}
-          defaultValue={job.offerTsh}
-        />
-      </Field>
-      <Field label="Title">
-        <input name="title" required minLength={8} maxLength={160} className={INPUT} defaultValue={job.title} />
-      </Field>
-      <Field label="Details">
-        <textarea
-          name="description"
-          required
-          minLength={20}
-          maxLength={4000}
-          rows={4}
-          className={INPUT}
-          defaultValue={job.description}
-        />
-      </Field>
-      <fieldset className="grid gap-2 sm:grid-cols-2">
-        <legend className="text-dash-muted-foreground mb-1 text-xs font-semibold uppercase">Price</legend>
-        <label
-          className={`border-dash-border flex cursor-pointer items-start gap-2 rounded-md border px-3 py-2 text-sm ${
-            priceMode === "fixed" ? "border-dash-accent bg-dash-accent/5" : ""
-          }`}
-        >
-          <input
-            type="radio"
-            name="priceMode"
-            value="fixed"
-            checked={priceMode === "fixed"}
-            onChange={() => setPriceMode("fixed")}
-            className="mt-1"
-          />
-          <span>
-            <strong className="text-dash-foreground">Fixed</strong>
-          </span>
-        </label>
-        <label
-          className={`border-dash-border flex cursor-pointer items-start gap-2 rounded-md border px-3 py-2 text-sm ${
-            priceMode === "negotiable" ? "border-dash-accent bg-dash-accent/5" : ""
-          }`}
-        >
-          <input
-            type="radio"
-            name="priceMode"
-            value="negotiable"
-            checked={priceMode === "negotiable"}
-            onChange={() => setPriceMode("negotiable")}
-            className="mt-1"
-          />
-          <span>
-            <strong className="text-dash-foreground">Negotiable</strong>
-          </span>
-        </label>
-      </fieldset>
-      <PeerHelpRulesCheckbox checked={rulesAccepted} onChange={setRulesAccepted} disabled={pending} />
-      <button type="submit" className={PRIMARY} disabled={pending || !rulesAccepted}>
+        <input name="offerTsh" type="number" min={1000} step={500} required className={INPUT} defaultValue={job.offerTsh} />
+      </div>
+      <input name="title" required minLength={8} maxLength={160} className={INPUT} defaultValue={job.title} />
+      <textarea name="description" required minLength={20} maxLength={4000} rows={4} className={INPUT} defaultValue={job.description} />
+      <PriceModeChoice value={priceMode} onChange={setPriceMode} />
+      <button type="submit" className={PRIMARY} disabled={pending}>
         {pending ? "Saving…" : "Save changes"}
       </button>
-      {status ? <StatusText status={status} /> : null}
+      {status ? <p className={`text-xs ${status.ok ? "text-emerald-700" : "text-red-600"}`}>{status.ok ? status.message : toUserError(status.message ?? "")}</p> : null}
     </form>
   );
 }
 
-function DeleteJobButton({
-  jobPublicId,
-  redirectTo,
-}: {
-  jobPublicId: string;
-  redirectTo?: string;
-}) {
+function DeleteJobButton({ jobPublicId, redirectTo }: { jobPublicId: string; redirectTo?: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
@@ -462,7 +561,7 @@ function DeleteJobButton({
       <button
         type="button"
         disabled={pending}
-        className="border-dash-border text-red-700 hover:bg-red-50 rounded-sm border px-3 py-1.5 text-sm font-medium disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-950/40"
+        className="inline-flex items-center gap-1.5 rounded-full bg-red-500/10 px-3.5 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-500/15 disabled:opacity-50 dark:text-red-300"
         onClick={() => {
           if (!window.confirm("Delete this help request? Offers and messages will be removed.")) return;
           setStatus(null);
@@ -471,301 +570,248 @@ function DeleteJobButton({
             setStatus(res);
             if (res.ok) {
               if (redirectTo) router.push(redirectTo);
-              else router.refresh();
               router.refresh();
             }
           });
         }}
       >
-        {pending ? "Deleting…" : "Delete"}
+        <IconTrash size={14} /> {pending ? "Deleting…" : "Delete"}
       </button>
-      {status && !status.ok ? (
-        <span className="text-xs text-red-600 dark:text-red-300">{toUserError(status.message)}</span>
-      ) : null}
+      {status && !status.ok ? <span className="text-xs text-red-600 dark:text-red-300">{toUserError(status.message ?? "")}</span> : null}
     </span>
   );
 }
 
-function PostJobForm({ compact = false }: { compact?: boolean }) {
+function PostJobForm() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
   const [priceMode, setPriceMode] = useState<"fixed" | "negotiable">("fixed");
-  const [rulesAccepted, setRulesAccepted] = useState(false);
-
-  function submit(fd: FormData) {
-    setStatus(null);
-    startTransition(async () => {
-      const res = await portalPostJobAction({
-        category: String(fd.get("category") ?? ""),
-        title: String(fd.get("title") ?? ""),
-        description: String(fd.get("description") ?? ""),
-        offerTsh: Number(fd.get("offerTsh")),
-        priceMode: String(fd.get("priceMode") ?? "fixed"),
-        peerHelpRulesAccepted: rulesAccepted,
-      });
-      setStatus(res);
-      if (res.ok) {
-        (document.getElementById("post-job-form") as HTMLFormElement | null)?.reset();
-        setPriceMode("fixed");
-        setRulesAccepted(false);
-        router.refresh();
-      }
-    });
-  }
 
   return (
-    <section className="border-dash-border bg-dash-card rounded-md border p-4 sm:p-5">
-      <h2 className="text-dash-foreground text-base font-semibold tracking-tight">Request help</h2>
-      <p className="text-dash-muted-foreground mt-0.5 text-xs">Anonymous · peer help only · no real names</p>
+    <section className={`${CARD} p-5 sm:p-6`}>
+      <div className="flex items-center gap-3">
+        <span className="bg-dash-accent/10 text-dash-accent flex h-10 w-10 items-center justify-center rounded-xl">
+          <IconPlus size={18} />
+        </span>
+        <div>
+          <h2 className="text-dash-foreground text-base font-bold">Request help</h2>
+          <p className="text-dash-muted-foreground flex items-center gap-1 text-xs">
+            <IconShield size={12} /> Anonymous · peer help only
+          </p>
+        </div>
+      </div>
       <form
         id="post-job-form"
-        className="mt-4 grid gap-3"
+        className="mt-5 grid gap-3"
         onSubmit={(e) => {
           e.preventDefault();
-          submit(new FormData(e.currentTarget));
+          const fd = new FormData(e.currentTarget);
+          setStatus(null);
+          startTransition(async () => {
+            const res = await portalPostJobAction({
+              category: String(fd.get("category") ?? ""),
+              title: String(fd.get("title") ?? ""),
+              description: String(fd.get("description") ?? ""),
+              offerTsh: Number(fd.get("offerTsh")),
+              priceMode,
+            });
+            setStatus(res);
+            if (res.ok) {
+              (document.getElementById("post-job-form") as HTMLFormElement | null)?.reset();
+              setPriceMode("fixed");
+              router.refresh();
+            }
+          });
         }}
       >
-        <Field label="Category">
-          <select name="category" className={INPUT} defaultValue={JOB_CATEGORIES[0].id} required>
-            {JOB_CATEGORIES.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Offering (TSh)">
-          <input name="offerTsh" type="number" min={1000} step={500} required className={INPUT} placeholder="25000" />
-        </Field>
-
-        <Field label="Title">
-          <input
-            name="title"
-            required
-            minLength={8}
-            maxLength={160}
-            className={INPUT}
-            placeholder="e.g. Draw block diagram for IoT monitoring"
-          />
-        </Field>
-
-        <Field label="Details">
-          <textarea
-            name="description"
-            required
-            minLength={20}
-            maxLength={4000}
-            rows={compact ? 4 : 5}
-            className={INPUT}
-            placeholder="What you need, deadline, tools, and what you will supply (not a full report or chapter)."
-          />
-        </Field>
-
-        <PeerHelpRulesSummary compact />
-        <PeerHelpRulesCheckbox checked={rulesAccepted} onChange={setRulesAccepted} disabled={pending} />
-
-        <fieldset className="grid gap-2">
-          <legend className="text-dash-muted-foreground mb-1 text-xs font-semibold uppercase">Price</legend>
-          <label
-            className={`border-dash-border flex cursor-pointer items-start gap-2 rounded-md border px-3 py-2 text-sm ${
-              priceMode === "fixed" ? "border-dash-accent bg-dash-accent/5" : ""
-            }`}
-          >
-            <input
-              type="radio"
-              name="priceMode"
-              value="fixed"
-              checked={priceMode === "fixed"}
-              onChange={() => setPriceMode("fixed")}
-              className="mt-1"
-            />
-            <span>
-              <strong className="text-dash-foreground">Fixed</strong>
-              <span className="text-dash-muted-foreground block text-xs">Listed amount</span>
-            </span>
-          </label>
-          <label
-            className={`border-dash-border flex cursor-pointer items-start gap-2 rounded-md border px-3 py-2 text-sm ${
-              priceMode === "negotiable" ? "border-dash-accent bg-dash-accent/5" : ""
-            }`}
-          >
-            <input
-              type="radio"
-              name="priceMode"
-              value="negotiable"
-              checked={priceMode === "negotiable"}
-              onChange={() => setPriceMode("negotiable")}
-              className="mt-1"
-            />
-            <span>
-              <strong className="text-dash-foreground">Negotiable</strong>
-              <span className="text-dash-muted-foreground block text-xs">Discuss in chat</span>
-            </span>
-          </label>
-        </fieldset>
-
-        <button type="submit" className={`${PRIMARY} w-full`} disabled={pending || !rulesAccepted}>
+        <select name="category" className={INPUT} defaultValue={JOB_CATEGORIES[0].id} required>
+          {JOB_CATEGORIES.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+        <input name="title" required minLength={8} maxLength={160} className={INPUT} placeholder="e.g. Draw block diagram for IoT monitoring" />
+        <textarea
+          name="description"
+          required
+          minLength={20}
+          maxLength={4000}
+          rows={4}
+          className={INPUT}
+          placeholder="What you need, the deadline, tools, and what you will supply. Not a full report or chapter."
+        />
+        <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+          <input name="offerTsh" type="number" min={1000} step={500} required className={INPUT} placeholder="Offer, e.g. 25000" />
+          <span className="text-dash-muted-foreground text-xs font-semibold">TSh</span>
+        </div>
+        <PriceModeChoice value={priceMode} onChange={setPriceMode} />
+        <button type="submit" className={`${PRIMARY} w-full`} disabled={pending}>
           {pending ? "Posting…" : "Post request"}
         </button>
-        {status ? <StatusText status={status} /> : null}
+        {status ? <p className={`text-xs ${status.ok ? "text-emerald-700" : "text-red-600"}`}>{status.ok ? status.message : toUserError(status.message ?? "")}</p> : null}
       </form>
     </section>
   );
 }
 
-function JobCard({ job, canApply }: { job: PortalJob; canApply: boolean }) {
-  return (
-    <li className="border-dash-border bg-dash-card rounded-md border px-4 py-4 sm:px-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase">
-            {jobRefLabel(job.publicId)} · {job.categoryLabel}
-          </p>
-          <h3 className="text-dash-foreground mt-1 text-base font-semibold break-words">{job.title}</h3>
-          <p className="text-dash-muted-foreground mt-1 line-clamp-2 text-sm leading-relaxed">{job.description}</p>
-          <p className="text-dash-muted-foreground mt-2 text-xs">
-            {job.posterLabel} · {formatDate(job.createdAt)} · {job.priceMode === "negotiable" ? "Negotiable" : "Fixed"}
-            {!job.isMine && !canApply ? " · View only on free plan" : ""}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-dash-foreground text-lg font-semibold tabular-nums">{formatTsh(job.offerTsh)}</p>
-          <Link href={`/portal/jobs/${job.publicId}`} className={`${PRIMARY} mt-3 inline-flex`}>
-            {job.isMine ? "Manage" : canApply ? "View / offer help" : "View"}
-          </Link>
-        </div>
-      </div>
-    </li>
-  );
-}
+/* ---------------------------------------------------------------- Detail */
 
+/** One request: details, offers (for the requester), and the anonymous chat. */
 export function JobDetailPanel({
   job,
   applications,
   myApplication,
   messagesByApplicationPublicId,
   canUseJobs,
+  needsPolicy = false,
 }: {
   job: PortalJob;
   applications: PortalJobApplication[];
   myApplication: PortalJobApplication | null;
   messagesByApplicationPublicId: Record<string, PortalJobMessage[]>;
   canUseJobs: boolean;
+  needsPolicy?: boolean;
 }) {
   const threadableApps = applications.filter((a) => a.status === "pending" || a.status === "accepted");
-  const [activeAppId, setActiveAppId] = useState(
-    () => threadableApps[0]?.publicId ?? myApplication?.publicId ?? null,
-  );
+  const [activeAppId, setActiveAppId] = useState(() => threadableApps[0]?.publicId ?? myApplication?.publicId ?? null);
 
   const activeApp =
     (job.isMine ? threadableApps.find((a) => a.publicId === activeAppId) : null) ??
-    (!job.isMine && myApplication && (myApplication.status === "pending" || myApplication.status === "accepted")
-      ? myApplication
-      : null);
+    (!job.isMine && myApplication && (myApplication.status === "pending" || myApplication.status === "accepted") ? myApplication : null);
 
-  const showThread = Boolean(activeApp);
   const showApplySlot = !job.isMine && job.status === "open" && !myApplication;
-  const showAside = showApplySlot || showThread || (job.isMine && applications.length > 0);
+  const showAside = showApplySlot || Boolean(activeApp) || (job.isMine && applications.length > 0);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 pb-10">
-      <div className="flex flex-wrap items-center gap-2">
-        <Link
-          href="/portal/jobs"
-          className="text-dash-muted-foreground hover:text-dash-foreground rounded-sm px-3 py-1.5 text-sm font-medium"
-        >
-          ← Peer help
-        </Link>
-        <Link
-          href="/portal/jobs/mine"
-          className="bg-dash-accent rounded-sm px-3 py-1.5 text-sm font-medium text-white"
-        >
-          My requests & offers
-        </Link>
-      </div>
-
-      <div className={`grid gap-6 ${showAside ? "lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start" : ""}`}>
-        <div className="space-y-6">
-          <header className="space-y-2">
-            <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase">
-              {jobRefLabel(job.publicId)} · {job.categoryLabel} · {job.status}
-            </p>
-            <h1 className="text-dash-foreground text-2xl font-semibold tracking-tight">{job.title}</h1>
-            <p className="text-dash-muted-foreground text-sm">
-              {job.posterLabel} · {formatDate(job.createdAt)} · {formatTsh(job.offerTsh)} ·{" "}
-              {job.priceMode === "negotiable" ? "Negotiable" : "Fixed offer"}
-            </p>
-            <p className="text-dash-foreground whitespace-pre-wrap text-sm leading-relaxed">{job.description}</p>
-          </header>
-
-          {job.isMine ? <OwnerJobTools job={job} canManage={canUseJobs} /> : null}
-
-          {myApplication ? (
-            <p className="text-dash-muted-foreground text-sm">
-              Your application is <strong className="text-dash-foreground">{myApplication.status}</strong>
-              {myApplication.proposedTsh != null ? ` · proposed ${formatTsh(myApplication.proposedTsh)}` : ""}.
-            </p>
-          ) : null}
-
-          {job.isMine ? (
-            <section className="space-y-3">
-              <h2 className="text-dash-foreground text-lg font-semibold">Applications</h2>
-              {applications.length ? (
-                applications.map((app) => {
-                  const canThread = app.status === "pending" || app.status === "accepted";
-                  const selected = canThread && app.publicId === activeAppId;
-                  return (
-                    <div
-                      key={app.id}
-                      className={selected ? "ring-dash-accent/40 rounded-md ring-2 ring-offset-2 ring-offset-transparent" : ""}
-                    >
-                      <ApplicationRow
-                        app={app}
-                        canAccept={canUseJobs && job.status === "open" && app.status === "pending"}
-                        onOpenThread={
-                          canThread
-                            ? () => setActiveAppId(app.publicId)
-                            : undefined
-                        }
-                        threadSelected={selected}
-                      />
-                    </div>
-                  );
-                })
-              ) : (
-                <p className="text-dash-muted-foreground text-sm">No applications yet.</p>
-              )}
-            </section>
-          ) : null}
-
-          {showApplySlot ? (
-            <div className="lg:hidden">
-              {canUseJobs ? <ApplyForm job={job} /> : <JobsPlanGate action="apply" />}
-            </div>
-          ) : null}
+    <PolicyWall needed={needsPolicy}>
+      <div className="mx-auto max-w-6xl space-y-6 pb-12">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href="/portal/jobs" className={SOFT}>
+            <IconBack size={15} /> Peer help
+          </Link>
+          <Link href="/portal/jobs/mine" className={SOFT}>
+            <IconInbox size={15} /> My requests & offers
+          </Link>
         </div>
 
-        <aside className="lg:sticky lg:top-24">
-          {showApplySlot ? (
-            <div className="hidden lg:block">
-              {canUseJobs ? <ApplyForm job={job} /> : <JobsPlanGate action="apply" />}
-            </div>
-          ) : null}
-          {activeApp ? (
-            <MessageThread
-              applicationPublicId={activeApp.publicId}
-              messages={messagesByApplicationPublicId[activeApp.publicId] ?? []}
-              threadFor={job.isMine ? activeApp.applicantLabel : undefined}
-              canSend={canUseJobs}
-            />
-          ) : job.isMine && applications.length ? (
-            <div className="border-dash-border bg-dash-card rounded-md border px-4 py-8 text-center">
-              <p className="text-dash-muted-foreground text-sm">Select an application to open its chat.</p>
-            </div>
-          ) : null}
-        </aside>
+        <div className={`grid gap-6 ${showAside ? "lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start" : ""}`}>
+          <div className="space-y-6">
+            {/* Request card */}
+            <section className={`${CARD} overflow-hidden`}>
+              <div className="bg-gradient-to-br from-emerald-600/15 via-teal-600/10 to-transparent p-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusChip status={job.status} />
+                  <Chip tone="neutral">{jobRefLabel(job.publicId)}</Chip>
+                  <Chip tone="neutral">
+                    <IconTag size={11} /> {job.categoryLabel}
+                  </Chip>
+                </div>
+                <h1 className="text-dash-foreground mt-3 text-2xl font-bold tracking-tight break-words sm:text-3xl">{job.title}</h1>
+                <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
+                  <div className="flex items-center gap-2">
+                    <Avatar name={job.posterLabel || "Student"} size={36} />
+                    <div>
+                      <p className="text-dash-foreground text-sm font-semibold">{job.posterLabel}</p>
+                      <p className="text-dash-muted-foreground flex items-center gap-1 text-xs">
+                        <IconClock size={12} /> {formatDate(job.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-dash-foreground text-2xl font-bold tabular-nums">{formatTsh(job.offerTsh)}</p>
+                    <p className="text-dash-muted-foreground text-xs">{job.priceMode === "negotiable" ? "Negotiable" : "Fixed offer"}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="border-dash-border border-t p-6">
+                <p className="text-dash-foreground text-xs font-semibold tracking-wide uppercase">Details</p>
+                <p className="text-dash-foreground mt-2 leading-relaxed whitespace-pre-wrap">{job.description}</p>
+              </div>
+            </section>
+
+            {job.isMine ? <OwnerTools job={job} canManage={canUseJobs} /> : null}
+
+            {myApplication ? (
+              <div className={`${CARD} flex items-center gap-3 p-4`}>
+                <IconCheck size={18} className="text-emerald-600" />
+                <p className="text-dash-muted-foreground text-sm">
+                  Your offer is <StatusChip status={myApplication.status} />
+                  {myApplication.proposedTsh != null ? ` · proposed ${formatTsh(myApplication.proposedTsh)}` : ""}
+                </p>
+              </div>
+            ) : null}
+
+            {job.isMine ? (
+              <section className="space-y-3">
+                <h2 className="text-dash-foreground text-lg font-bold">Offers ({applications.length})</h2>
+                {applications.length ? (
+                  applications.map((app) => {
+                    const canThread = app.status === "pending" || app.status === "accepted";
+                    const selected = canThread && app.publicId === activeAppId;
+                    return (
+                      <ApplicationRow
+                        key={app.id}
+                        app={app}
+                        canAccept={canUseJobs && job.status === "open" && app.status === "pending"}
+                        onOpenThread={canThread ? () => setActiveAppId(app.publicId) : undefined}
+                        threadSelected={selected}
+                      />
+                    );
+                  })
+                ) : (
+                  <p className="text-dash-muted-foreground text-sm">No offers yet. Helpers will appear here.</p>
+                )}
+              </section>
+            ) : null}
+
+            {showApplySlot ? (
+              <div className="lg:hidden">{canUseJobs ? <ApplyForm job={job} /> : <JobsPlanGate action="apply" />}</div>
+            ) : null}
+          </div>
+
+          <aside className="lg:sticky lg:top-24">
+            {showApplySlot ? (
+              <div className="hidden lg:block">{canUseJobs ? <ApplyForm job={job} /> : <JobsPlanGate action="apply" />}</div>
+            ) : null}
+            {activeApp ? (
+              <MessageThread
+                key={activeApp.publicId}
+                applicationPublicId={activeApp.publicId}
+                messages={messagesByApplicationPublicId[activeApp.publicId] ?? []}
+                threadFor={job.isMine ? activeApp.applicantLabel : undefined}
+                canSend={canUseJobs}
+              />
+            ) : job.isMine && applications.length ? (
+              <div className={`${CARD} px-6 py-10 text-center`}>
+                <IconChat size={22} className="text-dash-muted-foreground mx-auto" />
+                <p className="text-dash-muted-foreground mt-2 text-sm">Pick an offer to open its chat.</p>
+              </div>
+            ) : null}
+          </aside>
+        </div>
       </div>
+    </PolicyWall>
+  );
+}
+
+function OwnerTools({ job, canManage }: { job: PortalJob; canManage: boolean }) {
+  const [editing, setEditing] = useState(false);
+  const canEdit = canManage && (job.status === "open" || job.status === "assigned");
+  if (!canManage) return <JobsPlanGate action="post" />;
+  return (
+    <div className={`${CARD} space-y-3 p-4`}>
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-dash-foreground mr-auto text-sm font-semibold">Your request</p>
+        {canEdit ? (
+          <button type="button" onClick={() => setEditing((v) => !v)} className={`${SOFT} !py-2`}>
+            <IconEdit size={15} /> {editing ? "Cancel edit" : "Edit"}
+          </button>
+        ) : null}
+        <DeleteJobButton jobPublicId={job.publicId} redirectTo="/portal/jobs/mine" />
+      </div>
+      {editing && canEdit ? <EditJobForm job={job} onDone={() => setEditing(false)} /> : null}
     </div>
   );
 }
@@ -774,11 +820,10 @@ function ApplyForm({ job }: { job: PortalJob }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
-  const [rulesAccepted, setRulesAccepted] = useState(false);
 
   return (
     <form
-      className="border-dash-border bg-dash-card grid gap-3 rounded-md border p-4"
+      className={`${CARD} grid gap-3 p-5`}
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
@@ -789,35 +834,33 @@ function ApplyForm({ job }: { job: PortalJob }) {
             jobPublicId: job.publicId,
             message: String(fd.get("message") ?? ""),
             proposedTsh: proposed ? Number(proposed) : null,
-            peerHelpRulesAccepted: rulesAccepted,
           });
           setStatus(res);
           if (res.ok) router.refresh();
         });
       }}
     >
-      <h2 className="text-dash-foreground text-base font-semibold">Offer to help</h2>
-      <Field label="Note to requester">
-        <textarea
-          name="message"
-          required
-          minLength={10}
-          rows={3}
-          className={INPUT}
-          placeholder="What peer help you can offer (not writing their full report)."
-        />
-      </Field>
+      <div className="flex items-center gap-3">
+        <span className="bg-dash-accent/10 text-dash-accent flex h-10 w-10 items-center justify-center rounded-xl">
+          <IconSend size={18} />
+        </span>
+        <h2 className="text-dash-foreground text-base font-bold">Offer to help</h2>
+      </div>
+      <textarea
+        name="message"
+        required
+        minLength={10}
+        rows={3}
+        className={INPUT}
+        placeholder="What peer help you can give. Not writing their full report."
+      />
       {job.priceMode === "negotiable" ? (
-        <Field label="Proposed amount (TSh, optional)">
-          <input name="proposedTsh" type="number" min={1000} step={500} className={INPUT} placeholder={String(job.offerTsh)} />
-        </Field>
+        <input name="proposedTsh" type="number" min={1000} step={500} className={INPUT} placeholder={`Your price (optional), e.g. ${job.offerTsh}`} />
       ) : null}
-      <PeerHelpRulesSummary compact />
-      <PeerHelpRulesCheckbox checked={rulesAccepted} onChange={setRulesAccepted} disabled={pending} />
-      <button type="submit" className={PRIMARY} disabled={pending || !rulesAccepted}>
-        {pending ? "Sending…" : "Send offer"}
+      <button type="submit" className={PRIMARY} disabled={pending}>
+        <IconSend size={15} /> {pending ? "Sending…" : "Send offer"}
       </button>
-      {status ? <StatusText status={status} /> : null}
+      {status ? <p className={`text-xs ${status.ok ? "text-emerald-700" : "text-red-600"}`}>{status.ok ? status.message : toUserError(status.message ?? "")}</p> : null}
     </form>
   );
 }
@@ -838,34 +881,30 @@ function ApplicationRow({
   const [status, setStatus] = useState<PortalResult | null>(null);
 
   return (
-    <article className="border-dash-border bg-dash-card rounded-md border px-4 py-3">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <p className="text-dash-foreground text-sm font-semibold">
-          {app.applicantLabel} · {app.status}
-        </p>
-        {onOpenThread ? (
-          <button
-            type="button"
-            onClick={onOpenThread}
-            className={`rounded-sm px-2.5 py-1 text-xs font-semibold ${
-              threadSelected
-                ? "bg-dash-accent text-white"
-                : "text-dash-accent hover:bg-dash-muted"
-            }`}
-          >
-            {threadSelected ? "Chatting" : "Open chat"}
-          </button>
-        ) : null}
+    <article className={`${CARD} p-4 transition ${threadSelected ? "ring-dash-accent/40 ring-2" : ""}`}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Avatar name={app.applicantLabel || "Helper"} size={32} />
+          <div>
+            <p className="text-dash-foreground text-sm font-semibold">{app.applicantLabel}</p>
+            <p className="text-dash-muted-foreground text-[11px]">{formatDateTime(app.createdAt)}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <StatusChip status={app.status} />
+          {onOpenThread ? (
+            <button type="button" onClick={onOpenThread} className={`${threadSelected ? PRIMARY : SOFT} !py-1.5 !text-xs`}>
+              <IconChat size={13} /> {threadSelected ? "Chatting" : "Chat"}
+            </button>
+          ) : null}
+        </div>
       </div>
-      <p className="text-dash-muted-foreground mt-1 text-sm">{app.message}</p>
-      <p className="text-dash-muted-foreground mt-1 text-xs">
-        {formatDateTime(app.createdAt)}
-        {app.proposedTsh != null ? ` · proposed ${formatTsh(app.proposedTsh)}` : ""}
-      </p>
+      <p className="text-dash-muted-foreground mt-3 text-sm leading-relaxed">{app.message}</p>
+      {app.proposedTsh != null ? <p className="text-dash-foreground mt-2 text-xs font-semibold">Proposed {formatTsh(app.proposedTsh)}</p> : null}
       {canAccept ? (
         <button
           type="button"
-          className={`${PRIMARY} mt-3`}
+          className={`${PRIMARY} mt-4 w-full`}
           disabled={pending}
           onClick={() => {
             setStatus(null);
@@ -876,10 +915,10 @@ function ApplicationRow({
             });
           }}
         >
-          {pending ? "Selecting…" : "Select this helper"}
+          <IconCheck size={15} /> {pending ? "Selecting…" : "Select this helper"}
         </button>
       ) : null}
-      {status ? <StatusText status={status} /> : null}
+      {status ? <p className={`mt-2 text-xs ${status.ok ? "text-emerald-700" : "text-red-600"}`}>{status.ok ? status.message : toUserError(status.message ?? "")}</p> : null}
     </article>
   );
 }
@@ -902,13 +941,8 @@ function MessageThread({
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setDraft("");
-  }, [applicationPublicId]);
-
-  useEffect(() => {
     const el = listRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [messages.length, applicationPublicId]);
 
   function send() {
@@ -927,41 +961,38 @@ function MessageThread({
   }
 
   return (
-    <section className="border-dash-border bg-dash-card flex h-[min(32rem,75vh)] flex-col overflow-hidden rounded-md border lg:h-[min(36rem,calc(100vh-8rem))]">
+    <section className={`${CARD} flex h-[min(34rem,75vh)] flex-col overflow-hidden lg:h-[min(36rem,calc(100vh-8rem))]`}>
       <header className="border-dash-border flex items-center justify-between gap-2 border-b px-4 py-3">
-        <div>
-          <h2 className="text-dash-foreground text-sm font-semibold">
-            {threadFor ? `Chat · ${threadFor}` : "Messages"}
-          </h2>
-          <p className="text-dash-muted-foreground text-[11px]">
-            {canSend ? "Anonymous chat · no real names" : "View only · messaging locked on free plan"}
-          </p>
+        <div className="flex items-center gap-2">
+          <span className="bg-dash-accent/10 text-dash-accent flex h-9 w-9 items-center justify-center rounded-full">
+            <IconChat size={17} />
+          </span>
+          <div>
+            <p className="text-dash-foreground text-sm font-bold">{threadFor ? `Chat · ${threadFor}` : "Chat"}</p>
+            <p className="text-dash-muted-foreground text-[11px]">{canSend ? "Anonymous · no real names" : "View only on the free plan"}</p>
+          </div>
         </div>
-        <span className="text-dash-muted-foreground text-[11px] tabular-nums">{messages.length}</span>
       </header>
 
-      <div ref={listRef} className="bg-dash-muted/25 flex-1 space-y-3 overflow-y-auto px-3 py-4 sm:px-4">
+      <div ref={listRef} className="bg-dash-muted/30 flex-1 space-y-3 overflow-y-auto px-4 py-4">
         {!messages.length ? (
-          <div className="flex h-full min-h-[8rem] items-center justify-center">
-            <p className="text-dash-muted-foreground text-center text-sm">
-              {canSend ? "No messages yet. Say hello below." : "No messages yet. Upgrade to send messages."}
-            </p>
-          </div>
+          <p className="text-dash-muted-foreground py-10 text-center text-sm">
+            {canSend ? "No messages yet. Say hello below." : "No messages yet."}
+          </p>
         ) : (
           messages.map((m) => (
-            <div key={m.id} className={`flex ${m.isMine ? "justify-end" : "justify-start"}`}>
+            <div key={m.id} className={`flex items-end gap-2 ${m.isMine ? "justify-end" : "justify-start"}`}>
+              {!m.isMine ? <Avatar name={m.senderLabel || "?"} size={26} /> : null}
               <div
-                className={`max-w-[85%] rounded-md px-3.5 py-2.5 text-sm shadow-sm sm:max-w-[75%] ${
-                  m.isMine
-                    ? "bg-dash-accent rounded-br-md text-white"
-                    : "border-dash-border bg-dash-card text-dash-foreground rounded-bl-md border"
+                className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-sm shadow-sm ${
+                  m.isMine ? "bg-dash-accent rounded-br-md text-white" : "border-dash-border bg-dash-card text-dash-foreground rounded-bl-md border"
                 }`}
               >
-                <p className={`text-[10px] font-semibold tracking-wide uppercase ${m.isMine ? "text-white/75" : "text-dash-muted-foreground"}`}>
+                <p className={`text-[10px] font-semibold ${m.isMine ? "text-white/75" : "text-dash-muted-foreground"}`}>
                   {m.isMine ? "You" : m.senderLabel}
                 </p>
-                <p className="mt-1 whitespace-pre-wrap leading-relaxed">{m.body}</p>
-                <p className={`mt-1.5 text-[10px] tabular-nums ${m.isMine ? "text-white/65" : "text-dash-muted-foreground"}`}>
+                <p className="mt-0.5 whitespace-pre-wrap leading-relaxed">{m.body}</p>
+                <p className={`mt-1 text-right text-[10px] tabular-nums ${m.isMine ? "text-white/70" : "text-dash-muted-foreground"}`}>
                   {formatDateTime(m.createdAt)}
                 </p>
               </div>
@@ -971,40 +1002,24 @@ function MessageThread({
       </div>
 
       <form
-        className="border-dash-border bg-dash-card border-t px-3 py-3 sm:px-4"
+        className="border-dash-border border-t px-3 py-3"
         onSubmit={(e) => {
           e.preventDefault();
           send();
         }}
       >
         {!canSend ? (
-          <div className="space-y-2">
-            <div className="border-dash-border bg-dash-muted/40 flex items-end gap-2 rounded-md border px-2 py-2 opacity-60">
-              <textarea
-                name="body"
-                value=""
-                rows={1}
-                disabled
-                readOnly
-                placeholder="Messaging disabled on free plan"
-                className="text-dash-muted-foreground max-h-28 min-h-[2.5rem] flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none"
-              />
-              <button
-                type="button"
-                disabled
-                aria-label="Send message disabled"
-                className="bg-dash-accent inline-flex h-10 shrink-0 cursor-not-allowed items-center gap-1.5 rounded-md px-3.5 text-sm font-semibold text-white opacity-40"
-              >
-                Send
-              </button>
-            </div>
-            <Link href="/portal/packs" className="text-dash-accent text-xs font-semibold">
-              View plans to unlock messaging →
+          <div className="flex items-center justify-between gap-2 rounded-xl bg-amber-500/10 px-3 py-2.5">
+            <p className="flex items-center gap-2 text-xs text-amber-900 dark:text-amber-200">
+              <IconLock size={14} /> Messaging is part of the paid plan.
+            </p>
+            <Link href="/portal/packs#plans" className="text-dash-accent text-xs font-semibold">
+              See plans
             </Link>
           </div>
         ) : (
           <>
-            <div className="border-dash-border bg-dash-canvas flex items-end gap-2 rounded-md border px-2 py-2">
+            <div className="border-dash-border bg-dash-canvas flex items-end gap-2 rounded-2xl border px-2 py-1.5">
               <textarea
                 name="body"
                 value={draft}
@@ -1012,8 +1027,8 @@ function MessageThread({
                 rows={1}
                 maxLength={2000}
                 required
-                placeholder="Type a message…"
-                className="text-dash-foreground placeholder:text-dash-muted-foreground max-h-28 min-h-[2.5rem] flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none"
+                placeholder="Message…"
+                className="text-dash-foreground placeholder:text-dash-muted-foreground max-h-28 min-h-[2.25rem] flex-1 resize-none bg-transparent px-2 py-1.5 text-sm outline-none"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
@@ -1025,23 +1040,12 @@ function MessageThread({
                 type="submit"
                 disabled={pending || !draft.trim()}
                 aria-label="Send message"
-                className="bg-dash-accent inline-flex h-10 shrink-0 items-center gap-1.5 rounded-md px-3.5 text-sm font-semibold text-white transition disabled:opacity-40"
+                className="bg-dash-accent flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition disabled:opacity-40"
               >
-                {pending ? (
-                  "…"
-                ) : (
-                  <>
-                    Send
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M13 6l6 6-6 6" />
-                    </svg>
-                  </>
-                )}
+                <IconSend size={16} />
               </button>
             </div>
-            {status && !status.ok ? (
-              <p className="mt-2 text-xs text-red-600 dark:text-red-300">{toUserError(status.message)}</p>
-            ) : null}
+            {status && !status.ok ? <p className="mt-2 text-xs text-red-600">{toUserError(status.message ?? "")}</p> : null}
           </>
         )}
       </form>
