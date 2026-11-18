@@ -61,7 +61,7 @@ export default async function PortalTitlesPage() {
       />
     );
   } else if (!db || !profile || state.profileAcademicPending) {
-    content = (
+    return (
       <ProfileForm
         courses={state.courses}
         profile={profile}

@@ -9,6 +9,7 @@ import {
   portalSkipProfileAction,
   type PortalResult,
 } from "@/app/portal/actions";
+import { OnboardingShell } from "@/components/portal/onboarding-shell";
 import { Card, Field, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
 import { SearchSelect } from "@/components/portal/search-select";
 import { Spinner } from "@/components/ui/spinner";
@@ -149,123 +150,128 @@ export function ProfileForm({
     );
   }
 
+  const step = onboardingStep === "essentials" ? 1 : 2;
+
   return (
-    <Card
-      title={onboardingStep === "essentials" ? "Step 1 · Account credentials" : "Step 2 · Course & institution"}
-      subtitle={
-        onboardingStep === "essentials"
-          ? "Same for email and Google sign-in."
-          : "You can skip and add these later under My account."
-      }
-    >
-      {onboardingStep === "essentials" ? (
-        <form
-          className="grid gap-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const fd = new FormData(e.currentTarget);
-            setStatus(null);
-            startTransition(async () => {
-              const res = await portalSaveProfileEssentialsAction({
-                fullName: String(fd.get("fullName") ?? ""),
-                phone: String(fd.get("phone") ?? ""),
+    <OnboardingShell step={step}>
+      <div className="border-dash-border bg-dash-card rounded-2xl border p-5 shadow-[0_20px_50px_-28px_rgba(15,23,42,0.35)] sm:p-6">
+        <p className="text-dash-muted-foreground text-[10px] font-semibold tracking-[0.2em] uppercase">
+          Step {step} of 2
+        </p>
+        <h2 className="text-dash-foreground mt-1.5 text-xl font-semibold tracking-tight">
+          {onboardingStep === "essentials" ? "Account credentials" : "Course & institution"}
+        </h2>
+        <p className="text-dash-muted-foreground mt-1 mb-5 text-sm leading-relaxed">
+          {onboardingStep === "essentials"
+            ? "Full name and mobile number for payments."
+            : "Optional now — skip if you prefer."}
+        </p>
+
+        {onboardingStep === "essentials" ? (
+          <form
+            className="grid gap-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const fd = new FormData(e.currentTarget);
+              setStatus(null);
+              startTransition(async () => {
+                const res = await portalSaveProfileEssentialsAction({
+                  fullName: String(fd.get("fullName") ?? ""),
+                  phone: String(fd.get("phone") ?? ""),
+                });
+                if (res.ok) {
+                  setStatus(null);
+                  setOnboardingStep("academic");
+                  router.refresh();
+                } else {
+                  setStatus(res);
+                }
               });
-              if (res.ok) {
-                setStatus(null);
-                setOnboardingStep("academic");
-                router.refresh();
-              } else {
+            }}
+          >
+            <Field label="Full name *">
+              <input
+                name="fullName"
+                required
+                maxLength={120}
+                className={INPUT}
+                defaultValue={profile?.fullName ?? suggestedName ?? ""}
+              />
+            </Field>
+            <Field label="Phone (mobile money) *">
+              <input
+                name="phone"
+                required
+                maxLength={30}
+                placeholder="07XX XXX XXX"
+                className={INPUT}
+                defaultValue={profile?.phone ?? ""}
+              />
+            </Field>
+            <div className="mt-1 flex flex-col gap-2">
+              <button type="submit" disabled={pending} className={`${PRIMARY} w-full`}>
+                {pending ? <Spinner /> : null}
+                {pending ? "Saving…" : "Continue"}
+              </button>
+              <StatusText status={status} />
+            </div>
+          </form>
+        ) : (
+          <AcademicDetailsForm
+            courses={courses}
+            profile={profile}
+            listedCourses={listedCourses}
+            institutionChoice={institutionChoice}
+            setInstitutionChoice={setInstitutionChoice}
+            courseChoice={courseChoice}
+            setCourseChoice={setCourseChoice}
+            studyLevel={studyLevel}
+            setStudyLevel={setStudyLevel}
+            projectCategory={projectCategory}
+            setProjectCategory={setProjectCategory}
+            savedInstitution={savedInstitution}
+            institutionListed={institutionListed}
+            pending={pending}
+            status={status}
+            onSubmit={(get) => {
+              setStatus(null);
+              startTransition(async () => {
+                const res = await portalSaveProfileAction({
+                  fullName: profile?.fullName ?? String(get("fullName") ?? suggestedName ?? ""),
+                  phone: profile?.phone ?? String(get("phone") ?? ""),
+                  institution: institutionChoice === OTHER_OPTION ? get("institutionOther") : institutionChoice,
+                  courseCode: courseChoice,
+                  courseOther: courseChoice === OTHER_COURSE_CODE ? get("courseOther") : "",
+                  studyLevel,
+                  studyLevelOther: studyLevel === "other" ? get("studyLevelOther") : "",
+                  projectCategory,
+                  academicYear: get("academicYear"),
+                });
                 setStatus(res);
-              }
-            });
-          }}
-        >
-          <Field label="Full name *">
-            <input
-              name="fullName"
-              required
-              maxLength={120}
-              className={INPUT}
-              defaultValue={profile?.fullName ?? suggestedName ?? ""}
-            />
-          </Field>
-          <Field label="Phone (mobile money) *">
-            <input
-              name="phone"
-              required
-              maxLength={30}
-              placeholder="07XX XXX XXX"
-              className={INPUT}
-              defaultValue={profile?.phone ?? ""}
-            />
-          </Field>
-          <div className="flex flex-wrap items-center gap-2">
-            <button type="submit" disabled={pending} className={PRIMARY}>
-              {pending ? <Spinner /> : null}
-              {pending ? "Saving…" : "Continue"}
-            </button>
-            <StatusText status={status} />
-          </div>
-        </form>
-      ) : (
-        <AcademicDetailsForm
-          courses={courses}
-          profile={profile}
-          listedCourses={listedCourses}
-          institutionChoice={institutionChoice}
-          setInstitutionChoice={setInstitutionChoice}
-          courseChoice={courseChoice}
-          setCourseChoice={setCourseChoice}
-          studyLevel={studyLevel}
-          setStudyLevel={setStudyLevel}
-          projectCategory={projectCategory}
-          setProjectCategory={setProjectCategory}
-          savedInstitution={savedInstitution}
-          institutionListed={institutionListed}
-          pending={pending}
-          status={status}
-          onSubmit={(get) => {
-            setStatus(null);
-            startTransition(async () => {
-              const res = await portalSaveProfileAction({
-                fullName: profile?.fullName ?? String(get("fullName") ?? suggestedName ?? ""),
-                phone: profile?.phone ?? String(get("phone") ?? ""),
-                institution: institutionChoice === OTHER_OPTION ? get("institutionOther") : institutionChoice,
-                courseCode: courseChoice,
-                courseOther: courseChoice === OTHER_COURSE_CODE ? get("courseOther") : "",
-                studyLevel,
-                studyLevelOther: studyLevel === "other" ? get("studyLevelOther") : "",
-                projectCategory,
-                academicYear: get("academicYear"),
               });
-              setStatus(res);
-              // Step 2 completion redirects server-side to /portal/packs.
-            });
-          }}
-          submitLabel="Save and continue"
-          extraActions={
-            <>
+            }}
+            submitLabel="Save and continue"
+            extraActions={
               <button
                 type="button"
                 disabled={pending}
-                className={SECONDARY}
+                className={`${SECONDARY} w-full sm:w-auto`}
                 onClick={() => {
                   setStatus(null);
                   startTransition(async () => {
                     const res = await portalSkipProfileAction();
                     if (!res.ok) setStatus(res);
-                    // Success redirects server-side to /portal/packs.
                   });
                 }}
               >
                 {pending ? <Spinner /> : null}
                 Skip for now
               </button>
-            </>
-          }
-        />
-      )}
-    </Card>
+            }
+          />
+        )}
+      </div>
+    </OnboardingShell>
   );
 }
 

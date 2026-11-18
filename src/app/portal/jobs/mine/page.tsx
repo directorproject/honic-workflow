@@ -24,14 +24,12 @@ export default async function PortalMyJobsPage() {
 
   if (user && !state.isStaff && (!profile || state.profileAcademicPending)) {
     return (
-      <main className="bg-dash-canvas text-dash-foreground mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 py-8 sm:px-6">
-        <ProfileForm
-          courses={state.courses}
-          profile={profile}
-          suggestedName={user.suggestedName}
-          academicStepPending={state.profileAcademicPending}
-        />
-      </main>
+      <ProfileForm
+        courses={state.courses}
+        profile={profile}
+        suggestedName={user.suggestedName}
+        academicStepPending={state.profileAcademicPending}
+      />
     );
   }
 

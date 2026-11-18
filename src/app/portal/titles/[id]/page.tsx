@@ -79,14 +79,12 @@ export default async function PortalTitlePage(props: {
   const guest = !user;
   if (user && !state.isStaff && (!profile || state.profileAcademicPending)) {
     return (
-      <Gate>
-        <ProfileForm
-          courses={state.courses}
-          profile={profile}
-          suggestedName={user.suggestedName}
-          academicStepPending={state.profileAcademicPending}
-        />
-      </Gate>
+      <ProfileForm
+        courses={state.courses}
+        profile={profile}
+        suggestedName={user.suggestedName}
+        academicStepPending={state.profileAcademicPending}
+      />
     );
   }
   const terms = state.titleTerms ?? { accepted: false, policyAccepted: false, rulesAccepted: false, acceptedAt: null };
