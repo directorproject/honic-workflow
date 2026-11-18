@@ -10,6 +10,7 @@ import {
   portalApplyJobAction,
   portalDeleteJobAction,
   portalJobMessageAction,
+  portalMarkJobTakenAction,
   portalPostJobAction,
   portalUpdateJobAction,
 } from "@/app/portal/job-actions";
@@ -682,6 +683,10 @@ export function JobDetailPanel({
     (!job.isMine && myApplication && (myApplication.status === "pending" || myApplication.status === "accepted") ? myApplication : null);
 
   const showApplySlot = !job.isMine && job.status === "open" && !myApplication;
+  // The helper can chat only after the poster has replied in that thread.
+  const activeMessages = activeApp ? (messagesByApplicationPublicId[activeApp.publicId] ?? []) : [];
+  const posterReplied = activeMessages.some((m) => !m.isMine);
+  const canChatNow = canUseJobs && (job.isMine || posterReplied);
   const showAside = showApplySlot || Boolean(activeApp) || (job.isMine && applications.length > 0);
 
   return (
@@ -754,7 +759,7 @@ export function JobDetailPanel({
                       <ApplicationRow
                         key={app.id}
                         app={app}
-                        canAccept={canUseJobs && job.status === "open" && app.status === "pending"}
+                        canAccept={job.status === "open" && app.status === "pending"}
                         onOpenThread={canThread ? () => setActiveAppId(app.publicId) : undefined}
                         threadSelected={selected}
                       />
@@ -781,7 +786,8 @@ export function JobDetailPanel({
                 applicationPublicId={activeApp.publicId}
                 messages={messagesByApplicationPublicId[activeApp.publicId] ?? []}
                 threadFor={job.isMine ? activeApp.applicantLabel : undefined}
-                canSend={canUseJobs}
+                canSend={canChatNow}
+                waitingForPoster={!job.isMine && !posterReplied}
               />
             ) : job.isMine && applications.length ? (
               <div className={`${CARD} px-6 py-10 text-center`}>
@@ -797,20 +803,44 @@ export function JobDetailPanel({
 }
 
 function OwnerTools({ job, canManage }: { job: PortalJob; canManage: boolean }) {
+  const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const canEdit = canManage && (job.status === "open" || job.status === "assigned");
-  if (!canManage) return <JobsPlanGate action="post" />;
+  const [pending, startTransition] = useTransition();
+  const [status, setStatus] = useState<PortalResult | null>(null);
+  const canEdit = canManage && job.status === "open";
+  const isOpen = job.status === "open";
+
   return (
     <div className={`${CARD} space-y-3 p-4`}>
       <div className="flex flex-wrap items-center gap-2">
         <p className="text-dash-foreground mr-auto text-sm font-semibold">Your request</p>
+        {isOpen ? (
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => {
+              if (!window.confirm("Mark this request as taken? It will be removed from the open list.")) return;
+              setStatus(null);
+              startTransition(async () => {
+                const res = await portalMarkJobTakenAction(job.publicId);
+                setStatus(res);
+                if (res.ok) router.refresh();
+              });
+            }}
+            className={`${PRIMARY} !py-2`}
+          >
+            <IconCheck size={15} /> {pending ? "Saving…" : "Mark as taken"}
+          </button>
+        ) : null}
         {canEdit ? (
           <button type="button" onClick={() => setEditing((v) => !v)} className={`${SOFT} !py-2`}>
             <IconEdit size={15} /> {editing ? "Cancel edit" : "Edit"}
           </button>
         ) : null}
-        <DeleteJobButton jobPublicId={job.publicId} redirectTo="/portal/jobs/mine" />
+        {canManage ? <DeleteJobButton jobPublicId={job.publicId} redirectTo="/portal/jobs/mine" /> : null}
       </div>
+      {status && !status.ok ? <p className="text-xs text-red-600">{toUserError(status.message ?? "")}</p> : null}
+      {!canManage ? <p className="text-dash-muted-foreground text-xs">Editing and deleting need an active Nexis Desk plan.</p> : null}
       {editing && canEdit ? <EditJobForm job={job} onDone={() => setEditing(false)} /> : null}
     </div>
   );
@@ -928,11 +958,13 @@ function MessageThread({
   messages,
   threadFor,
   canSend,
+  waitingForPoster = false,
 }: {
   applicationPublicId: string;
   messages: PortalJobMessage[];
   threadFor?: string;
   canSend: boolean;
+  waitingForPoster?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -1008,7 +1040,11 @@ function MessageThread({
           send();
         }}
       >
-        {!canSend ? (
+        {!canSend && waitingForPoster ? (
+          <div className="flex items-center gap-2 rounded-xl bg-sky-500/10 px-3 py-2.5 text-xs text-sky-900 dark:text-sky-200">
+            <IconClock size={14} /> Waiting for the poster to reply. You can chat once they answer.
+          </div>
+        ) : !canSend ? (
           <div className="flex items-center justify-between gap-2 rounded-xl bg-amber-500/10 px-3 py-2.5">
             <p className="flex items-center gap-2 text-xs text-amber-900 dark:text-amber-200">
               <IconLock size={14} /> Messaging is part of the paid plan.

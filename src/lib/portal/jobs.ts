@@ -427,9 +427,6 @@ export async function acceptApplication(
   db: SupabaseClient,
   input: { userId: string; applicationPublicId: string },
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  const plan = await requirePaidDeskForJobs(db, input.userId, "jobsManage");
-  if (!plan.ok) return plan;
-
   const { data: app, error } = await db
     .from("portal_job_applications")
     .select("id, job_id, status")
@@ -466,6 +463,37 @@ export async function acceptApplication(
   return { ok: true };
 }
 
+/** Poster closes a request as taken, with no helper picked. Removes it from the open list. */
+export async function markJobTaken(
+  db: SupabaseClient,
+  input: { userId: string; jobPublicId: string },
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const { data: job } = await db
+    .from("portal_jobs")
+    .select("id, poster_user_id, status")
+    .eq("public_id", input.jobPublicId)
+    .maybeSingle();
+  if (!job) return { ok: false, message: "Request not found." };
+  if (String(job.poster_user_id) !== input.userId) return { ok: false, message: "Only the poster can mark this as taken." };
+  if (String(job.status) !== "open") return { ok: false, message: "This request is already closed." };
+
+  const now = new Date().toISOString();
+  const { error: jobErr } = await db
+    .from("portal_jobs")
+    .update({ status: "assigned", assigned_application_id: null, updated_at: now })
+    .eq("id", job.id)
+    .eq("status", "open");
+  if (jobErr) return { ok: false, message: jobErr.message };
+
+  // Pending offers are closed so their helpers can no longer chat.
+  await db
+    .from("portal_job_applications")
+    .update({ status: "rejected", updated_at: now })
+    .eq("job_id", job.id)
+    .eq("status", "pending");
+  return { ok: true };
+}
+
 export async function postJobMessage(
   db: SupabaseClient,
   input: { userId: string; applicationPublicId: string; body: string },
@@ -489,6 +517,16 @@ export async function postJobMessage(
   const isPoster = String(job.poster_user_id) === input.userId;
   const isApplicant = String(app.applicant_user_id) === input.userId;
   if (!isPoster && !isApplicant) return { ok: false, message: "You cannot message on this application." };
+
+  // The helper may only talk once the poster has replied in this thread.
+  if (isApplicant) {
+    const { count } = await db
+      .from("portal_job_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("application_id", app.id)
+      .eq("sender_user_id", String(job.poster_user_id));
+    if (!count) return { ok: false, message: "Wait for the poster to reply before you send messages." };
+  }
 
   // Allow talk on pending (negotiate) or accepted (continue work talk). No real names.
   if (!["pending", "accepted"].includes(String(app.status))) {

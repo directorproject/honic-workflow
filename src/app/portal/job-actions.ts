@@ -9,6 +9,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   acceptApplication,
   applyToJob,
+  markJobTaken,
   createJob,
   deleteJob,
   postJobMessage,
@@ -187,5 +188,21 @@ export async function portalAcceptPeerHelpRulesAction(): Promise<PortalResult> {
     return { ok: true, message: "Thanks. You can now use peer help." };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not save your acceptance." };
+  }
+}
+
+/** Poster marks their request as taken without choosing a helper. */
+export async function portalMarkJobTakenAction(jobPublicId: string): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
+    const result = await markJobTaken(db, { userId: user.id, jobPublicId: String(jobPublicId ?? "") });
+    if (!result.ok) return { ok: false, message: result.message };
+    revalidatePath("/portal/jobs");
+    revalidatePath("/portal/jobs/mine");
+    revalidatePath(`/portal/jobs/${encodeURIComponent(String(jobPublicId))}`);
+    return { ok: true, message: "Marked as taken. It is removed from the open list." };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not update the request." };
   }
 }
