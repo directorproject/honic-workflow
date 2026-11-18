@@ -66,5 +66,5 @@ export function anonymousLabel(publicId: string, role: "Poster" | "Helper" = "Po
 }
 
 export function jobRefLabel(publicId: string): string {
-  return `Job ${String(publicId).slice(0, 8).toLowerCase()}`;
+  return `Task ${String(publicId).slice(0, 8).toLowerCase()}`;
 }

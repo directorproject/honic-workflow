@@ -14,7 +14,7 @@ import { findMembership } from "@/lib/workspace/access";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const metadata = { title: "Manage my jobs · Honic Nexis" };
+export const metadata = { title: "My peer help · Honic Nexis" };
 
 export default async function PortalMyJobsPage() {
   const state = await loadPortalState();

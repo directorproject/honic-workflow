@@ -14,7 +14,7 @@ const PORTAL_LINKS = [
   { href: "/portal", label: "Student portal" },
   { href: "/portal/titles", label: "Literature review" },
   { href: "/portal/home?tab=projects", label: "My projects & titles" },
-  { href: "/portal/jobs", label: "Jobs" },
+  { href: "/portal/jobs", label: "Peer help" },
   { href: "/portal/packs", label: "Plans & access" },
 ] as const;
 

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { isStaffUser } from "@/lib/auth-staff";
 import { getPortalUser } from "@/lib/portal/data";
+import { peerHelpRulesError } from "@/lib/portal/jobs-peer-help";
 import {
   acceptApplication,
   applyToJob,
@@ -32,8 +33,10 @@ export async function portalPostJobAction(input: {
   description: string;
   offerTsh: number;
   priceMode: string;
+  peerHelpRulesAccepted?: boolean;
 }): Promise<PortalResult> {
   try {
+    if (!input.peerHelpRulesAccepted) return { ok: false, message: peerHelpRulesError() };
     const { user, db } = await requireStudent();
     const priceMode: JobPriceMode = input.priceMode === "negotiable" ? "negotiable" : "fixed";
     const result = await createJob(db, {
@@ -47,9 +50,9 @@ export async function portalPostJobAction(input: {
     if (!result.ok) return { ok: false, message: result.message };
     revalidatePath("/portal/jobs");
     revalidatePath("/portal/jobs/mine");
-    return { ok: true, message: `Job posted anonymously as Job ${result.publicId.slice(0, 8)}.` };
+    return { ok: true, message: `Help request posted anonymously as Task ${result.publicId.slice(0, 8)}.` };
   } catch (err) {
-    return { ok: false, message: err instanceof Error ? err.message : "Could not post the job." };
+    return { ok: false, message: err instanceof Error ? err.message : "Could not post your request." };
   }
 }
 
@@ -60,8 +63,10 @@ export async function portalUpdateJobAction(input: {
   description: string;
   offerTsh: number;
   priceMode: string;
+  peerHelpRulesAccepted?: boolean;
 }): Promise<PortalResult> {
   try {
+    if (!input.peerHelpRulesAccepted) return { ok: false, message: peerHelpRulesError() };
     const { user, db } = await requireStudent();
     const priceMode: JobPriceMode = input.priceMode === "negotiable" ? "negotiable" : "fixed";
     const jobPublicId = String(input.jobPublicId ?? "");
@@ -78,9 +83,9 @@ export async function portalUpdateJobAction(input: {
     revalidatePath("/portal/jobs");
     revalidatePath("/portal/jobs/mine");
     revalidatePath(`/portal/jobs/${encodeURIComponent(jobPublicId)}`);
-    return { ok: true, message: "Job updated." };
+    return { ok: true, message: "Request updated." };
   } catch (err) {
-    return { ok: false, message: err instanceof Error ? err.message : "Could not update the job." };
+    return { ok: false, message: err instanceof Error ? err.message : "Could not update the request." };
   }
 }
 
@@ -103,8 +108,10 @@ export async function portalApplyJobAction(input: {
   jobPublicId: string;
   message: string;
   proposedTsh?: number | null;
+  peerHelpRulesAccepted?: boolean;
 }): Promise<PortalResult> {
   try {
+    if (!input.peerHelpRulesAccepted) return { ok: false, message: peerHelpRulesError() };
     const { user, db } = await requireStudent();
     const result = await applyToJob(db, {
       userId: user.id,
@@ -116,7 +123,10 @@ export async function portalApplyJobAction(input: {
     revalidatePath("/portal/jobs");
     revalidatePath("/portal/jobs/mine");
     revalidatePath(`/portal/jobs/${encodeURIComponent(String(input.jobPublicId))}`);
-    return { ok: true, message: "Interest sent. Talk in the job thread if the poster opens chat. No names are shared." };
+    return {
+      ok: true,
+      message: "Offer sent. Chat in the thread if the requester accepts. No real names are shared.",
+    };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not apply." };
   }

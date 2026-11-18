@@ -13,7 +13,7 @@ import { findMembership } from "@/lib/workspace/access";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const metadata = { title: "Posted jobs · Honic Nexis" };
+export const metadata = { title: "Peer help · Honic Nexis" };
 
 export default async function PortalJobsPage() {
   const state = await loadPortalState();

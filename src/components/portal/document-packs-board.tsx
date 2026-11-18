@@ -149,13 +149,13 @@ export function DocumentPacksBoard({
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <AddonCard
           eyebrow="Included on paid"
-          title="Jobs board"
+          title="Peer help"
           body={PRICING_BOARD.jobs.note}
           price={null}
           note="Browse free · post and apply with any paid Nexis Desk plan."
           action={
             <Link href="/portal/jobs" className="text-dash-accent text-sm font-semibold">
-              Open Jobs →
+              Open peer help →
             </Link>
           }
         />

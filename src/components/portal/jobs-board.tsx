@@ -13,6 +13,7 @@ import {
   portalPostJobAction,
   portalUpdateJobAction,
 } from "@/app/portal/job-actions";
+import { PeerHelpRulesCheckbox, PeerHelpRulesSummary } from "@/components/portal/peer-help-rules-fields";
 import { Field, StatusText } from "@/components/portal/portal-ui";
 import { toUserError } from "@/lib/portal/user-errors";
 
@@ -45,26 +46,28 @@ export function JobsBrowseBoard({
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.22em] uppercase">Honic Nexis</p>
-          <h1 className="text-dash-foreground mt-1 text-3xl font-semibold tracking-tight">Posted jobs</h1>
+          <h1 className="text-dash-foreground mt-1 text-3xl font-semibold tracking-tight">Peer help</h1>
           <p className="text-dash-muted-foreground mt-1 text-sm">
             {canUseJobs
-              ? "Open listings only — view details and apply."
+              ? "Open help requests — view details and offer to help."
               : guest
-                ? "Preview: read every listing. Sign in (then a Desk plan) to apply."
-                : "Free plan: view posted jobs. Upgrade to apply."}
+                ? "Preview: read every request. Sign in (then a Desk plan) to post or offer help."
+                : "Free plan: browse peer help. Upgrade to post or offer help."}
           </p>
         </div>
         <Link href={guest ? "/portal?auth=signin" : "/portal/jobs/mine"} className={`${PRIMARY} shrink-0`}>
-          {guest ? "Sign in to manage" : "Manage my jobs"}
+          {guest ? "Sign in to manage" : "My requests & offers"}
         </Link>
       </header>
+
+      <PeerHelpRulesSummary />
 
       {!canUseJobs ? (
         <div className="border-dash-border bg-dash-card flex flex-wrap items-center justify-between gap-3 rounded-md border px-4 py-3">
           <p className="text-dash-muted-foreground text-sm">
             {guest
-              ? "You can open any posted job to read it. Sign in to apply or post."
-              : "You can open any posted job to read it. Applying needs an active Nexis Desk plan."}
+              ? "You can open any request to read it. Sign in to offer help or request help."
+              : "You can read any listing. Posting and offering help need an active Nexis Desk plan."}
           </p>
           <Link href={guest ? "/portal?auth=signin" : "/portal/packs"} className={`${PRIMARY} shrink-0`}>
             {guest ? "Sign in" : "View plans"}
@@ -85,10 +88,10 @@ export function JobsBrowseBoard({
           </ul>
         ) : (
           <div className="border-dash-border bg-dash-card rounded-md border px-5 py-8 text-center">
-            <p className="text-dash-muted-foreground text-sm">No posted jobs yet.</p>
+            <p className="text-dash-muted-foreground text-sm">No open help requests yet.</p>
             {canUseJobs ? (
               <Link href="/portal/jobs/mine" className={`${PRIMARY} mt-4 inline-flex`}>
-                Post a job
+                Request help
               </Link>
             ) : (
               <Link href="/portal/packs" className={`${PRIMARY} mt-4 inline-flex`}>
@@ -115,11 +118,13 @@ function JobsPlanGate({ action }: { action: "post" | "apply" }) {
     <div className="border-dash-border bg-dash-card rounded-md border px-4 py-5 sm:px-5">
       <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">Nexis Desk</p>
       <h2 className="text-dash-foreground mt-1 text-base font-semibold">
-        {action === "post" ? "Posting needs a paid plan" : "You can view this job · apply needs a paid plan"}
+        {action === "post"
+          ? "Requesting help needs a paid plan"
+          : "You can read this request · offering help needs a paid plan"}
       </h2>
       <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
-        Browse listings freely. {action === "post" ? "Posting" : "Applying"} needs sign-in plus an active semester or
-        full-year Nexis Desk plan.
+        Browse freely. {action === "post" ? "Posting a help request" : "Offering to help"} needs sign-in plus an active
+        Nexis Desk plan.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         <Link href="/portal?auth=signin" className={`${PRIMARY} inline-flex`}>
@@ -151,18 +156,18 @@ export function MyJobsBoard({
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.22em] uppercase">Honic Nexis</p>
-          <h1 className="text-dash-foreground mt-1 text-3xl font-semibold tracking-tight">Manage my jobs</h1>
+          <h1 className="text-dash-foreground mt-1 text-3xl font-semibold tracking-tight">My requests & offers</h1>
           <p className="text-dash-muted-foreground mt-1 text-sm">
             {canUseJobs
-              ? "Post work and track applications on your listings."
-              : "Browse posted jobs is free. Posting and applying need an active Nexis Desk plan."}
+              ? "Request peer help and track offers on your listings."
+              : "Browsing peer help is free. Posting and offering help need an active Nexis Desk plan."}
           </p>
         </div>
         <Link
           href="/portal/jobs"
           className="border-dash-border text-dash-foreground hover:bg-dash-muted inline-flex shrink-0 items-center justify-center rounded-sm border px-4 py-2.5 text-sm font-semibold transition"
         >
-          Posted jobs
+          Peer help board
         </Link>
       </header>
 
@@ -179,7 +184,7 @@ export function MyJobsBoard({
         <div className="space-y-6">
           <section className="border-dash-border bg-dash-card overflow-hidden rounded-md border">
             <div className="border-dash-border flex items-center justify-between gap-2 border-b px-4 py-3 sm:px-5">
-              <h2 className="text-dash-foreground text-base font-semibold">Your posts</h2>
+              <h2 className="text-dash-foreground text-base font-semibold">Your help requests</h2>
               <span className="text-dash-muted-foreground text-xs tabular-nums">{myJobs.length}</span>
             </div>
             {myJobs.length ? (
@@ -190,14 +195,14 @@ export function MyJobsBoard({
               </ul>
             ) : (
               <div className="px-4 py-8 text-center sm:px-5">
-                <p className="text-dash-muted-foreground text-sm">No posts yet. Use the form to create one.</p>
+                <p className="text-dash-muted-foreground text-sm">No requests yet. Use the form to ask for peer help.</p>
               </div>
             )}
           </section>
 
           <section className="border-dash-border bg-dash-card overflow-hidden rounded-md border">
             <div className="border-dash-border flex items-center justify-between gap-2 border-b px-4 py-3 sm:px-5">
-              <h2 className="text-dash-foreground text-base font-semibold">Your applications</h2>
+              <h2 className="text-dash-foreground text-base font-semibold">Your offers to help</h2>
               <span className="text-dash-muted-foreground text-xs tabular-nums">{myApplications.length}</span>
             </div>
             {myApplications.length ? (
@@ -233,9 +238,9 @@ export function MyJobsBoard({
             ) : (
               <div className="px-4 py-8 text-center sm:px-5">
                 <p className="text-dash-muted-foreground text-sm">
-                  No applications yet.{" "}
+                  No offers yet.{" "}
                   <Link href="/portal/jobs" className="text-dash-accent font-semibold">
-                    Browse posted jobs
+                    Browse peer help
                   </Link>
                 </p>
               </div>
@@ -347,6 +352,7 @@ function EditJobForm({ job, onDone }: { job: PortalJob; onDone?: () => void }) {
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
   const [priceMode, setPriceMode] = useState<"fixed" | "negotiable">(job.priceMode);
+  const [rulesAccepted, setRulesAccepted] = useState(false);
 
   return (
     <form
@@ -363,6 +369,7 @@ function EditJobForm({ job, onDone }: { job: PortalJob; onDone?: () => void }) {
             description: String(fd.get("description") ?? ""),
             offerTsh: Number(fd.get("offerTsh")),
             priceMode: String(fd.get("priceMode") ?? "fixed"),
+            peerHelpRulesAccepted: rulesAccepted,
           });
           setStatus(res);
           if (res.ok) {
@@ -443,7 +450,8 @@ function EditJobForm({ job, onDone }: { job: PortalJob; onDone?: () => void }) {
           </span>
         </label>
       </fieldset>
-      <button type="submit" className={PRIMARY} disabled={pending}>
+      <PeerHelpRulesCheckbox checked={rulesAccepted} onChange={setRulesAccepted} disabled={pending} />
+      <button type="submit" className={PRIMARY} disabled={pending || !rulesAccepted}>
         {pending ? "Saving…" : "Save changes"}
       </button>
       {status ? <StatusText status={status} /> : null}
@@ -469,7 +477,7 @@ function DeleteJobButton({
         disabled={pending}
         className="border-dash-border text-red-700 hover:bg-red-50 rounded-sm border px-3 py-1.5 text-sm font-medium disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-950/40"
         onClick={() => {
-          if (!window.confirm("Delete this job? Applications and messages will be removed.")) return;
+          if (!window.confirm("Delete this help request? Offers and messages will be removed.")) return;
           setStatus(null);
           startTransition(async () => {
             const res = await portalDeleteJobAction(jobPublicId);
@@ -496,6 +504,7 @@ function PostJobForm({ compact = false }: { compact?: boolean }) {
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
   const [priceMode, setPriceMode] = useState<"fixed" | "negotiable">("fixed");
+  const [rulesAccepted, setRulesAccepted] = useState(false);
 
   function submit(fd: FormData) {
     setStatus(null);
@@ -506,11 +515,13 @@ function PostJobForm({ compact = false }: { compact?: boolean }) {
         description: String(fd.get("description") ?? ""),
         offerTsh: Number(fd.get("offerTsh")),
         priceMode: String(fd.get("priceMode") ?? "fixed"),
+        peerHelpRulesAccepted: rulesAccepted,
       });
       setStatus(res);
       if (res.ok) {
         (document.getElementById("post-job-form") as HTMLFormElement | null)?.reset();
         setPriceMode("fixed");
+        setRulesAccepted(false);
         router.refresh();
       }
     });
@@ -518,8 +529,8 @@ function PostJobForm({ compact = false }: { compact?: boolean }) {
 
   return (
     <section className="border-dash-border bg-dash-card rounded-md border p-4 sm:p-5">
-      <h2 className="text-dash-foreground text-base font-semibold tracking-tight">Post a job</h2>
-      <p className="text-dash-muted-foreground mt-0.5 text-xs">Anonymous · no real name shown</p>
+      <h2 className="text-dash-foreground text-base font-semibold tracking-tight">Request help</h2>
+      <p className="text-dash-muted-foreground mt-0.5 text-xs">Anonymous · peer help only · no real names</p>
       <form
         id="post-job-form"
         className="mt-4 grid gap-3"
@@ -560,9 +571,12 @@ function PostJobForm({ compact = false }: { compact?: boolean }) {
             maxLength={4000}
             rows={compact ? 4 : 5}
             className={INPUT}
-            placeholder="What is needed, deadline, tools, and what you will supply."
+            placeholder="What you need, deadline, tools, and what you will supply (not a full report or chapter)."
           />
         </Field>
+
+        <PeerHelpRulesSummary compact />
+        <PeerHelpRulesCheckbox checked={rulesAccepted} onChange={setRulesAccepted} disabled={pending} />
 
         <fieldset className="grid gap-2">
           <legend className="text-dash-muted-foreground mb-1 text-xs font-semibold uppercase">Price</legend>
@@ -604,8 +618,8 @@ function PostJobForm({ compact = false }: { compact?: boolean }) {
           </label>
         </fieldset>
 
-        <button type="submit" className={`${PRIMARY} w-full`} disabled={pending}>
-          {pending ? "Posting…" : "Post job"}
+        <button type="submit" className={`${PRIMARY} w-full`} disabled={pending || !rulesAccepted}>
+          {pending ? "Posting…" : "Post request"}
         </button>
         {status ? <StatusText status={status} /> : null}
       </form>
@@ -631,7 +645,7 @@ function JobCard({ job, canApply }: { job: PortalJob; canApply: boolean }) {
         <div className="text-right">
           <p className="text-dash-foreground text-lg font-semibold tabular-nums">{formatTsh(job.offerTsh)}</p>
           <Link href={`/portal/jobs/${job.publicId}`} className={`${PRIMARY} mt-3 inline-flex`}>
-            {job.isMine ? "Manage" : canApply ? "View / apply" : "View"}
+            {job.isMine ? "Manage" : canApply ? "View / offer help" : "View"}
           </Link>
         </div>
       </div>
@@ -674,13 +688,13 @@ export function JobDetailPanel({
           href="/portal/jobs"
           className="text-dash-muted-foreground hover:text-dash-foreground rounded-sm px-3 py-1.5 text-sm font-medium"
         >
-          ← Posted jobs
+          ← Peer help
         </Link>
         <Link
           href="/portal/jobs/mine"
           className="bg-dash-accent rounded-sm px-3 py-1.5 text-sm font-medium text-white"
         >
-          Manage my jobs
+          My requests & offers
         </Link>
       </div>
 
@@ -773,6 +787,7 @@ function ApplyForm({ job }: { job: PortalJob }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
+  const [rulesAccepted, setRulesAccepted] = useState(false);
 
   return (
     <form
@@ -787,23 +802,33 @@ function ApplyForm({ job }: { job: PortalJob }) {
             jobPublicId: job.publicId,
             message: String(fd.get("message") ?? ""),
             proposedTsh: proposed ? Number(proposed) : null,
+            peerHelpRulesAccepted: rulesAccepted,
           });
           setStatus(res);
           if (res.ok) router.refresh();
         });
       }}
     >
-      <h2 className="text-dash-foreground text-base font-semibold">Apply</h2>
-      <Field label="Note to poster">
-        <textarea name="message" required minLength={10} rows={3} className={INPUT} placeholder="What you can deliver and when." />
+      <h2 className="text-dash-foreground text-base font-semibold">Offer to help</h2>
+      <Field label="Note to requester">
+        <textarea
+          name="message"
+          required
+          minLength={10}
+          rows={3}
+          className={INPUT}
+          placeholder="What peer help you can offer (not writing their full report)."
+        />
       </Field>
       {job.priceMode === "negotiable" ? (
         <Field label="Proposed amount (TSh, optional)">
           <input name="proposedTsh" type="number" min={1000} step={500} className={INPUT} placeholder={String(job.offerTsh)} />
         </Field>
       ) : null}
-      <button type="submit" className={PRIMARY} disabled={pending}>
-        {pending ? "Sending…" : "Send interest"}
+      <PeerHelpRulesSummary compact />
+      <PeerHelpRulesCheckbox checked={rulesAccepted} onChange={setRulesAccepted} disabled={pending} />
+      <button type="submit" className={PRIMARY} disabled={pending || !rulesAccepted}>
+        {pending ? "Sending…" : "Send offer"}
       </button>
       {status ? <StatusText status={status} /> : null}
     </form>
