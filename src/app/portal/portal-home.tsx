@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { ExploreFeaturePanel } from "@/components/portal/explore-feature-panel";
+import { ExploreFeaturePanel, FeaturePreview, featureTitle } from "@/components/portal/explore-feature-panel";
+import { PlanLock } from "@/components/portal/plan-lock";
 import { MyProjectsPanel } from "@/components/portal/my-projects-panel";
 import { PaymentsBoard } from "@/components/portal/payments-board";
 import { PortalShell } from "@/components/portal/portal-shell";
@@ -220,7 +221,9 @@ export async function PortalHome({
     body = onHome ? (
       <FreeHomeExplore name={profile.fullName} />
     ) : (
-      <ExploreFeaturePanel featureKey={tab} hasPaidPlan={false} hasWorkspace={Boolean(membership)} />
+      <PlanLock locked title={featureTitle(tab)} body="Free plan can look around. Activate a semester or year Nexis Desk plan to use this tool.">
+        <FeaturePreview featureKey={tab} />
+      </PlanLock>
     );
   } else if (bundle) {
     body = (

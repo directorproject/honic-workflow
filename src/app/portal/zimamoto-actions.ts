@@ -8,9 +8,9 @@ import { getPortalUser } from "@/lib/portal/data";
 import {
   createZimamotoGroup,
   createZimamotoPost,
-  joinZimamotoGroup,
   saveZimamotoDoc,
 } from "@/lib/portal/zimamoto";
+import { createInvite, joinGroup, listInvites, revokeInvite, type ZimamotoInvite } from "@/lib/portal/zimamoto-access";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { MAX_UPLOAD_BYTES, STORAGE_BUCKET } from "@/lib/workspace/constants";
 
@@ -59,13 +59,47 @@ export async function portalZimamotoCreateGroupAction(input: {
 export async function portalZimamotoJoinGroupAction(inviteCode: string): Promise<PortalResult & { publicId?: string }> {
   try {
     const { user, db } = await requireStudent();
-    const result = await joinZimamotoGroup(db, { userId: user.id, inviteCode: String(inviteCode ?? "") });
+    const result = await joinGroup(db, { userId: user.id, code: String(inviteCode ?? "") });
     if (!result.ok) return { ok: false, message: result.message };
     revalidatePath("/portal/zimamoto");
     revalidatePath(`/portal/zimamoto/g/${result.publicId}`);
     return { ok: true, message: "You joined the group.", publicId: result.publicId };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not join the group." };
+  }
+}
+
+export async function portalZimamotoCreateInviteAction(input: {
+  groupId: string;
+  maxUses?: number;
+  days?: number;
+}): Promise<PortalResult & { invite?: ZimamotoInvite }> {
+  try {
+    const { user, db } = await requireStudent();
+    const res = await createInvite(db, { groupId: String(input.groupId), userId: user.id, maxUses: input.maxUses, days: input.days });
+    if (!res.ok) return { ok: false, message: res.message };
+    return { ok: true, message: "Invitation created.", invite: res.invite };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not create the invitation." };
+  }
+}
+
+export async function portalZimamotoListInvitesAction(groupId: string): Promise<{ ok: boolean; invites: ZimamotoInvite[] }> {
+  try {
+    const { user, db } = await requireStudent();
+    return { ok: true, invites: await listInvites(db, String(groupId), user.id) };
+  } catch {
+    return { ok: false, invites: [] };
+  }
+}
+
+export async function portalZimamotoRevokeInviteAction(inviteId: string): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    const res = await revokeInvite(db, { inviteId: String(inviteId), userId: user.id });
+    return res.ok ? { ok: true, message: "Invitation cancelled." } : { ok: false, message: res.message };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not cancel the invitation." };
   }
 }
 

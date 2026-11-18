@@ -3,14 +3,11 @@ import { Suspense } from "react";
 
 import { PortalShell } from "@/components/portal/portal-shell";
 import { ProfileForm } from "@/components/portal/profile-form";
-import { ZimamotoGroupPage } from "@/components/portal/zimamoto-board";
+import { GroupChat } from "@/components/zimamoto/group-chat";
 import { studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
-import {
-  getZimamotoGroupByPublicId,
-  listGroupZimamotoDocs,
-  listGroupZimamotoPosts,
-} from "@/lib/portal/zimamoto";
+import { getZimamotoGroupByPublicId } from "@/lib/portal/zimamoto";
+import { listGroupMessages } from "@/lib/portal/zimamoto-chat";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { findMembership } from "@/lib/workspace/access";
 
@@ -68,12 +65,7 @@ export default async function ZimamotoGroupRoute({ params }: Props) {
   }
 
   const membership = user && !state.isStaff ? await findMembership(db, user.id) : null;
-  const [posts, docs] = group.isMember
-    ? await Promise.all([
-        listGroupZimamotoPosts(db, group.id, user?.id ?? null),
-        listGroupZimamotoDocs(db, group.id),
-      ])
-    : [[], []];
+  const initialMessages = group.isMember && user ? await listGroupMessages(db, group.id, user.id) : [];
 
   const viewerDetail = guest
     ? "Preview"
@@ -90,7 +82,20 @@ export default async function ZimamotoGroupRoute({ params }: Props) {
         hasProgress={Boolean(profile?.trackedProjectId)}
         deskExpiresAt={profile?.deskExpiresAt ?? null}
       >
-        <ZimamotoGroupPage guest={guest} group={group} posts={posts} docs={docs} />
+        <GroupChat
+          group={{
+            id: group.id,
+            publicId: group.publicId,
+            name: group.name,
+            description: group.description,
+            isPrivate: group.isPrivate,
+            isOwner: group.isOwner,
+            isMember: group.isMember && !guest,
+            memberCount: group.memberCount,
+          }}
+          initialMessages={initialMessages}
+          viewerName={profile?.fullName || user?.email || "you"}
+        />
       </PortalShell>
     </Suspense>
   );

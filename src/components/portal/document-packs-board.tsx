@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 
 import { portalPayForMembershipAction, type PortalResult } from "@/app/portal/actions";
 import { DocumentsUnlockPanel } from "@/components/portal/documents-unlock-panel";
@@ -11,10 +11,10 @@ import { formatTsh, PRICING_BOARD } from "@/lib/portal/document-packs";
 import {
   EXTRA_TITLE_HIDE_FEE_TSH,
   FREE_TITLE_SLOTS,
+  MAX_MEMBERSHIP_MONTHS,
   PAID_PLAN_FILE_STORAGE_BYTES,
   PAYMENT_NETWORKS,
   PROJECT_DOCUMENTS_ACCESS_TSH,
-  MAX_MEMBERSHIP_MONTHS,
   SUBSCRIPTION_MONTH_TSH,
   SUBSCRIPTION_SEMESTER_TSH,
   SUBSCRIPTION_YEAR_TSH,
@@ -26,12 +26,14 @@ const PAID_STORAGE = formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES);
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1800&q=80";
 
+const SECTION = "mx-auto w-full max-w-6xl px-5 sm:px-8";
+const EYEBROW = "text-dash-accent text-[11px] font-semibold tracking-[0.2em] uppercase";
+
 export function DocumentPacksBoard({
   signedIn,
   planActive = false,
   planLabel = "Free plan",
   phone = "",
-  deskExpiresAt = null,
   deskPlan = null,
 }: {
   signedIn: boolean;
@@ -46,12 +48,12 @@ export function DocumentPacksBoard({
   const semesterPerMonth = Math.round(SUBSCRIPTION_SEMESTER_TSH / 6);
 
   return (
-    <div className="packs-site -mx-3 -mt-4 sm:-mx-6 sm:-mt-5 lg:-mx-8">
-      {/* Shorter, narrower hero — works on phone and desktop */}
-      <section className="relative overflow-hidden">
+    <div className="packs-site -mx-3 -mt-4 pb-16 sm:-mx-6 sm:-mt-5 lg:-mx-8">
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-slate-950">
         <div
           aria-hidden
-          className="absolute inset-0 bg-cover bg-[center_30%]"
+          className="absolute inset-0 bg-cover bg-[center_35%] opacity-40"
           style={{ backgroundImage: `url(${HERO_IMAGE})` }}
         />
         <div
@@ -59,71 +61,66 @@ export function DocumentPacksBoard({
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(160deg, color-mix(in oklab, #0f172a 92%, transparent) 0%, color-mix(in oklab, #0f172a 78%, transparent) 55%, color-mix(in oklab, #0f172a 55%, transparent) 100%), radial-gradient(ellipse 50% 60% at 90% 10%, color-mix(in oklab, #06b6d4 28%, transparent), transparent 55%)",
+              "linear-gradient(180deg, rgba(2,6,23,0.55) 0%, rgba(2,6,23,0.92) 85%), radial-gradient(60% 50% at 85% 0%, rgba(6,182,212,0.25), transparent 60%)",
           }}
         />
-        <div className="relative mx-auto flex w-full max-w-5xl justify-center px-5 py-10 sm:px-8 sm:py-12 lg:justify-start lg:px-10 lg:py-14">
-          <div className="w-full max-w-[20rem] sm:max-w-sm lg:max-w-md">
-            <p className="text-[10px] font-semibold tracking-[0.26em] text-cyan-200/90 uppercase sm:text-[11px]">
-              Honic Nexis
+        <div className={`${SECTION} relative py-14 sm:py-20`}>
+          <p className="text-[11px] font-semibold tracking-[0.25em] text-cyan-200/90 uppercase">Honic Nexis · Plans</p>
+          <h1 className="mt-4 max-w-2xl text-[2.1rem] leading-[1.05] font-semibold tracking-tight text-white sm:text-5xl">
+            Your desk, your pace.
+          </h1>
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base">
+            One Nexis Desk plan unlocks the workspace, peer help, and extra title hides. Pay with mobile money. Your
+            plan activates once payment is verified.
+          </p>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <a
+              href="#plans"
+              className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-cyan-100"
+            >
+              Choose a plan
+            </a>
+            <Link
+              href="/portal/titles"
+              className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10"
+            >
+              Browse literature
+            </Link>
+          </div>
+
+          <div className="mt-10 inline-flex items-center gap-3 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 backdrop-blur">
+            <span
+              className={`h-2 w-2 rounded-full ${planActive ? "bg-emerald-400" : "bg-amber-300"}`}
+              aria-hidden
+            />
+            <p className="text-sm text-white/85">
+              <span className="font-semibold text-white">Your access</span>
+              <span className="mx-2 text-white/40">·</span>
+              {planLabel}
             </p>
-            <h1 className="mt-2 text-[1.85rem] leading-[1.1] font-semibold tracking-tight text-white sm:text-4xl">
-              Your desk. Your pace.
-            </h1>
-            <p className="mt-3 text-sm leading-relaxed text-white/75 sm:text-[0.95rem]">
-              Nexis Desk plans for workspace tools, peer help, and free title hides — paid with mobile money.
-            </p>
-            <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
-              <a
-                href="#plans"
-                className="bg-dash-accent inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
-              >
-                See plans
-              </a>
-              <Link
-                href="/portal/titles"
-                className="inline-flex items-center justify-center rounded-md border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/15"
-              >
-                Browse literature
-              </Link>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Single status line — no duplicate expiry */}
-      <div className="border-dash-border bg-dash-card border-b px-5 py-2.5 sm:px-8">
-        <div className="mx-auto max-w-5xl">
-          <p className="text-dash-muted-foreground text-sm">
-            <span className="text-dash-foreground font-semibold">Your access · </span>
-            {planLabel}
-          </p>
-        </div>
-      </div>
-
       {/* Plans */}
-      <section id="plans" className="relative scroll-mt-24 px-5 py-10 sm:px-8 sm:py-14">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 40% at 50% 0%, color-mix(in oklab, var(--dash-accent) 12%, transparent), transparent 70%)",
-          }}
-        />
-        <div className="relative mx-auto max-w-5xl">
-          <div className="max-w-xl">
-            <h2 className="text-dash-foreground text-2xl font-semibold tracking-tight sm:text-3xl">Choose how you work</h2>
+      <section id="plans" className="scroll-mt-24 pt-14 sm:pt-20">
+        <div className={SECTION}>
+          <div className="max-w-2xl">
+            <p className={EYEBROW}>Plans</p>
+            <h2 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              Pick the length that fits your project
+            </h2>
             <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
-              Monthly, semester, or full year. Paid plans include {FREE_TITLE_SLOTS} free classmate hides and peer-help
-              posting.
+              Every paid plan includes {FREE_TITLE_SLOTS} free classmate hides and peer-help posting. Renewals stack on
+              your current expiry, so you never lose days.
             </p>
           </div>
 
-          <div className="mt-8 grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+          <div className="mt-10 grid items-stretch gap-5 md:grid-cols-2 xl:grid-cols-4">
             <FreePlanCard active={!planActive} />
-            <MonthlySubscriptionCard signedIn={signedIn} phone={phone} active={planActive && deskPlan === "monthly"} />
-            <SubscriptionCard
+            <MonthlyPlanCard signedIn={signedIn} phone={phone} active={planActive && deskPlan === "monthly"} />
+            <SubscriptionPlanCard
               planId="semester"
               name="Semester"
               period="6 months"
@@ -131,17 +128,16 @@ export function DocumentPacksBoard({
               perMonth={semesterPerMonth}
               points={[
                 "Full Nexis Desk for one project cycle",
-                "Workspace, Help desk, literature",
+                "Workspace, help desk, literature",
                 "Peer help post, offer, and message",
                 `${FREE_TITLE_SLOTS} free title hides`,
                 `Storage up to ${PAID_STORAGE}`,
-                "Renewals stack on your expiry",
               ]}
               signedIn={signedIn}
               phone={phone}
               active={planActive && deskPlan === "semester"}
             />
-            <SubscriptionCard
+            <SubscriptionPlanCard
               planId="year"
               name="Full year"
               period="12 months"
@@ -151,7 +147,7 @@ export function DocumentPacksBoard({
               highlight
               points={[
                 "Full Nexis Desk for the academic year",
-                "Workspace, Help desk, literature",
+                "Workspace, help desk, literature",
                 "Peer help post, offer, and message",
                 `${FREE_TITLE_SLOTS} free title hides`,
                 `Storage up to ${PAID_STORAGE}`,
@@ -165,136 +161,105 @@ export function DocumentPacksBoard({
         </div>
       </section>
 
-      {/* How titles work — one purpose */}
-      <section className="border-dash-border bg-dash-card border-y px-5 py-10 sm:px-8 sm:py-12">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="text-dash-foreground text-2xl font-semibold tracking-tight sm:text-3xl">How titles work</h2>
-          <p className="text-dash-muted-foreground mt-2 max-w-md text-sm leading-relaxed">
-            Select stays free. Hiding protects your defence group — it is not buying the idea.
-          </p>
-          <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                n: "01",
-                t: "Select free",
-                d: "Keeps a title in front. Classmates can still see it until it is hidden.",
-              },
-              {
-                n: "02",
-                t: "Hide when ready",
-                d: `Free plan pays ${formatTsh(EXTRA_TITLE_HIDE_FEE_TSH)} per hide. Paid plans include ${FREE_TITLE_SLOTS} free hides.`,
-              },
-              {
-                n: "03",
-                t: "Not a title shop",
-                d: "Payment only activates classmate-hide protection on this portal.",
-              },
-              {
-                n: "04",
-                t: "Defend clearly",
-                d: "Hiding blocks others at your institution, course, and level.",
-              },
-            ].map((item) => (
-              <li key={item.n} className="relative">
-                <p className="text-dash-accent font-mono text-sm tracking-wider">{item.n}</p>
-                <h3 className="text-dash-foreground mt-2 text-lg font-semibold">{item.t}</h3>
-                <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">{item.d}</p>
-              </li>
-            ))}
-          </ol>
-          <div className="mt-8">
-            <Link
-              href="/portal/titles"
-              className="text-dash-accent inline-flex text-sm font-semibold underline-offset-4 hover:underline"
-            >
-              Open literature review →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Included tools — one strip, not three promo cards */}
-      <section className="px-5 py-10 sm:px-8 sm:py-12">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="text-dash-foreground text-2xl font-semibold tracking-tight sm:text-3xl">What paid unlocks</h2>
-          <p className="text-dash-muted-foreground mt-2 max-w-md text-sm leading-relaxed">
-            Peer help, Help desk, and more storage come with any active Nexis Desk plan.
-          </p>
-          <div className="mt-8 grid gap-8 md:grid-cols-3">
-            <div>
-              <h3 className="text-dash-foreground text-base font-semibold">Peer help</h3>
-              <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">{PRICING_BOARD.jobs.note}</p>
-              <Link href="/portal/jobs" className="text-dash-accent mt-3 inline-flex text-sm font-semibold">
-                Open peer help →
-              </Link>
-            </div>
-            <div>
-              <h3 className="text-dash-foreground text-base font-semibold">Title hide</h3>
-              <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
-                {formatTsh(EXTRA_TITLE_HIDE_FEE_TSH)} per hide outside the {FREE_TITLE_SLOTS} free on a paid plan.
-              </p>
-              <Link href="/portal/titles" className="text-dash-accent mt-3 inline-flex text-sm font-semibold">
-                Open literature →
-              </Link>
-            </div>
-            <div>
-              <h3 className="text-dash-foreground text-base font-semibold">Project documents</h3>
-              <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
-                {planActive
+      {/* What paid unlocks */}
+      <section className="pt-16 sm:pt-24">
+        <div className={SECTION}>
+          <p className={EYEBROW}>What you get</p>
+          <h2 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+            Everything a paid plan opens
+          </h2>
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            <FeatureTile
+              title="Peer help"
+              body={PRICING_BOARD.jobs.note}
+              action={<Link href="/portal/jobs" className="text-dash-accent text-sm font-semibold">Open peer help →</Link>}
+            />
+            <FeatureTile
+              title="Title hides"
+              body={`${formatTsh(EXTRA_TITLE_HIDE_FEE_TSH)} per hide outside the ${FREE_TITLE_SLOTS} included on a paid plan.`}
+              action={<Link href="/portal/titles" className="text-dash-accent text-sm font-semibold">Open literature →</Link>}
+            />
+            <FeatureTile
+              title="Project documents"
+              body={
+                planActive
                   ? "Included with your active plan."
-                  : `${formatTsh(PROJECT_DOCUMENTS_ACCESS_TSH)} unlock, or included on paid Desk.`}
-              </p>
-              {signedIn && !planActive ? (
-                <div className="mt-3">
-                  <DocumentsUnlockPanel phone={phone} compact />
-                </div>
-              ) : !signedIn ? (
-                <Link href="/portal" className="text-dash-accent mt-3 inline-flex text-sm font-semibold">
-                  Sign in to unlock →
-                </Link>
-              ) : null}
+                  : `${formatTsh(PROJECT_DOCUMENTS_ACCESS_TSH)} to unlock, or included on any paid plan.`
+              }
+              action={
+                signedIn && !planActive ? (
+                  <div className="mt-1">
+                    <DocumentsUnlockPanel phone={phone} compact />
+                  </div>
+                ) : !signedIn ? (
+                  <Link href="/portal" className="text-dash-accent text-sm font-semibold">Sign in to unlock →</Link>
+                ) : null
+              }
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Free vs paid */}
+      <section className="pt-16 sm:pt-24">
+        <div className={SECTION}>
+          <div className="grid gap-5 md:grid-cols-2">
+            <ChecklistPanel title="Always free" items={PRICING_BOARD.freeAlways} />
+            <ChecklistPanel title="Paid plan only" items={PRICING_BOARD.paidOnly} highlight />
+          </div>
+        </div>
+      </section>
+
+      {/* Title rules */}
+      <section className="pt-16 sm:pt-24">
+        <div className={SECTION}>
+          <div className="rounded-3xl border border-dash-border bg-dash-card p-6 sm:p-10">
+            <p className={EYEBROW}>How titles work</p>
+            <h2 className="text-dash-foreground mt-2 max-w-xl text-2xl font-semibold tracking-tight sm:text-3xl">
+              Selecting is free. Hiding protects your group.
+            </h2>
+            <p className="text-dash-muted-foreground mt-2 max-w-xl text-sm leading-relaxed">
+              Hiding is not buying the idea. It keeps a title from classmates at your institution, course, and level
+              until defence.
+            </p>
+            <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { n: "1", t: "Select free", d: "Keeps a title in front. Classmates can still see it until it is hidden." },
+                { n: "2", t: "Hide when ready", d: `Free plan pays ${formatTsh(EXTRA_TITLE_HIDE_FEE_TSH)} per hide. Paid plans include ${FREE_TITLE_SLOTS}.` },
+                { n: "3", t: "Not a title shop", d: "Payment only activates classmate-hide protection on this portal." },
+                { n: "4", t: "Defend clearly", d: "Hiding blocks others at your institution, course, and level." },
+              ].map((item) => (
+                <li key={item.n} className="relative pl-12">
+                  <span className="bg-dash-accent/10 text-dash-accent absolute top-0 left-0 flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold">
+                    {item.n}
+                  </span>
+                  <h3 className="text-dash-foreground text-base font-semibold">{item.t}</h3>
+                  <p className="text-dash-muted-foreground mt-1.5 text-sm leading-relaxed">{item.d}</p>
+                </li>
+              ))}
+            </ol>
+            <div className="mt-8">
+              <Link href="/portal/titles" className={`${SECONDARY} inline-flex`}>
+                Open literature review
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Free vs paid — clean comparison */}
-      <section className="border-dash-border bg-dash-muted/40 border-t px-5 py-10 sm:px-8 sm:py-12">
-        <div className="mx-auto grid max-w-5xl gap-10 md:grid-cols-2">
-          <div>
-            <h2 className="text-dash-foreground text-xl font-semibold tracking-tight">Always free</h2>
-            <ul className="text-dash-muted-foreground mt-5 space-y-3 text-sm leading-relaxed">
-              {PRICING_BOARD.freeAlways.map((line) => (
-                <li key={line} className="flex gap-3">
-                  <CheckIcon className="text-dash-accent mt-0.5 shrink-0" />
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h2 className="text-dash-foreground text-xl font-semibold tracking-tight">Paid plan only</h2>
-            <ul className="text-dash-muted-foreground mt-5 space-y-3 text-sm leading-relaxed">
-              {PRICING_BOARD.paidOnly.map((line) => (
-                <li key={line} className="flex gap-3">
-                  <CheckIcon className="text-dash-accent mt-0.5 shrink-0" />
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </section>
-
+      {/* Optional packs */}
       {PRICING_BOARD.packs.length ? (
-        <section className="border-dash-border border-t px-5 py-10 sm:px-8">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="text-dash-foreground text-xl font-semibold">Optional writing packs</h2>
-            <p className="text-dash-muted-foreground mt-1 text-sm">Guides from Honic writers. Not required for membership.</p>
-            <div className="mt-6 grid gap-6 md:grid-cols-2">
+        <section className="pt-16 sm:pt-24">
+          <div className={SECTION}>
+            <p className={EYEBROW}>Optional</p>
+            <h2 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Writing packs</h2>
+            <p className="text-dash-muted-foreground mt-2 text-sm">
+              Guides from Honic writers. Not required for membership.
+            </p>
+            <div className="mt-8 grid gap-5 md:grid-cols-2">
               {PRICING_BOARD.packs.map((pack) => (
-                <article key={pack.id} className="border-dash-border border-t pt-5">
-                  <div className="flex items-baseline justify-between gap-3">
+                <article key={pack.id} className="border-dash-border bg-dash-card rounded-2xl border p-6">
+                  <div className="flex items-start justify-between gap-4">
                     <h3 className="text-dash-foreground text-base font-semibold">{pack.name}</h3>
                     <p className="text-dash-foreground shrink-0 font-semibold tabular-nums">{formatTsh(pack.priceTsh)}</p>
                   </div>
@@ -309,50 +274,91 @@ export function DocumentPacksBoard({
   );
 }
 
-function FreePlanCard({ active }: { active: boolean }) {
+function PlanShell({
+  eyebrow,
+  name,
+  price,
+  priceNote,
+  badge,
+  active,
+  highlight,
+  children,
+  footer,
+}: {
+  eyebrow: string;
+  name: string;
+  price: string;
+  priceNote?: string;
+  badge?: string;
+  active?: boolean;
+  highlight?: boolean;
+  children?: ReactNode;
+  footer: ReactNode;
+}) {
   return (
-    <article className="border-dash-border bg-dash-card relative flex flex-col rounded-2xl border p-5 transition duration-300 hover:-translate-y-1 sm:p-6">
-      {active ? (
-        <span className="bg-dash-muted text-dash-muted-foreground absolute top-4 right-4 rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
-          Current
-        </span>
-      ) : null}
-      <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">Always available</p>
-      <h3 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight">Free</h3>
-      <p className="text-dash-foreground mt-4 text-4xl font-semibold tracking-tight tabular-nums">TSh 0</p>
-      <p className="text-dash-muted-foreground mt-1 text-xs">Browse and select anytime</p>
-      <ul className="text-dash-muted-foreground mt-6 flex-1 space-y-2.5 text-sm leading-relaxed">
-        {[
-          "Literature review browse",
-          "Select titles for free",
-          "Browse peer help",
-          "Pay per hide when you need it",
-        ].map((p) => (
-          <li key={p} className="flex gap-2.5">
-            <CheckIcon className="text-dash-muted-foreground mt-0.5 shrink-0 opacity-70" />
-            <span>{p}</span>
-          </li>
-        ))}
-      </ul>
-      <Link
-        href="/portal/titles"
-        className="border-dash-border text-dash-foreground mt-6 inline-flex w-full items-center justify-center rounded-md border px-4 py-2.5 text-sm font-semibold transition hover:bg-dash-muted"
-      >
-        Browse literature
-      </Link>
+    <article
+      className={`relative flex flex-col rounded-3xl border p-6 transition duration-300 hover:-translate-y-0.5 sm:p-7 ${
+        highlight
+          ? "border-dash-accent/50 bg-dash-card shadow-[0_30px_70px_-35px_color-mix(in_oklab,var(--dash-accent)_55%,transparent)] ring-1 ring-dash-accent/25"
+          : "border-dash-border bg-dash-card"
+      }`}
+    >
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <p className="text-dash-muted-foreground min-w-0 truncate text-[11px] font-semibold tracking-[0.18em] uppercase">{eyebrow}</p>
+        {badge ? (
+          <span className="bg-dash-accent shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase">
+            {badge}
+          </span>
+        ) : active ? (
+          <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-800 uppercase dark:text-emerald-200">
+            Active
+          </span>
+        ) : null}
+      </div>
+      <h3 className="text-dash-foreground mt-3 text-2xl font-semibold tracking-tight">{name}</h3>
+      <p className="text-dash-foreground mt-4 flex flex-wrap items-baseline gap-x-2">
+        <span className="text-3xl font-semibold tracking-tight whitespace-nowrap tabular-nums">{price}</span>
+        {priceNote ? <span className="text-dash-muted-foreground text-xs tabular-nums">{priceNote}</span> : null}
+      </p>
+      {children}
+      <div className="mt-auto pt-6">{footer}</div>
     </article>
   );
 }
 
-function MonthlySubscriptionCard({
-  signedIn,
-  phone,
-  active,
-}: {
-  signedIn: boolean;
-  phone: string;
-  active?: boolean;
-}) {
+function FeatureList({ items }: { items: string[] }) {
+  return (
+    <ul className="text-dash-muted-foreground mt-6 space-y-2.5 text-sm leading-relaxed">
+      {items.map((p) => (
+        <li key={p} className="flex gap-2.5">
+          <CheckIcon className="text-dash-accent mt-0.5 shrink-0" />
+          <span>{p}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function FreePlanCard({ active }: { active: boolean }) {
+  return (
+    <PlanShell
+      eyebrow="Start here"
+      name="Free"
+      price="TSh 0"
+      priceNote="Browse and select anytime"
+      active={active}
+      footer={
+        <Link href="/portal/titles" className={`${SECONDARY} w-full`}>
+          Browse literature
+        </Link>
+      }
+    >
+      <FeatureList items={["Literature review browse", "Select titles for free", "Browse peer help", "Pay per hide when you need it"]} />
+    </PlanShell>
+  );
+}
+
+function MonthlyPlanCard({ signedIn, phone, active }: { signedIn: boolean; phone: string; active?: boolean }) {
   const router = useRouter();
   const [months, setMonths] = useState(1);
   const [open, setOpen] = useState(false);
@@ -376,28 +382,30 @@ function MonthlySubscriptionCard({
   }
 
   return (
-    <article className="border-dash-border bg-dash-card relative flex flex-col overflow-hidden rounded-2xl border p-5 transition duration-300 hover:-translate-y-1 sm:p-6">
-      {active ? (
-        <span className="absolute top-4 right-4 rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-800 uppercase dark:text-emerald-200">
-          Active
-        </span>
-      ) : null}
-      <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">Stack months</p>
-      <h3 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight">Monthly</h3>
-      <p className="text-dash-foreground mt-4 flex flex-wrap items-baseline gap-x-2">
-        <span className="text-4xl font-semibold tracking-tight tabular-nums">{formatTsh(price)}</span>
-        <span className="text-dash-muted-foreground text-xs tabular-nums">
-          {formatTsh(SUBSCRIPTION_MONTH_TSH)} × {months}
-        </span>
-      </p>
+    <PlanShell
+      eyebrow="Stack months"
+      name="Monthly"
+      price={formatTsh(price)}
+      priceNote={`${formatTsh(SUBSCRIPTION_MONTH_TSH)} × ${months}`}
+      active={active}
+      footer={
+        <CheckoutBlock
+          open={open}
+          setOpen={setOpen}
+          signedIn={signedIn}
+          pending={pending}
+          status={status}
+          phone={phone}
+          active={active}
+          priceLabel={formatTsh(price)}
+          onPay={pay}
+          ctaIdle={active ? "Extend securely" : `Subscribe · ${formatTsh(price)}`}
+        />
+      }
+    >
       <div className="mt-4">
         <Field label="How many months?">
-          <select
-            className={INPUT}
-            value={months}
-            onChange={(e) => setMonths(Number(e.target.value))}
-            disabled={open && pending}
-          >
+          <select className={INPUT} value={months} onChange={(e) => setMonths(Number(e.target.value))} disabled={open && pending}>
             {monthOptions.map((m) => (
               <option key={m} value={m}>
                 {m} {m === 1 ? "month" : "months"} · {formatTsh(SUBSCRIPTION_MONTH_TSH * m)}
@@ -406,36 +414,12 @@ function MonthlySubscriptionCard({
           </select>
         </Field>
       </div>
-      <ul className="text-dash-muted-foreground mt-6 flex-1 space-y-2.5 text-sm leading-relaxed">
-        {[
-          "Full Nexis Desk tools",
-          "Peer help post and offer",
-          `${FREE_TITLE_SLOTS} free title hides`,
-          `Storage up to ${PAID_STORAGE}`,
-        ].map((p) => (
-          <li key={p} className="flex gap-2.5">
-            <CheckIcon className="text-dash-accent mt-0.5 shrink-0" />
-            <span>{p}</span>
-          </li>
-        ))}
-      </ul>
-      <CheckoutBlock
-        open={open}
-        setOpen={setOpen}
-        signedIn={signedIn}
-        pending={pending}
-        status={status}
-        phone={phone}
-        active={active}
-        priceLabel={formatTsh(price)}
-        onPay={pay}
-        ctaIdle={active ? "Extend securely" : `Subscribe · ${formatTsh(price)}`}
-      />
-    </article>
+      <FeatureList items={["Full Nexis Desk tools", "Peer help post and offer", `${FREE_TITLE_SLOTS} free title hides`, `Storage up to ${PAID_STORAGE}`]} />
+    </PlanShell>
   );
 }
 
-function SubscriptionCard({
+function SubscriptionPlanCard({
   planId,
   name,
   price,
@@ -475,56 +459,31 @@ function SubscriptionCard({
   }
 
   return (
-    <article
-      className={`relative flex flex-col overflow-hidden rounded-2xl border p-5 transition duration-300 hover:-translate-y-1 sm:p-6 ${
-        highlight
-          ? "border-dash-accent/45 bg-dash-card ring-dash-accent/20 shadow-[0_24px_60px_-32px_color-mix(in_oklab,var(--dash-accent)_50%,transparent)] ring-1"
-          : "border-dash-border bg-dash-card"
-      }`}
-    >
-      {highlight ? (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-dash-accent to-transparent"
+    <PlanShell
+      eyebrow={period}
+      name={name}
+      price={formatTsh(price)}
+      priceNote={`≈ ${formatTsh(perMonth)} / mo`}
+      badge={badge}
+      active={active}
+      highlight={highlight}
+      footer={
+        <CheckoutBlock
+          open={open}
+          setOpen={setOpen}
+          signedIn={signedIn}
+          pending={pending}
+          status={status}
+          phone={phone}
+          active={active}
+          priceLabel={formatTsh(price)}
+          onPay={pay}
+          ctaIdle={active ? "Renew securely" : `Subscribe · ${formatTsh(price)}`}
         />
-      ) : null}
-      {badge ? (
-        <span className="bg-dash-accent absolute top-4 right-4 rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase">
-          {badge}
-        </span>
-      ) : null}
-      {active && !badge ? (
-        <span className="absolute top-4 right-4 rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-800 uppercase dark:text-emerald-200">
-          Active
-        </span>
-      ) : null}
-      <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">{period}</p>
-      <h3 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight">{name}</h3>
-      <p className="text-dash-foreground mt-4 flex flex-wrap items-baseline gap-x-2">
-        <span className="text-4xl font-semibold tracking-tight tabular-nums">{formatTsh(price)}</span>
-        <span className="text-dash-muted-foreground text-xs tabular-nums">≈ {formatTsh(perMonth)} / mo</span>
-      </p>
-      <ul className="text-dash-muted-foreground mt-6 flex-1 space-y-2.5 text-sm leading-relaxed">
-        {points.map((p) => (
-          <li key={p} className="flex gap-2.5">
-            <CheckIcon className="text-dash-accent mt-0.5 shrink-0" />
-            <span>{p}</span>
-          </li>
-        ))}
-      </ul>
-      <CheckoutBlock
-        open={open}
-        setOpen={setOpen}
-        signedIn={signedIn}
-        pending={pending}
-        status={status}
-        phone={phone}
-        active={active}
-        priceLabel={formatTsh(price)}
-        onPay={pay}
-        ctaIdle={active ? "Renew securely" : `Subscribe · ${formatTsh(price)}`}
-      />
-    </article>
+      }
+    >
+      <FeatureList items={points} />
+    </PlanShell>
   );
 }
 
@@ -558,12 +517,12 @@ function CheckoutBlock({
           type="button"
           disabled={!signedIn}
           onClick={() => setOpen(true)}
-          className={`${PRIMARY} mt-6 w-full disabled:cursor-not-allowed disabled:opacity-50`}
+          className={`${PRIMARY} w-full whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50`}
         >
           {ctaIdle}
         </button>
         {!signedIn ? (
-          <Link href="/portal" className="text-dash-accent mt-3 text-center text-xs font-semibold">
+          <Link href="/portal" className="text-dash-accent mt-3 block text-center text-xs font-semibold">
             Sign in first →
           </Link>
         ) : (
@@ -575,7 +534,7 @@ function CheckoutBlock({
 
   return (
     <form
-      className="border-dash-border mt-6 grid gap-3 border-t pt-4"
+      className="border-dash-border grid gap-3 border-t pt-5"
       onSubmit={(e) => {
         e.preventDefault();
         onPay(new FormData(e.currentTarget));
@@ -608,16 +567,40 @@ function CheckoutBlock({
   );
 }
 
+function ChecklistPanel({ title, items, highlight }: { title: string; items: readonly string[]; highlight?: boolean }) {
+  return (
+    <div
+      className={`rounded-3xl border p-6 sm:p-8 ${
+        highlight ? "border-dash-accent/40 bg-dash-card" : "border-dash-border bg-dash-muted/40"
+      }`}
+    >
+      <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">{title}</h2>
+      <ul className="text-dash-muted-foreground mt-5 space-y-3 text-sm leading-relaxed">
+        {items.map((line) => (
+          <li key={line} className="flex gap-3">
+            <CheckIcon className="text-dash-accent mt-0.5 shrink-0" />
+            <span>{line}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function FeatureTile({ title, body, action }: { title: string; body: string; action?: ReactNode }) {
+  return (
+    <div className="border-dash-border bg-dash-card flex flex-col rounded-2xl border p-6">
+      <h3 className="text-dash-foreground text-base font-semibold">{title}</h3>
+      <p className="text-dash-muted-foreground mt-2 flex-1 text-sm leading-relaxed">{body}</p>
+      {action ? <div className="mt-4">{action}</div> : null}
+    </div>
+  );
+}
+
 function CheckIcon({ className }: { className?: string }) {
   return (
     <svg className={`h-4 w-4 ${className ?? ""}`} viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path
-        d="M3.5 8.5 6.5 11.5 12.5 4.5"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <path d="M3.5 8.5 6.5 11.5 12.5 4.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

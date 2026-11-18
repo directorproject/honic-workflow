@@ -62,19 +62,6 @@ export function JobsBrowseBoard({
 
       <PeerHelpRulesSummary />
 
-      {!canUseJobs ? (
-        <div className="border-dash-border bg-dash-card flex flex-wrap items-center justify-between gap-3 rounded-md border px-4 py-3">
-          <p className="text-dash-muted-foreground text-sm">
-            {guest
-              ? "You can open any request to read it. Sign in to offer help or request help."
-              : "You can read any listing. Posting and offering help need an active Nexis Desk plan."}
-          </p>
-          <Link href={guest ? "/portal?auth=signin" : "/portal/packs"} className={`${PRIMARY} shrink-0`}>
-            {guest ? "Sign in" : "View plans"}
-          </Link>
-        </div>
-      ) : null}
-
       <section className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">Open now</h2>

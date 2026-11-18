@@ -2,10 +2,11 @@ import { Suspense } from "react";
 
 import { PortalShell } from "@/components/portal/portal-shell";
 import { ProfileForm } from "@/components/portal/profile-form";
-import { ZimamotoBoard } from "@/components/portal/zimamoto-board";
+import { ZimamotoHub } from "@/components/zimamoto/zimamoto-hub";
 import { studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
 import { listPublicZimamotoPosts, listZimamotoGroups } from "@/lib/portal/zimamoto";
+import { listPublicZimamotoGroups } from "@/lib/portal/zimamoto-chat";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { findMembership } from "@/lib/workspace/access";
 
@@ -30,10 +31,11 @@ export default async function ZimamotoPage() {
     );
   }
 
-  const [membership, publicPosts, groups] = await Promise.all([
+  const [membership, publicPosts, groups, publicGroups] = await Promise.all([
     db && user && !state.isStaff ? findMembership(db, user.id) : Promise.resolve(null),
     db ? listPublicZimamotoPosts(db, user?.id ?? null) : Promise.resolve([]),
     db && user && !guest ? listZimamotoGroups(db, user.id) : Promise.resolve([]),
+    db ? listPublicZimamotoGroups(db, user?.id ?? null) : Promise.resolve([]),
   ]);
 
   const viewerDetail = guest
@@ -53,7 +55,7 @@ export default async function ZimamotoPage() {
         hasProgress={Boolean(profile?.trackedProjectId)}
         deskExpiresAt={profile?.deskExpiresAt ?? null}
       >
-        <ZimamotoBoard guest={guest} publicPosts={publicPosts} groups={groups} />
+        <ZimamotoHub guest={guest} groups={groups} publicGroups={publicGroups} publicPosts={publicPosts} />
       </PortalShell>
     </Suspense>
   );

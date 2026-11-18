@@ -97,11 +97,12 @@ export function ProfileForm({
   const [projectCategory, setProjectCategory] = useState(profile?.projectCategory ?? "");
 
   const listedCourses = courses.filter((c) => c.code !== OTHER_COURSE_CODE);
-  const afterSavePath = editMode ? "/portal/home?tab=account" : "/portal/packs";
+  // New students land on the plans section of the packs page after onboarding.
+  const afterSavePath = editMode ? "/portal/home?tab=account" : "/portal/packs#plans";
 
   function goNext() {
-    router.replace(afterSavePath);
-    router.refresh();
+    // Full load: the server re-reads the session cookie and onboarding flag, with no client-side cache.
+    window.location.assign(afterSavePath);
   }
 
   if (editMode) {
@@ -247,7 +248,11 @@ export function ProfileForm({
                   projectCategory,
                   academicYear: get("academicYear"),
                 });
-                setStatus(res);
+                if (res.ok) {
+                  goNext();
+                } else {
+                  setStatus(res);
+                }
               });
             }}
             submitLabel="Save and continue"

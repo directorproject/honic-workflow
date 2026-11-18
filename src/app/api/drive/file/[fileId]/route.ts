@@ -1,13 +1,21 @@
 import { Readable } from "node:stream";
 
 import { streamDriveFileContent } from "@/lib/google-drive-server";
+import { getSessionActor } from "@/lib/workspace/access";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ fileId: string }> },
 ) {
+  // Staff only, enforced here as well as in middleware (defence in depth).
+  const actor = await getSessionActor();
+  if (actor?.kind !== "staff") {
+    return new Response("Staff only.", { status: 401, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+  }
+
   const { fileId: rawId } = await context.params;
   const fileId = decodeURIComponent(rawId);
 

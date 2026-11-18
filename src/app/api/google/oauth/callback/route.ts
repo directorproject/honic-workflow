@@ -1,14 +1,31 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { google } from "googleapis";
 
+import { GOOGLE_OAUTH_STATE_COOKIE } from "@/lib/google-oauth-state";
 import { getGoogleOAuthRedirectUri } from "@/lib/site-url";
+import { getSessionActor } from "@/lib/workspace/access";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  const actor = await getSessionActor();
+  if (actor?.kind !== "staff") {
+    return new NextResponse("Staff only.", { status: 401 });
+  }
+
   const url = new URL(request.url);
   const err = url.searchParams.get("error");
   const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state") ?? "";
+
+  const jar = await cookies();
+  const expectedState = jar.get(GOOGLE_OAUTH_STATE_COOKIE)?.value ?? "";
+  jar.delete({ name: GOOGLE_OAUTH_STATE_COOKIE, path: "/api/google/oauth" });
+  if (!expectedState || state.length !== expectedState.length || state !== expectedState) {
+    return new NextResponse("OAuth state mismatch. Start again from /api/google/oauth/start.", { status: 400 });
+  }
 
   if (err) {
     return new NextResponse(`Google returned an error: ${err}`, { status: 400 });

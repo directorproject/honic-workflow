@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const FEATURES: Record<
+export const FEATURES: Record<
   string,
   { title: string; blurb: string; bullets: string[]; needsPlan?: boolean; needsWorkspace?: boolean }
 > = {
@@ -170,4 +170,50 @@ export function ExploreFeaturePanel({
       </div>
     </div>
   );
+}
+
+/** Placeholder layout for a paid tool. Shows the page shape only; no user or workspace data. */
+export function FeaturePreview({ featureKey }: { featureKey: string }) {
+  const feature = FEATURES[featureKey] ?? {
+    title: "Nexis Desk feature",
+    blurb: "This tool unlocks with an active Nexis Desk plan.",
+    bullets: ["Full project workspace", "Help desk", "Jobs post and apply"],
+  };
+  const rows = [0, 1, 2, 3, 4];
+  return (
+    <div className="space-y-6">
+      <div className="border-dash-border bg-dash-card rounded-2xl border px-5 py-6 sm:px-8">
+        <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">Nexis Desk</p>
+        <h2 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight">{feature.title}</h2>
+        <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">{feature.blurb}</p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {feature.bullets.map((b) => (
+          <div key={b} className="border-dash-border bg-dash-card rounded-2xl border p-5">
+            <div className="bg-dash-muted h-3 w-2/3 rounded" />
+            <p className="text-dash-foreground mt-4 text-sm font-semibold">{b}</p>
+            <div className="bg-dash-muted mt-3 h-2 w-full rounded" />
+            <div className="bg-dash-muted mt-2 h-2 w-4/5 rounded" />
+          </div>
+        ))}
+      </div>
+      <div className="border-dash-border bg-dash-card divide-dash-border divide-y rounded-2xl border">
+        {rows.map((r) => (
+          <div key={r} className="flex items-center gap-4 px-5 py-4">
+            <div className="bg-dash-muted h-8 w-8 shrink-0 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <div className="bg-dash-muted h-2.5 w-1/2 rounded" />
+              <div className="bg-dash-muted h-2 w-1/3 rounded" />
+            </div>
+            <div className="bg-dash-muted hidden h-6 w-20 rounded sm:block" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Title and blurb for a paid tool, used by PlanLock messages. */
+export function featureTitle(featureKey: string): string {
+  return FEATURES[featureKey]?.title ?? "This Nexis Desk tool";
 }

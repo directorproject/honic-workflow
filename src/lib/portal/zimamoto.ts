@@ -273,30 +273,6 @@ export async function createZimamotoGroup(
   return { ok: true, publicId };
 }
 
-export async function joinZimamotoGroup(
-  db: SupabaseClient,
-  input: { userId: string; inviteCode: string },
-): Promise<{ ok: true; publicId: string } | { ok: false; message: string }> {
-  const code = input.inviteCode.trim().toLowerCase();
-  if (code.length < 8) return { ok: false, message: "Paste the full group invite code from your classmate." };
-
-  let query = db.from("zimamoto_groups").select("id, public_id");
-  if (code.length >= 64) query = query.eq("public_id", code);
-  else query = query.ilike("public_id", `${code}%`);
-
-  const { data: group, error } = await query.maybeSingle();
-  if (error) return { ok: false, message: error.message };
-  if (!group) return { ok: false, message: "No group matches that code." };
-
-  const { error: insErr } = await db.from("zimamoto_group_members").upsert(
-    { group_id: group.id, user_id: input.userId, role: "member" },
-    { onConflict: "group_id,user_id", ignoreDuplicates: true },
-  );
-  if (insErr) return { ok: false, message: insErr.message };
-
-  return { ok: true, publicId: String(group.public_id) };
-}
-
 export async function createZimamotoPost(
   db: SupabaseClient,
   input: {
@@ -388,6 +364,7 @@ export async function getDocByPublicId(db: SupabaseClient, docPublicId: string):
     .from("zimamoto_docs")
     .select("storage_path, group_id, file_name")
     .eq("public_id", docPublicId)
+    .is("deleted_at", null)
     .maybeSingle();
   if (!data) return null;
   return {

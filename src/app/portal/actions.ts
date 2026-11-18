@@ -92,9 +92,11 @@ async function clearProfileOnboardingMeta(userId: string): Promise<void> {
   const existing = (data.user.user_metadata ?? {}) as Record<string, unknown>;
   const { portal_profile_onboarding: _drop, ...rest } = existing;
   const merged = { ...rest };
-  await db.auth.admin.updateUserById(userId, { user_metadata: merged });
+  const { error: adminErr } = await db.auth.admin.updateUserById(userId, { user_metadata: merged });
+  if (adminErr) throw new Error(adminErr.message);
+  // updateUser merges keys, so a null value is what actually removes the flag from the session user.
   const supabase = await createSupabaseServerClient();
-  await supabase.auth.updateUser({ data: merged });
+  await supabase.auth.updateUser({ data: { portal_profile_onboarding: null } });
 }
 
 async function markProfileAcademicPending(userId: string): Promise<void> {
@@ -190,7 +192,6 @@ export async function portalSkipProfileAction(): Promise<PortalResult> {
 }
 
 export async function portalSaveProfileAction(input: ProfileInput): Promise<PortalResult> {
-  let goToPlans = false;
   try {
     const { user, db } = await requireStudent();
     const { data: existingProfile } = await db
@@ -259,13 +260,10 @@ export async function portalSaveProfileAction(input: ProfileInput): Promise<Port
     revalidatePath("/portal/titles");
     revalidatePath("/portal/home");
     revalidatePath("/portal/packs");
-    goToPlans = academicPending;
     return { ok: true };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not save." };
   }
-  if (goToPlans) redirect("/portal/packs");
-  return { ok: true };
 }
 
 const SELECT_ERRORS: Record<string, string> = {
@@ -489,7 +487,7 @@ function parsePayContact(network: string, phone: string): PortalResult | { net: 
 }
 
 
-function useSnippe(): boolean {
+function snippeLive(): boolean {
   return PAYMENT_PROVIDER === "snippe" && snippeConfigured();
 }
 
@@ -545,7 +543,7 @@ export async function portalPayForChangeAction(network: string, phone: string, t
     if (!held) return { ok: false, message: PAY_ERRORS.no_title };
 
     const reference = makeIdempotencyKey("CHG");
-    const live = useSnippe();
+    const live = snippeLive();
 
     if (!live && PAYMENT_PROVIDER === "snippe") {
       return { ok: false, message: paymentUnavailableMessage() };
@@ -727,7 +725,7 @@ export async function portalPayForHideAction(network: string, phone: string, tit
     }
 
     const reference = makeIdempotencyKey("HID");
-    const live = useSnippe();
+    const live = snippeLive();
     if (!live && PAYMENT_PROVIDER === "snippe") {
       return { ok: false, message: paymentUnavailableMessage() };
     }
@@ -841,7 +839,7 @@ export async function portalPayForMembershipAction(
   months?: number,
 ): Promise<PortalResult> {
   try {
-    let planId: DeskPlanId | null =
+    const planId: DeskPlanId | null =
       plan === "semester" ? "semester" : plan === "year" ? "year" : plan === "monthly" ? "monthly" : null;
     if (!planId) {
       return { ok: false, message: "Choose monthly, semester, or full year membership." };
@@ -873,7 +871,7 @@ export async function portalPayForMembershipAction(
     const reference = makeIdempotencyKey(
       planId === "year" ? "MEMY" : planId === "semester" ? "MEMS" : "MEMM",
     );
-    const live = useSnippe();
+    const live = snippeLive();
 
     if (!live && PAYMENT_PROVIDER === "snippe") {
       return { ok: false, message: paymentUnavailableMessage() };
@@ -1019,7 +1017,7 @@ export async function portalPayForDocumentsAction(network: string, phone: string
 
     const amount = PROJECT_DOCUMENTS_ACCESS_TSH;
     const reference = makeIdempotencyKey("DOC");
-    const live = useSnippe();
+    const live = snippeLive();
     if (!live && PAYMENT_PROVIDER === "snippe") {
       return { ok: false, message: paymentUnavailableMessage() };
     }

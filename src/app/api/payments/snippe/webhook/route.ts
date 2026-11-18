@@ -126,8 +126,13 @@ export async function POST(request: Request) {
     currency,
     outcome: "received",
   });
+  // Duplicate delivery: skip only if the earlier attempt finished. If it failed or never
+  // completed, let the provider's retry run fulfilment again (fulfilment is idempotent).
   if (inserted === "duplicate") {
-    return json(200, { ok: true, duplicate: true });
+    const prior = await priorOutcome(db, eventId);
+    if (!RETRYABLE_OUTCOMES.has(prior)) {
+      return json(200, { ok: true, duplicate: true });
+    }
   }
 
   // Prefer lookup by our order_id; fall back to Snippe payment reference.
@@ -273,17 +278,24 @@ export async function POST(request: Request) {
       await markOutcome(db, eventId, "missing_amount");
       return json(400, { ok: false, message: "Missing paid amount." });
     }
+    if (!snippeRef) {
+      await markOutcome(db, eventId, "missing_reference");
+      return json(400, { ok: false, message: "Missing payment reference." });
+    }
 
-    if (snippeRef) {
-      const live = await fetchSnippePayment(snippeRef);
-      if (!live || live.status !== "completed") {
-        await markOutcome(db, eventId, "provider_status_mismatch");
-        return json(409, { ok: false, message: "Provider status not completed." });
-      }
-      if (live.amount != null && !amountsMatch(Number(paidAmount), live.amount)) {
-        await markOutcome(db, eventId, "provider_amount_mismatch");
-        return json(409, { ok: false, message: "Provider amount mismatch." });
-      }
+    const live = await fetchSnippePayment(snippeRef);
+    if (!live || live.status !== "completed") {
+      await markOutcome(db, eventId, "provider_status_mismatch");
+      return json(409, { ok: false, message: "Provider status not completed." });
+    }
+    if (live.amount != null && !amountsMatch(Number(paidAmount), live.amount)) {
+      await markOutcome(db, eventId, "provider_amount_mismatch");
+      return json(409, { ok: false, message: "Provider amount mismatch." });
+    }
+    // The provider's copy of the order must be the invoice this payment is applied to.
+    if (live.orderId && live.orderId !== invoiceRef) {
+      await markOutcome(db, eventId, "order_id_mismatch");
+      return json(409, { ok: false, message: "Order reference mismatch." });
     }
 
     const result = await fulfillInvoicePayment(db, invoiceRef, {
@@ -335,6 +347,34 @@ async function recordWebhook(
   // Table may not exist until migration 018 — continue without blocking payments.
   if (/payment_webhook_events|schema cache|relation|does not exist/i.test(error.message)) return "skipped";
   return "skipped";
+}
+
+/** Outcomes that mean the earlier attempt did not finish, so a redelivery must be processed. */
+const RETRYABLE_OUTCOMES = new Set([
+  "", // unknown (lookup failed): reprocess, fulfilment is idempotent
+  "received",
+  "fulfill_error",
+  "invoice_fulfill_error",
+  "provider_status_mismatch",
+  "provider_amount_mismatch",
+  "missing_reference",
+]);
+
+async function priorOutcome(
+  db: NonNullable<ReturnType<typeof getSupabaseAdminClient>>,
+  eventId: string,
+): Promise<string> {
+  try {
+    const { data } = await db
+      .from("payment_webhook_events")
+      .select("outcome")
+      .eq("provider", "snippe")
+      .eq("event_id", eventId)
+      .maybeSingle();
+    return String(data?.outcome ?? "");
+  } catch {
+    return "";
+  }
 }
 
 async function markOutcome(

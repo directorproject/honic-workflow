@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getPortalUser } from "@/lib/portal/data";
 import { getDocByPublicId, getPostPaperPath, isGroupMember } from "@/lib/portal/zimamoto";
+import { getGroupMessageFile } from "@/lib/portal/zimamoto-chat";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { STORAGE_BUCKET } from "@/lib/workspace/constants";
 
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const kind = url.searchParams.get("kind");
   const id = url.searchParams.get("id")?.trim();
-  if (!id || (kind !== "post" && kind !== "doc")) {
+  if (!id || (kind !== "post" && kind !== "doc" && kind !== "message")) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
@@ -23,7 +24,16 @@ export async function GET(request: Request) {
   let fileName = "download";
   let groupId: string | null = null;
 
-  if (kind === "post") {
+  if (kind === "message") {
+    // Chat attachments: members of the group only, for as long as the group exists.
+    const meta = await getGroupMessageFile(db, id);
+    if (!meta) return NextResponse.json({ error: "File not found." }, { status: 404 });
+    if (!user) return NextResponse.json({ error: "Sign in to open group files." }, { status: 401 });
+    const allowed = await isGroupMember(db, meta.groupId, user.id);
+    if (!allowed) return NextResponse.json({ error: "You are not in this group." }, { status: 403 });
+    storagePath = meta.storagePath;
+    fileName = meta.fileName;
+  } else if (kind === "post") {
     const meta = await getPostPaperPath(db, id);
     if (!meta) return NextResponse.json({ error: "File not found." }, { status: 404 });
     storagePath = meta.storagePath;
@@ -53,7 +63,7 @@ export async function GET(request: Request) {
   return new NextResponse(bytes, {
     headers: {
       "Content-Type": data.type || "application/octet-stream",
-      "Content-Disposition": `inline; filename="${encodeURIComponent(fileName)}"`,
+      "Content-Disposition": `${url.searchParams.get("download") === "1" ? "attachment" : "inline"}; filename="${encodeURIComponent(fileName)}"`,
       "Cache-Control": "private, max-age=60",
     },
   });
