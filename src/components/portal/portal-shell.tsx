@@ -40,7 +40,8 @@ export function PortalShell({
   const pathname = usePathname();
   const search = useSearchParams();
   const tab = search.get("tab") ?? "home";
-  const [drawer, setDrawer] = useState(false);
+  const isPacksPage = pathname === "/portal/packs";
+  const [drawer, setDrawer] = useState(isPacksPage);
   const [isLg, setIsLg] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const activeLabel = usePortalActiveLabel({ mode, hasWorkspace, hasProgress, workspaceBase, hasPaidDesk });

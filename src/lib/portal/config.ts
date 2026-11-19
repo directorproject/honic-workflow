@@ -4,9 +4,9 @@
  * Free plan: every hide costs EXTRA_TITLE_HIDE_FEE_TSH; Jobs browse only.
  * 3rd+ hide on a paid plan also costs EXTRA_TITLE_HIDE_FEE_TSH each.
  */
-export const SUBSCRIPTION_YEAR_TSH = 22_000;
-/** Six-month / one-semester plan (slightly more than half year so annual is the better deal). */
-export const SUBSCRIPTION_SEMESTER_TSH = 12_000;
+export const SUBSCRIPTION_YEAR_TSH = 24_000;
+/** Six-month / one-semester plan (5 months worth, good 20% discount). */
+export const SUBSCRIPTION_SEMESTER_TSH = 14_000;
 /** Pay-as-you-go Nexis Desk — billed per calendar month at checkout. */
 export const SUBSCRIPTION_MONTH_TSH = 3_000;
 /** Max consecutive months purchasable in one monthly checkout. */
