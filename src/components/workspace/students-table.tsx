@@ -68,6 +68,7 @@ export function StudentsTable({ rows }: { rows: SummaryRow[] }) {
                 <th className="px-4 py-2.5">Late</th>
                 <th className="px-4 py-2.5">Last active</th>
                 <th className="px-4 py-2.5">Needs Honic</th>
+                <th className="px-4 py-2.5 text-right">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -78,7 +79,15 @@ export function StudentsTable({ rows }: { rows: SummaryRow[] }) {
                       {r.name}
                     </Link>
                     <p className="text-dash-muted-foreground text-xs">
-                      {r.members.map((m) => m.name).join(", ")}
+                      {r.members.map((m, i) => (
+                        <Link
+                          key={i}
+                          href={`/students/${r.id}`}
+                          className="text-dash-accent hover:underline"
+                        >
+                          {m.name}
+                        </Link>
+                      )).reduce((acc, el, idx, arr) => (idx === arr.length - 1 ? [...acc, el] : [...acc, el, ", "]), [] as any[])}
                       {r.members[0]?.institution ? ` · ${r.members[0].institution}` : ""}
                       {r.members[0]?.courseCode ? ` · ${r.members[0].courseCode}` : ""}
                     </p>
@@ -112,6 +121,14 @@ export function StudentsTable({ rows }: { rows: SummaryRow[] }) {
                       {r.unpaidInvoices ? <Badge className="bg-slate-500/20 text-dash-muted-foreground">{r.unpaidInvoices} unpaid</Badge> : null}
                       {!r.unreadMessages && !r.pendingBookings && !r.unpaidInvoices ? <span className="text-dash-muted-foreground text-xs">—</span> : null}
                     </div>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/students/${r.id}`}
+                      className="inline-flex items-center rounded-lg bg-dash-accent/10 px-3 py-1.5 text-xs font-semibold text-dash-accent hover:bg-dash-accent/20"
+                    >
+                      View →
+                    </Link>
                   </td>
                 </tr>
               ))}
