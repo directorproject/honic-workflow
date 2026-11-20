@@ -60,7 +60,8 @@ insert into public.title_proposals (seed_key, batch, origin_ref, title, status) 
   ('ete-cst-w15-55', '2024/2025', 'W15-3', 'An Electronics voting machine with Micro Controller and Real Time Vote Tallying', 'available')
 on conflict (seed_key) do nothing;
 
--- OD/NTA Level 6 Titles (Mini 01 S1) - 68 total
+-- OD/NTA Level 6 Titles (Mini 01 S1) - 62 total (removed 3 duplicates from ETE CST)
+-- Removed duplicates: Home parking title, Smart Bus system (kept ETE version)
 insert into public.title_proposals (seed_key, batch, origin_ref, title, status) values
   ('od-nta6-mi1-1', '2024/2025', 'Mini-01-S1', 'Touch-Free Water Faucet: Hand and Temperature Detection Approach', 'available'),
   ('od-nta6-mi1-2', '2024/2025', 'Mini-01-S1', 'Smart Mining Helmet for Gas Detection and GPS Tracking', 'available'),
@@ -83,7 +84,6 @@ insert into public.title_proposals (seed_key, batch, origin_ref, title, status) 
   ('od-nta6-mi1-19', '2024/2025', 'Mini-01-S1', 'Automatic Smart Toilet', 'available'),
   ('od-nta6-mi1-20', '2024/2025', 'Mini-01-S1', 'RFID Card Based Patient Information System', 'available'),
   ('od-nta6-mi1-21', '2024/2025', 'Mini-01-S1', 'Street Smart Waste Management', 'available'),
-  ('od-nta6-mi1-22', '2024/2025', 'Mini-01-S1', 'Home parking - Car anti theft backup system', 'available'),
   ('od-nta6-mi1-23', '2024/2025', 'Mini-01-S1', 'Noise and Vibration Detection System', 'available'),
   ('od-nta6-mi1-24', '2024/2025', 'Mini-01-S1', 'A GPS Cane for Visually Impairment', 'available'),
   ('od-nta6-mi1-25', '2024/2025', 'Mini-01-S1', 'Temperature Based Fan Speed Control with Bi-Directional People Counter', 'available'),
@@ -93,7 +93,6 @@ insert into public.title_proposals (seed_key, batch, origin_ref, title, status) 
   ('od-nta6-mi1-29', '2024/2025', 'Mini-01-S1', 'Smart Egg Incubator with IoT-Based Temperature and Humidity Control', 'available'),
   ('od-nta6-mi1-30', '2024/2025', 'Mini-01-S1', 'Wireless Health Patient Monitoring and Alert System for Temperature and Heart Rate', 'available'),
   ('od-nta6-mi1-31', '2024/2025', 'Mini-01-S1', 'Automatic Ballot Counter Box', 'available'),
-  ('od-nta6-mi1-32', '2024/2025', 'Mini-01-S1', 'Smart Bus System with Real-Time Update and Accident Alert', 'available'),
   ('od-nta6-mi1-33', '2024/2025', 'Mini-01-S1', 'Smart Acquisition Rain Gauge System', 'available'),
   ('od-nta6-mi1-34', '2024/2025', 'Mini-01-S1', 'An Automatic Water Tap for Efficient Water Conservation at Canteen DIT', 'available'),
   ('od-nta6-mi1-35', '2024/2025', 'Mini-01-S1', 'Designing and Implementation of Backup Power Supply for Lights in Supermarkets', 'available'),
