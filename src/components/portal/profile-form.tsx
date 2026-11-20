@@ -38,11 +38,11 @@ function ChoiceChips({
 }) {
   return (
     <div className="sm:col-span-2" role="radiogroup" aria-label={label}>
-      <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">
+      <span className="text-dash-muted-foreground mb-3 block text-sm font-semibold tracking-wide uppercase">
         {label}
         {optional ? " (optional)" : ""}
       </span>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2.5">
         {options.map((o) => {
           const active = o.value === value;
           return (
@@ -52,10 +52,10 @@ function ChoiceChips({
               role="radio"
               aria-checked={active}
               onClick={() => onChange(value === o.value ? "" : o.value)}
-              className={`rounded-xl border px-3.5 py-2 text-sm font-medium transition-colors ${
+              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
                 active
-                  ? "border-dash-accent bg-dash-accent/15 text-dash-foreground ring-dash-accent/30 ring-2"
-                  : "border-dash-border bg-dash-muted/30 text-dash-muted-foreground hover:border-dash-accent/50 hover:text-dash-foreground"
+                  ? "bg-dash-accent text-white shadow-sm hover:shadow-md"
+                  : "border border-dash-border bg-dash-muted/30 text-dash-muted-foreground hover:border-dash-accent/50 hover:bg-dash-muted/50 hover:text-dash-foreground"
               }`}
             >
               {o.label}
@@ -107,47 +107,54 @@ export function ProfileForm({
 
   if (editMode) {
     return (
-      <Card title="Edit your details" subtitle="Update your account and course details any time.">
-        <AcademicDetailsForm
-          courses={courses}
-          profile={profile!}
-          listedCourses={listedCourses}
-          institutionChoice={institutionChoice}
-          setInstitutionChoice={setInstitutionChoice}
-          courseChoice={courseChoice}
-          setCourseChoice={setCourseChoice}
-          studyLevel={studyLevel}
-          setStudyLevel={setStudyLevel}
-          projectCategory={projectCategory}
-          setProjectCategory={setProjectCategory}
-          savedInstitution={savedInstitution}
-          institutionListed={institutionListed}
-          cancelHref={cancelHref}
-          pending={pending}
-          status={status}
-          onSubmit={(get) => {
-            setStatus(null);
-            startTransition(async () => {
-              const res = await portalSaveProfileAction({
-                fullName: get("fullName"),
-                phone: get("phone"),
-                institution: institutionChoice === OTHER_OPTION ? get("institutionOther") : institutionChoice,
-                courseCode: courseChoice,
-                courseOther: courseChoice === OTHER_COURSE_CODE ? get("courseOther") : "",
-                studyLevel,
-                studyLevelOther: studyLevel === "other" ? get("studyLevelOther") : "",
-                projectCategory,
-                academicYear: get("academicYear"),
+      <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <p className="text-dash-accent text-sm font-semibold tracking-wide uppercase">Account Settings</p>
+          <h1 className="text-dash-foreground mt-2 text-3xl font-bold tracking-tight">Edit your profile</h1>
+          <p className="text-dash-muted-foreground mt-2 text-base">Update your account and course information whenever needed.</p>
+        </div>
+        <div className="bg-dash-card border-dash-border rounded-3xl border p-8">
+          <AcademicDetailsForm
+            courses={courses}
+            profile={profile!}
+            listedCourses={listedCourses}
+            institutionChoice={institutionChoice}
+            setInstitutionChoice={setInstitutionChoice}
+            courseChoice={courseChoice}
+            setCourseChoice={setCourseChoice}
+            studyLevel={studyLevel}
+            setStudyLevel={setStudyLevel}
+            projectCategory={projectCategory}
+            setProjectCategory={setProjectCategory}
+            savedInstitution={savedInstitution}
+            institutionListed={institutionListed}
+            cancelHref={cancelHref}
+            pending={pending}
+            status={status}
+            onSubmit={(get) => {
+              setStatus(null);
+              startTransition(async () => {
+                const res = await portalSaveProfileAction({
+                  fullName: get("fullName"),
+                  phone: get("phone"),
+                  institution: institutionChoice === OTHER_OPTION ? get("institutionOther") : institutionChoice,
+                  courseCode: courseChoice,
+                  courseOther: courseChoice === OTHER_COURSE_CODE ? get("courseOther") : "",
+                  studyLevel,
+                  studyLevelOther: studyLevel === "other" ? get("studyLevelOther") : "",
+                  projectCategory,
+                  academicYear: get("academicYear"),
+                });
+                setStatus(res);
+                if (res.ok && editMode) goNext();
               });
-              setStatus(res);
-              if (res.ok && editMode) goNext();
-            });
-          }}
-          showAccountFields
-          submitLabel="Save details"
-          extraActions={cancelHref ? <a href={cancelHref} className={SECONDARY}>Cancel</a> : null}
-        />
-      </Card>
+            }}
+            showAccountFields
+            submitLabel="Save changes"
+            extraActions={cancelHref ? <a href={cancelHref} className={SECONDARY}>Cancel</a> : null}
+          />
+        </div>
+      </div>
     );
   }
 
