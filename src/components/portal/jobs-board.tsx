@@ -282,33 +282,84 @@ function CategoryChip({ active, onClick, label }: { active: boolean; onClick: ()
 
 function JobCard({ job, canApply }: { job: PortalJob; canApply: boolean }) {
   return (
-    <li className={`${CARD} group flex flex-col p-5 transition hover:-translate-y-0.5 hover:shadow-md`}>
-      <div className="flex items-start gap-3">
-        <Avatar name={job.posterLabel || "Student"} size={40} />
-        <div className="min-w-0 flex-1">
-          <p className="text-dash-muted-foreground truncate text-xs">
-            {job.posterLabel} · {formatDate(job.createdAt)}
-          </p>
-          <p className="text-dash-muted-foreground mt-0.5 flex items-center gap-1 text-[11px] font-semibold tracking-wide uppercase">
+    <li className={`${CARD} group flex flex-col overflow-hidden transition hover:shadow-lg hover:border-dash-accent/40 p-0`}>
+      {/* Header background */}
+      <div className="bg-gradient-to-br from-dash-accent/5 to-transparent px-5 py-4 border-b border-dash-border/50">
+        <div className="flex items-start gap-3">
+          <Avatar name={job.posterLabel || "Student"} size={40} />
+          <div className="min-w-0 flex-1">
+            <p className="text-dash-foreground font-semibold text-sm truncate">{job.posterLabel || "Student"}</p>
+            <p className="text-dash-muted-foreground text-xs mt-0.5">{formatDate(job.createdAt)}</p>
+          </div>
+          <span className="bg-dash-accent/15 text-dash-accent px-2 py-1 rounded-full text-[11px] font-semibold shrink-0">
+            {jobRefLabel(job.publicId)}
+          </span>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 flex flex-col p-5">
+        {/* Category & Status */}
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <span className="bg-dash-muted/40 text-dash-muted-foreground inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold">
             <IconTag size={12} /> {job.categoryLabel}
-          </p>
+          </span>
+          <span className="text-dash-muted-foreground text-xs">
+            {job.priceMode === "negotiable" ? "Negotiable" : "Fixed price"}
+          </span>
         </div>
-        <Chip tone="neutral">{jobRefLabel(job.publicId)}</Chip>
+
+        {/* Title */}
+        <h3 className="text-dash-foreground text-lg font-bold leading-snug break-words group-hover:text-dash-accent transition mb-2">
+          {job.title}
+        </h3>
+
+        {/* Description */}
+        <p className="text-dash-muted-foreground text-sm leading-relaxed line-clamp-2 flex-grow">
+          {job.description}
+        </p>
+
+        {/* Price & Status */}
+        <div className="mt-4 pt-4 border-t border-dash-border/30 flex items-center justify-between gap-3">
+          <div className="flex items-baseline gap-2">
+            <span className="text-dash-foreground text-2xl font-bold tabular-nums">{formatTsh(job.offerTsh)}</span>
+            {job.status && job.status !== "open" ? (
+              <StatusChip status={job.status} />
+            ) : null}
+          </div>
+          <Link
+            href={`/portal/jobs/${job.publicId}`}
+            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              job.isMine
+                ? "border border-dash-border hover:border-dash-accent/40 hover:bg-dash-muted/40 text-dash-foreground"
+                : canApply
+                  ? "bg-dash-accent text-white hover:bg-dash-accent/90 shadow-sm"
+                  : "border border-dash-border text-dash-foreground hover:bg-dash-muted/40"
+            }`}
+          >
+            {job.isMine ? (
+              <>
+                <IconEdit size={14} /> Manage
+              </>
+            ) : canApply ? (
+              <>
+                <IconSend size={14} /> Offer help
+              </>
+            ) : (
+              <>
+                <IconChat size={14} /> View
+              </>
+            )}
+          </Link>
+        </div>
       </div>
 
-      <h3 className="text-dash-foreground mt-3 text-base font-bold leading-snug break-words">{job.title}</h3>
-      <p className="text-dash-muted-foreground mt-1.5 line-clamp-2 text-sm leading-relaxed">{job.description}</p>
-
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-dash-foreground text-xl font-bold tabular-nums">{formatTsh(job.offerTsh)}</span>
-          <Chip tone="neutral">{job.priceMode === "negotiable" ? "Negotiable" : "Fixed"}</Chip>
+      {!job.isMine && !canApply ? (
+        <div className="bg-amber-500/5 border-t border-amber-500/20 px-5 py-2.5 flex items-center gap-2">
+          <IconLock size={14} className="text-amber-700 dark:text-amber-300 shrink-0" />
+          <p className="text-amber-900 dark:text-amber-200 text-xs">Free plan: view only</p>
         </div>
-        <Link href={`/portal/jobs/${job.publicId}`} className={`${job.isMine ? SOFT : PRIMARY} !py-2`}>
-          {job.isMine ? "Manage" : canApply ? "View & offer" : "View"}
-        </Link>
-      </div>
-      {!job.isMine && !canApply ? <p className="text-dash-muted-foreground mt-2 text-[11px]">View only on the free plan</p> : null}
+      ) : null}
     </li>
   );
 }
@@ -436,36 +487,50 @@ function ManagedPostRow({ job, canManage }: { job: PortalJob; canManage: boolean
   const canEdit = canManage && (job.status === "open" || job.status === "assigned");
 
   return (
-    <div className={`${CARD} p-5`}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <StatusChip status={job.status} />
-            <Chip tone="neutral">{jobRefLabel(job.publicId)}</Chip>
-            <Chip tone="neutral">{job.categoryLabel}</Chip>
+    <div className={`${CARD} p-5 border-l-4 border-l-dash-accent/50 hover:border-l-dash-accent transition`}>
+      <div className="flex flex-col gap-4">
+        {/* Top section */}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <StatusChip status={job.status} />
+              <span className="bg-dash-accent/10 text-dash-accent px-2 py-1 rounded-full text-[11px] font-semibold">
+                {jobRefLabel(job.publicId)}
+              </span>
+              <span className="bg-dash-muted/40 text-dash-muted-foreground px-2 py-1 rounded-full text-[11px] font-semibold">
+                {job.categoryLabel}
+              </span>
+            </div>
+            <p className="text-dash-foreground text-lg font-bold leading-snug mb-1">{job.title}</p>
+            <div className="text-dash-muted-foreground text-sm space-y-1">
+              <p className="font-semibold">{formatTsh(job.offerTsh)} · {job.priceMode === "negotiable" ? "Negotiable" : "Fixed price"}</p>
+              <p className="text-xs">Posted {formatDate(job.createdAt)}</p>
+            </div>
           </div>
-          <p className="text-dash-foreground text-base font-bold leading-snug">{job.title}</p>
-          <p className="text-dash-muted-foreground text-xs">
-            {formatTsh(job.offerTsh)} · {job.priceMode === "negotiable" ? "Negotiable" : "Fixed"} · {formatDate(job.createdAt)}
-          </p>
+          <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+            <Link href={`/portal/jobs/${job.publicId}`} className={`${PRIMARY} !py-2 !px-4 inline-flex items-center gap-2`}>
+              <IconChat size={15} /> Open
+            </Link>
+            {canEdit ? (
+              <button
+                type="button"
+                onClick={() => setEditing((v) => !v)}
+                className={`${SOFT} !py-2 inline-flex items-center gap-2`}
+              >
+                <IconEdit size={15} /> {editing ? "Done" : "Edit"}
+              </button>
+            ) : null}
+            {canManage ? <DeleteJobButton jobPublicId={job.publicId} redirectTo="/portal/jobs/mine" /> : null}
+          </div>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Link href={`/portal/jobs/${job.publicId}`} className={`${PRIMARY} !py-2`}>
-            Open
-          </Link>
-          {canEdit ? (
-            <button type="button" onClick={() => setEditing((v) => !v)} className={`${SOFT} !py-2`}>
-              <IconEdit size={15} /> {editing ? "Close" : "Edit"}
-            </button>
-          ) : null}
-          {canManage ? <DeleteJobButton jobPublicId={job.publicId} redirectTo="/portal/jobs/mine" /> : null}
-        </div>
+
+        {/* Edit form */}
+        {editing && canEdit ? (
+          <div className="mt-2 pt-4 border-t border-dash-border/50">
+            <EditJobForm job={job} onDone={() => setEditing(false)} />
+          </div>
+        ) : null}
       </div>
-      {editing && canEdit ? (
-        <div className="mt-4">
-          <EditJobForm job={job} onDone={() => setEditing(false)} />
-        </div>
-      ) : null}
     </div>
   );
 }
