@@ -284,48 +284,155 @@ export async function PortalHome({
 }
 
 function FreeHomeExplore({ name }: { name: string }) {
+  const firstName = name.split(" ")[0] || "there";
   return (
     <div className="space-y-6">
-      <div className="border-dash-border bg-dash-card overflow-hidden rounded-2xl border">
-        <div className="border-dash-border border-b bg-gradient-to-br from-[color-mix(in_oklab,var(--dash-accent)_14%,transparent)] to-transparent px-5 py-6 sm:px-8">
-          <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">Welcome</p>
-          <h2 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-            Hi {name.split(" ")[0] || "there"}, explore Honic Nexis
-          </h2>
-          <p className="text-dash-muted-foreground mt-3 max-w-2xl text-sm leading-relaxed">
-            Every side-nav link is open so you can see what the portal offers. Desk tools unlock with a Nexis Desk plan.
-            Literature browse and Jobs listings stay free.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link
-              href="/portal/packs"
-              className="bg-dash-accent inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white"
-            >
-              View plans
-            </Link>
-            <Link
-              href="/portal/titles"
-              className="border-dash-border text-dash-foreground inline-flex items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-semibold"
-            >
-              Browse literature
-            </Link>
-            <Link href="/portal/jobs" className="text-dash-accent inline-flex items-center text-sm font-semibold">
-              Browse jobs →
-            </Link>
+      {/* Hero Section */}
+      <div className="border-dash-border bg-dash-card overflow-hidden rounded-3xl border">
+        <div className="relative overflow-hidden">
+          {/* Background gradient */}
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-50"
+            style={{
+              background:
+                "linear-gradient(135deg, color-mix(in oklab, var(--dash-accent) 20%, transparent) 0%, color-mix(in oklab, var(--dash-accent) 5%, transparent) 100%)",
+            }}
+          />
+          <div className="relative px-5 py-8 sm:px-8 sm:py-12 lg:py-16">
+            <div className="max-w-2xl">
+              <p className="text-dash-accent text-sm font-semibold tracking-wide uppercase">Welcome to Honic Nexis</p>
+              <h1 className="text-dash-foreground mt-3 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+                Hi {firstName}, ready to start?
+              </h1>
+              <p className="text-dash-muted-foreground mt-4 text-base leading-relaxed sm:text-lg">
+                Explore the student portal. Browse project titles, connect with peers through jobs, and unlock full project management with a Nexis Desk plan.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link
+                  href="/portal/packs"
+                  className="bg-dash-accent text-white hover:bg-dash-accent/90 inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-semibold transition"
+                >
+                  Explore plans →
+                </Link>
+                <Link
+                  href="/portal/titles"
+                  className="border-dash-border hover:border-dash-accent/50 hover:bg-dash-muted/40 text-dash-foreground inline-flex items-center justify-center rounded-xl border px-6 py-3 text-sm font-semibold transition"
+                >
+                  Browse titles
+                </Link>
+                <Link
+                  href="/portal/jobs"
+                  className="border-dash-border hover:border-dash-accent/50 hover:bg-dash-muted/40 text-dash-foreground inline-flex items-center justify-center rounded-xl border px-6 py-3 text-sm font-semibold transition"
+                >
+                  Peer help jobs
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="grid gap-3 px-5 py-5 sm:grid-cols-3 sm:px-8">
+      </div>
+
+      {/* Features Grid */}
+      <div>
+        <h2 className="text-dash-foreground mb-4 text-lg font-semibold sm:text-xl">Explore what's available</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
-            { href: "/portal/home?tab=gantt", t: "Gantt & plan", d: "Timeline and milestones" },
-            { href: "/portal/home?tab=review", t: "Review docs", d: "Drafts and corrections" },
-            { href: "/portal/home?tab=messages", t: "Help desk", d: "Message Honic staff" },
-          ].map((card) => (
-            <Link key={card.href} href={card.href} className="border-dash-border hover:border-dash-accent/40 rounded-xl border px-4 py-3 transition">
-              <p className="text-dash-foreground text-sm font-semibold">{card.t}</p>
-              <p className="text-dash-muted-foreground mt-1 text-xs">{card.d}</p>
+            {
+              href: "/portal/titles",
+              title: "Literature Review",
+              description: "Browse and study project titles",
+              icon: "📚",
+              tag: "Free",
+            },
+            {
+              href: "/portal/jobs",
+              title: "Peer Help Jobs",
+              description: "Connect with students for support",
+              icon: "🤝",
+              tag: "Free",
+            },
+            {
+              href: "/portal/packs",
+              title: "Nexis Desk Plans",
+              description: "Unlock project workspace & tools",
+              icon: "🎯",
+              tag: "Paid",
+            },
+            {
+              href: "/portal/home?tab=gantt",
+              title: "Project Planning",
+              description: "Gantt timeline and milestones",
+              icon: "📅",
+              tag: "Paid",
+            },
+            {
+              href: "/portal/home?tab=messages",
+              title: "Help Desk",
+              description: "Chat with Honic support team",
+              icon: "💬",
+              tag: "Paid",
+            },
+            {
+              href: "/portal/home?tab=team",
+              title: "Team Workspace",
+              description: "Collaborate with team members",
+              icon: "👥",
+              tag: "Paid",
+            },
+          ].map((feature) => (
+            <Link
+              key={feature.href}
+              href={feature.href}
+              className="border-dash-border hover:border-dash-accent/40 hover:bg-dash-muted/30 group rounded-2xl border px-4 py-5 transition sm:px-5 sm:py-6"
+            >
+              <div className="flex items-start justify-between">
+                <div className="text-2xl sm:text-3xl">{feature.icon}</div>
+                <span
+                  className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                    feature.tag === "Free"
+                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                      : "bg-dash-accent/15 text-dash-accent"
+                  }`}
+                >
+                  {feature.tag}
+                </span>
+              </div>
+              <h3 className="text-dash-foreground mt-3 font-semibold group-hover:text-dash-accent transition">
+                {feature.title}
+              </h3>
+              <p className="text-dash-muted-foreground mt-1 text-sm">{feature.description}</p>
             </Link>
           ))}
         </div>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="bg-dash-card border-dash-border rounded-2xl border px-5 py-6 sm:px-8">
+        <h2 className="text-dash-foreground mb-4 text-lg font-semibold sm:text-xl">Portal highlights</h2>
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
+          {[
+            { label: "Titles available", value: "500+" },
+            { label: "Peer helpers", value: "1000+" },
+            { label: "Active projects", value: "250+" },
+            { label: "Support ready", value: "24/7" },
+          ].map((stat) => (
+            <div key={stat.label}>
+              <p className="text-dash-accent text-xl sm:text-2xl font-bold">{stat.value}</p>
+              <p className="text-dash-muted-foreground text-xs sm:text-sm">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Info Section */}
+      <div className="bg-gradient-to-br from-dash-accent/10 to-dash-accent/5 border-dash-border rounded-2xl border px-5 py-6 sm:px-8">
+        <h3 className="text-dash-foreground font-semibold">Get started</h3>
+        <ul className="text-dash-muted-foreground mt-3 space-y-2 text-sm">
+          <li>✓ Browse 500+ project titles free</li>
+          <li>✓ Connect with peer helpers for support</li>
+          <li>✓ Upgrade anytime for full workspace access</li>
+        </ul>
       </div>
     </div>
   );
