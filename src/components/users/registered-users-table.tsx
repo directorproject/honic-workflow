@@ -151,10 +151,7 @@ export function RegisteredUsersTable({ rows }: { rows: RegisteredUserRow[] }) {
                     </td>
                     <td className="px-4 py-3 text-xs">
                       {row.groupsCreated ? (
-                        <div>
-                          <p className="text-dash-foreground font-semibold">{row.groupsCreated}</p>
-                          <p className="text-dash-muted-foreground mt-0.5 font-mono text-[10px]">{row.groupPublicIds.slice(0, 2).join(", ")}</p>
-                        </div>
+                        <p className="text-dash-foreground font-semibold">{row.groupsCreated}</p>
                       ) : (
                         "—"
                       )}
