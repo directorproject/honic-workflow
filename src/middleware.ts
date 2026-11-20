@@ -53,6 +53,8 @@ function isAllowedOnShareHost(pathname: string): boolean {
   if (p === "/portal.webmanifest" || p.startsWith("/portal-icon-") || p.startsWith("/templates/")) return true;
   if (
     p === "/favicon.ico" ||
+    p === "/icon" ||
+    p === "/apple-icon" ||
     p === "/robots.txt" ||
     p === "/sitemap.xml" ||
     p === "/logo.jpg" ||
@@ -140,6 +142,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap\\.xml|logo\\.jpg|logo-nexis|portal-icon-|pdf\\.worker\\.min\\.mjs|pdf-worker\\.js).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icon$|apple-icon|robots.txt|sitemap\\.xml|logo\\.jpg|logo-nexis|portal-icon-|pdf\\.worker\\.min\\.mjs|pdf-worker\\.js).*)",
   ],
 };

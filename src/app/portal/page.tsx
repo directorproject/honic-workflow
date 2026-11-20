@@ -19,7 +19,10 @@ export const metadata = {
   manifest: "/portal.webmanifest",
   appleWebApp: { capable: true, title: "Honic Nexis", statusBarStyle: "default" as const },
   icons: {
-    icon: [{ url: "/logo-nexis-mark.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/icon", type: "image/png", sizes: "64x64" },
+      { url: "/logo-nexis-mark.svg", type: "image/svg+xml" },
+    ],
     apple: [{ url: "/apple-icon" }],
   },
 };
