@@ -30,7 +30,7 @@ export function StudentsTable({ rows }: { rows: SummaryRow[] }) {
 
   return (
     <div>
-      <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-3 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-5">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search project or student" className={`${INPUT} lg:col-span-2`} />
         <select value={inst} onChange={(e) => setInst(e.target.value)} className={INPUT} aria-label="Institution">
           <option value="">All institutions</option>
@@ -53,7 +53,7 @@ export function StudentsTable({ rows }: { rows: SummaryRow[] }) {
           ))}
         </select>
       </div>
-      <label className="mb-4 flex items-center gap-2 text-sm">
+      <label className="mb-3 flex items-center gap-2 text-sm">
         <input type="checkbox" checked={riskOnly} onChange={(e) => setRiskOnly(e.target.checked)} />
         Only students at risk (behind plan, many late tasks or inactive for 14 days)
       </label>
@@ -63,18 +63,18 @@ export function StudentsTable({ rows }: { rows: SummaryRow[] }) {
           <table className="w-full min-w-[860px] text-sm">
             <thead className="text-dash-muted-foreground bg-dash-muted/50 text-left text-xs uppercase">
               <tr>
-                <th className="px-4 py-2.5">Project and team</th>
-                <th className="px-4 py-2.5">Progress</th>
-                <th className="px-4 py-2.5">Late</th>
-                <th className="px-4 py-2.5">Last active</th>
-                <th className="px-4 py-2.5">Needs Honic</th>
-                <th className="px-4 py-2.5 text-right">Action</th>
+                <th className="px-3 py-2">Project and team</th>
+                <th className="px-3 py-2">Progress</th>
+                <th className="px-3 py-2">Late</th>
+                <th className="px-3 py-2">Last active</th>
+                <th className="px-3 py-2">Needs Honic</th>
+                <th className="px-3 py-2 text-right">Action</th>
               </tr>
             </thead>
             <tbody>
               {list.map((r) => (
                 <tr key={r.id} className="border-dash-border hover:bg-dash-muted/40 border-t">
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2.5">
                     <Link href={`/students/${r.id}`} className="text-dash-foreground font-semibold hover:underline">
                       {r.name}
                     </Link>
@@ -91,7 +91,7 @@ export function StudentsTable({ rows }: { rows: SummaryRow[] }) {
                       {r.members[0]?.institution ? ` · ${r.members[0].institution}` : ""}
                       {r.members[0]?.courseCode ? ` · ${r.members[0].courseCode}` : ""}
                     </p>
-                    <div className="mt-1 flex flex-wrap gap-1">
+                    <div className="mt-0.5 flex flex-wrap gap-1">
                       {r.category ? <Badge className="bg-dash-accent/15 text-dash-accent">{projectCategoryLabel(r.category)}</Badge> : null}
                       {r.risk.map((x) => (
                         <Badge key={x} className="bg-rose-500/15 text-rose-700 dark:text-rose-300">
@@ -100,32 +100,32 @@ export function StudentsTable({ rows }: { rows: SummaryRow[] }) {
                       ))}
                     </div>
                   </td>
-                  <td className="w-48 px-4 py-3">
+                  <td className="w-40 px-3 py-2.5">
                     <ProgressBar value={r.health.actual} planned={r.health.planned} />
-                    <p className="text-dash-muted-foreground mt-1 text-xs tabular-nums">
-                      {r.health.actual}% done · plan {r.health.planned}%
+                    <p className="text-dash-muted-foreground mt-0.5 text-xs tabular-nums">
+                      {r.health.actual}% · {r.health.planned}%
                     </p>
                   </td>
-                  <td className="px-4 py-3 tabular-nums">{r.health.overdue.length || "—"}</td>
-                  <td className="text-dash-muted-foreground px-4 py-3 text-xs">{formatDate(r.lastActivityAt)}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2.5 tabular-nums text-sm">{r.health.overdue.length || "—"}</td>
+                  <td className="text-dash-muted-foreground px-3 py-2.5 text-xs">{formatDate(r.lastActivityAt)}</td>
+                  <td className="px-3 py-2.5">
                     <div className="flex flex-wrap gap-1">
                       {r.unreadMessages ? (
                         <Link href={`/students/help-desk?c=${encodeURIComponent(r.id)}`} className="inline-flex">
                           <Badge className="bg-rose-500 text-white hover:opacity-90">
-                            {r.unreadMessages} message{r.unreadMessages === 1 ? "" : "s"}
+                            {r.unreadMessages} msg
                           </Badge>
                         </Link>
                       ) : null}
-                      {r.pendingBookings ? <Badge className="bg-amber-500 text-white">{r.pendingBookings} session request</Badge> : null}
+                      {r.pendingBookings ? <Badge className="bg-amber-500 text-white">{r.pendingBookings} session</Badge> : null}
                       {r.unpaidInvoices ? <Badge className="bg-slate-500/20 text-dash-muted-foreground">{r.unpaidInvoices} unpaid</Badge> : null}
                       {!r.unreadMessages && !r.pendingBookings && !r.unpaidInvoices ? <span className="text-dash-muted-foreground text-xs">—</span> : null}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-3 py-2.5 text-right">
                     <Link
                       href={`/students/${r.id}`}
-                      className="inline-flex items-center rounded-lg bg-dash-accent/10 px-3 py-1.5 text-xs font-semibold text-dash-accent hover:bg-dash-accent/20"
+                      className="inline-flex items-center rounded-lg bg-dash-accent/10 px-2.5 py-1 text-xs font-semibold text-dash-accent hover:bg-dash-accent/20"
                     >
                       View →
                     </Link>
