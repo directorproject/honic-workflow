@@ -854,89 +854,106 @@ function TitleRow({ item, courseName }: { item: ReviewItem; courseName: Map<stri
   const [open, setOpen] = useState(false);
   const mark = projectMark(item);
   const courseFull = mark.courseCode ? (courseName.get(mark.courseCode) ?? mark.courseCode) : null;
+
   return (
-    <li className="border-dash-foreground/15 border-b py-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-dash-muted-foreground text-[11px] leading-relaxed tracking-wide break-words uppercase">
-            <span>{mark.year}</span>
-            <span aria-hidden="true"> | </span>
-            <span>{mark.group}</span>
+    <li>
+      <div className="border-dash-border hover:border-dash-accent/40 hover:bg-dash-muted/20 group mb-3 rounded-2xl border bg-dash-card/50 p-4 transition sm:p-5">
+        {/* Header with metadata */}
+        <div className="flex flex-col gap-3 sm:gap-4">
+          {/* Metadata tags */}
+          <div className="flex flex-wrap gap-2">
+            <span className="bg-dash-accent/10 text-dash-accent rounded-full px-2.5 py-1 text-xs font-semibold">
+              {mark.year}
+            </span>
+            <span className="bg-dash-muted/40 text-dash-muted-foreground rounded-full px-2.5 py-1 text-xs font-medium">
+              {mark.group}
+            </span>
             {mark.courseCode ? (
-              <>
-                <span aria-hidden="true"> | </span>
-                <span className="lg:hidden">{mark.courseCode}</span>
-                <span className="hidden lg:inline">{courseFull}</span>
-              </>
+              <span className="bg-dash-muted/40 text-dash-muted-foreground rounded-full px-2.5 py-1 text-xs font-medium hidden sm:inline">
+                {courseFull}
+              </span>
             ) : null}
-            {mark.institute ? (
-              <>
-                <span aria-hidden="true"> | </span>
-                <span className="break-words">{mark.institute}</span>
-              </>
+          </div>
+
+          {/* Title and description */}
+          <div className="min-w-0 flex-1">
+            <h3 className="text-dash-foreground text-lg font-bold leading-snug break-words sm:text-xl group-hover:text-dash-accent transition">
+              {item.title}
+            </h3>
+            {item.batch ? (
+              <p className="text-dash-muted-foreground mt-2 text-sm break-words">{item.batch}</p>
             ) : null}
-          </p>
-          <p className="text-dash-foreground mt-1 text-base leading-snug font-semibold break-words sm:text-lg">{item.title}</p>
-          {item.batch ? <p className="text-dash-muted-foreground mt-1 text-xs break-words">{item.batch}</p> : null}
-          <p className="text-dash-muted-foreground mt-1 text-xs break-words">{mark.citation}</p>
-          <p className="mt-2 text-xs leading-relaxed text-blue-950 italic dark:text-blue-300">{mark.note}</p>
-          {open ? (
-            <div className="border-dash-border mt-3 space-y-3 rounded-lg border px-3 py-3">
-              <div>
-                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Problem statement</p>
-                <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                  <LinkifiedText text={emptyProblem(item)} />
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Main objective</p>
-                <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                  <LinkifiedText text={item.objectives ?? "No main objective has been published yet for this title."} />
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Specific objectives</p>
-                <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                  <LinkifiedText
-                    text={item.specificObjectives ?? "Open the title page — extracted from the source document when available."}
-                  />
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Recommendations</p>
-                <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                  <LinkifiedText
-                    text={item.limitations ?? "Open the title page — extracted from the source document when available."}
-                  />
-                </p>
-              </div>
-              {item.sourceUrl ? (
-                <Link
-                  href={`${titleDetailHref(item.id, listFilters)}#documents`}
-                  className="text-dash-accent inline-block text-sm font-semibold"
-                >
-                  Source file on title page (unlock to view)
-                </Link>
-              ) : null}
+            <p className="text-dash-muted-foreground mt-1 text-xs break-words">{mark.citation}</p>
+            {mark.note ? (
+              <p className="text-dash-accent/70 mt-2 text-xs italic">{mark.note}</p>
+            ) : null}
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-2 border-t border-dash-border/50">
+            <div className="text-dash-muted-foreground text-xs">
+              {mark.institute && <span className="block">{mark.institute}</span>}
             </div>
-          ) : null}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setOpen((value) => !value)}
+                className="text-dash-muted-foreground hover:text-dash-foreground hover:bg-dash-muted/40 inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+                aria-expanded={open}
+              >
+                {open ? "Hide details" : "Show details"}
+              </button>
+              <Link
+                href={titleDetailHref(item.id, listFilters)}
+                className="bg-dash-accent text-white hover:bg-dash-accent/90 inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+              >
+                Select →
+              </Link>
+            </div>
+          </div>
         </div>
-        <div className="flex shrink-0 items-center gap-4 sm:flex-col sm:items-end sm:gap-2">
-          <Link
-            href={titleDetailHref(item.id, listFilters)}
-            className="text-dash-foreground border-b border-current text-sm font-semibold"
-          >
-            Select
-          </Link>
-          <button
-            type="button"
-            onClick={() => setOpen((value) => !value)}
-            className="text-dash-muted-foreground border-b border-current text-sm font-semibold"
-            aria-expanded={open}
-          >
-            {open ? "Hide" : "Read"}
-          </button>
-        </div>
+
+        {/* Expandable details section */}
+        {open ? (
+          <div className="mt-4 space-y-3 border-t border-dash-border/50 pt-4">
+            <div>
+              <p className="text-dash-accent text-xs font-semibold uppercase tracking-wide">Problem Statement</p>
+              <p className="text-dash-muted-foreground mt-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                <LinkifiedText text={emptyProblem(item)} />
+              </p>
+            </div>
+            <div>
+              <p className="text-dash-accent text-xs font-semibold uppercase tracking-wide">Main Objective</p>
+              <p className="text-dash-muted-foreground mt-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                <LinkifiedText text={item.objectives ?? "No main objective has been published yet for this title."} />
+              </p>
+            </div>
+            <div>
+              <p className="text-dash-accent text-xs font-semibold uppercase tracking-wide">Specific Objectives</p>
+              <p className="text-dash-muted-foreground mt-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                <LinkifiedText
+                  text={item.specificObjectives ?? "Open the title page — extracted from the source document when available."}
+                />
+              </p>
+            </div>
+            <div>
+              <p className="text-dash-accent text-xs font-semibold uppercase tracking-wide">Recommendations</p>
+              <p className="text-dash-muted-foreground mt-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                <LinkifiedText
+                  text={item.limitations ?? "Open the title page — extracted from the source document when available."}
+                />
+              </p>
+            </div>
+            {item.sourceUrl ? (
+              <Link
+                href={`${titleDetailHref(item.id, listFilters)}#documents`}
+                className="text-dash-accent hover:text-dash-accent/80 inline-block text-sm font-semibold transition"
+              >
+                📄 Source file on title page (unlock to view)
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </li>
   );
