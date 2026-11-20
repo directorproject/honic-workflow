@@ -563,7 +563,7 @@ function TitleCatalogue() {
             <CategoryCard
               count={completedCount}
               label="Final year projects"
-              detail="Sourced from institutes inside Tanzania: past BENG16–BENG22 (2018/2019–2025/2026) work in Electrical, Computer, and Electronics. Use these as literature."
+              detail="Real student projects completed at Tanzanian institutes (2018–2026). See what your peers built and use them as references for your own work."
               visible={showEarlier}
               onToggle={() => setShowEarlier((v) => !v)}
               hideLabel="Hide final year projects"
@@ -573,7 +573,7 @@ function TitleCatalogue() {
             <CategoryCard
               count={proposalCount}
               label="New project titles"
-              detail="Fresh titles auto-sourced from public lists at institutes outside Tanzania (and other open project banks). Browse for inspiration, then adapt the topic to your course."
+              detail="Project ideas from global sources and open repositories. Browse, pick what interests you, and customize the topic to fit your skills and course."
               visible={showStudy}
               onToggle={() => setShowStudy((v) => !v)}
               hideLabel="Hide new project titles"
