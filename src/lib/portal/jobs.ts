@@ -393,7 +393,7 @@ export async function applyToJob(
     return { ok: false, message: "This job has a fixed offer. Do not propose a different amount." };
   }
   if (job.priceMode === "negotiable" && input.proposedTsh != null) {
-    if (!Number.isFinite(input.proposedTsh) || input.proposedTsh < 1000) {
+    if (!Number.isFinite(input.proposedTsh) || input.proposedTsh < 500) {
       return { ok: false, message: "Proposed amount must be at least TSh 500." };
     }
   }
