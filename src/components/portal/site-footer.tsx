@@ -72,40 +72,42 @@ export function SiteFooter({
             </p>
           </div>
 
-          <div className="lg:col-span-2">
-            <p className="text-dash-foreground text-xs font-semibold tracking-wide uppercase">Student</p>
-            <ul className="mt-3 space-y-2.5 text-sm">
-              {PORTAL_LINKS.map((item) => (
-                <li key={item.href}>
-                  <TrackedLink
-                    linkKey={item.key}
-                    trackLabel={item.label}
-                    href={item.href}
-                    className="hover:text-dash-foreground transition-colors"
-                  >
-                    {item.label}
-                  </TrackedLink>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <div className="grid grid-cols-2 gap-6 sm:col-span-2 sm:gap-8 lg:col-span-4 lg:contents">
+            <div className="min-w-0 lg:col-span-2">
+              <p className="text-dash-foreground text-xs font-semibold tracking-wide uppercase">Student</p>
+              <ul className="mt-3 space-y-2.5 text-sm">
+                {PORTAL_LINKS.map((item) => (
+                  <li key={item.href}>
+                    <TrackedLink
+                      linkKey={item.key}
+                      trackLabel={item.label}
+                      href={item.href}
+                      className="hover:text-dash-foreground transition-colors"
+                    >
+                      {item.label}
+                    </TrackedLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          <div className="lg:col-span-2">
-            <p className="text-dash-foreground text-xs font-semibold tracking-wide uppercase">Company</p>
-            <ul className="mt-3 space-y-2.5 text-sm">
-              {COMPANY_LINKS.map((item) => (
-                <li key={item.href}>
-                  <TrackedLink
-                    linkKey={item.key}
-                    trackLabel={item.label}
-                    href={item.href}
-                    className="hover:text-dash-foreground transition-colors"
-                  >
-                    {item.label}
-                  </TrackedLink>
-                </li>
-              ))}
-            </ul>
+            <div className="min-w-0 lg:col-span-2">
+              <p className="text-dash-foreground text-xs font-semibold tracking-wide uppercase">Company</p>
+              <ul className="mt-3 space-y-2.5 text-sm">
+                {COMPANY_LINKS.map((item) => (
+                  <li key={item.href}>
+                    <TrackedLink
+                      linkKey={item.key}
+                      trackLabel={item.label}
+                      href={item.href}
+                      className="hover:text-dash-foreground transition-colors"
+                    >
+                      {item.label}
+                    </TrackedLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           <div className="lg:col-span-3">
