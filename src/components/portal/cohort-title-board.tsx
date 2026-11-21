@@ -14,6 +14,7 @@ import { SiteFooter } from "@/components/portal/site-footer";
 import { TitleRules } from "@/components/portal/title-terms-gate";
 import type { Course } from "@/lib/portal/data";
 import { projectMark } from "@/lib/portal/project-mark";
+import { titleCohortFromText, titleCohortKey } from "@/lib/portal/title-cohort";
 import type { ReviewItem } from "@/lib/portal/title-choices";
 import { hasActiveDeskPlan, MAX_TITLE_CHOICES } from "@/lib/portal/title-limits";
 import {
@@ -184,14 +185,16 @@ function TitlesFrameBody({
   const years = unique(items.map((item) => item.yearLabel));
   const institutions = unique(items.map((item) => item.institution));
   const departments = unique(items.map((item) => item.courseCode));
-  const levels = unique(
-    items
-      .map((item) => {
-        const match = (item.batch ?? item.source ?? "").match(/\b(BENG\s*\d{2})\b/i);
-        return match ? match[1].replace(/\s+/g, "").toUpperCase() : null;
-      })
-      .filter((x): x is string => Boolean(x))
-  );
+  const levelOptions = (() => {
+    const byKey = new Map<string, string>();
+    for (const item of items) {
+      const cohort = titleCohortFromText(item.batch, item.source);
+      if (cohort) byKey.set(cohort.key, cohort.label);
+    }
+    return [...byKey.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([value, label]) => ({ value, label }));
+  })();
   const missingInstitution = items.some((item) => !item.institution);
   const slotsLeft = MAX_TITLE_CHOICES - mine.length;
   const filtering =
@@ -207,7 +210,7 @@ function TitlesFrameBody({
     )
       return false;
     if (level !== TITLE_FILTER_ALL) {
-      const itemLevel = (item.batch ?? item.source ?? "").match(/\b(BENG\s*\d{2})\b/i)?.[1]?.replace(/\s+/g, "").toUpperCase();
+      const itemLevel = titleCohortKey(item.batch, item.source);
       if (itemLevel !== level) return false;
     }
     return true;
@@ -294,7 +297,7 @@ function TitlesFrameBody({
             labelClass={labelTone}
             options={[
               { value: TITLE_FILTER_ALL, label: "All levels" },
-              ...levels.map((value) => ({ value, label: value })),
+              ...levelOptions,
             ]}
           />
         </div>

@@ -20,21 +20,23 @@ export function FinanceLedgerTable({ rows }: { rows: FinanceMovement[] }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
   const [channel, setChannel] = useState("");
+  const [purpose, setPurpose] = useState("");
 
   const list = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return rows.filter((row) => {
       if (status && row.status !== status) return false;
       if (channel && row.channel !== channel) return false;
+      if (purpose && row.purposeKey !== purpose) return false;
       if (!needle) return true;
       const hay = `${row.userLabel} ${row.reference} ${row.purpose} ${row.workspaceName ?? ""}`.toLowerCase();
       return hay.includes(needle);
     });
-  }, [rows, query, status, channel]);
+  }, [rows, query, status, channel, purpose]);
 
   return (
     <div>
-      <div className="mb-4 grid gap-2 sm:grid-cols-3">
+      <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -47,6 +49,7 @@ export function FinanceLedgerTable({ rows }: { rows: FinanceMovement[] }) {
           <option value="paid">Paid</option>
           <option value="pending">Pending</option>
           <option value="unpaid">Unpaid</option>
+          <option value="quote">Quote</option>
           <option value="failed">Failed</option>
           <option value="cancelled">Cancelled</option>
         </select>
@@ -54,6 +57,14 @@ export function FinanceLedgerTable({ rows }: { rows: FinanceMovement[] }) {
           <option value="">Portal + workspace</option>
           <option value="portal">Portal (Snippe / mobile money)</option>
           <option value="workspace">Workspace invoices</option>
+        </select>
+        <select value={purpose} onChange={(e) => setPurpose(e.target.value)} className={INPUT} aria-label="Purpose">
+          <option value="">All purposes</option>
+          <option value="membership">Nexis Desk plan</option>
+          <option value="title_change">Title change</option>
+          <option value="title_hide">Title hide</option>
+          <option value="project_documents">Project documents</option>
+          <option value="invoice">Workspace invoice</option>
         </select>
       </div>
 

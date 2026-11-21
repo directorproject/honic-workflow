@@ -1,3 +1,5 @@
+import { titleCohortFromText } from "@/lib/portal/title-cohort";
+
 export type ProjectMark = {
   year: string;
   courseCode: string | null;
@@ -14,11 +16,14 @@ export type ProjectMark = {
 };
 
 /** DIT Bachelor of Engineering Project Realization modules from the 2025/2026 prospectus. */
-const MODULE: Record<string, { module: string; label: string }> = {
+const BENG_MODULE: Record<string, { module: string; label: string }> = {
   COE: { module: "COU 08204", label: "Project Realization" },
   EE: { module: "EEU 08205", label: "Project Realization" },
   ETE: { module: "ETU 08221", label: "Project Realization" },
 };
+
+const OD_MODULE = { module: "LSU / ETU Mini", label: "OD Mini project" };
+const LAB_MODULE = { module: "LSU 08106", label: "Mini I presentation" };
 
 export function shortInstitution(value: string | null | undefined): string | null {
   if (!value?.trim()) return null;
@@ -50,25 +55,15 @@ function academicYear(yearLabel: string): string | null {
   return `${start}/${start + 1}`;
 }
 
-function cohortFromText(text: string | null, yearLabel: string): string {
-  const fromText = text?.match(/\b(BENG\s*\d{2})\b/i)?.[1];
-  if (fromText) return fromText.replace(/\s+/g, "").toUpperCase();
-  const start = yearPart(yearLabel);
-  if (/^20\d{2}$/.test(start)) {
-    const cohortYear = Number(start) - 3;
-    return `BENG${String(cohortYear).slice(2)}`;
-  }
-  return "BENG";
-}
-
 function programmeOf(item: { courseCode: string | null; source: string | null; batch: string | null }): string {
   const code = item.courseCode?.trim().toUpperCase();
-  if (code && MODULE[code]) return code;
+  if (code && (BENG_MODULE[code] || code === "SLT" || code === "CST")) return code === "CST" ? "ETE" : code;
   const blob = `${item.source ?? ""} ${item.batch ?? ""}`;
   if (/\bCOE\b/i.test(blob)) return "COE";
-  if (/\bETE\b/i.test(blob)) return "ETE";
+  if (/\bETE\b/i.test(blob) || /\bCST\b/i.test(blob)) return "ETE";
   if (/\bEE\b/i.test(blob)) return "EE";
-  return code || "EE";
+  if (/\bSLT\b|\bLab Tech\b|\bLaboratory Science\b/i.test(blob)) return "SLT";
+  return code || "ETE";
 }
 
 function catalogueLine(item: {
@@ -78,10 +73,24 @@ function catalogueLine(item: {
   yearLabel: string;
 }): { citation: string; code: string; category: string; programme: string } {
   const programme = programmeOf(item);
-  const courseModule = MODULE[programme] ?? { module: "PRJ 08200", label: "Project Realization" };
   const year = academicYear(item.yearLabel) ?? item.yearLabel;
-  const cohort = cohortFromText(item.source ?? item.batch, item.yearLabel);
-  const citation = `${cohort} ${programme} ${courseModule.label} ${courseModule.module} (${year})`;
+  const cohort = titleCohortFromText(item.batch, item.source);
+
+  // OD / diploma mini — never invent a BENG## citation
+  if (cohort?.kind === "od") {
+    const citation = `${cohort.key} ${programme} ${OD_MODULE.label} (${year})`;
+    return { citation, code: OD_MODULE.module, category: OD_MODULE.label, programme };
+  }
+
+  if (cohort?.kind === "labtech") {
+    const citation = `${cohort.key} SLT ${LAB_MODULE.label} ${LAB_MODULE.module} (${year})`;
+    return { citation, code: LAB_MODULE.module, category: LAB_MODULE.label, programme: "SLT" };
+  }
+
+  const courseModule = BENG_MODULE[programme] ?? { module: "PRJ 08200", label: "Project Realization" };
+  // Only use a real BENG token from the list; otherwise label as cohort-unknown BEng FYP without a fake intake year
+  const bengLabel = cohort?.kind === "beng" ? cohort.key : "BEng";
+  const citation = `${bengLabel} ${programme} ${courseModule.label} ${courseModule.module} (${year})`;
   return { citation, code: courseModule.module, category: courseModule.label, programme };
 }
 
