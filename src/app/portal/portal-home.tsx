@@ -349,8 +349,8 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
               </div>
             </div>
 
-            {/* Quick Access Cards */}
-            <div className="w-full lg:w-auto lg:flex-shrink-0 space-y-4">
+            {/* Featured Counts - Side by Side */}
+            <div className="w-full lg:w-auto lg:flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:grid-cols-1 lg:space-y-4">
               {/* Title Count Card */}
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
@@ -363,52 +363,20 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
                 </div>
               </div>
 
-              {/* Jobs & Special Links */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <Link
-                  href="/portal/jobs"
-                  className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-400/30 backdrop-blur-xl p-4 transition-all hover:border-amber-400/60 hover:shadow-lg"
-                >
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-r from-amber-600 to-orange-600 blur-lg transition-opacity" />
-                  <div className="relative">
-                    <p className="text-xs font-semibold text-amber-300 uppercase">Open Jobs</p>
-                    <p className="mt-1 text-2xl font-bold text-amber-100">{formatHighlightCount(highlights.openJobs)}</p>
-                  </div>
-                </Link>
-
-                <Link
-                  href="/portal/zimamoto"
-                  className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30 backdrop-blur-xl p-4 transition-all hover:border-purple-400/60 hover:shadow-lg"
-                >
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-r from-purple-600 to-pink-600 blur-lg transition-opacity" />
-                  <div className="relative">
-                    <p className="text-xs font-semibold text-purple-300 uppercase">Zimamoto</p>
-                    <p className="mt-1 text-sm font-semibold text-purple-100">Explore →</p>
-                  </div>
-                </Link>
-
-                <Link
-                  href="/portal/titles"
-                  className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-400/30 backdrop-blur-xl p-4 transition-all hover:border-green-400/60 hover:shadow-lg"
-                >
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-r from-green-600 to-emerald-600 blur-lg transition-opacity" />
-                  <div className="relative">
-                    <p className="text-xs font-semibold text-green-300 uppercase">Literature</p>
-                    <p className="mt-1 text-sm font-semibold text-green-100">Browse →</p>
-                  </div>
-                </Link>
-
-                <Link
-                  href="/portal/packs"
-                  className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-400/30 backdrop-blur-xl p-4 transition-all hover:border-indigo-400/60 hover:shadow-lg"
-                >
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-r from-indigo-600 to-blue-600 blur-lg transition-opacity" />
-                  <div className="relative">
-                    <p className="text-xs font-semibold text-indigo-300 uppercase">Plans</p>
-                    <p className="mt-1 text-sm font-semibold text-indigo-100">Upgrade →</p>
-                  </div>
-                </Link>
-              </div>
+              {/* Jobs Count Card */}
+              <Link
+                href="/portal/jobs"
+                className="relative group cursor-pointer"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-600 to-orange-500 rounded-2xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
+                <div className="relative bg-gradient-to-br from-amber-500/20 to-orange-500/20 backdrop-blur-xl border border-amber-400/30 rounded-2xl p-6 sm:p-8 text-center group-hover:border-amber-400/60 transition-colors">
+                  <p className="text-xs font-semibold tracking-widest text-amber-300 uppercase">Open Jobs</p>
+                  <p className="mt-2 text-5xl sm:text-6xl font-bold bg-gradient-to-r from-amber-200 to-orange-200 bg-clip-text text-transparent">
+                    {formatHighlightCount(highlights.openJobs)}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-300">view opportunities</p>
+                </div>
+              </Link>
             </div>
           </div>
         </div>
