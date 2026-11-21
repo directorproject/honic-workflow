@@ -1,3 +1,4 @@
+import { INSTITUTIONS } from "@/lib/portal/config";
 import {
   academicYearStartForTitle,
   titleCohortFromText,
@@ -34,6 +35,41 @@ const OD_MODULE: Record<string, { module: string; label: string }> = {
 };
 const OD_MODULE_DEFAULT = { module: "PRJ 06200", label: "Final year project" };
 const LAB_MODULE = { module: "LSU 08106", label: "Final year project" };
+
+const TZ_INSTITUTION_SET = new Set(INSTITUTIONS.map((name) => name.toLowerCase()));
+
+/**
+ * Tanzania catalogue titles → Final year project.
+ * Outsourced / foreign lists (Kaggle, AISSMS, Amrita, …) → New project title.
+ */
+export function isTanzanianCatalogueTitle(item: {
+  institution: string | null;
+  batch: string | null;
+  source: string | null;
+}): boolean {
+  const inst = item.institution?.trim() ?? "";
+  if (inst) {
+    if (TZ_INSTITUTION_SET.has(inst.toLowerCase())) return true;
+    if (/tanzania|\(dit\)\s*$|dar es salaam institute of technology/i.test(inst)) return true;
+  }
+
+  const blob = `${item.batch ?? ""} ${item.source ?? ""}`;
+  if (
+    /\bDIT\b/i.test(blob) ||
+    /\bBENG\s*\d{2}/i.test(blob) ||
+    /\bBT\d{2}LS\b/i.test(blob) ||
+    /\bOD NTA\b/i.test(blob) ||
+    /\bLab Tech\b/i.test(blob) ||
+    /\bLaboratory Science\b/i.test(blob)
+  ) {
+    return true;
+  }
+
+  // Explicit outsourced markers
+  if (/kaggle|aissms|amrita|nitt|mgit|biet|abroad|india|foreign/i.test(blob)) return false;
+
+  return false;
+}
 
 export function shortInstitution(value: string | null | undefined): string | null {
   if (!value?.trim()) return null;
@@ -91,10 +127,22 @@ function catalogueLine(item: {
   source: string | null;
   batch: string | null;
   yearLabel: string;
+  institution: string | null;
+  tanzanian: boolean;
 }): { citation: string; code: string; category: string; programme: string } {
   const programme = programmeOf(item);
   const year = citationYear(item);
   const cohort = titleCohortFromText(item.batch, item.source);
+
+  if (!item.tanzanian) {
+    const label = item.batch?.trim() || "Outsourced catalogue";
+    return {
+      citation: `New project title · ${label} (${year})`,
+      code: "NEW",
+      category: "New project title",
+      programme,
+    };
+  }
 
   // OD / diploma — final year project with programme module code (never invent a BENG## citation)
   if (cohort?.kind === "od") {
@@ -109,7 +157,6 @@ function catalogueLine(item: {
   }
 
   const courseModule = BENG_MODULE[programme] ?? { module: "PRJ 08200", label: "Project Realization" };
-  // Only use a real BENG token from the list; otherwise label as cohort-unknown BEng FYP without a fake intake year
   const bengLabel = cohort?.kind === "beng" ? cohort.key : "BEng";
   const citation = `${bengLabel} ${programme} ${courseModule.label} ${courseModule.module} (${year})`;
   return { citation, code: courseModule.module, category: courseModule.label, programme };
@@ -126,20 +173,11 @@ export function projectMark(item: {
   const fromTitle = academicYearStartForTitle({ batch: item.batch, source: item.source });
   const year = fromTitle != null ? String(fromTitle) : yearPart(item.yearLabel);
   const courseCode = item.courseCode?.trim().toUpperCase() || null;
-  const institute = shortInstitution(item.institution) ?? "DIT";
-  const catalogue = catalogueLine(item);
+  const tanzanian = item.kind === "earlier" || isTanzanianCatalogueTitle(item);
+  const institute = shortInstitution(item.institution) ?? (tanzanian ? "DIT" : null);
+  const catalogue = catalogueLine({ ...item, tanzanian });
 
-  const cohort = titleCohortFromText(item.batch, item.source);
-  // DIT BEng / OD / Lab Tech catalogue rows are final-year work (Project Realization / FYP),
-  // not "new project title" proposals.
-  const asFinalYear =
-    item.kind === "earlier" ||
-    cohort?.kind === "beng" ||
-    cohort?.kind === "od" ||
-    cohort?.kind === "labtech" ||
-    courseCode === "SLT";
-
-  if (asFinalYear) {
+  if (tanzanian) {
     return {
       year,
       courseCode: courseCode ?? catalogue.programme,
