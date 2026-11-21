@@ -219,8 +219,8 @@ export async function createEscrowForApplication(
     job.price_mode === "negotiable" && app.proposed_tsh != null
       ? Math.round(Number(app.proposed_tsh))
       : Math.round(Number(job.offer_tsh));
-  if (!Number.isFinite(amount) || amount < 1000) {
-    return { ok: false, message: "Escrow amount must be at least TSh 1,000." };
+  if (!Number.isFinite(amount) || amount < 500) {
+    return { ok: false, message: "Escrow amount must be at least TSh 500." };
   }
 
   const publicId = newPublicId();

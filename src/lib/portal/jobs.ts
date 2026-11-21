@@ -256,8 +256,8 @@ export async function createJob(
   const description = input.description.trim().slice(0, 4000);
   if (title.length < 8) return { ok: false, message: "Write a clearer job title (at least 8 characters)." };
   if (description.length < 20) return { ok: false, message: "Add more detail about the work (at least 20 characters)." };
-  if (!Number.isFinite(input.offerTsh) || input.offerTsh < 1000) {
-    return { ok: false, message: "Offer at least TSh 1,000." };
+  if (!Number.isFinite(input.offerTsh) || input.offerTsh < 500) {
+    return { ok: false, message: "Offer at least TSh 500." };
   }
 
   const posterPublicId = await ensurePortalAccount(db, input.userId);
@@ -312,8 +312,8 @@ export async function updateJob(
   const description = input.description.trim().slice(0, 4000);
   if (title.length < 8) return { ok: false, message: "Write a clearer job title (at least 8 characters)." };
   if (description.length < 20) return { ok: false, message: "Add more detail about the work (at least 20 characters)." };
-  if (!Number.isFinite(input.offerTsh) || input.offerTsh < 1000) {
-    return { ok: false, message: "Offer at least TSh 1,000." };
+  if (!Number.isFinite(input.offerTsh) || input.offerTsh < 500) {
+    return { ok: false, message: "Offer at least TSh 500." };
   }
 
   const { error } = await db
@@ -394,7 +394,7 @@ export async function applyToJob(
   }
   if (job.priceMode === "negotiable" && input.proposedTsh != null) {
     if (!Number.isFinite(input.proposedTsh) || input.proposedTsh < 1000) {
-      return { ok: false, message: "Proposed amount must be at least TSh 1,000." };
+      return { ok: false, message: "Proposed amount must be at least TSh 500." };
     }
   }
 
