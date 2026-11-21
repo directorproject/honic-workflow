@@ -84,7 +84,7 @@ function asApplication(row: Record<string, unknown>, viewerId: string | null): P
 }
 
 export async function listOpenJobs(db: SupabaseClient, viewerId: string | null): Promise<PortalJob[]> {
-  const { data, error } = await db
+  let q = db
     .from("portal_jobs")
     .select(
       "id, public_id, poster_user_id, poster_public_id, category, title, description, offer_tsh, price_mode, status, created_at",
@@ -92,6 +92,9 @@ export async function listOpenJobs(db: SupabaseClient, viewerId: string | null):
     .eq("status", "open")
     .order("created_at", { ascending: false })
     .limit(80);
+  // Poster manages their own requests under My peer help — hide them from the public board.
+  if (viewerId) q = q.neq("poster_user_id", viewerId);
+  const { data, error } = await q;
   if (error) {
     if (missingJobs(error.message)) return [];
     throw new Error(error.message);
