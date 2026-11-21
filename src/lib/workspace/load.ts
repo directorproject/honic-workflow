@@ -1,9 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import {
-  FREE_PLAN_FILE_STORAGE_BYTES,
-  PAID_PLAN_FILE_STORAGE_BYTES,
-} from "@/lib/portal/config";
+import { FREE_PLAN_FILE_STORAGE_BYTES, fileStorageBytesForDeskPlan } from "@/lib/portal/config";
 import { hasActiveDeskPlan } from "@/lib/portal/title-limits";
 import { scheduleHealth, type ScheduleHealth } from "@/lib/workspace/schedule";
 import type {
@@ -29,6 +26,7 @@ type MemberWithLinks = Member & {
   course_code: string | null;
   tracked_project_id: string | null;
   desk_expires_at: string | null;
+  desk_plan: string | null;
 };
 
 async function loadMembers(db: SupabaseClient, workspaceId: string): Promise<MemberWithLinks[]> {
@@ -42,7 +40,7 @@ async function loadMembers(db: SupabaseClient, workspaceId: string): Promise<Mem
   const [{ data: profs }, users, { data: courses }] = await Promise.all([
     db
       .from("student_profiles")
-      .select("user_id, full_name, institution, course_code, course_other, tracked_project_id, desk_expires_at")
+      .select("user_id, full_name, institution, course_code, course_other, tracked_project_id, desk_expires_at, desk_plan")
       .in("user_id", ids),
     Promise.all(ids.map((id) => db.auth.admin.getUserById(id).then((r) => r.data.user))),
     db.from("courses").select("code, name"),
@@ -61,13 +59,19 @@ async function loadMembers(db: SupabaseClient, workspaceId: string): Promise<Mem
       course_code: p?.course_code ? String(p.course_code) : null,
       tracked_project_id: p?.tracked_project_id ? String(p.tracked_project_id) : null,
       desk_expires_at: p?.desk_expires_at ? String(p.desk_expires_at) : null,
+      desk_plan: p?.desk_plan ? String(p.desk_plan) : null,
     };
   });
 }
 
 function storageLimitFromMembers(members: MemberWithLinks[]): number {
-  if (members.some((m) => hasActiveDeskPlan(m.desk_expires_at))) return PAID_PLAN_FILE_STORAGE_BYTES;
-  return FREE_PLAN_FILE_STORAGE_BYTES;
+  let best = FREE_PLAN_FILE_STORAGE_BYTES;
+  for (const m of members) {
+    if (!hasActiveDeskPlan(m.desk_expires_at)) continue;
+    const limit = fileStorageBytesForDeskPlan(m.desk_plan ?? "monthly");
+    if (limit > best) best = limit;
+  }
+  return best;
 }
 
 /** Shared deadlines that match a member's institution, course or the project type (null fields match all). */

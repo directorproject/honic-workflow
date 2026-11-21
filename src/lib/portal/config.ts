@@ -5,8 +5,8 @@
  * 3rd+ hide on a paid plan also costs EXTRA_TITLE_HIDE_FEE_TSH each.
  */
 export const SUBSCRIPTION_YEAR_TSH = 24_000;
-/** Six-month / one-semester plan (5 months worth, good 20% discount). */
-export const SUBSCRIPTION_SEMESTER_TSH = 14_000;
+/** Six-month / one-semester plan. */
+export const SUBSCRIPTION_SEMESTER_TSH = 12_000;
 /** Pay-as-you-go Nexis Desk — billed per calendar month at checkout. */
 export const SUBSCRIPTION_MONTH_TSH = 3_000;
 /** Max consecutive months purchasable in one monthly checkout. */
@@ -33,11 +33,23 @@ export const PROJECT_DOCUMENTS_ACCESS_TSH = 25_000;
 
 /**
  * Workspace file storage by plan (Project files page).
- * Free: enough for a proposal PDF, a few minutes decks, and light images.
- * Paid Nexis Desk: room for full report versions, PPT, CAD, and photos through the project cycle.
+ * Free 250 MB · Monthly (3k) 2 GB · Semester (12k) 10 GB · Year (24k) 50 GB.
  */
 export const FREE_PLAN_FILE_STORAGE_BYTES = 250 * 1024 * 1024; // 250 MB
-export const PAID_PLAN_FILE_STORAGE_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB
+export const MONTHLY_PLAN_FILE_STORAGE_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB
+export const SEMESTER_PLAN_FILE_STORAGE_BYTES = 10 * 1024 * 1024 * 1024; // 10 GB
+export const YEAR_PLAN_FILE_STORAGE_BYTES = 50 * 1024 * 1024 * 1024; // 50 GB
+/** @deprecated Prefer plan-specific quotas — equals monthly (smallest paid). */
+export const PAID_PLAN_FILE_STORAGE_BYTES = MONTHLY_PLAN_FILE_STORAGE_BYTES;
+
+export type DeskPlanId = "monthly" | "semester" | "year";
+
+export function fileStorageBytesForDeskPlan(deskPlan: string | null | undefined): number {
+  if (deskPlan === "year") return YEAR_PLAN_FILE_STORAGE_BYTES;
+  if (deskPlan === "semester") return SEMESTER_PLAN_FILE_STORAGE_BYTES;
+  if (deskPlan === "monthly") return MONTHLY_PLAN_FILE_STORAGE_BYTES;
+  return FREE_PLAN_FILE_STORAGE_BYTES;
+}
 
 export function formatStorageQuota(bytes: number): string {
   if (bytes >= 1024 * 1024 * 1024) {

@@ -42,9 +42,8 @@ export default async function DashboardPage() {
             </div>
             <Link
               href="/projects/new"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white transition-all hover:bg-blue-700 hover:shadow-lg active:scale-95 sm:px-6 sm:py-3"
+              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white transition-all hover:bg-blue-700 hover:shadow-lg active:scale-95 sm:px-6 sm:py-3"
             >
-              <span>➕</span>
               <span className="hidden sm:inline">New project</span>
               <span className="sm:hidden">New</span>
             </Link>
@@ -125,8 +124,7 @@ export default async function DashboardPage() {
             href="/projects"
             className="group rounded-xl bg-slate-50 p-3 text-center transition-all hover:bg-blue-50 hover:shadow-md dark:bg-slate-800 dark:hover:bg-slate-700 sm:p-4"
           >
-            <span className="text-lg sm:text-2xl">📊</span>
-            <p className="mt-1 text-xs font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-200 sm:text-sm">
+            <p className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-200 sm:text-sm">
               All Projects
             </p>
           </Link>
@@ -134,8 +132,7 @@ export default async function DashboardPage() {
             href="/users"
             className="group rounded-xl bg-slate-50 p-3 text-center transition-all hover:bg-blue-50 hover:shadow-md dark:bg-slate-800 dark:hover:bg-slate-700 sm:p-4"
           >
-            <span className="text-lg sm:text-2xl">👥</span>
-            <p className="mt-1 text-xs font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-200 sm:text-sm">
+            <p className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-200 sm:text-sm">
               Users
             </p>
           </Link>
@@ -143,8 +140,7 @@ export default async function DashboardPage() {
             href="/users/requests"
             className="group rounded-xl bg-slate-50 p-3 text-center transition-all hover:bg-blue-50 hover:shadow-md dark:bg-slate-800 dark:hover:bg-slate-700 sm:p-4"
           >
-            <span className="text-lg sm:text-2xl">📋</span>
-            <p className="mt-1 text-xs font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-200 sm:text-sm">
+            <p className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-200 sm:text-sm">
               Requests
             </p>
           </Link>
@@ -152,8 +148,7 @@ export default async function DashboardPage() {
             href="/plans"
             className="group rounded-xl bg-slate-50 p-3 text-center transition-all hover:bg-blue-50 hover:shadow-md dark:bg-slate-800 dark:hover:bg-slate-700 sm:p-4"
           >
-            <span className="text-lg sm:text-2xl">📅</span>
-            <p className="mt-1 text-xs font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-200 sm:text-sm">
+            <p className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-200 sm:text-sm">
               Milestones
             </p>
           </Link>
@@ -161,8 +156,7 @@ export default async function DashboardPage() {
             href="/students/help-desk"
             className="group rounded-xl bg-slate-50 p-3 text-center transition-all hover:bg-blue-50 hover:shadow-md dark:bg-slate-800 dark:hover:bg-slate-700 sm:p-4"
           >
-            <span className="text-lg sm:text-2xl">💬</span>
-            <p className="mt-1 text-xs font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-200 sm:text-sm">
+            <p className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 dark:text-slate-200 sm:text-sm">
               Help Desk
             </p>
           </Link>

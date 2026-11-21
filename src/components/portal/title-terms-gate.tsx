@@ -49,8 +49,15 @@ export function TitleRules() {
   );
 }
 
-/** First-time accept flow: policy then rules, same plain layout. */
-export function TitleTermsGate({ step }: { step: "policy" | "rules" }) {
+/** First-time accept flow: policy then rules, then return to where the student was headed. */
+export function TitleTermsGate({
+  step,
+  nextHref = "/portal/titles",
+}: {
+  step: "policy" | "rules";
+  /** Where to go after both policy and rules are accepted (default: literature). */
+  nextHref?: string;
+}) {
   const router = useRouter();
   const [policySaved, setPolicySaved] = useState(step === "rules");
   const [view, setView] = useState<"policy" | "rules">(step);
@@ -58,6 +65,8 @@ export function TitleTermsGate({ step }: { step: "policy" | "rules" }) {
   const [status, setStatus] = useState<PortalResult | null>(null);
   const [pending, startTransition] = useTransition();
   const policy = view === "policy";
+  const safeNext =
+    nextHref.startsWith("/portal") && !nextHref.startsWith("//") ? nextHref : "/portal/titles";
 
   function show(next: "policy" | "rules") {
     if (next === "rules" && !policySaved) return;
@@ -82,7 +91,7 @@ export function TitleTermsGate({ step }: { step: "policy" | "rules" }) {
         router.refresh();
         return;
       }
-      router.push("/portal/packs?nav=1#plans");
+      router.push(safeNext);
       router.refresh();
     });
   }
@@ -99,7 +108,7 @@ export function TitleTermsGate({ step }: { step: "policy" | "rules" }) {
         <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
           {policy
             ? "Read the short points, accept, then continue to the title rules."
-            : "Read the short points and accept to open plans & access. Titles stay closed until both are accepted."}
+            : "Read the short points and accept to continue. Titles stay closed until both are accepted."}
         </p>
         <div className="mt-4 flex gap-2">
           <StepPill active={policy} done={policySaved && !policy} label="Policy" onClick={() => show("policy")} />
@@ -165,7 +174,7 @@ export function TitleTermsGate({ step }: { step: "policy" | "rules" }) {
               disabled={!accepted || pending}
               onClick={acceptAndContinue}
             >
-              {pending ? "Saving…" : policy ? "Accept and continue" : "Accept and open plans"}
+              {pending ? "Saving…" : policy ? "Accept and continue" : "Accept and continue"}
             </button>
           </div>
         </div>

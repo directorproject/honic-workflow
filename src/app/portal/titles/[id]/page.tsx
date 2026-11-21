@@ -88,17 +88,19 @@ export default async function PortalTitlePage(props: {
       />
     );
   }
+  const routeId = decodeURIComponent(id);
   const terms = state.titleTerms ?? { accepted: false, policyAccepted: false, rulesAccepted: false, acceptedAt: null };
   const acceptedAt = terms.acceptedAt;
   if (user && !state.isStaff && profile && !terms.accepted) {
     return (
       <Gate>
-        <TitleTermsGate step={terms.policyAccepted ? "rules" : "policy"} />
+        <TitleTermsGate
+          step={terms.policyAccepted ? "rules" : "policy"}
+          nextHref={`/portal/titles/${encodeURIComponent(routeId)}`}
+        />
       </Gate>
     );
   }
-
-  const routeId = decodeURIComponent(id);
   const cataloguePromise =
     guest || state.isStaff
       ? loadGuestLiteratureCatalogue()

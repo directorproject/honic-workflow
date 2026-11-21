@@ -266,7 +266,7 @@ export type WorkspaceBundle = {
   activity: Activity[];
   /** Linked Honic-managed project, if staff linked a team member. */
   trackedProjectId: string | null;
-  /** Workspace Project files quota from plan (250 MB free / 2 GB paid). */
+  /** Workspace Project files quota from plan (250 MB free / 2–50 GB paid by tier). */
   storageLimitBytes: number;
 };
 

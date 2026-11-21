@@ -12,16 +12,20 @@ import {
   EXTRA_TITLE_HIDE_FEE_TSH,
   FREE_TITLE_SLOTS,
   MAX_MEMBERSHIP_MONTHS,
-  PAID_PLAN_FILE_STORAGE_BYTES,
+  MONTHLY_PLAN_FILE_STORAGE_BYTES,
   PAYMENT_NETWORKS,
   PROJECT_DOCUMENTS_ACCESS_TSH,
+  SEMESTER_PLAN_FILE_STORAGE_BYTES,
   SUBSCRIPTION_MONTH_TSH,
   SUBSCRIPTION_SEMESTER_TSH,
   SUBSCRIPTION_YEAR_TSH,
+  YEAR_PLAN_FILE_STORAGE_BYTES,
   formatStorageQuota,
 } from "@/lib/portal/config";
 
-const PAID_STORAGE = formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES);
+const MONTHLY_STORAGE = formatStorageQuota(MONTHLY_PLAN_FILE_STORAGE_BYTES);
+const SEMESTER_STORAGE = formatStorageQuota(SEMESTER_PLAN_FILE_STORAGE_BYTES);
+const YEAR_STORAGE = formatStorageQuota(YEAR_PLAN_FILE_STORAGE_BYTES);
 
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1800&q=80";
@@ -43,7 +47,6 @@ export function DocumentPacksBoard({
   deskExpiresAt?: string | null;
   deskPlan?: string | null;
 }) {
-  const yearSave = SUBSCRIPTION_SEMESTER_TSH * 2 - SUBSCRIPTION_YEAR_TSH;
   const yearPerMonth = Math.round(SUBSCRIPTION_YEAR_TSH / 12);
   const semesterPerMonth = Math.round(SUBSCRIPTION_SEMESTER_TSH / 6);
 
@@ -52,15 +55,15 @@ export function DocumentPacksBoard({
     "Workspace, help desk, literature",
     "Peer help post, offer, and message",
     `${FREE_TITLE_SLOTS} free title hides`,
-    `Storage up to ${PAID_STORAGE}`,
-    `Save ${formatTsh(yearSave)} vs two semesters`,
+    `Storage up to ${YEAR_STORAGE}`,
+    `${YEAR_STORAGE} vs ${SEMESTER_STORAGE} on semester`,
   ];
   const semesterPoints = [
     "Full Nexis Desk for one project cycle",
     "Workspace, help desk, literature",
     "Peer help post, offer, and message",
     `${FREE_TITLE_SLOTS} free title hides`,
-    `Storage up to ${PAID_STORAGE}`,
+    `Storage up to ${SEMESTER_STORAGE}`,
   ];
 
   return (
@@ -459,7 +462,7 @@ function MonthlyPlanCard({ signedIn, phone, active }: { signedIn: boolean; phone
           </select>
         </Field>
       </div>
-      <FeatureList items={["Full Nexis Desk tools", "Peer help post and offer", `${FREE_TITLE_SLOTS} free title hides`, `Storage up to ${PAID_STORAGE}`]} />
+      <FeatureList items={["Full Nexis Desk tools", "Peer help post and offer", `${FREE_TITLE_SLOTS} free title hides`, `Storage up to ${MONTHLY_STORAGE}`]} />
     </PlanShell>
   );
 }

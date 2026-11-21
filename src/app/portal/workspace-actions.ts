@@ -12,9 +12,9 @@ import {
   toSnippePhone,
 } from "@/lib/payments/snippe";
 import {
-  PAID_PLAN_FILE_STORAGE_BYTES,
   PAYMENT_NETWORKS,
   PAYMENT_PROVIDER,
+  YEAR_PLAN_FILE_STORAGE_BYTES,
   formatStorageQuota,
 } from "@/lib/portal/config";
 import { requireActiveDeskPlan } from "@/lib/portal/plan-access";
@@ -786,8 +786,8 @@ export async function createUploadAction(
     const limit = await workspaceFileStorageLimitBytes(actor.db, actor.workspaceId);
     if (total + size > limit) {
       const hint =
-        limit < PAID_PLAN_FILE_STORAGE_BYTES
-          ? ` Upgrade to a paid Nexis Desk plan for ${formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES)}, or delete files to free space.`
+        limit < YEAR_PLAN_FILE_STORAGE_BYTES
+          ? ` Upgrade your Nexis Desk plan for more storage (up to ${formatStorageQuota(YEAR_PLAN_FILE_STORAGE_BYTES)}), or delete files to free space.`
           : " Delete files you no longer need to free space.";
       throw new Error(`This workspace has reached its ${formatStorageQuota(limit)} file storage limit.${hint}`);
     }

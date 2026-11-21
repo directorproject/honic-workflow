@@ -72,7 +72,9 @@ export default async function PortalTitlesPage() {
   } else {
     const terms = state.titleTerms ?? { accepted: false, policyAccepted: false, rulesAccepted: false, acceptedAt: null };
     if (!terms.accepted) {
-      content = <TitleTermsGate step={terms.policyAccepted ? "rules" : "policy"} />;
+      content = (
+        <TitleTermsGate step={terms.policyAccepted ? "rules" : "policy"} nextHref="/portal/titles" />
+      );
     } else {
       const [review, membership] = await Promise.all([
         loadStudentLiteratureCatalogue(user.id, profile),

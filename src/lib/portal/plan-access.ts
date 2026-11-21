@@ -11,7 +11,7 @@ export const PAID_DESK_FEATURES = {
   jobsMessage: "Job messaging",
   jobsManage: "Managing jobs",
   helpDesk: "Help desk",
-  paidStorage: "2 GB project file storage",
+  paidStorage: "2–50 GB project file storage (by plan)",
   freeTitleHides: "Free title hides",
 } as const;
 

@@ -11,20 +11,6 @@ function formatProjectStatus(status: string) {
   return status.replace(/_/g, " ");
 }
 
-function priorityIcon(priority: string) {
-  if (priority === "critical") return "🔴";
-  if (priority === "high") return "🟠";
-  if (priority === "medium") return "🟡";
-  return "🟢";
-}
-
-function statusIcon(status: string) {
-  if (status.includes("completed")) return "✅";
-  if (status.includes("in_progress")) return "⏳";
-  if (status.includes("on_hold")) return "⏸️";
-  return "📋";
-}
-
 export function WorkflowTableMinimal({ projects }: { projects: WorkflowProjectRow[] }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -74,14 +60,11 @@ export function WorkflowTableMinimal({ projects }: { projects: WorkflowProjectRo
                     </td>
                     <td className="px-4 py-3">
                       <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold capitalize text-slate-700 dark:bg-slate-700 dark:text-slate-200">
-                        {statusIcon(p.status)} {formatProjectStatus(p.status)}
+                        {formatProjectStatus(p.status)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm font-bold">
-                      <span className="inline-flex items-center gap-1">
-                        {priorityIcon(p.priority)}
-                        <span className="capitalize">{p.priority}</span>
-                      </span>
+                    <td className="px-4 py-3 text-sm font-bold capitalize text-slate-900 dark:text-white">
+                      {p.priority}
                     </td>
                     <td className="px-4 py-3 text-xs">
                       <div className="flex items-center gap-2">
@@ -129,23 +112,18 @@ export function WorkflowTableMinimal({ projects }: { projects: WorkflowProjectRo
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{statusIcon(p.status)}</span>
-                      <div>
-                        <p className="font-bold text-slate-900 dark:text-white">{p.title}</p>
-                        <p className="text-xs text-slate-600 dark:text-slate-400">{p.registered_clients?.name ?? "No client"}</p>
-                      </div>
-                    </div>
+                    <p className="font-bold text-slate-900 dark:text-white">{p.title}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{p.registered_clients?.name ?? "No client"}</p>
                   </div>
                   <span className="flex-shrink-0 text-lg">{isExpanded ? "▼" : "▶"}</span>
                 </div>
 
                 {/* Quick Info Row */}
                 <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-3">
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold capitalize">
-                    {priorityIcon(p.priority)} {p.priority}
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold capitalize text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                    {p.priority}
                   </span>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-200">
                     {formatProjectType(p.project_type)}
                   </span>
                 </div>

@@ -89,7 +89,6 @@ export function portalNavGroups(opts: {
     { key: "jobs", label: "Peer help", href: "/portal/jobs", external: true },
     { key: "zimamoto", label: "Zimamoto", href: "/portal/zimamoto", external: true },
     { key: "messages", label: "Help desk", href: tabHref(base, "messages"), tabs: ["messages"] },
-    { key: "progress", label: "Honic progress", href: tabHref(base, "progress"), tabs: ["progress"] },
   ];
 
   return [

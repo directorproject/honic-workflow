@@ -2,11 +2,13 @@ import {
   EXTRA_TITLE_HIDE_FEE_TSH,
   FREE_PLAN_FILE_STORAGE_BYTES,
   FREE_TITLE_SLOTS,
-  PAID_PLAN_FILE_STORAGE_BYTES,
+  MONTHLY_PLAN_FILE_STORAGE_BYTES,
   PROJECT_DOCUMENTS_ACCESS_TSH,
+  SEMESTER_PLAN_FILE_STORAGE_BYTES,
   SUBSCRIPTION_MONTH_TSH,
   SUBSCRIPTION_SEMESTER_TSH,
   SUBSCRIPTION_YEAR_TSH,
+  YEAR_PLAN_FILE_STORAGE_BYTES,
   formatStorageQuota,
 } from "@/lib/portal/config";
 
@@ -84,14 +86,14 @@ export const PRICING_BOARD = {
       name: "Full year",
       priceTsh: SUBSCRIPTION_YEAR_TSH,
       period: "12 months",
-      summary: `Full Nexis Desk for the academic year — workspace, Help desk, literature, Jobs posting & applying, and file storage up to ${formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES)}.`,
+      summary: `Full Nexis Desk for the academic year — workspace, Help desk, literature, Jobs posting & applying, and file storage up to ${formatStorageQuota(YEAR_PLAN_FILE_STORAGE_BYTES)}.`,
     },
     {
       id: "semester",
       name: "One semester",
       priceTsh: SUBSCRIPTION_SEMESTER_TSH,
       period: "6 months",
-      summary: `Same full Nexis Desk for one semester — including Jobs posting & applying and file storage up to ${formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES)}.`,
+      summary: `Same full Nexis Desk for one semester — including Jobs posting & applying and file storage up to ${formatStorageQuota(SEMESTER_PLAN_FILE_STORAGE_BYTES)}.`,
     },
   ],
   titles: {
@@ -108,8 +110,10 @@ export const PRICING_BOARD = {
   },
   storage: {
     freeBytes: FREE_PLAN_FILE_STORAGE_BYTES,
-    paidBytes: PAID_PLAN_FILE_STORAGE_BYTES,
-    note: `Paid Nexis Desk includes project file storage up to ${formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES)}.`,
+    monthlyBytes: MONTHLY_PLAN_FILE_STORAGE_BYTES,
+    semesterBytes: SEMESTER_PLAN_FILE_STORAGE_BYTES,
+    yearBytes: YEAR_PLAN_FILE_STORAGE_BYTES,
+    note: `Storage: monthly ${formatStorageQuota(MONTHLY_PLAN_FILE_STORAGE_BYTES)}, semester ${formatStorageQuota(SEMESTER_PLAN_FILE_STORAGE_BYTES)}, year ${formatStorageQuota(YEAR_PLAN_FILE_STORAGE_BYTES)}.`,
   },
   freeAlways: [
     "Browse all literature titles",
@@ -120,7 +124,7 @@ export const PRICING_BOARD = {
     "Help desk chat with Honic",
     "Jobs posting, applying, messaging, and managing",
     `${FREE_TITLE_SLOTS} free title hides from classmates`,
-    `Project file storage up to ${formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES)}`,
+    `Project file storage ${formatStorageQuota(MONTHLY_PLAN_FILE_STORAGE_BYTES)}–${formatStorageQuota(YEAR_PLAN_FILE_STORAGE_BYTES)} by plan`,
   ],
   packs: DOCUMENT_PACKS,
 } as const;

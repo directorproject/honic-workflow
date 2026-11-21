@@ -10,8 +10,10 @@ import {
   PAID_PLAN_FREE_HIDES,
   EXTRA_TITLE_HIDE_FEE_TSH,
   formatStorageQuota,
-  PAID_PLAN_FILE_STORAGE_BYTES,
   FREE_PLAN_FILE_STORAGE_BYTES,
+  MONTHLY_PLAN_FILE_STORAGE_BYTES,
+  SEMESTER_PLAN_FILE_STORAGE_BYTES,
+  YEAR_PLAN_FILE_STORAGE_BYTES,
   PAYMENT_NETWORKS,
 } from "@/lib/portal/config";
 
@@ -47,7 +49,7 @@ const PLANS = [
     features: [
       `${PAID_PLAN_FREE_HIDES} free title hides included`,
       "Post & apply for jobs",
-      `${formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES)} project file storage`,
+      `${formatStorageQuota(MONTHLY_PLAN_FILE_STORAGE_BYTES)} project file storage`,
       "Full workspace tools (Gantt, calendar, documents)",
       "Real-time collaboration",
       "Direct supervisor messaging",
@@ -63,11 +65,11 @@ const PLANS = [
     period: "one semester",
     cta: "Start Semester",
     popular: true,
-    badge: "20% discount",
+    badge: "Best for a term",
     features: [
       `${PAID_PLAN_FREE_HIDES} free title hides included`,
       "Post & apply for jobs",
-      `${formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES)} project file storage`,
+      `${formatStorageQuota(SEMESTER_PLAN_FILE_STORAGE_BYTES)} project file storage`,
       "Full workspace tools (Gantt, calendar, documents)",
       "Real-time collaboration",
       "Direct supervisor messaging",
@@ -87,7 +89,7 @@ const PLANS = [
     features: [
       `${PAID_PLAN_FREE_HIDES} free title hides included`,
       "Post & apply for jobs",
-      `${formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES)} project file storage`,
+      `${formatStorageQuota(YEAR_PLAN_FILE_STORAGE_BYTES)} project file storage`,
       "Full workspace tools (Gantt, calendar, documents)",
       "Real-time collaboration",
       "Direct supervisor messaging",

@@ -2,24 +2,36 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
   FREE_PLAN_FILE_STORAGE_BYTES,
+  MONTHLY_PLAN_FILE_STORAGE_BYTES,
   PAID_PLAN_FILE_STORAGE_BYTES,
+  SEMESTER_PLAN_FILE_STORAGE_BYTES,
+  YEAR_PLAN_FILE_STORAGE_BYTES,
+  fileStorageBytesForDeskPlan,
   formatStorageQuota,
 } from "@/lib/portal/config";
 import { hasActiveDeskPlan } from "@/lib/portal/title-limits";
 
 export {
   FREE_PLAN_FILE_STORAGE_BYTES,
+  MONTHLY_PLAN_FILE_STORAGE_BYTES,
+  SEMESTER_PLAN_FILE_STORAGE_BYTES,
+  YEAR_PLAN_FILE_STORAGE_BYTES,
   PAID_PLAN_FILE_STORAGE_BYTES,
+  fileStorageBytesForDeskPlan,
   formatStorageQuota,
 };
 
-/** Paid Nexis Desk → 2 GB; otherwise free plan 250 MB. */
-export function fileStorageLimitForDesk(deskExpiresAt: string | null | undefined): number {
-  return hasActiveDeskPlan(deskExpiresAt) ? PAID_PLAN_FILE_STORAGE_BYTES : FREE_PLAN_FILE_STORAGE_BYTES;
+/** Storage for a single student desk (active plan → tier quota; else free). */
+export function fileStorageLimitForDesk(
+  deskExpiresAt: string | null | undefined,
+  deskPlan?: string | null,
+): number {
+  if (!hasActiveDeskPlan(deskExpiresAt)) return FREE_PLAN_FILE_STORAGE_BYTES;
+  return fileStorageBytesForDeskPlan(deskPlan ?? "monthly");
 }
 
 /**
- * Workspace quota: 2 GB if any student member has an active paid desk plan, else 250 MB.
+ * Workspace quota: highest active member plan wins (year 50 GB > semester 10 GB > monthly 2 GB).
  */
 export async function workspaceFileStorageLimitBytes(
   db: SupabaseClient,
@@ -34,13 +46,15 @@ export async function workspaceFileStorageLimitBytes(
 
   const { data: profiles } = await db
     .from("student_profiles")
-    .select("desk_expires_at")
+    .select("desk_expires_at, desk_plan")
     .in("user_id", ids);
 
+  let best = FREE_PLAN_FILE_STORAGE_BYTES;
   for (const p of profiles ?? []) {
-    if (hasActiveDeskPlan(p.desk_expires_at ? String(p.desk_expires_at) : null)) {
-      return PAID_PLAN_FILE_STORAGE_BYTES;
-    }
+    const expires = p.desk_expires_at ? String(p.desk_expires_at) : null;
+    if (!hasActiveDeskPlan(expires)) continue;
+    const limit = fileStorageBytesForDeskPlan(p.desk_plan ? String(p.desk_plan) : "monthly");
+    if (limit > best) best = limit;
   }
-  return FREE_PLAN_FILE_STORAGE_BYTES;
+  return best;
 }
