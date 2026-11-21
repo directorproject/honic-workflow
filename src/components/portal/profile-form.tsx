@@ -10,7 +10,7 @@ import {
   type PortalResult,
 } from "@/app/portal/actions";
 import { OnboardingShell } from "@/components/portal/onboarding-shell";
-import { Card, Field, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
+import { Field, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
 import { SearchSelect } from "@/components/portal/search-select";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -25,24 +25,29 @@ import type { Course, StudentProfile } from "@/lib/portal/data";
 
 function ChoiceChips({
   label,
+  hint,
   options,
   value,
   onChange,
   optional,
 }: {
   label: string;
+  hint?: string;
   options: readonly { value: string; label: string }[];
   value: string;
   onChange: (value: string) => void;
   optional?: boolean;
 }) {
   return (
-    <div className="sm:col-span-2" role="radiogroup" aria-label={label}>
-      <span className="text-dash-muted-foreground mb-3 block text-sm font-semibold tracking-wide uppercase">
-        {label}
-        {optional ? " (optional)" : ""}
-      </span>
-      <div className="flex flex-wrap gap-2.5">
+    <div role="radiogroup" aria-label={label}>
+      <div className="mb-2.5">
+        <span className="text-dash-foreground block text-sm font-semibold">
+          {label}
+          {optional ? <span className="text-dash-muted-foreground font-normal"> · optional</span> : null}
+        </span>
+        {hint ? <p className="text-dash-muted-foreground mt-0.5 text-xs leading-relaxed">{hint}</p> : null}
+      </div>
+      <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
         {options.map((o) => {
           const active = o.value === value;
           return (
@@ -52,10 +57,10 @@ function ChoiceChips({
               role="radio"
               aria-checked={active}
               onClick={() => onChange(value === o.value ? "" : o.value)}
-              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
+              className={`min-h-11 rounded-xl px-4 py-2.5 text-left text-sm font-semibold transition-all sm:min-h-0 sm:text-center ${
                 active
-                  ? "bg-dash-accent text-white shadow-sm hover:shadow-md"
-                  : "border border-dash-border bg-dash-muted/30 text-dash-muted-foreground hover:border-dash-accent/50 hover:bg-dash-muted/50 hover:text-dash-foreground"
+                  ? "bg-dash-accent text-white shadow-sm"
+                  : "border-dash-border bg-dash-muted/30 text-dash-muted-foreground hover:border-dash-accent/40 hover:text-dash-foreground border"
               }`}
             >
               {o.label}
@@ -64,6 +69,26 @@ function ChoiceChips({
         })}
       </div>
     </div>
+  );
+}
+
+function FormSection({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="border-dash-border bg-dash-canvas/40 space-y-3 rounded-2xl border p-4 sm:p-5">
+      <div>
+        <h3 className="text-dash-foreground text-sm font-semibold tracking-tight">{title}</h3>
+        {hint ? <p className="text-dash-muted-foreground mt-0.5 text-xs leading-relaxed">{hint}</p> : null}
+      </div>
+      {children}
+    </section>
   );
 }
 
@@ -97,23 +122,25 @@ export function ProfileForm({
   const [projectCategory, setProjectCategory] = useState(profile?.projectCategory ?? "");
 
   const listedCourses = courses.filter((c) => c.code !== OTHER_COURSE_CODE);
-  // New students land on the plans section of the packs page after onboarding.
   const afterSavePath = editMode ? "/portal/home?tab=account" : "/portal/packs#plans";
 
   function goNext() {
-    // Full load: the server re-reads the session cookie and onboarding flag, with no client-side cache.
     window.location.assign(afterSavePath);
   }
 
   if (editMode) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <p className="text-dash-accent text-sm font-semibold tracking-wide uppercase">Account Settings</p>
-          <h1 className="text-dash-foreground mt-2 text-3xl font-bold tracking-tight">Edit your profile</h1>
-          <p className="text-dash-muted-foreground mt-2 text-base">Update your account and course information whenever needed.</p>
+      <div className="mx-auto w-full max-w-2xl px-3 py-6 sm:px-6 sm:py-10 lg:px-8">
+        <div className="mb-5 sm:mb-8">
+          <p className="text-dash-accent text-[11px] font-semibold tracking-[0.16em] uppercase">Account</p>
+          <h1 className="text-dash-foreground mt-1.5 text-2xl font-semibold tracking-tight sm:text-3xl">
+            Course & institution
+          </h1>
+          <p className="text-dash-muted-foreground mt-1.5 text-sm leading-relaxed">
+            Keep your college details up to date. Search to find yours quickly.
+          </p>
         </div>
-        <div className="bg-dash-card border-dash-border rounded-3xl border p-8">
+        <div className="border-dash-border bg-dash-card rounded-2xl border p-4 sm:rounded-3xl sm:p-7">
           <AcademicDetailsForm
             courses={courses}
             profile={profile!}
@@ -151,7 +178,13 @@ export function ProfileForm({
             }}
             showAccountFields
             submitLabel="Save changes"
-            extraActions={cancelHref ? <a href={cancelHref} className={SECONDARY}>Cancel</a> : null}
+            extraActions={
+              cancelHref ? (
+                <a href={cancelHref} className={`${SECONDARY} w-full sm:w-auto`}>
+                  Cancel
+                </a>
+              ) : null
+            }
           />
         </div>
       </div>
@@ -162,7 +195,7 @@ export function ProfileForm({
 
   return (
     <OnboardingShell step={step}>
-      <div className="border-dash-border bg-dash-card rounded-2xl border p-5 shadow-[0_20px_50px_-28px_rgba(15,23,42,0.35)] sm:p-6">
+      <div className="border-dash-border bg-dash-card rounded-2xl border p-4 shadow-[0_20px_50px_-28px_rgba(15,23,42,0.35)] sm:p-6">
         <p className="text-dash-muted-foreground text-[10px] font-semibold tracking-[0.2em] uppercase">
           Step {step} of 2
         </p>
@@ -172,12 +205,12 @@ export function ProfileForm({
         <p className="text-dash-muted-foreground mt-1 mb-5 text-sm leading-relaxed">
           {onboardingStep === "essentials"
             ? "Full name and mobile number for payments."
-            : "Optional now — skip if you prefer."}
+            : "Tell us where you study. You can skip and finish later."}
         </p>
 
         {onboardingStep === "essentials" ? (
           <form
-            className="grid gap-4 sm:grid-cols-2 sm:gap-5"
+            className="grid gap-4"
             onSubmit={(e) => {
               e.preventDefault();
               const fd = new FormData(e.currentTarget);
@@ -202,6 +235,7 @@ export function ProfileForm({
                 name="fullName"
                 required
                 maxLength={120}
+                autoComplete="name"
                 className={INPUT}
                 defaultValue={profile?.fullName ?? suggestedName ?? ""}
               />
@@ -211,12 +245,14 @@ export function ProfileForm({
                 name="phone"
                 required
                 maxLength={30}
+                inputMode="tel"
+                autoComplete="tel"
                 placeholder="07XX XXX XXX"
                 className={INPUT}
                 defaultValue={profile?.phone ?? ""}
               />
             </Field>
-            <div className="mt-1 flex flex-col gap-2 sm:col-span-2">
+            <div className="mt-1 flex flex-col gap-2">
               <button type="submit" disabled={pending} className={`${PRIMARY} w-full`}>
                 {pending ? <Spinner /> : null}
                 {pending ? "Saving…" : "Continue"}
@@ -332,7 +368,7 @@ function AcademicDetailsForm({
 }) {
   return (
     <form
-      className="grid gap-3 sm:grid-cols-2"
+      className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
@@ -341,14 +377,31 @@ function AcademicDetailsForm({
       }}
     >
       {showAccountFields ? (
-        <>
-          <Field label="Full name *">
-            <input name="fullName" required maxLength={120} className={INPUT} defaultValue={profile?.fullName ?? ""} />
-          </Field>
-          <Field label="Phone (mobile money, optional)">
-            <input name="phone" maxLength={30} placeholder="07XX XXX XXX" className={INPUT} defaultValue={profile?.phone ?? ""} />
-          </Field>
-        </>
+        <FormSection title="Your account" hint="Used for payments and support contact.">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Full name *">
+              <input
+                name="fullName"
+                required
+                maxLength={120}
+                autoComplete="name"
+                className={INPUT}
+                defaultValue={profile?.fullName ?? ""}
+              />
+            </Field>
+            <Field label="Phone (optional)">
+              <input
+                name="phone"
+                maxLength={30}
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="07XX XXX XXX"
+                className={INPUT}
+                defaultValue={profile?.phone ?? ""}
+              />
+            </Field>
+          </div>
+        </FormSection>
       ) : profile ? (
         <>
           <input type="hidden" name="fullName" value={profile.fullName} />
@@ -356,87 +409,107 @@ function AcademicDetailsForm({
         </>
       ) : null}
 
-      <Field label="Institution" wide>
-        <SearchSelect
-          value={institutionChoice}
-          onChange={setInstitutionChoice}
-          searchPlaceholder="Search institution, e.g. UDSM or Mbeya"
-          emptyText="Not in the list? Choose Other (type it)."
-          options={[
-            ...INSTITUTIONS.map((name) => ({ value: name, label: name })),
-            { value: OTHER_OPTION, label: "Other (type it)" },
-          ]}
+      <FormSection title="Institution" hint="Search your university or college. Choose Other if it is not listed.">
+        <Field label="Where you study">
+          <SearchSelect
+            value={institutionChoice}
+            onChange={setInstitutionChoice}
+            placeholder="Select institution"
+            searchPlaceholder="Search, e.g. UDSM or Mbeya"
+            emptyText="Not in the list? Choose Other (type it)."
+            options={[
+              ...INSTITUTIONS.map((name) => ({ value: name, label: name })),
+              { value: OTHER_OPTION, label: "Other (type it)" },
+            ]}
+          />
+        </Field>
+        {institutionChoice === OTHER_OPTION ? (
+          <Field label="Your institution">
+            <input
+              name="institutionOther"
+              maxLength={160}
+              placeholder="Full name of your university or college"
+              className={INPUT}
+              defaultValue={institutionListed ? "" : savedInstitution}
+            />
+          </Field>
+        ) : null}
+      </FormSection>
+
+      <FormSection title="Course" hint="Your programme or department. Search by name or code.">
+        <Field label="What you study">
+          <SearchSelect
+            value={courseChoice}
+            onChange={setCourseChoice}
+            placeholder="Select course"
+            searchPlaceholder="Search, e.g. Electrical or ETE"
+            emptyText="Not in the list? Choose Other (type it)."
+            options={[
+              ...listedCourses.map((c) => ({ value: c.code, label: c.name, hint: c.code })),
+              { value: OTHER_COURSE_CODE, label: "Other (type it)" },
+            ]}
+          />
+        </Field>
+        {courseChoice === OTHER_COURSE_CODE ? (
+          <Field label="Your course *">
+            <input
+              name="courseOther"
+              required
+              maxLength={120}
+              placeholder="Full name of your course"
+              className={INPUT}
+              defaultValue={profile?.courseOther ?? ""}
+            />
+          </Field>
+        ) : null}
+      </FormSection>
+
+      <FormSection title="Study details" hint="Optional — helps show the right titles and plans.">
+        <ChoiceChips
+          label="Level of study"
+          options={STUDY_LEVELS}
+          value={studyLevel}
+          onChange={setStudyLevel}
+          optional
         />
-      </Field>
-      {institutionChoice === OTHER_OPTION ? (
-        <Field label="Your institution" wide>
-          <input
-            name="institutionOther"
-            maxLength={160}
-            placeholder="Full name of your university or college"
-            className={INPUT}
-            defaultValue={institutionListed ? "" : savedInstitution}
-          />
-        </Field>
-      ) : null}
+        {studyLevel === "other" ? (
+          <Field label="Your level of study *">
+            <input
+              name="studyLevelOther"
+              required
+              maxLength={80}
+              placeholder="e.g. Certificate, Higher Diploma, PhD"
+              className={INPUT}
+              defaultValue={profile?.studyLevelOther ?? ""}
+            />
+          </Field>
+        ) : null}
 
-      <Field label="Course" wide>
-        <SearchSelect
-          value={courseChoice}
-          onChange={setCourseChoice}
-          searchPlaceholder="Search course, e.g. Electrical or ETE"
-          emptyText="Not in the list? Choose Other (type it)."
-          options={[
-            ...listedCourses.map((c) => ({ value: c.code, label: c.name, hint: c.code })),
-            { value: OTHER_COURSE_CODE, label: "Other (type it)" },
-          ]}
+        <ChoiceChips
+          label="Project type"
+          options={PROJECT_CATEGORIES}
+          value={projectCategory}
+          onChange={setProjectCategory}
+          optional
         />
-      </Field>
-      {courseChoice === OTHER_COURSE_CODE ? (
-        <Field label="Your course *" wide>
+
+        <Field label="Academic year (optional)">
           <input
-            name="courseOther"
-            required
-            maxLength={120}
-            placeholder="Full name of your course"
+            name="academicYear"
+            maxLength={20}
+            placeholder="2026/2027"
             className={INPUT}
-            defaultValue={profile?.courseOther ?? ""}
+            defaultValue={profile?.academicYear ?? "2026/2027"}
           />
         </Field>
-      ) : null}
+      </FormSection>
 
-      <ChoiceChips label="Level of study" options={STUDY_LEVELS} value={studyLevel} onChange={setStudyLevel} optional />
-      {studyLevel === "other" ? (
-        <Field label="Your level of study *" wide>
-          <input
-            name="studyLevelOther"
-            required
-            maxLength={80}
-            placeholder="e.g. Certificate, Higher Diploma, PhD"
-            className={INPUT}
-            defaultValue={profile?.studyLevelOther ?? ""}
-          />
-        </Field>
-      ) : null}
-
-      <ChoiceChips
-        label="Project type"
-        options={PROJECT_CATEGORIES}
-        value={projectCategory}
-        onChange={setProjectCategory}
-        optional
-      />
-
-      <Field label="Academic year (optional)" wide>
-        <input name="academicYear" maxLength={20} placeholder="2026/2027" className={INPUT} defaultValue={profile?.academicYear ?? "2026/2027"} />
-      </Field>
-
-      <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
-        {extraActions}
-        <button type="submit" disabled={pending} aria-busy={pending} className={PRIMARY}>
+      <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:flex-wrap sm:items-center">
+        <button type="submit" disabled={pending} aria-busy={pending} className={`${PRIMARY} w-full sm:w-auto`}>
           {pending ? <Spinner /> : null}
           {pending ? "Saving…" : submitLabel}
         </button>
+        {extraActions}
         <StatusText status={status} />
       </div>
     </form>

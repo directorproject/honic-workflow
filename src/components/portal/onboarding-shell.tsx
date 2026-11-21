@@ -38,26 +38,25 @@ export function OnboardingShell({
               "linear-gradient(165deg, color-mix(in oklab, #0f172a 92%, transparent) 0%, color-mix(in oklab, #0f172a 75%, transparent) 60%, color-mix(in oklab, #0f172a 55%, transparent) 100%), radial-gradient(ellipse 55% 60% at 85% 10%, color-mix(in oklab, #06b6d4 30%, transparent), transparent 60%)",
           }}
         />
-        <div className="relative mx-auto flex h-36 w-full max-w-5xl flex-col justify-end px-5 pb-5 sm:h-40 sm:px-8 sm:pb-6 lg:px-10">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div className="min-w-0">
+        <div className="relative mx-auto flex min-h-[7.5rem] w-full max-w-5xl flex-col justify-end px-4 py-4 sm:min-h-[9rem] sm:px-8 sm:pb-6 lg:px-10">
+          <div className="flex flex-wrap items-end justify-between gap-2 sm:gap-3">
+            <div className="min-w-0 flex-1">
               <p className="text-[10px] font-semibold tracking-[0.26em] text-cyan-200/90 uppercase sm:text-[11px]">Honic Nexis</p>
-              <h1 className="mt-1 text-xl leading-tight font-semibold tracking-tight text-white sm:text-2xl">
-                {step === 1 ? "Set up your account" : "Almost ready"}
+              <h1 className="mt-1 text-lg leading-tight font-semibold tracking-tight text-white sm:text-2xl">
+                {step === 1 ? "Set up your account" : "Course & institution"}
               </h1>
               <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/75 sm:text-sm">
                 {step === 1
-                  ? "Name and phone first — same for email and Google. Then you can open plans."
-                  : "Add your course and institution, or skip and finish later."}
+                  ? "Name and phone first — same for email and Google."
+                  : "Search your college and course, or skip for now."}
               </p>
             </div>
-            <p className="font-mono text-[11px] tracking-wide text-white/60">Step {step} of 2</p>
+            <p className="shrink-0 font-mono text-[11px] tracking-wide text-white/60">Step {step} of 2</p>
           </div>
         </div>
       </aside>
 
-      {/* Form: full width on desktop, phone width on small screens */}
-      <section className="flex-1 px-4 py-6 sm:px-8 sm:py-10 lg:px-10">
+      <section className="flex-1 px-3 py-5 sm:px-8 sm:py-10 lg:px-10">
         <div className="mx-auto w-full max-w-3xl">{children}</div>
       </section>
 
