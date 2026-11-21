@@ -13,8 +13,18 @@ import { PlanModeChip } from "@/components/portal/plan-mode-chip";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { TitleRules } from "@/components/portal/title-terms-gate";
 import type { Course } from "@/lib/portal/data";
-import { projectMark } from "@/lib/portal/project-mark";
+import { isTanzanianCatalogueTitle, projectMark } from "@/lib/portal/project-mark";
 import { titleCohortFromText, titleCohortKey } from "@/lib/portal/title-cohort";
+
+/** TZ / earlier literature → FYP; outsourced foreign lists → New project title. */
+function isFinalYearCatalogueItem(item: ReviewItem): boolean {
+  if (item.kind === "earlier") return true;
+  return isTanzanianCatalogueTitle({
+    institution: item.institution,
+    batch: item.batch,
+    source: item.source,
+  });
+}
 import type { ReviewItem } from "@/lib/portal/title-choices";
 import { hasActiveDeskPlan, MAX_TITLE_CHOICES } from "@/lib/portal/title-limits";
 import {
@@ -227,8 +237,8 @@ function TitlesFrameBody({
       ])
     : [];
   const siteYears = yearFromTo(items);
-  const completedCount = matched.filter((item) => item.kind === "earlier").length;
-  const proposalCount = matched.filter((item) => item.kind === "study").length;
+  const completedCount = matched.filter((item) => isFinalYearCatalogueItem(item)).length;
+  const proposalCount = matched.filter((item) => !isFinalYearCatalogueItem(item)).length;
 
   function clearFilters() {
     if (!onListPage) return;
@@ -543,7 +553,7 @@ function TitleCatalogue() {
   const [showEarlier, setShowEarlier] = useState(true);
   const [showStudy, setShowStudy] = useState(true);
 
-  const visible = (item: ReviewItem) => (item.kind === "earlier" ? showEarlier : showStudy);
+  const visible = (item: ReviewItem) => (isFinalYearCatalogueItem(item) ? showEarlier : showStudy);
   const visibleMatched = matched.filter(visible);
   const visibleOrdered = ordered.filter(visible);
   const visibleGroups = groups
@@ -594,7 +604,7 @@ function TitleCatalogue() {
             <CategoryCard
               count={completedCount}
               label="Final year projects"
-              detail="Real student projects completed at Tanzanian institutes (2018–2026). See what your peers built and use them as references for your own work."
+              detail="Tanzanian institute titles (DIT and other local programmes). Use them as FYP starting points or literature."
               visible={showEarlier}
               onToggle={() => setShowEarlier((v) => !v)}
               hideLabel="Hide final year projects"
@@ -604,7 +614,7 @@ function TitleCatalogue() {
             <CategoryCard
               count={proposalCount}
               label="New project titles"
-              detail="Project ideas from global sources and open repositories. Browse, pick what interests you, and customize the topic to fit your skills and course."
+              detail="Outsourced ideas from global sources and open repositories. Browse, then adapt them to your course."
               visible={showStudy}
               onToggle={() => setShowStudy((v) => !v)}
               hideLabel="Hide new project titles"
