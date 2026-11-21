@@ -315,148 +315,139 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
   ];
 
   return (
-    <div className="free-home -mx-3 -mt-4 sm:-mx-6 sm:-mt-5 lg:-mx-8">
-      {/* One-composition hero */}
-      <section className="relative overflow-hidden bg-slate-950">
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-cover bg-[center_40%] opacity-45"
-          style={{ backgroundImage: `url(${FREE_HOME_HERO})` }}
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(105deg, rgba(2,6,23,0.92) 0%, rgba(2,6,23,0.72) 48%, rgba(2,6,23,0.55) 100%), radial-gradient(50% 60% at 90% 20%, rgba(34,211,238,0.22), transparent 60%)",
-          }}
-        />
-        <div className="relative mx-auto flex min-h-[52vh] max-w-6xl flex-col justify-end px-4 pb-10 pt-14 sm:min-h-[48vh] sm:px-8 sm:pb-14 sm:pt-20">
-          <p className="packs-fade text-[10px] font-semibold tracking-[0.28em] text-cyan-200/90 uppercase sm:text-[11px]">
-            Honic Nexis
-          </p>
-          <h1 className="packs-fade packs-fade-delay-1 mt-3 max-w-[12ch] text-[2.55rem] leading-[0.95] font-semibold tracking-tight text-white sm:max-w-xl sm:text-5xl lg:text-6xl">
-            Hi {firstName}.
-          </h1>
-          <p className="packs-fade packs-fade-delay-2 mt-4 max-w-md text-[13px] leading-relaxed text-white/70 sm:text-base">
-            Start free with titles and peer help. Add a Desk plan when you need the full project workspace.
-          </p>
-          <div className="packs-fade packs-fade-delay-3 mt-7 flex flex-col gap-2.5 sm:mt-8 sm:flex-row sm:items-center">
-            <Link
-              href="/portal/titles"
-              className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-900 transition hover:bg-cyan-50 active:scale-[0.99] sm:rounded-full sm:py-2.5"
-            >
-              Browse titles
-            </Link>
-            <Link
-              href="/portal/packs"
-              className="inline-flex items-center justify-center rounded-2xl border border-white/25 bg-white/5 px-5 py-3.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10 active:scale-[0.99] sm:rounded-full sm:py-2.5"
-            >
-              View plans
-            </Link>
-          </div>
+    <div className="free-home">
+      {/* Modern Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-blue-500 blur-3xl" />
+          <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-cyan-500 blur-3xl" />
         </div>
 
-        {/* Live highlights strip — part of hero composition */}
-        <div className="relative border-t border-white/10 bg-black/25 backdrop-blur-md">
-          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px sm:grid-cols-4">
+        <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold tracking-widest text-blue-300 uppercase">Honic Nexis Platform</p>
+            <h1 className="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              Welcome back, {firstName}
+            </h1>
+            <p className="mt-4 text-lg text-slate-300 sm:text-xl">
+              Start free with titles and peer help. Upgrade to Nexis Desk when you need the full project workspace.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
+              <Link
+                href="/portal/titles"
+                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition-all hover:bg-blue-700 hover:shadow-lg active:scale-95 sm:px-8"
+              >
+                Browse Titles
+              </Link>
+              <Link
+                href="/portal/packs"
+                className="inline-flex items-center justify-center rounded-xl border border-blue-400/50 bg-blue-500/10 px-6 py-3 font-semibold text-blue-200 backdrop-blur transition-all hover:bg-blue-500/20 hover:border-blue-400 active:scale-95 sm:px-8"
+              >
+                View Plans
+              </Link>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="mt-14 grid grid-cols-2 gap-3 sm:mt-16 sm:gap-4 md:grid-cols-4">
             {stats.map((s) => (
-              <div key={s.label} className="px-4 py-4 sm:px-6 sm:py-5">
-                <p className="text-xl font-semibold tracking-tight text-white tabular-nums sm:text-2xl">{s.value}</p>
-                <p className="mt-0.5 text-[11px] font-medium tracking-wide text-white/50 uppercase">{s.label}</p>
+              <div key={s.label} className="rounded-xl bg-white/5 backdrop-blur p-4 border border-white/10 sm:p-5">
+                <p className="text-2xl font-bold text-white sm:text-3xl tabular-nums">{s.value}</p>
+                <p className="mt-1 text-xs font-semibold tracking-wide text-slate-400 uppercase">{s.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Free tools — large editorial rows */}
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-8 sm:py-14">
-        <div className="flex items-end justify-between gap-4 border-b border-dash-border pb-4">
-          <div>
-            <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.2em] uppercase">Open now</p>
-            <h2 className="text-dash-foreground mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">On the free plan</h2>
-          </div>
-          <p className="text-dash-muted-foreground hidden text-right text-xs sm:block">
-            No payment needed
-          </p>
+      {/* Free Tools Section */}
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+        <div className="mb-8 sm:mb-10">
+          <p className="text-sm font-semibold tracking-widest text-blue-600 uppercase dark:text-blue-400">Start Free</p>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+            Available on free plan
+          </h2>
         </div>
-        <ul className="divide-dash-border divide-y">
-          {freeTools.map((item, i) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className="group flex items-baseline gap-4 py-6 transition sm:gap-8 sm:py-7"
-              >
-                <span className="text-dash-muted-foreground w-8 shrink-0 font-mono text-sm tabular-nums">
-                  0{i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-dash-foreground text-lg font-semibold tracking-tight transition group-hover:text-dash-accent sm:text-xl">
-                    {item.title}
-                  </h3>
-                  <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed">{item.blurb}</p>
-                </div>
-                <span className="text-dash-muted-foreground group-hover:text-dash-accent shrink-0 text-sm font-semibold transition">
-                  Open →
-                </span>
-              </Link>
-            </li>
+
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+          {freeTools.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="group rounded-2xl border border-slate-200 bg-white p-6 transition-all hover:shadow-lg hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-600 sm:p-8"
+            >
+              <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors sm:text-2xl">
+                {item.title}
+              </h3>
+              <p className="mt-2 text-slate-600 dark:text-slate-400 sm:mt-3">
+                {item.blurb}
+              </p>
+              <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 group-hover:translate-x-1 transition-transform dark:text-blue-400">
+                Get started <span>→</span>
+              </div>
+            </Link>
           ))}
-        </ul>
+        </div>
       </section>
 
-      {/* Desk tools — dense modern list, monochrome tags */}
-      <section className="border-dash-border bg-dash-card/60 border-y">
-        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8 sm:py-14">
-          <div className="max-w-xl">
-            <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.2em] uppercase">With a desk plan</p>
-            <h2 className="text-dash-foreground mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
-              Full project workspace
+      {/* Desk Tools Section */}
+      <section className="border-y border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900/50">
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+          <div className="mb-10 max-w-2xl">
+            <p className="text-sm font-semibold tracking-widest text-blue-600 uppercase dark:text-blue-400">Premium Features</p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+              Unlock with Nexis Desk
             </h2>
-            <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
-              Planning, help desk, and team tools unlock when your Nexis Desk plan is active.
+            <p className="mt-3 text-lg text-slate-600 dark:text-slate-400">
+              Planning tools, help desk, and team collaboration unlock when you activate a Nexis Desk plan.
             </p>
           </div>
-          <div className="mt-8 grid gap-0 sm:grid-cols-2 sm:gap-x-10">
+
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
             {deskTools.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="border-dash-border group flex items-start justify-between gap-4 border-t py-5 transition first:border-t-0 sm:py-6"
+                className="group rounded-xl border border-slate-200 bg-white p-5 transition-all hover:shadow-md hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-600 sm:p-6"
               >
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-dash-foreground text-base font-semibold tracking-tight group-hover:underline">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 transition-colors">
                       {item.title}
                     </h3>
-                    <span className="border-dash-border text-dash-muted-foreground rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
-                      Paid
-                    </span>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                      {item.blurb}
+                    </p>
                   </div>
-                  <p className="text-dash-muted-foreground mt-1.5 text-sm leading-relaxed">{item.blurb}</p>
+                  <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 whitespace-nowrap">
+                    Paid
+                  </span>
                 </div>
-                <span className="text-dash-muted-foreground mt-1 shrink-0 text-sm" aria-hidden>
-                  →
-                </span>
               </Link>
             ))}
           </div>
-          <div className="mt-8">
+
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:gap-4">
             <Link
               href="/portal/packs"
-              className="bg-dash-foreground text-dash-canvas hover:opacity-90 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-sm font-semibold transition sm:w-auto sm:rounded-full"
+              className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-lg active:scale-95 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 sm:px-8"
             >
-              Compare Desk plans →
+              Compare Plans
+            </Link>
+            <Link
+              href="/portal/titles"
+              className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-900 transition-all hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700 sm:px-8"
+            >
+              Continue browsing
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-8 sm:py-12">
-        <p className="text-dash-muted-foreground text-sm leading-relaxed">
-          Browse <span className="text-dash-foreground font-medium tabular-nums">{titleCount}</span> titles free · open peer
-          jobs anytime · upgrade when you need the desk.
+      {/* Footer Info */}
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Browse <span className="font-semibold text-slate-900 dark:text-white">{titleCount}</span> titles free · explore peer jobs anytime · upgrade when you need the full workspace.
         </p>
       </section>
     </div>
