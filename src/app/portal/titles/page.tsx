@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { after } from "next/server";
 
 import { portalSignOutAction } from "@/app/portal/auth-actions";
 import { NexisBrandBar } from "@/components/brand/nexis-brand-bar";
@@ -9,6 +10,7 @@ import { TitleTermsGate } from "@/components/portal/title-terms-gate";
 import { studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
 import { loadGuestLiteratureCatalogue, loadStudentLiteratureCatalogue } from "@/lib/portal/literature-guest-cache";
+import { recordPageVisit } from "@/lib/portal/page-visits";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { findMembership } from "@/lib/workspace/access";
 import { formatDate } from "@/lib/workspace/dates";
@@ -21,6 +23,17 @@ export default async function PortalTitlesPage() {
   const state = await loadPortalState();
   const { user, profile } = state;
   const db = getSupabaseAdminClient();
+
+  // Server-side visit so analytics sees /portal/titles even when the browser beacon misses.
+  if (db) {
+    after(() => {
+      void recordPageVisit(db, {
+        path: "/portal/titles",
+        sessionKey: null,
+        viewerId: user?.id ?? null,
+      });
+    });
+  }
 
   let content: React.ReactNode;
   let catalogue = false;

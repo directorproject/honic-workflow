@@ -31,9 +31,10 @@ function canonicalizeClientPath(pathname: string): string {
   return path;
 }
 
-/** Title detail pages are recorded server-side — avoid double-counting. */
-function isServerTrackedTitleDetail(pathname: string): boolean {
+/** Literature list + title detail are recorded server-side — avoid double-counting. */
+function isServerTrackedTitlesPath(pathname: string): boolean {
   const p = pathname.toLowerCase();
+  if (p === "/portal/titles") return true;
   if (!p.startsWith("/portal/titles/")) return false;
   if (p === "/portal/titles/mine" || p.startsWith("/portal/titles/mine/")) return false;
   return true;
@@ -78,7 +79,7 @@ export function VisitTracker() {
     if (pathname === "/analytics" || pathname.startsWith("/analytics/")) return;
 
     const path = canonicalizeClientPath(pathname);
-    if (isServerTrackedTitleDetail(path)) return;
+    if (isServerTrackedTitlesPath(path)) return;
 
     // Path only for counting (query ignored) so filters don't inflate visits.
     if (last.current === path) return;
