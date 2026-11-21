@@ -8,8 +8,13 @@ export type VisitDayRow = {
 
 export type PathVisitRow = {
   path: string;
+  /** All-time (within fetched window) pageviews for this path. */
   pageviewCount: number;
-  dayKey: string;
+  /** Pageviews today (EAT). */
+  todayCount: number;
+  /** Pageviews in the last 7 EAT days. */
+  last7Count: number;
+  lastSeenDay: string;
 };
 
 export type VisitSummary = {
@@ -18,7 +23,9 @@ export type VisitSummary = {
   last7Pageviews: number;
   last7Sessions: number;
   days: VisitDayRow[];
+  /** @deprecated use `pages` — kept for older callers */
   topPaths: PathVisitRow[];
+  pages: PathVisitRow[];
 };
 
 function missingRelation(message: string): boolean {
@@ -192,7 +199,13 @@ async function bumpDay(
     .eq("day_key", dayKey);
 }
 
-export async function fetchVisitSummary(db: SupabaseClient, days = 14): Promise<VisitSummary> {
+function daysAgoKey(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return eatDayKey(d);
+}
+
+export async function fetchVisitSummary(db: SupabaseClient, days = 30): Promise<VisitSummary> {
   const empty: VisitSummary = {
     todayPageviews: 0,
     todaySessions: 0,
@@ -200,9 +213,12 @@ export async function fetchVisitSummary(db: SupabaseClient, days = 14): Promise<
     last7Sessions: 0,
     days: [],
     topPaths: [],
+    pages: [],
   };
 
   const today = eatDayKey();
+  const last7Start = daysAgoKey(6);
+
   const { data: dayRows, error: dayErr } = await db
     .from("portal_visit_days")
     .select("day_key, pageview_count, session_count")
@@ -220,35 +236,45 @@ export async function fetchVisitSummary(db: SupabaseClient, days = 14): Promise<
   }));
 
   const todayRow = mapped.find((d) => d.dayKey === today);
-  const last7 = mapped.slice(0, 7);
+  const last7 = mapped.filter((d) => d.dayKey >= last7Start);
 
+  // Pull a wide window of path rows, then roll up per path.
   const { data: pathRows, error: pathErr } = await db
     .from("portal_path_visits")
     .select("day_key, path, pageview_count")
-    .order("pageview_count", { ascending: false })
-    .limit(40);
+    .gte("day_key", daysAgoKey(Math.max(days - 1, 0)))
+    .order("day_key", { ascending: false })
+    .limit(2000);
   if (pathErr) {
     if (missingRelation(pathErr.message)) return empty;
     throw new Error(pathErr.message);
   }
 
-  // Prefer today's top paths; fall back to recent aggregate list.
-  const todayPaths = (pathRows ?? [])
-    .filter((r) => String(r.day_key) === today)
-    .map((r) => ({
-      path: String(r.path),
-      pageviewCount: Number(r.pageview_count ?? 0),
-      dayKey: String(r.day_key),
-    }));
+  const byPath = new Map<
+    string,
+    { total: number; today: number; last7: number; lastSeen: string }
+  >();
+  for (const r of pathRows ?? []) {
+    const path = String(r.path);
+    const day = String(r.day_key);
+    const count = Number(r.pageview_count ?? 0);
+    const cur = byPath.get(path) ?? { total: 0, today: 0, last7: 0, lastSeen: day };
+    cur.total += count;
+    if (day === today) cur.today += count;
+    if (day >= last7Start) cur.last7 += count;
+    if (day > cur.lastSeen) cur.lastSeen = day;
+    byPath.set(path, cur);
+  }
 
-  const topPaths =
-    todayPaths.length > 0
-      ? todayPaths.slice(0, 20)
-      : (pathRows ?? []).slice(0, 20).map((r) => ({
-          path: String(r.path),
-          pageviewCount: Number(r.pageview_count ?? 0),
-          dayKey: String(r.day_key),
-        }));
+  const pages: PathVisitRow[] = [...byPath.entries()]
+    .map(([path, v]) => ({
+      path,
+      pageviewCount: v.total,
+      todayCount: v.today,
+      last7Count: v.last7,
+      lastSeenDay: v.lastSeen,
+    }))
+    .sort((a, b) => b.pageviewCount - a.pageviewCount || a.path.localeCompare(b.path));
 
   return {
     todayPageviews: todayRow?.pageviewCount ?? 0,
@@ -256,6 +282,7 @@ export async function fetchVisitSummary(db: SupabaseClient, days = 14): Promise<
     last7Pageviews: last7.reduce((n, d) => n + d.pageviewCount, 0),
     last7Sessions: last7.reduce((n, d) => n + d.sessionCount, 0),
     days: mapped,
-    topPaths,
+    topPaths: pages,
+    pages,
   };
 }

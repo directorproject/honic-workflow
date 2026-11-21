@@ -38,6 +38,26 @@ function formatDay(dayKey: string): string {
   }
 }
 
+/** Short human label for common portal paths. */
+function pageLabel(path: string): string {
+  if (path === "/" || path === "/portal") return "Student portal home";
+  if (path === "/portal/home") return "My home";
+  if (path === "/portal/titles") return "Literature / titles list";
+  if (path.startsWith("/portal/titles/")) return "Title detail";
+  if (path === "/portal/packs") return "Plans & access";
+  if (path === "/portal/jobs") return "Peer help";
+  if (path.startsWith("/portal/jobs/")) return "Peer help detail";
+  if (path === "/about") return "About Honic";
+  if (path === "/share-portal") return "Share portal info";
+  if (path === "/login") return "Staff login";
+  if (path.startsWith("/analytics")) return "Analytics";
+  if (path.startsWith("/users")) return "Registered users";
+  if (path.startsWith("/finance")) return "Finance";
+  if (path.startsWith("/students")) return "Student workspaces";
+  if (path.startsWith("/titles")) return "Staff titles";
+  return path;
+}
+
 export default async function AnalyticsPage() {
   const db = await requireStaffPage();
 
@@ -50,18 +70,21 @@ export default async function AnalyticsPage() {
     last7Sessions: 0,
     days: [],
     topPaths: [],
+    pages: [],
   };
   let error: string | null = null;
   try {
     ;[links, titles, visits] = await Promise.all([
       fetchLinkClickStats(db),
       fetchTopTitleClicks(db, 80),
-      fetchVisitSummary(db, 14),
+      fetchVisitSummary(db, 30),
     ]);
   } catch (err) {
     error = err instanceof Error ? err.message : "Could not load analytics.";
   }
 
+  const pages = visits.pages?.length ? visits.pages : visits.topPaths;
+  const maxPageViews = Math.max(1, ...pages.map((p) => p.pageviewCount));
   const linkTotal = links.reduce((n, r) => n + r.clickCount, 0);
   const titleClickTotal = titles.reduce((n, r) => n + r.clickCount, 0);
   const titleBuyTotal = titles.reduce((n, r) => n + r.buyCount, 0);
@@ -78,9 +101,8 @@ export default async function AnalyticsPage() {
       }
     >
       <p className="text-dash-muted-foreground mb-5 text-sm">
-        First-party counts: page opens (with browser sessions), footer/WhatsApp/CTA clicks, and title opens. Days use
-        Africa/Dar es Salaam. Sessions are approximate — one browser tab session per day. Title opens count when anyone
-        opens a title page (once per signed-in person per title per day); opening your own owned title is not counted.
+        First-party counts: each page people open, footer/WhatsApp/CTA clicks, and title opens. Days use Africa/Dar es
+        Salaam. A signed-in person counts once per title per day; opening your own owned title is not counted.
       </p>
 
       {error ? (
@@ -106,83 +128,101 @@ export default async function AnalyticsPage() {
                 value={String(visits.last7Pageviews)}
                 hint={`${visits.last7Sessions} sessions`}
               />
-              <StatCard label="Link clicks" value={String(linkTotal)} hint={`${links.length} tracked links`} />
+              <StatCard label="Pages tracked" value={String(pages.length)} hint="Distinct paths in last 30 days" />
               <StatCard
                 label="Title opens"
                 value={String(titleClickTotal)}
-                hint={`${titleBuyTotal} document unlocks`}
+                hint={`${titleBuyTotal} document unlocks · ${linkTotal} link clicks`}
               />
             </div>
           </section>
 
-          <section className="mb-10" aria-label="Site visits">
-            <h2 className="text-dash-foreground mb-3 text-sm font-semibold tracking-wide uppercase">Site visits</h2>
-            <div className="grid gap-5 lg:grid-cols-2">
-              <div className="border-dash-border bg-dash-card overflow-x-auto rounded-2xl border">
-                <table className="w-full min-w-[320px] text-left text-sm">
-                  <thead>
-                    <tr className="border-dash-border text-dash-muted-foreground border-b text-xs tracking-wide uppercase">
-                      <th className="px-4 py-3 font-semibold">Day</th>
-                      <th className="px-4 py-3 font-semibold tabular-nums">Pageviews</th>
-                      <th className="px-4 py-3 font-semibold tabular-nums">Sessions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visits.days.length === 0 ? (
-                      <tr>
-                        <td colSpan={3} className="text-dash-muted-foreground px-4 py-6 text-sm">
-                          No visits recorded yet. Open the portal once after deploy.
-                        </td>
-                      </tr>
-                    ) : (
-                      visits.days.map((row) => (
-                        <tr key={row.dayKey} className="border-dash-border border-b last:border-0">
-                          <td className="text-dash-foreground px-4 py-2.5 font-medium">{formatDay(row.dayKey)}</td>
-                          <td className="text-dash-foreground px-4 py-2.5 tabular-nums font-semibold">
-                            {row.pageviewCount}
-                          </td>
-                          <td className="text-dash-foreground px-4 py-2.5 tabular-nums">{row.sessionCount}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+          <section className="mb-10" aria-label="Pages visited">
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <h2 className="text-dash-foreground text-sm font-semibold tracking-wide uppercase">Pages visited</h2>
+                <p className="text-dash-muted-foreground mt-1 text-xs">
+                  Every path opened in the last 30 days, with today and 7-day counts.
+                </p>
               </div>
+              <p className="text-dash-muted-foreground text-xs tabular-nums">{pages.length} pages</p>
+            </div>
 
-              <div className="border-dash-border bg-dash-card overflow-x-auto rounded-2xl border">
-                <table className="w-full min-w-[320px] text-left text-sm">
-                  <thead>
-                    <tr className="border-dash-border text-dash-muted-foreground border-b text-xs tracking-wide uppercase">
-                      <th className="px-4 py-3 font-semibold">Top paths</th>
-                      <th className="px-4 py-3 font-semibold">Day</th>
-                      <th className="px-4 py-3 font-semibold tabular-nums">Views</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visits.topPaths.length === 0 ? (
-                      <tr>
-                        <td colSpan={3} className="text-dash-muted-foreground px-4 py-6 text-sm">
-                          Paths will appear as people browse.
-                        </td>
-                      </tr>
-                    ) : (
-                      visits.topPaths.map((row) => (
-                        <tr key={`${row.dayKey}:${row.path}`} className="border-dash-border border-b last:border-0">
-                          <td className="text-dash-foreground max-w-[220px] truncate px-4 py-2.5 font-mono text-xs" title={row.path}>
-                            {row.path}
-                          </td>
-                          <td className="text-dash-muted-foreground px-4 py-2.5 text-xs whitespace-nowrap">
-                            {formatDay(row.dayKey)}
-                          </td>
-                          <td className="text-dash-foreground px-4 py-2.5 tabular-nums font-semibold">
-                            {row.pageviewCount}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+            {pages.length === 0 ? (
+              <p className="text-dash-muted-foreground border-dash-border bg-dash-card rounded-2xl border px-4 py-8 text-sm">
+                No page visits yet. Browse the portal after deploy, then refresh this page.
+              </p>
+            ) : (
+              <div className="border-dash-border bg-dash-card overflow-hidden rounded-2xl border">
+                <ul className="divide-dash-border divide-y">
+                  {pages.map((row) => {
+                    const pct = Math.round((row.pageviewCount / maxPageViews) * 100);
+                    const label = pageLabel(row.path);
+                    const showPath = label !== row.path;
+                    return (
+                      <li key={row.path} className="relative px-4 py-3 sm:px-5">
+                        <div
+                          className="bg-dash-accent/10 pointer-events-none absolute inset-y-0 left-0"
+                          style={{ width: `${pct}%` }}
+                          aria-hidden
+                        />
+                        <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-dash-foreground text-sm font-semibold">{label}</p>
+                            {showPath ? (
+                              <p className="text-dash-muted-foreground mt-0.5 truncate font-mono text-[11px]" title={row.path}>
+                                {row.path}
+                              </p>
+                            ) : null}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-3 text-xs sm:gap-5">
+                            <CountChip label="Today" value={row.todayCount} />
+                            <CountChip label="7 days" value={row.last7Count} />
+                            <CountChip label="30 days" value={row.pageviewCount} strong />
+                            <span className="text-dash-muted-foreground hidden whitespace-nowrap sm:inline">
+                              Last {formatDay(row.lastSeenDay)}
+                            </span>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
+            )}
+          </section>
+
+          <section className="mb-10" aria-label="Daily visits">
+            <h2 className="text-dash-foreground mb-3 text-sm font-semibold tracking-wide uppercase">Daily totals</h2>
+            <div className="border-dash-border bg-dash-card overflow-x-auto rounded-2xl border">
+              <table className="w-full min-w-[320px] text-left text-sm">
+                <thead>
+                  <tr className="border-dash-border text-dash-muted-foreground border-b text-xs tracking-wide uppercase">
+                    <th className="px-4 py-3 font-semibold">Day</th>
+                    <th className="px-4 py-3 font-semibold tabular-nums">Pageviews</th>
+                    <th className="px-4 py-3 font-semibold tabular-nums">Sessions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visits.days.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="text-dash-muted-foreground px-4 py-6 text-sm">
+                        No daily totals yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    visits.days.map((row) => (
+                      <tr key={row.dayKey} className="border-dash-border border-b last:border-0">
+                        <td className="text-dash-foreground px-4 py-2.5 font-medium">{formatDay(row.dayKey)}</td>
+                        <td className="text-dash-foreground px-4 py-2.5 tabular-nums font-semibold">
+                          {row.pageviewCount}
+                        </td>
+                        <td className="text-dash-foreground px-4 py-2.5 tabular-nums">{row.sessionCount}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </section>
 
@@ -269,6 +309,19 @@ function StatCard({ label, value, hint }: { label: string; value: string; hint?:
       <p className="text-dash-muted-foreground text-xs font-semibold tracking-wide uppercase">{label}</p>
       <p className="text-dash-foreground mt-1 text-2xl font-semibold tabular-nums">{value}</p>
       {hint ? <p className="text-dash-muted-foreground mt-1 text-xs">{hint}</p> : null}
+    </div>
+  );
+}
+
+function CountChip({ label, value, strong }: { label: string; value: number; strong?: boolean }) {
+  return (
+    <div className="text-right">
+      <p className="text-dash-muted-foreground text-[10px] font-semibold tracking-wide uppercase">{label}</p>
+      <p
+        className={`tabular-nums ${strong ? "text-dash-foreground text-base font-semibold" : "text-dash-foreground text-sm font-medium"}`}
+      >
+        {value}
+      </p>
     </div>
   );
 }
