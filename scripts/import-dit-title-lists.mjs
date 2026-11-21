@@ -1,5 +1,6 @@
 /**
- * Import DIT ETE/CST approved titles + OD mini project titles from the two latest PDFs.
+ * Import DIT OD (NTA L6) final-year project titles from the OD projects PDF.
+ * (ETE/CST “Approved titles” list is not imported — remove those from the catalogue instead.)
  *
  *   node scripts/import-dit-title-lists.mjs
  */
@@ -36,25 +37,12 @@ const FILES = [
       process.cwd(),
       "..",
       "..",
-      "Project Titles ETE - CST Approved.pdf",
-    ),
-    sourceKey: "dit-ete-cst-2025",
-    batch: "DIT ETE/CST Approved titles",
-    course: "ETE",
-    domain: "ETE / CST project titles",
-    kind: "approved",
-  },
-  {
-    path: path.resolve(
-      process.cwd(),
-      "..",
-      "..",
       "OD_projects titles 20242025 - Mini 01 S1 (2).pdf",
     ),
     sourceKey: "dit-od-mini-2024-25",
-    batch: "DIT NTA L6 ETE & CST Mini One 2024/2025",
+    batch: "DIT NTA L6 ETE & CST Final Year 2024/2025",
     course: "ETE",
-    domain: "Mini project titles",
+    domain: "Final year project titles",
     kind: "od",
   },
 ];
@@ -140,11 +128,11 @@ function parseOdList(text) {
       const m2 = chunk.match(/^\s*(\d{1,2})\b[\s\S]{0,80}?(\d{9,14})\s+(.+)$/is);
       if (!m2) continue;
       const title = titleCase(m2[3]);
-      if (okTitle(title)) out.push({ title, comment: "Mini One presentation" });
+      if (okTitle(title)) out.push({ title, comment: "OD final year project" });
       continue;
     }
     const title = titleCase(m[4]);
-    if (okTitle(title)) out.push({ title, comment: "Mini One presentation" });
+    if (okTitle(title)) out.push({ title, comment: "OD final year project" });
   }
   return out;
 }

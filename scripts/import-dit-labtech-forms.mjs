@@ -25,7 +25,7 @@ const FILES = [
 ];
 
 const SOURCE_KEY = "bt22ls-mini1-2025";
-const BATCH = "DIT BT22LS Lab Tech Mini I 2025/2026";
+const BATCH = "DIT BT22LS Lab Tech Final Year 2025/2026";
 const INSTITUTION = "Dar es Salaam Institute of Technology (DIT)";
 /** Matches public.courses: Science and Laboratory Technology */
 const COURSE = "SLT";
@@ -154,7 +154,7 @@ for (const item of items) {
   ].filter(Boolean);
 
   const summary = clean(
-    `DIT Laboratory Science & Technology (${track}) Mini I title: ${t}. Use this as a starting title — write a local problem statement, objectives, and lab/prototype plan for your course.`,
+    `DIT Laboratory Science & Technology (${track}) final year project title: ${t}. Use this as a starting title — write a local problem statement, objectives, and lab/prototype plan for your course.`,
     1800,
   );
   const notes = [
@@ -169,7 +169,7 @@ for (const item of items) {
     "",
     "## Literature and source",
     `Source list: ${item.file}`,
-    "Class: BT22LS · Module: LSU 08106 Results/Progress Reporting · Mini I · AY 2025/2026",
+    "Class: BT22LS · Module: LSU 08106 Results/Progress Reporting · Final year project · AY 2025/2026",
     `Department: Laboratory Science and Technology · Track: ${track}`,
     ...commentParts.map((c) => `List note: ${c}`),
     "This entry is from a department assessment form (not a full report PDF).",

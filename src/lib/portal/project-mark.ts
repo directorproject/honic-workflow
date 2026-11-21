@@ -22,8 +22,8 @@ const BENG_MODULE: Record<string, { module: string; label: string }> = {
   ETE: { module: "ETU 08221", label: "Project Realization" },
 };
 
-const OD_MODULE = { module: "LSU / ETU Mini", label: "OD Mini project" };
-const LAB_MODULE = { module: "LSU 08106", label: "Mini I presentation" };
+const OD_MODULE = { module: "NTA L6 FYP", label: "Final year project" };
+const LAB_MODULE = { module: "LSU 08106", label: "Final year project" };
 
 export function shortInstitution(value: string | null | undefined): string | null {
   if (!value?.trim()) return null;
@@ -76,7 +76,7 @@ function catalogueLine(item: {
   const year = academicYear(item.yearLabel) ?? item.yearLabel;
   const cohort = titleCohortFromText(item.batch, item.source);
 
-  // OD / diploma mini — never invent a BENG## citation
+  // OD / diploma — final year project (never invent a BENG## citation)
   if (cohort?.kind === "od") {
     const citation = `${cohort.key} ${programme} ${OD_MODULE.label} (${year})`;
     return { citation, code: OD_MODULE.module, category: OD_MODULE.label, programme };
@@ -107,7 +107,11 @@ export function projectMark(item: {
   const institute = shortInstitution(item.institution) ?? "DIT";
   const catalogue = catalogueLine(item);
 
-  if (item.kind === "earlier") {
+  const cohort = titleCohortFromText(item.batch, item.source);
+  const asFinalYear =
+    item.kind === "earlier" || cohort?.kind === "od" || cohort?.kind === "labtech";
+
+  if (asFinalYear) {
     return {
       year,
       courseCode: courseCode ?? catalogue.programme,
@@ -116,7 +120,10 @@ export function projectMark(item: {
       category: catalogue.category,
       group: "Final year project",
       citation: catalogue.citation,
-      note: "Use this title as literature. Review the method and findings, identify what remains open, and build on that gap.",
+      note:
+        item.kind === "earlier"
+          ? "Use this title as literature. Review the method and findings, identify what remains open, and build on that gap."
+          : "Use this title as a starting point for literature review. Study the gap, then change the project before you submit it.",
     };
   }
 

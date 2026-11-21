@@ -1,7 +1,7 @@
 /**
  * Cohort / level key for the portal titles “Level” filter and catalogue citations.
- * Recognises BEng intakes (BENG22) and diploma / mini / lab-tech cohorts so OD
- * rows are not forced into a BENG bucket.
+ * Recognises BEng intakes (BENG22) and OD / lab-tech cohorts so diploma
+ * final-year titles are not forced into a BENG bucket.
  */
 
 export type TitleCohortKind = "beng" | "od" | "labtech" | "other";
@@ -45,15 +45,9 @@ export function titleCohortFromText(
     /\bNTA\s*L\s*6\b/i.test(blob) ||
     /\bNTA\s*Level\s*6\b/i.test(blob) ||
     /\bOrdinary Diploma\b/i.test(blob) ||
-    /\b\bOD\b/.test(blob) ||
-    /\bMini\s*(One|1|I)\b/i.test(blob) ||
-    /\bMini\s*project/i.test(blob)
+    /\bOD\b/.test(blob) ||
+    /\bMini\s*(One|1|I)\b/i.test(blob)
   ) {
-    return { key: "OD-NTA6", label: "OD · NTA Level 6", kind: "od" };
-  }
-
-  // Approved ETE/CST title lists without BENG token → treat as diploma/approved pool, not invented BENG
-  if (/\bApproved titles\b/i.test(blob) && /\b(ETE|CST)\b/i.test(blob)) {
     return { key: "OD-NTA6", label: "OD · NTA Level 6", kind: "od" };
   }
 
