@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { UserDetailActions } from "@/components/users/user-detail-actions";
 import { UserOwnershipClaims } from "@/components/users/user-ownership-claims";
 import { VerificationBadge } from "@/components/users/verification-badge";
@@ -47,6 +48,7 @@ export default async function RegisteredUserPage(props: { params: Promise<{ id: 
       statusDotClass={error ? "bg-amber-500" : "bg-emerald-500"}
       headerBelow={
         <div className="flex flex-wrap items-center gap-3">
+          <UserAvatar name={name} size={40} />
           <Link href="/users" className="text-dash-accent text-sm font-semibold">
             ← Registered users
           </Link>

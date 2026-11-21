@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { VerificationBadge } from "@/components/users/verification-badge";
 import { INPUT } from "@/components/workspace/ws-ui";
 import type { RegisteredUserRow } from "@/lib/registered-users";
@@ -95,12 +96,17 @@ export function RegisteredUsersTable({ rows }: { rows: RegisteredUserRow[] }) {
                 {list.map((row) => (
                   <tr key={row.id} className="hover:bg-dash-muted/40">
                     <td className="px-4 py-3">
-                      <p className="flex flex-wrap items-center gap-2">
-                        <span className="text-dash-foreground font-semibold">{row.name ?? "No name yet"}</span>
-                        <VerificationBadge verified={row.emailConfirmed} />
-                      </p>
-                      <p className="text-dash-muted-foreground text-xs">{row.email || "No email"}</p>
-                      {row.phone ? <p className="text-dash-muted-foreground text-xs">{row.phone}</p> : null}
+                      <div className="flex items-start gap-3">
+                        <UserAvatar name={row.name || row.email || "User"} size={36} className="mt-0.5" />
+                        <div className="min-w-0">
+                          <p className="flex flex-wrap items-center gap-2">
+                            <span className="text-dash-foreground font-semibold">{row.name ?? "No name yet"}</span>
+                            <VerificationBadge verified={row.emailConfirmed} />
+                          </p>
+                          <p className="text-dash-muted-foreground text-xs">{row.email || "No email"}</p>
+                          {row.phone ? <p className="text-dash-muted-foreground text-xs">{row.phone}</p> : null}
+                        </div>
+                      </div>
                     </td>
                     <td className="text-dash-foreground px-4 py-3">{row.institution ?? "—"}</td>
                     <td className="text-dash-foreground px-4 py-3">{row.course ?? "—"}</td>

@@ -8,6 +8,7 @@ import { NexisWordmark } from "@/components/brand/nexis-wordmark";
 import { GuestPreviewBanner } from "@/components/portal/guest-preview-banner";
 import { PlanModeChip } from "@/components/portal/plan-mode-chip";
 import { PortalNavLinks, usePortalActiveLabel, type PortalNavMode } from "@/components/portal/portal-nav";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { hasActiveDeskPlan } from "@/lib/portal/title-limits";
@@ -171,9 +172,7 @@ export function PortalShell({
                 </Link>
               ) : (
                 <>
-                  <span className="bg-dash-accent hidden h-8 w-8 items-center justify-center rounded-full text-xs font-semibold text-white sm:inline-flex">
-                    {viewer.name.slice(0, 1).toUpperCase()}
-                  </span>
+                  <UserAvatar name={viewer.name} size={32} className="sm:h-8 sm:w-8" />
                   <span className="hidden max-w-[10rem] truncate text-xs font-medium md:inline">{viewer.name}</span>
                 </>
               )}

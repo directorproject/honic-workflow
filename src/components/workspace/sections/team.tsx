@@ -11,6 +11,7 @@ import {
   setSupervisorLinkAction,
   updateWorkspaceAction,
 } from "@/app/portal/workspace-actions";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { PushToggle } from "@/components/workspace/push-toggle";
 import { useRun, useWs } from "@/components/workspace/ws-context";
 import { Badge, BTN, BTN_DANGER, BTN_GHOST, BTN_SOFT, INPUT, Label, Panel, Status } from "@/components/workspace/ws-ui";
@@ -59,9 +60,7 @@ export function TeamSection({ bundle }: { bundle: WorkspaceBundle }) {
         <ul className="divide-dash-border divide-y">
           {bundle.members.map((m) => (
             <li key={m.user_id} className="flex flex-wrap items-center gap-3 py-3">
-              <span className="bg-dash-accent/15 text-dash-accent flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold">
-                {m.full_name.slice(0, 1).toUpperCase()}
-              </span>
+              <UserAvatar name={m.full_name || m.email || "User"} size={36} />
               <div className="min-w-0 flex-1">
                 <p className="text-dash-foreground text-sm font-semibold">
                   {m.full_name} {m.user_id === viewer.userId ? <span className="text-dash-muted-foreground font-normal">(you)</span> : null}
