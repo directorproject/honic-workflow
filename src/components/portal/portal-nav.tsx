@@ -16,6 +16,8 @@ export type PortalNavItem = {
   /** Match these tab values as active for this item. */
   tabs?: string[];
   external?: boolean;
+  /** Optional unread badge count (e.g. new peer-help offers). */
+  badge?: number;
 };
 
 export type PortalNavGroup = {
@@ -33,8 +35,11 @@ export function portalNavGroups(opts: {
   workspaceBase?: string;
   /** When false, Help desk is labeled as plan-locked (still linkable to upgrade wall). */
   hasPaidDesk?: boolean;
+  /** Unread peer-help offer count for Peer help nav badge. */
+  jobsBadge?: number;
 }): PortalNavGroup[] {
   const mode = opts.mode ?? "student";
+  const jobsBadge = Math.max(0, Math.round(Number(opts.jobsBadge) || 0));
 
   if (mode === "supervisor") {
     const base = opts.workspaceBase ?? "";
@@ -86,7 +91,13 @@ export function portalNavGroups(opts: {
     { key: "field", label: "Field study", href: tabHref(base, "field"), tabs: ["field"] },
   ];
   const honic: PortalNavItem[] = [
-    { key: "jobs", label: "Peer help", href: "/portal/jobs", external: true },
+    {
+      key: "jobs",
+      label: "Peer help",
+      href: "/portal/jobs",
+      external: true,
+      badge: jobsBadge > 0 ? jobsBadge : undefined,
+    },
     { key: "zimamoto", label: "Zimamoto", href: "/portal/zimamoto", external: true },
     { key: "messages", label: "Help desk", href: tabHref(base, "messages"), tabs: ["messages"] },
   ];
@@ -156,6 +167,7 @@ export function PortalNavLinks({
   topExtras,
   extras,
   showSignOut = true,
+  jobsBadge = 0,
 }: {
   mode?: PortalNavMode;
   hasWorkspace: boolean;
@@ -167,11 +179,12 @@ export function PortalNavLinks({
   topExtras?: ReactNode;
   extras?: ReactNode;
   showSignOut?: boolean;
+  jobsBadge?: number;
 }) {
   const pathname = usePathname();
   const search = useSearchParams();
   const tab = search.get("tab") ?? "home";
-  const groups = portalNavGroups({ mode, hasWorkspace, hasProgress, workspaceBase, hasPaidDesk });
+  const groups = portalNavGroups({ mode, hasWorkspace, hasProgress, workspaceBase, hasPaidDesk, jobsBadge });
   const homeHref = mode === "supervisor" ? "/supervisor" : "/portal/home";
   const signOut = mode === "supervisor" ? supervisorSignOutAction : portalSignOutAction;
 
@@ -207,6 +220,7 @@ export function PortalNavLinks({
             <ul className={onSide ? "space-y-0.5" : "flex flex-wrap gap-2"}>
               {group.items.map((item) => {
                 const on = portalItemActive(item, pathname, tab, mode);
+                const badge = item.badge && item.badge > 0 ? (item.badge > 9 ? "9+" : String(item.badge)) : null;
                 return (
                   <li key={item.key}>
                     <Link
@@ -215,11 +229,22 @@ export function PortalNavLinks({
                       aria-current={on ? "page" : undefined}
                       className={
                         onSide
-                          ? `block rounded-lg px-3 py-2 text-sm font-medium ${on ? "bg-white/15 text-white" : "text-white/75 hover:bg-white/10 hover:text-white"}`
-                          : `rounded-lg border px-3 py-1.5 text-sm font-semibold ${on ? "border-dash-foreground bg-dash-foreground text-dash-card" : "border-dash-border text-dash-muted-foreground"}`
+                          ? `flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium ${on ? "bg-white/15 text-white" : "text-white/75 hover:bg-white/10 hover:text-white"}`
+                          : `inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-semibold ${on ? "border-dash-foreground bg-dash-foreground text-dash-card" : "border-dash-border text-dash-muted-foreground"}`
                       }
                     >
-                      {item.label}
+                      <span>{item.label}</span>
+                      {badge ? (
+                        <span
+                          className={
+                            onSide
+                              ? "inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-400 px-1.5 py-0.5 text-[10px] font-bold text-slate-950"
+                              : "bg-dash-accent inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white"
+                          }
+                        >
+                          {badge}
+                        </span>
+                      ) : null}
                     </Link>
                   </li>
                 );

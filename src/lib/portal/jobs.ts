@@ -377,7 +377,19 @@ export async function applyToJob(
     message: string;
     proposedTsh: number | null;
   },
-): Promise<{ ok: true; applicationPublicId: string } | { ok: false; message: string }> {
+): Promise<
+  | {
+      ok: true;
+      applicationPublicId: string;
+      applicationId: string;
+      jobId: string;
+      jobTitle: string;
+      posterUserId: string;
+      applicantPublicId: string;
+      message: string;
+    }
+  | { ok: false; message: string }
+> {
   const plan = await requirePaidDeskForJobs(db, input.userId, "jobsApply");
   if (!plan.ok) return plan;
 
@@ -385,6 +397,14 @@ export async function applyToJob(
   if (!job) return { ok: false, message: "That job was not found." };
   if (job.status !== "open") return { ok: false, message: "This job is no longer open." };
   if (job.isMine) return { ok: false, message: "You cannot apply to your own job." };
+
+  const { data: jobRow } = await db
+    .from("portal_jobs")
+    .select("poster_user_id")
+    .eq("id", job.id)
+    .maybeSingle();
+  const posterUserId = jobRow?.poster_user_id ? String(jobRow.poster_user_id) : "";
+  if (!posterUserId) return { ok: false, message: "That job was not found." };
 
   const message = input.message.trim().slice(0, 2000);
   if (message.length < 10) return { ok: false, message: "Write a short note about how you can help (at least 10 characters)." };
@@ -412,7 +432,7 @@ export async function applyToJob(
       status: "pending",
       updated_at: new Date().toISOString(),
     })
-    .select("public_id")
+    .select("id, public_id")
     .single();
   if (error) {
     if (/unique|23505/i.test(error.message)) {
@@ -423,7 +443,16 @@ export async function applyToJob(
     }
     return { ok: false, message: error.message };
   }
-  return { ok: true, applicationPublicId: String(data.public_id) };
+  return {
+    ok: true,
+    applicationPublicId: String(data.public_id),
+    applicationId: String(data.id),
+    jobId: job.id,
+    jobTitle: job.title,
+    posterUserId,
+    applicantPublicId,
+    message,
+  };
 }
 
 export async function acceptApplication(

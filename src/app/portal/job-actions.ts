@@ -34,6 +34,7 @@ import {
 import { peerHelpAccepted, PEER_HELP_METADATA_KEY, PEER_HELP_RULES_VERSION, peerHelpRulesError } from "@/lib/portal/jobs-peer-help";
 import { paymentUnavailableMessage, toUserError } from "@/lib/portal/user-errors";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { notifyPosterNewApplication } from "@/lib/portal/job-notifications";
 import {
   applyToJob,
   markJobTaken,
@@ -148,19 +149,31 @@ export async function portalApplyJobAction(input: {
   try {
     const { user, db } = await requireStudent();
     if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
+    const jobPublicId = String(input.jobPublicId ?? "");
     const result = await applyToJob(db, {
       userId: user.id,
-      jobPublicId: String(input.jobPublicId ?? ""),
+      jobPublicId,
       message: String(input.message ?? ""),
       proposedTsh: input.proposedTsh == null || Number.isNaN(Number(input.proposedTsh)) ? null : Number(input.proposedTsh),
     });
     if (!result.ok) return { ok: false, message: result.message };
+
+    await notifyPosterNewApplication(db, {
+      jobId: result.jobId,
+      jobPublicId,
+      jobTitle: result.jobTitle,
+      posterUserId: result.posterUserId,
+      applicationId: result.applicationId,
+      applicantPublicId: result.applicantPublicId,
+      offerSnippet: result.message,
+    });
+
     revalidatePath("/portal/jobs");
     revalidatePath("/portal/jobs/mine");
-    revalidatePath(`/portal/jobs/${encodeURIComponent(String(input.jobPublicId))}`);
+    revalidatePath(`/portal/jobs/${encodeURIComponent(jobPublicId)}`);
     return {
       ok: true,
-      message: "Offer sent. Chat in the thread if the requester accepts. No real names are shared.",
+      message: "Offer sent. The requester gets a portal alert and email. Chat opens if they reply.",
     };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not apply." };
