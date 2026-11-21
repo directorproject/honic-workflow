@@ -23,7 +23,10 @@ import {
 
 const PAID_STORAGE = formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES);
 
-const SECTION = "mx-auto w-full max-w-7xl px-6 py-8";
+const HERO_IMAGE =
+  "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1800&q=80";
+
+const SECTION = "mx-auto w-full max-w-6xl px-5 sm:px-8";
 const EYEBROW = "text-dash-accent text-[11px] font-semibold tracking-[0.2em] uppercase";
 
 export function DocumentPacksBoard({
@@ -45,28 +48,56 @@ export function DocumentPacksBoard({
   const semesterPerMonth = Math.round(SUBSCRIPTION_SEMESTER_TSH / 6);
 
   return (
-    <div className="bg-dash-canvas text-dash-foreground min-h-screen flex flex-col">
-      {/* Header section */}
-      <section className="border-b border-dash-border/50 py-10 sm:py-14">
-        <div className={SECTION}>
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-dash-foreground mb-2">
-              Plans & access
-            </h1>
-            <p className="text-dash-muted-foreground text-lg max-w-2xl">
-              Choose a plan that fits your project timeline. Upgrade anytime to unlock full workspace tools and collaboration features.
-            </p>
+    <div className="packs-site -mx-3 -mt-4 pb-16 sm:-mx-6 sm:-mt-5 lg:-mx-8">
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-slate-950">
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-cover bg-[center_35%] opacity-40"
+          style={{ backgroundImage: `url(${HERO_IMAGE})` }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(2,6,23,0.55) 0%, rgba(2,6,23,0.92) 85%), radial-gradient(60% 50% at 85% 0%, rgba(6,182,212,0.25), transparent 60%)",
+          }}
+        />
+        <div className={`${SECTION} relative py-14 sm:py-20`}>
+          <p className="text-[11px] font-semibold tracking-[0.25em] text-cyan-200/90 uppercase">Honic Nexis · Plans</p>
+          <h1 className="mt-4 max-w-2xl text-[2.1rem] leading-[1.05] font-semibold tracking-tight text-white sm:text-5xl">
+            Your desk, your pace.
+          </h1>
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base">
+            One Nexis Desk plan unlocks the workspace, peer help, and extra title hides. Pay with mobile money. Your
+            plan activates once payment is verified.
+          </p>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <a
+              href="#plans"
+              className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-cyan-100"
+            >
+              Choose a plan
+            </a>
+            <Link
+              href="/portal/titles"
+              className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10"
+            >
+              Browse literature
+            </Link>
           </div>
 
-          {/* Current plan status */}
-          <div className="inline-flex items-center gap-3 border border-dash-border/50 bg-dash-card/50 rounded-lg px-4 py-3">
+          <div className="mt-10 inline-flex items-center gap-3 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 backdrop-blur">
             <span
               className={`h-2 w-2 rounded-full ${planActive ? "bg-emerald-400" : "bg-amber-300"}`}
               aria-hidden
             />
-            <p className="text-sm">
-              <span className="font-semibold text-dash-foreground">Current plan:</span>
-              <span className="ml-2 text-dash-muted-foreground">{planLabel}</span>
+            <p className="text-sm text-white/85">
+              <span className="font-semibold text-white">Your access</span>
+              <span className="mx-2 text-white/40">·</span>
+              {planLabel}
             </p>
           </div>
         </div>
@@ -216,29 +247,6 @@ export function DocumentPacksBoard({
         </div>
       </section>
 
-      {/* Optional packs */}
-      {PRICING_BOARD.packs.length ? (
-        <section className="pt-16 sm:pt-24">
-          <div className={SECTION}>
-            <p className={EYEBROW}>Optional</p>
-            <h2 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Writing packs</h2>
-            <p className="text-dash-muted-foreground mt-2 text-sm">
-              Guides from Honic writers. Not required for membership.
-            </p>
-            <div className="mt-8 grid gap-5 md:grid-cols-2">
-              {PRICING_BOARD.packs.map((pack) => (
-                <article key={pack.id} className="border-dash-border bg-dash-card rounded-2xl border p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <h3 className="text-dash-foreground text-base font-semibold">{pack.name}</h3>
-                    <p className="text-dash-foreground shrink-0 font-semibold tabular-nums">{formatTsh(pack.priceTsh)}</p>
-                  </div>
-                  <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">{pack.summary}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
     </div>
   );
 }
