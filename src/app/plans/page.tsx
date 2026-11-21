@@ -1,10 +1,12 @@
 import Link from "next/link";
 
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { PlansMilestonesView } from "@/components/plans/next-week-milestones-view";
 import { PlansWeekCalendarJump } from "@/components/plans/plans-week-calendar-jump";
 import { PlansWeekSummary } from "@/components/plans/plans-week-summary";
 import { PlansWeekNav } from "@/components/plans/plans-week-nav";
+import { NexisWordmark } from "@/components/brand/nexis-wordmark";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { SiteFooter } from "@/components/portal/site-footer";
 import { academicYearLabel } from "@/lib/academic-year";
 import { getSelectedAcademicYear } from "@/lib/academic-year-server";
 import { loadDashboardData } from "@/lib/dashboard-data";
@@ -62,115 +64,127 @@ export default async function PlansPage(props: {
     `Projects in ${yearLabel}. Browse weeks or jump from the calendar. Workflow is edited under Manage → Timeline.`;
 
   return (
-    <DashboardShell title={shellTitle} subtitle={shellSubtitle} statusDotClass={statusDotClass}>
-      <div className="mb-6 flex flex-col gap-4">
-        <div className="flex flex-wrap items-stretch gap-3 lg:flex-nowrap lg:items-end">
-          <div className="shrink-0">
-            <PlansWeekNav weekOffset={weekOffset} clientFilter={clientFilter} />
+    <div className="bg-dash-canvas text-dash-foreground min-h-screen flex flex-col">
+      {/* Header */}
+      <header className="border-b border-dash-border/50 bg-dash-card/50 backdrop-blur-sm sticky top-0 z-40">
+        <div className="flex items-center justify-between gap-4 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <NexisWordmark />
+            <h1 className="text-lg font-bold">Project timeline</h1>
           </div>
-          <div className="min-w-0 flex-1">
-            <PlansWeekCalendarJump clientFilter={clientFilter} weekMondayIso={startIso} />
-          </div>
+          <ThemeToggle />
         </div>
+      </header>
 
-        <PlansWeekSummary
-          weekHeading={weekHeading}
-          startIso={startIso}
-          endIso={endIso}
-          total={summary.total}
-          done={summary.done}
-          pending={summary.pending}
-          inProgress={summary.inProgress}
-          blocked={summary.blocked}
-          overdueCalendar={summary.overdueCalendar}
-        />
+      {/* Main content */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-7xl px-6 py-8">
+          {/* Title and description */}
+          <div className="mb-8">
+            <p className="text-dash-muted-foreground text-sm mb-1">
+              {connected ? (
+                <span className={`inline-block h-2 w-2 rounded-full ${statusDotClass} mr-2`} />
+              ) : null}
+              Milestones in {yearLabel}. Week {startIso} to {endIso}.
+            </p>
+          </div>
 
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <form action="/plans" method="get" className="flex flex-wrap items-end gap-3">
-            {weekOffset !== 0 ? <input type="hidden" name="week" value={String(weekOffset)} /> : null}
-            <div>
-              <label htmlFor="plans-client" className="text-dash-muted-foreground mb-1 block text-xs font-medium">
-                Filter by client
-              </label>
-              <select
-                id="plans-client"
-                name="client"
-                defaultValue={clientFilter}
-                className="border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 min-w-[12rem] rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2"
-              >
-                <option value="">All clients</option>
-                {dash.clients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+          {/* Controls */}
+          <div className="bg-dash-card border border-dash-border/50 rounded-2xl p-5 mb-6">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap items-end gap-4">
+                <div className="flex-1 min-w-[12rem]">
+                  <PlansWeekNav weekOffset={weekOffset} clientFilter={clientFilter} />
+                </div>
+                <div className="flex-1 min-w-[200px]">
+                  <PlansWeekCalendarJump clientFilter={clientFilter} weekMondayIso={startIso} />
+                </div>
+              </div>
+
+              <form action="/plans" method="get" className="flex flex-wrap items-end gap-3">
+                {weekOffset !== 0 ? <input type="hidden" name="week" value={String(weekOffset)} /> : null}
+                <div>
+                  <label htmlFor="plans-client" className="text-dash-muted-foreground mb-2 block text-xs font-medium">
+                    Filter by client
+                  </label>
+                  <select
+                    id="plans-client"
+                    name="client"
+                    defaultValue={clientFilter}
+                    className="border border-dash-border/50 bg-dash-canvas text-dash-foreground focus:ring-dash-accent/25 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2"
+                  >
+                    <option value="">All clients</option>
+                    {dash.clients.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  className="bg-dash-accent text-slate-950 hover:bg-dash-accent-dim rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+                >
+                  Apply
+                </button>
+              </form>
             </div>
-            <button
-              type="submit"
-              className="bg-dash-accent text-slate-950 hover:bg-dash-accent-dim rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
-            >
-              Apply
-            </button>
-          </form>
-          <div className="text-dash-muted-foreground flex flex-wrap gap-x-4 gap-y-2 text-xs">
-            <Link href="/projects" className="text-dash-accent font-semibold underline-offset-2 hover:underline">
-              All projects
-            </Link>
-            <Link href="/" className="text-dash-accent font-semibold underline-offset-2 hover:underline">
-              Home
-            </Link>
           </div>
+
+          {/* Summary card */}
+          <div className="mb-6">
+            <PlansWeekSummary
+              weekHeading={weekHeading}
+              startIso={startIso}
+              endIso={endIso}
+              total={summary.total}
+              done={summary.done}
+              pending={summary.pending}
+              inProgress={summary.inProgress}
+              blocked={summary.blocked}
+              overdueCalendar={summary.overdueCalendar}
+            />
+          </div>
+
+          {/* Client filter notice */}
+          {clientFilter ? (
+            <div className="bg-dash-card border border-dash-border/50 rounded-lg px-4 py-3 mb-6 text-sm">
+              <span className="text-dash-foreground font-medium">Filtered:</span>{" "}
+              <span className="text-dash-muted-foreground">
+                {filteredClientName ?? "selected client"}
+              </span>
+              {" · "}
+              <Link
+                href={buildPlansUrl({ week: weekOffset })}
+                className="text-dash-accent font-medium hover:underline"
+              >
+                Clear filter
+              </Link>
+            </div>
+          ) : null}
+
+          {/* Error state */}
+          {error ? (
+            <div
+              role="alert"
+              className="border border-red-500/30 bg-red-500/5 rounded-xl px-5 py-4 mb-6"
+            >
+              <p className="font-semibold text-red-700 dark:text-red-300 mb-1">Could not load milestones</p>
+              <p className="text-sm text-red-600 dark:text-red-400 opacity-90">{error}</p>
+            </div>
+          ) : null}
+
+          {/* Milestones table */}
+          {!error && (
+            <div className="bg-dash-card border border-dash-border/50 rounded-2xl overflow-hidden">
+              <PlansMilestonesView rows={rows} weekHeading={weekHeading} weekMonday={weekMonday} todayIso={todayIso} />
+            </div>
+          )}
         </div>
-      </div>
+      </main>
 
-      {clientFilter ? (
-        <p className="text-dash-muted-foreground mb-4 text-sm">
-          Showing milestones for{" "}
-          <span className="text-dash-foreground font-semibold">{filteredClientName ?? "selected client"}</span>
-          {" · "}
-          <Link href={buildPlansUrl({ week: weekOffset })} className="text-dash-accent font-medium underline-offset-2 hover:underline">
-            Clear client filter
-          </Link>
-        </p>
-      ) : null}
-
-      {error ? (
-        <div
-          role="alert"
-          className="border-dash-border bg-dash-card mb-6 rounded-2xl border border-red-500/30 px-4 py-3 text-sm text-red-700 dark:text-red-300"
-        >
-          <p className="font-medium">Could not load milestones.</p>
-          <p className="mt-1 opacity-90">{error}</p>
-          <p className="text-dash-muted-foreground mt-2 text-xs">
-            If this mentions <code className="text-dash-foreground">work_status</code> or{" "}
-            <code className="text-dash-foreground">workflow_checklist</code>, run pending SQL from{" "}
-            <code className="text-dash-foreground">supabase/</code> (including{" "}
-            <code className="text-dash-foreground">018_project_milestones_work_status.sql</code>) in Supabase.
-          </p>
-        </div>
-      ) : (
-        <>
-          <p className="text-dash-muted-foreground mb-6 text-xs tabular-nums">
-            Week <span className="text-dash-foreground font-medium">{startIso}</span>
-            {" → "}
-            <span className="text-dash-foreground font-medium">{endIso}</span>
-            {" · "}today <span className="text-dash-foreground font-medium">{todayIso}</span>
-            {" · offset "}
-            <span className="text-dash-foreground font-medium">{weekOffset}</span>
-            {" · "}
-            <span className="text-dash-foreground font-medium">{summary.total}</span> rows (
-            <span className="text-dash-foreground font-medium">{summary.done}</span> done)
-          </p>
-          <PlansMilestonesView rows={rows} weekHeading={weekHeading} weekMonday={weekMonday} todayIso={todayIso} />
-        </>
-      )}
-
-      <p className="text-dash-muted-foreground mt-10 text-center text-xs">
-        <Link href="/projects" className="text-dash-accent font-medium underline-offset-2 hover:underline">
-          ← All projects
-        </Link>
-      </p>
-    </DashboardShell>
+      {/* Footer */}
+      <SiteFooter />
+    </div>
   );
 }
