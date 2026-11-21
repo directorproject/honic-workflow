@@ -45,20 +45,23 @@ function eatDayKey(date = new Date()): string {
   }).format(date);
 }
 
-function normalizePath(raw: string): string | null {
+/** Canonical portal path for analytics (decode %3A, drop query, ignore static files). */
+export function normalizePath(raw: string): string | null {
   let path = String(raw ?? "").trim();
   if (!path.startsWith("/")) path = `/${path}`;
   // Drop query/hash; keep pathname only.
   path = path.split("?")[0]?.split("#")[0] ?? path;
-  if (path.length > 500) path = path.slice(0, 500);
-  if (
-    !path ||
-    path.startsWith("/api/") ||
-    path.startsWith("/_next/") ||
-    path.includes(".") // static files e.g. favicon.ico
-  ) {
-    return null;
+  try {
+    // Collapse earlier%3Auuid and earlier:uuid into one key.
+    path = decodeURIComponent(path);
+  } catch {
+    /* keep raw */
   }
+  path = path.replace(/\/{2,}/g, "/");
+  if (path.length > 500) path = path.slice(0, 500);
+  if (!path || path.startsWith("/api/") || path.startsWith("/_next/")) return null;
+  // Static assets only (favicon.ico) — do not reject UUID title ids.
+  if (/\.(?:ico|png|jpe?g|gif|webp|svg|css|js|map|txt|xml|json|woff2?|ttf|eot)$/i.test(path)) return null;
   return path;
 }
 
@@ -260,7 +263,7 @@ export async function fetchVisitSummary(db: SupabaseClient, days = 30): Promise<
     { total: number; today: number; last7: number; lastSeen: string; lastSeenAt: string | null }
   >();
   for (const r of pathRows ?? []) {
-    const path = String(r.path);
+    const path = normalizePath(String(r.path)) ?? String(r.path);
     const day = String(r.day_key);
     const count = Number(r.pageview_count ?? 0);
     const updatedAt = r.updated_at ? String(r.updated_at) : null;

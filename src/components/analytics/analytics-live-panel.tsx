@@ -49,23 +49,34 @@ function formatDay(dayKey: string): string {
   }
 }
 
+function displayPath(path: string): string {
+  try {
+    return decodeURIComponent(path);
+  } catch {
+    return path;
+  }
+}
+
 function pageLabel(path: string): string {
-  if (path === "/" || path === "/portal") return "Student portal home";
-  if (path === "/portal/home") return "My home";
-  if (path === "/portal/titles") return "Literature / titles list";
-  if (path.startsWith("/portal/titles/")) return "Title detail";
-  if (path === "/portal/packs") return "Plans & access";
-  if (path === "/portal/jobs") return "Peer help";
-  if (path.startsWith("/portal/jobs/")) return "Peer help detail";
-  if (path === "/about") return "About Honic";
-  if (path === "/share-portal") return "Share portal info";
-  if (path === "/login") return "Staff login";
-  if (path.startsWith("/analytics")) return "Analytics";
-  if (path.startsWith("/users")) return "Registered users";
-  if (path.startsWith("/finance")) return "Finance";
-  if (path.startsWith("/students")) return "Student workspaces";
-  if (path.startsWith("/titles")) return "Staff titles";
-  return path;
+  const p = displayPath(path);
+  if (p === "/" || p === "/portal") return "Student portal home";
+  if (p === "/portal/home") return "My home";
+  if (p === "/portal/titles") return "Literature / titles list";
+  if (p === "/portal/titles/mine" || p.startsWith("/portal/titles/mine/")) return "My titles";
+  if (p.startsWith("/portal/titles/")) return "Title detail";
+  if (p === "/portal/packs") return "Plans & access";
+  if (p === "/portal/jobs") return "Peer help";
+  if (p.startsWith("/portal/jobs/")) return "Peer help detail";
+  if (p === "/portal/zimamoto" || p.startsWith("/portal/zimamoto/")) return "Zimamoto";
+  if (p === "/about") return "About Honic";
+  if (p === "/share-portal") return "Share portal info";
+  if (p === "/login") return "Staff login";
+  if (p.startsWith("/analytics")) return "Analytics";
+  if (p.startsWith("/users")) return "Registered users";
+  if (p.startsWith("/finance")) return "Finance";
+  if (p.startsWith("/students")) return "Student workspaces";
+  if (p.startsWith("/titles")) return "Staff titles";
+  return p;
 }
 
 export type AnalyticsLivePayload = {
@@ -215,8 +226,9 @@ export function AnalyticsLivePanel({ initial }: { initial: AnalyticsLivePayload 
                   <ul className="divide-dash-border divide-y">
                     {pages.map((row) => {
                       const pct = Math.round((row.pageviewCount / maxPageViews) * 100);
+                      const pathShown = displayPath(row.path);
                       const label = pageLabel(row.path);
-                      const showPath = label !== row.path;
+                      const showPath = label !== pathShown;
                       return (
                         <li key={row.path} className="relative px-4 py-3 sm:px-5">
                           <div
@@ -230,9 +242,9 @@ export function AnalyticsLivePanel({ initial }: { initial: AnalyticsLivePayload 
                               {showPath ? (
                                 <p
                                   className="text-dash-muted-foreground mt-0.5 truncate font-mono text-[11px]"
-                                  title={row.path}
+                                  title={pathShown}
                                 >
-                                  {row.path}
+                                  {pathShown}
                                 </p>
                               ) : null}
                               <p

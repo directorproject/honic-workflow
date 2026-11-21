@@ -21,6 +21,24 @@ function getSessionKey(): string {
   }
 }
 
+function canonicalizeClientPath(pathname: string): string {
+  let path = pathname || "/";
+  try {
+    path = decodeURIComponent(path);
+  } catch {
+    /* keep */
+  }
+  return path;
+}
+
+/** Title detail pages are recorded server-side — avoid double-counting. */
+function isServerTrackedTitleDetail(pathname: string): boolean {
+  const p = pathname.toLowerCase();
+  if (!p.startsWith("/portal/titles/")) return false;
+  if (p === "/portal/titles/mine" || p.startsWith("/portal/titles/mine/")) return false;
+  return true;
+}
+
 function ping(path: string) {
   if (typeof window === "undefined") return;
   if (typeof navigator !== "undefined" && navigator.webdriver) return;
@@ -30,21 +48,22 @@ function ping(path: string) {
     sessionKey: getSessionKey(),
   });
 
-  try {
-    if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
-      const blob = new Blob([payload], { type: "application/json" });
-      if (navigator.sendBeacon("/api/portal/track-visit", blob)) return;
-    }
-  } catch {
-    /* fall through */
-  }
-
+  // Prefer fetch — sendBeacon + JSON is flaky on some mobile browsers.
   void fetch("/api/portal/track-visit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: payload,
     keepalive: true,
-  }).catch(() => undefined);
+  }).catch(() => {
+    try {
+      if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+        const blob = new Blob([payload], { type: "application/json" });
+        navigator.sendBeacon("/api/portal/track-visit", blob);
+      }
+    } catch {
+      /* soft-fail */
+    }
+  });
 }
 
 /** Fires once per client-side navigation (pathname). Soft-fails if API/tables missing. */
@@ -58,13 +77,14 @@ export function VisitTracker() {
     // Ignore staff analytics itself to avoid self-noise.
     if (pathname === "/analytics" || pathname.startsWith("/analytics/")) return;
 
-    const search = searchParams?.toString() ?? "";
+    const path = canonicalizeClientPath(pathname);
+    if (isServerTrackedTitleDetail(path)) return;
+
     // Path only for counting (query ignored) so filters don't inflate visits.
-    const key = pathname;
-    if (last.current === key) return;
-    last.current = key;
-    void search; // keep hook dependency for future if needed
-    ping(pathname);
+    if (last.current === path) return;
+    last.current = path;
+    void searchParams; // keep hook dependency for remounts when query changes on same path
+    ping(path);
   }, [pathname, searchParams]);
 
   return null;

@@ -18,6 +18,7 @@ import { loadPortalState } from "@/lib/portal/data";
 import { hasProjectDocumentsAccess } from "@/lib/portal/document-access";
 import { TitleEngagementStats } from "@/components/portal/title-engagement-stats";
 import { claimsForTarget, publishedDocuments, type TitleClaim, type TitleTargetKind } from "@/lib/portal/title-claims";
+import { recordPageVisit } from "@/lib/portal/page-visits";
 import { engagementForTargets, recordTitleClick, type TitleEngagement } from "@/lib/portal/title-engagement";
 import { projectMark } from "@/lib/portal/project-mark";
 import { loadGuestLiteratureCatalogue, loadStudentLiteratureCatalogue } from "@/lib/portal/literature-guest-cache";
@@ -146,17 +147,23 @@ export default async function PortalTitlePage(props: {
     href: canViewDocuments ? `/api/portal/title-documents/${document.id}` : null,
   }));
 
-  // Count every title open (guest, student, staff). Owner viewing their own title is skipped inside recordTitleClick.
+  // Title opens + page visit on the server (client VisitTracker skips title detail to avoid doubles).
+  // Owner viewing their own title is skipped inside recordTitleClick only.
   if (target) {
-    after(() =>
-      recordTitleClick(db, {
+    after(() => {
+      void recordTitleClick(db, {
         targetKind: target.kind,
         targetId: target.id,
         viewerId: user?.id ?? null,
         ownerId,
         isStaff: false,
-      }),
-    );
+      });
+      void recordPageVisit(db, {
+        path: `/portal/titles/${routeId}`,
+        sessionKey: null,
+        viewerId: user?.id ?? null,
+      });
+    });
   }
 
   const engagement = target ? engagementMap.get(`${target.kind}:${target.id}`) ?? null : null;
