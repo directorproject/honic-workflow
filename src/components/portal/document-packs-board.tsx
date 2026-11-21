@@ -161,14 +161,14 @@ export function DocumentPacksBoard({
         </div>
       </section>
 
-      {/* What paid unlocks */}
-      <section className="pt-16 sm:pt-24">
+      {/* What paid unlocks + free vs paid */}
+      <section className="pt-12 sm:pt-16">
         <div className={SECTION}>
           <p className={EYEBROW}>What you get</p>
           <h2 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
             Everything a paid plan opens
           </h2>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
             <FeatureTile
               title="Peer help"
               body={PRICING_BOARD.jobs.note}
@@ -197,13 +197,7 @@ export function DocumentPacksBoard({
               }
             />
           </div>
-        </div>
-      </section>
-
-      {/* Free vs paid */}
-      <section className="pt-16 sm:pt-24">
-        <div className={SECTION}>
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
             <ChecklistPanel title="Always free" items={PRICING_BOARD.freeAlways} />
             <ChecklistPanel title="Paid plan only" items={PRICING_BOARD.paidOnly} highlight />
           </div>
@@ -211,7 +205,7 @@ export function DocumentPacksBoard({
       </section>
 
       {/* Title rules */}
-      <section className="pt-16 sm:pt-24">
+      <section className="pt-12 sm:pt-16">
         <div className={SECTION}>
           <div className="rounded-3xl border border-dash-border bg-dash-card p-6 sm:p-10">
             <p className={EYEBROW}>How titles work</p>
