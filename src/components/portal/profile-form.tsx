@@ -23,54 +23,7 @@ import {
 } from "@/lib/portal/config";
 import type { Course, StudentProfile } from "@/lib/portal/data";
 
-function ChoiceChips({
-  label,
-  hint,
-  options,
-  value,
-  onChange,
-  optional,
-}: {
-  label: string;
-  hint?: string;
-  options: readonly { value: string; label: string }[];
-  value: string;
-  onChange: (value: string) => void;
-  optional?: boolean;
-}) {
-  return (
-    <div role="radiogroup" aria-label={label}>
-      <div className="mb-2.5">
-        <span className="text-dash-foreground block text-sm font-semibold">
-          {label}
-          {optional ? <span className="text-dash-muted-foreground font-normal"> · optional</span> : null}
-        </span>
-        {hint ? <p className="text-dash-muted-foreground mt-0.5 text-xs leading-relaxed">{hint}</p> : null}
-      </div>
-      <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap">
-        {options.map((o) => {
-          const active = o.value === value;
-          return (
-            <button
-              key={o.value}
-              type="button"
-              role="radio"
-              aria-checked={active}
-              onClick={() => onChange(value === o.value ? "" : o.value)}
-              className={`min-h-11 max-w-full rounded-xl px-3.5 py-2.5 text-left text-sm leading-snug font-semibold break-words whitespace-normal transition-all sm:min-h-0 sm:px-4 sm:text-center ${
-                active
-                  ? "bg-dash-accent text-white shadow-sm"
-                  : "border-dash-border bg-dash-muted/30 text-dash-muted-foreground hover:border-dash-accent/40 hover:text-dash-foreground border"
-              }`}
-            >
-              {o.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+const CLEAR_OPTION = "__clear__";
 
 function FormSection({
   title,
@@ -465,13 +418,19 @@ function AcademicDetailsForm({
       </FormSection>
 
       <FormSection title="Study details" hint="Optional — helps show the right titles and plans.">
-        <ChoiceChips
-          label="Level of study"
-          options={STUDY_LEVELS}
-          value={studyLevel}
-          onChange={setStudyLevel}
-          optional
-        />
+        <Field label="Level of study (optional)">
+          <SearchSelect
+            value={studyLevel || CLEAR_OPTION}
+            onChange={(v) => setStudyLevel(v === CLEAR_OPTION ? "" : v)}
+            placeholder="Select level"
+            searchPlaceholder="Search level…"
+            emptyText="No match"
+            options={[
+              { value: CLEAR_OPTION, label: "Not specified" },
+              ...STUDY_LEVELS.map((l) => ({ value: l.value, label: l.label })),
+            ]}
+          />
+        </Field>
         {studyLevel === "other" ? (
           <Field label="Your level of study *">
             <input
@@ -485,13 +444,19 @@ function AcademicDetailsForm({
           </Field>
         ) : null}
 
-        <ChoiceChips
-          label="Project type"
-          options={PROJECT_CATEGORIES}
-          value={projectCategory}
-          onChange={setProjectCategory}
-          optional
-        />
+        <Field label="Project type (optional)">
+          <SearchSelect
+            value={projectCategory || CLEAR_OPTION}
+            onChange={(v) => setProjectCategory(v === CLEAR_OPTION ? "" : v)}
+            placeholder="Select project type"
+            searchPlaceholder="Search type…"
+            emptyText="No match"
+            options={[
+              { value: CLEAR_OPTION, label: "Not specified" },
+              ...PROJECT_CATEGORIES.map((c) => ({ value: c.value, label: c.label })),
+            ]}
+          />
+        </Field>
 
         <Field label="Academic year (optional)">
           <input
