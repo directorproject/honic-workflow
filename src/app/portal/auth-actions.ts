@@ -10,7 +10,7 @@ import { safePortalNextPath } from "@/lib/portal/safe-next";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
 export type PortalResult =
-  | { ok: true; message?: string; url?: string }
+  | { ok: true; message?: string; url?: string; paymentId?: string; awaitingPayment?: boolean }
   | { ok: false; message: string };
 export type PortalAuthFormState = PortalResult | null;
 export type PortalAuthRole = "student" | "supervisor";

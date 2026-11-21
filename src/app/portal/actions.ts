@@ -23,6 +23,7 @@ import {
 import { simulatedPaymentsAllowed } from "@/lib/payments/security";
 import {
   createMobilePayment,
+  fetchSnippePayment,
   makeIdempotencyKey,
   publicWebhookUrl,
   snippeConfigured,
@@ -36,6 +37,7 @@ import {
   PROJECT_CATEGORIES,
   PROJECT_DOCUMENTS_ACCESS_TSH,
   STUDY_LEVELS,
+  SUBSCRIPTION_MONTH_TSH,
   TITLE_CHANGE_FEE_TSH,
 } from "@/lib/portal/config";
 import {
@@ -903,7 +905,9 @@ export async function portalPayForMembershipAction(
     ) {
       return {
         ok: true,
-        message: `A membership payment is already open (ref ${openPay.reference}). Check your phone before it expires.`,
+        awaitingPayment: true,
+        paymentId: String(openPay.id),
+        message: "Approve the mobile-money prompt on your phone. We’ll update your plan as soon as payment confirms.",
       };
     }
 
@@ -956,7 +960,9 @@ export async function portalPayForMembershipAction(
       revalidatePath("/portal/packs");
       return {
         ok: true,
-        message: `Check your phone for the mobile-money prompt (ref ${reference}). Approve before it expires (~15 min). Your plan activates when payment is confirmed.`,
+        awaitingPayment: true,
+        paymentId: String(paymentRow.id),
+        message: "Approve the mobile-money prompt on your phone. This usually takes under a minute.",
       };
     }
 
@@ -986,10 +992,143 @@ export async function portalPayForMembershipAction(
           : "full year";
     return {
       ok: true,
-      message: `Simulated membership payment received (ref ${reference}). Your ${planLabel} plan is active.`,
+      message: `Payment received. Your ${planLabel} plan is active.`,
     };
   } catch (err) {
     return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };
+  }
+}
+
+export type MembershipPaymentPollState = "pending" | "paid" | "failed" | "expired";
+
+/** Poll membership payment; syncs from Snippe if webhook has not landed yet. */
+export async function portalCheckMembershipPaymentAction(paymentId: string): Promise<{
+  ok: boolean;
+  state: MembershipPaymentPollState;
+  message: string;
+  deskExpiresAt?: string | null;
+  deskPlan?: string | null;
+}> {
+  try {
+    const { user, db } = await requireStudent();
+    const id = String(paymentId ?? "").trim();
+    if (!id) return { ok: false, state: "failed", message: "Missing payment." };
+
+    const { data: pay } = await db
+      .from("title_change_payments")
+      .select("id, user_id, status, reference, amount, purpose, provider_txn_id, expires_at, created_at")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!pay) return { ok: false, state: "failed", message: "Payment not found." };
+
+    const purpose = String(pay.purpose ?? "").toLowerCase();
+    const ref = String(pay.reference ?? "").toUpperCase();
+    if (purpose !== "membership" && !ref.startsWith("MEM")) {
+      return { ok: false, state: "failed", message: "Not a membership payment." };
+    }
+
+    async function deskSnapshot() {
+      const { data: profile } = await db
+        .from("student_profiles")
+        .select("desk_expires_at, desk_plan")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      return {
+        deskExpiresAt: profile?.desk_expires_at ? String(profile.desk_expires_at) : null,
+        deskPlan: profile?.desk_plan ? String(profile.desk_plan) : null,
+      };
+    }
+
+    if (String(pay.status) === "paid") {
+      const desk = await deskSnapshot();
+      return {
+        ok: true,
+        state: "paid",
+        message: "Payment confirmed. Your plan is active.",
+        ...desk,
+      };
+    }
+    if (String(pay.status) === "failed") {
+      return { ok: false, state: "failed", message: "Payment failed or was cancelled. You can try again." };
+    }
+
+    const expired = isPendingExpired({
+      status: String(pay.status),
+      expiresAt: pay.expires_at ? String(pay.expires_at) : null,
+      createdAt: pay.created_at ? String(pay.created_at) : null,
+    });
+
+    // Recover missed webhooks: confirm with Snippe, then fulfill.
+    const snippeRef = pay.provider_txn_id ? String(pay.provider_txn_id) : "";
+    if (snippeRef && snippeConfigured()) {
+      const live = await fetchSnippePayment(snippeRef);
+      if (live?.status === "completed") {
+        const planGuess = ref.startsWith("MEMY")
+          ? "year"
+          : ref.startsWith("MEMS")
+            ? "semester"
+            : "monthly";
+        const months =
+          planGuess === "monthly" && Number(pay.amount) >= SUBSCRIPTION_MONTH_TSH
+            ? Math.round(Number(pay.amount) / SUBSCRIPTION_MONTH_TSH)
+            : 1;
+        const fulfilled = await fulfillMembershipPayment(
+          db,
+          {
+            id: String(pay.id),
+            user_id: user.id,
+            status: String(pay.status),
+            reference: String(pay.reference),
+            amount: Number(pay.amount),
+          },
+          planGuess,
+          {
+            paidAmount: live.amount,
+            providerTxnId: snippeRef,
+            webhookEventId: null,
+          },
+          planGuess === "monthly" ? months : null,
+        );
+        if (fulfilled.ok) {
+          revalidatePath("/portal");
+          revalidatePath("/portal/packs");
+          revalidatePath("/portal/titles");
+          const desk = await deskSnapshot();
+          return {
+            ok: true,
+            state: "paid",
+            message: "Payment confirmed. Your plan is active.",
+            ...desk,
+          };
+        }
+      }
+      if (live && ["failed", "cancelled", "expired"].includes(live.status)) {
+        await db.from("title_change_payments").update({ status: "failed" }).eq("id", pay.id).eq("status", "pending");
+        return { ok: false, state: "failed", message: "Payment failed or was cancelled. You can try again." };
+      }
+    }
+
+    if (expired) {
+      await db.from("title_change_payments").update({ status: "failed" }).eq("id", pay.id).eq("status", "pending");
+      return {
+        ok: false,
+        state: "expired",
+        message: "The payment prompt expired. Try again and approve on your phone promptly.",
+      };
+    }
+
+    return {
+      ok: true,
+      state: "pending",
+      message: "Waiting for you to approve on your phone…",
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      state: "failed",
+      message: toUserError(err, "Could not check payment status."),
+    };
   }
 }
 

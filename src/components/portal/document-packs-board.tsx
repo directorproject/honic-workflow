@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 
-import { portalPayForMembershipAction, type PortalResult } from "@/app/portal/actions";
+import {
+  portalCheckMembershipPaymentAction,
+  portalPayForMembershipAction,
+  type PortalResult,
+} from "@/app/portal/actions";
 import { DocumentsUnlockPanel } from "@/components/portal/documents-unlock-panel";
 import { Field, INPUT, PRIMARY, SECONDARY, StatusText } from "@/components/portal/portal-ui";
 import { formatTsh, PRICING_BOARD } from "@/lib/portal/document-packs";
@@ -412,11 +416,13 @@ function MonthlyPlanCard({ signedIn, phone, active }: { signedIn: boolean; phone
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
+  const [waitPaymentId, setWaitPaymentId] = useState<string | null>(null);
   const price = SUBSCRIPTION_MONTH_TSH * months;
   const monthOptions = Array.from({ length: MAX_MEMBERSHIP_MONTHS }, (_, i) => i + 1);
 
   function pay(fd: FormData) {
     setStatus(null);
+    setWaitPaymentId(null);
     startTransition(async () => {
       const res = await portalPayForMembershipAction(
         "monthly",
@@ -425,6 +431,10 @@ function MonthlyPlanCard({ signedIn, phone, active }: { signedIn: boolean; phone
         months,
       );
       setStatus(res);
+      if (res.ok && res.awaitingPayment && res.paymentId) {
+        setWaitPaymentId(res.paymentId);
+        return;
+      }
       if (res.ok) router.refresh();
     });
   }
@@ -448,6 +458,8 @@ function MonthlyPlanCard({ signedIn, phone, active }: { signedIn: boolean; phone
           priceLabel={formatTsh(price)}
           onPay={pay}
           ctaIdle={active ? "Extend securely" : `Subscribe · ${formatTsh(price)}`}
+          waitPaymentId={waitPaymentId}
+          onClearWait={() => setWaitPaymentId(null)}
         />
       }
     >
@@ -496,12 +508,18 @@ function SubscriptionPlanCard({
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
+  const [waitPaymentId, setWaitPaymentId] = useState<string | null>(null);
 
   function pay(fd: FormData) {
     setStatus(null);
+    setWaitPaymentId(null);
     startTransition(async () => {
       const res = await portalPayForMembershipAction(planId, String(fd.get("network") ?? ""), String(fd.get("phone") ?? ""));
       setStatus(res);
+      if (res.ok && res.awaitingPayment && res.paymentId) {
+        setWaitPaymentId(res.paymentId);
+        return;
+      }
       if (res.ok) router.refresh();
     });
   }
@@ -527,6 +545,8 @@ function SubscriptionPlanCard({
           priceLabel={formatTsh(price)}
           onPay={pay}
           ctaIdle={active ? "Renew securely" : `Subscribe · ${formatTsh(price)}`}
+          waitPaymentId={waitPaymentId}
+          onClearWait={() => setWaitPaymentId(null)}
         />
       }
     >
@@ -546,6 +566,8 @@ function CheckoutBlock({
   priceLabel,
   onPay,
   ctaIdle,
+  waitPaymentId,
+  onClearWait,
 }: {
   open: boolean;
   setOpen: (v: boolean) => void;
@@ -557,6 +579,8 @@ function CheckoutBlock({
   priceLabel: string;
   onPay: (fd: FormData) => void;
   ctaIdle: string;
+  waitPaymentId: string | null;
+  onClearWait: () => void;
 }) {
   if (!open) {
     return (
@@ -577,6 +601,19 @@ function CheckoutBlock({
           <p className="text-dash-muted-foreground mt-2.5 text-center text-[11px]">Activates after verified payment</p>
         )}
       </>
+    );
+  }
+
+  if (waitPaymentId) {
+    return (
+      <MembershipPaymentWait
+        paymentId={waitPaymentId}
+        onDone={() => {
+          onClearWait();
+          setOpen(false);
+        }}
+        onRetry={() => onClearWait()}
+      />
     );
   }
 
@@ -610,8 +647,115 @@ function CheckoutBlock({
           {pending ? "Sending…" : active ? "Pay to renew" : "Pay now"}
         </button>
       </div>
-      {status ? <StatusText status={status} /> : null}
+      {status && !(status.ok && status.awaitingPayment) ? <StatusText status={status} /> : null}
+      {status?.ok && status.awaitingPayment ? (
+        <p className="text-dash-muted-foreground text-sm">{status.message}</p>
+      ) : null}
     </form>
+  );
+}
+
+function MembershipPaymentWait({
+  paymentId,
+  onDone,
+  onRetry,
+}: {
+  paymentId: string;
+  onDone: () => void;
+  onRetry: () => void;
+}) {
+  const router = useRouter();
+  const [phase, setPhase] = useState<"waiting" | "paid" | "failed" | "expired">("waiting");
+  const [message, setMessage] = useState("Approve the prompt on your phone…");
+  const [secondsLeft, setSecondsLeft] = useState(15 * 60);
+  const stopped = useRef(false);
+
+  useEffect(() => {
+    stopped.current = false;
+    const started = Date.now();
+    const tick = window.setInterval(() => {
+      const left = Math.max(0, 15 * 60 - Math.floor((Date.now() - started) / 1000));
+      setSecondsLeft(left);
+    }, 1000);
+
+    async function poll() {
+      if (stopped.current) return;
+      const res = await portalCheckMembershipPaymentAction(paymentId);
+      if (stopped.current) return;
+      setMessage(res.message);
+      if (res.state === "paid") {
+        setPhase("paid");
+        stopped.current = true;
+        router.refresh();
+        window.setTimeout(() => {
+          onDone();
+          router.refresh();
+        }, 1200);
+        return;
+      }
+      if (res.state === "failed" || res.state === "expired") {
+        setPhase(res.state);
+        stopped.current = true;
+        return;
+      }
+    }
+
+    void poll();
+    const poller = window.setInterval(() => {
+      void poll();
+    }, 3000);
+
+    return () => {
+      stopped.current = true;
+      window.clearInterval(tick);
+      window.clearInterval(poller);
+    };
+  }, [paymentId, onDone, router]);
+
+  const mins = Math.floor(secondsLeft / 60);
+  const secs = String(secondsLeft % 60).padStart(2, "0");
+
+  return (
+    <div className="border-dash-border grid gap-3 border-t pt-4 sm:pt-5">
+      <div className="flex items-start gap-3 rounded-2xl bg-dash-muted/40 px-4 py-4">
+        {phase === "waiting" ? (
+          <span
+            className="border-dash-accent mt-0.5 inline-block h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-t-transparent"
+            aria-hidden
+          />
+        ) : phase === "paid" ? (
+          <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">✓</span>
+        ) : (
+          <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-600">!</span>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="text-dash-foreground text-sm font-semibold">
+            {phase === "waiting"
+              ? "Waiting for mobile-money approval"
+              : phase === "paid"
+                ? "Payment successful"
+                : phase === "expired"
+                  ? "Payment timed out"
+                  : "Payment failed"}
+          </p>
+          <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed">{message}</p>
+          {phase === "waiting" ? (
+            <p className="text-dash-muted-foreground mt-2 text-xs tabular-nums">Time left ~{mins}:{secs}</p>
+          ) : null}
+        </div>
+      </div>
+      {phase === "waiting" ? (
+        <p className="text-dash-muted-foreground text-center text-[11px]">Keep this page open. Your plan updates automatically when payment confirms.</p>
+      ) : null}
+      {phase === "paid" ? (
+        <p className="text-center text-sm font-semibold text-emerald-700 dark:text-emerald-300">Refreshing your plan…</p>
+      ) : null}
+      {(phase === "failed" || phase === "expired") && (
+        <button type="button" className={`${PRIMARY} w-full`} onClick={onRetry}>
+          Try again
+        </button>
+      )}
+    </div>
   );
 }
 
