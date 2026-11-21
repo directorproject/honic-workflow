@@ -1,0 +1,3 @@
+Target: project fpzpcsiczzmwppgmoeem
+Confirmed by --yes: Run a SQL statement on project fpzpcsiczzmwppgmoeem
+{"target":{"kind":"linked","project_ref":"fpzpcsiczzmwppgmoeem","environment":"unverified"},"_tag":"Error","error":{"code":"DbQueryUnexpectedStatusError","message":"unexpected status 401: {\"message\":\"Invalid access token\"}"}}
