@@ -14,8 +14,11 @@ import {
   portalPostJobAction,
   portalUpdateJobAction,
 } from "@/app/portal/job-actions";
+import { EscrowFundFields, JobEscrowPanel } from "@/components/portal/job-escrow-panel";
 import { PeerHelpPolicyGate } from "@/components/portal/peer-help-policy-gate";
 import { Avatar, Chip } from "@/components/zimamoto/ui";
+import { PAYMENT_NETWORKS } from "@/lib/portal/config";
+import type { PortalJobDeliverableMeta, PortalJobEscrow } from "@/lib/portal/job-escrow-shared";
 import {
   IconBack,
   IconChat,
@@ -732,6 +735,10 @@ export function JobDetailPanel({
   messagesByApplicationPublicId,
   canUseJobs,
   needsPolicy = false,
+  escrow = null,
+  deliverables = [],
+  peerPayoutSaved = false,
+  isStaff = false,
 }: {
   job: PortalJob;
   applications: PortalJobApplication[];
@@ -739,6 +746,10 @@ export function JobDetailPanel({
   messagesByApplicationPublicId: Record<string, PortalJobMessage[]>;
   canUseJobs: boolean;
   needsPolicy?: boolean;
+  escrow?: PortalJobEscrow | null;
+  deliverables?: PortalJobDeliverableMeta[];
+  peerPayoutSaved?: boolean;
+  isStaff?: boolean;
 }) {
   const threadableApps = applications.filter((a) => a.status === "pending" || a.status === "accepted");
   const [activeAppId, setActiveAppId] = useState(() => threadableApps[0]?.publicId ?? myApplication?.publicId ?? null);
@@ -803,6 +814,15 @@ export function JobDetailPanel({
 
             {job.isMine ? <OwnerTools job={job} canManage={canUseJobs} /> : null}
 
+            {escrow ? (
+              <JobEscrowPanel
+                escrow={escrow}
+                deliverables={deliverables}
+                peerPayoutSaved={peerPayoutSaved}
+                isStaff={isStaff}
+              />
+            ) : null}
+
             {myApplication ? (
               <div className={`${CARD} flex items-center gap-3 p-4`}>
                 <IconCheck size={18} className="text-emerald-600" />
@@ -824,7 +844,7 @@ export function JobDetailPanel({
                       <ApplicationRow
                         key={app.id}
                         app={app}
-                        canAccept={job.status === "open" && app.status === "pending"}
+                        canAccept={job.status === "open" && app.status === "pending" && !escrow}
                         onOpenThread={canThread ? () => setActiveAppId(app.publicId) : undefined}
                         threadSelected={selected}
                       />
@@ -974,6 +994,8 @@ function ApplicationRow({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
+  const [network, setNetwork] = useState<string>(PAYMENT_NETWORKS[0]);
+  const [phone, setPhone] = useState("");
 
   return (
     <article className={`${CARD} p-4 transition ${threadSelected ? "ring-dash-accent/40 ring-2" : ""}`}>
@@ -997,21 +1019,24 @@ function ApplicationRow({
       <p className="text-dash-muted-foreground mt-3 text-sm leading-relaxed">{app.message}</p>
       {app.proposedTsh != null ? <p className="text-dash-foreground mt-2 text-xs font-semibold">Proposed {formatTsh(app.proposedTsh)}</p> : null}
       {canAccept ? (
-        <button
-          type="button"
-          className={`${PRIMARY} mt-4 w-full`}
-          disabled={pending}
-          onClick={() => {
-            setStatus(null);
-            startTransition(async () => {
-              const res = await portalAcceptJobApplicationAction(app.publicId);
-              setStatus(res);
-              if (res.ok) router.refresh();
-            });
-          }}
-        >
-          <IconCheck size={15} /> {pending ? "Selecting…" : "Select this helper"}
-        </button>
+        <>
+          <EscrowFundFields network={network} phone={phone} onNetwork={setNetwork} onPhone={setPhone} />
+          <button
+            type="button"
+            className={`${PRIMARY} mt-3 w-full`}
+            disabled={pending}
+            onClick={() => {
+              setStatus(null);
+              startTransition(async () => {
+                const res = await portalAcceptJobApplicationAction(app.publicId, network, phone);
+                setStatus(res);
+                if (res.ok) router.refresh();
+              });
+            }}
+          >
+            <IconWallet size={15} /> {pending ? "Locking escrow…" : "Select helper & lock escrow"}
+          </button>
+        </>
       ) : null}
       {status ? <p className={`mt-2 text-xs ${status.ok ? "text-emerald-700" : "text-red-600"}`}>{status.ok ? status.message : toUserError(status.message ?? "")}</p> : null}
     </article>

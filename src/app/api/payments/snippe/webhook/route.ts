@@ -8,6 +8,7 @@ import {
   normalizeMembershipMonths,
   type DeskPlanId,
 } from "@/lib/payments/fulfill";
+import { fulfillJobEscrowPayment } from "@/lib/portal/job-escrow";
 import {
   amountsMatch,
   fetchSnippePayment,
@@ -200,8 +201,11 @@ export async function POST(request: Request) {
     const purpose = String(body.data?.metadata?.purpose ?? body.metadata?.purpose ?? "").toLowerCase();
     const planRaw = String(body.data?.metadata?.plan ?? body.metadata?.plan ?? "").toLowerCase();
     const monthsRaw = body.data?.metadata?.months ?? body.metadata?.months ?? null;
+    const isEscrow =
+      purpose === "job_escrow" || String(titlePay.reference).toUpperCase().startsWith("ESC");
     const isMembership =
-      purpose === "membership" || String(titlePay.reference).toUpperCase().startsWith("MEM");
+      !isEscrow &&
+      (purpose === "membership" || String(titlePay.reference).toUpperCase().startsWith("MEM"));
     let plan: DeskPlanId =
       planRaw === "semester" ? "semester" : planRaw === "monthly" ? "monthly" : "year";
     let membershipMonths: number | null = null;
@@ -226,40 +230,31 @@ export async function POST(request: Request) {
       }
     }
 
-    const result = isMembership
-      ? await fulfillMembershipPayment(
-          db,
-          {
-            id: String(titlePay.id),
-            user_id: String(titlePay.user_id),
-            status: String(titlePay.status),
-            reference: String(titlePay.reference),
-            amount: Number(titlePay.amount),
-          },
-          plan,
-          {
-            paidAmount: paidAmount == null ? null : Number(paidAmount),
-            providerTxnId: snippeRef || null,
-            webhookEventId: eventId,
-          },
-          membershipMonths,
-        )
-      : await fulfillTitleChangePayment(
-          db,
-          {
-            id: String(titlePay.id),
-            user_id: String(titlePay.user_id),
-            selection_id: titlePay.selection_id ? String(titlePay.selection_id) : null,
-            status: String(titlePay.status),
-            reference: String(titlePay.reference),
-            amount: Number(titlePay.amount),
-          },
-          {
-            paidAmount: paidAmount == null ? null : Number(paidAmount),
-            providerTxnId: snippeRef || null,
-            webhookEventId: eventId,
-          },
-        );
+    const payIdentity = {
+      id: String(titlePay.id),
+      user_id: String(titlePay.user_id),
+      status: String(titlePay.status),
+      reference: String(titlePay.reference),
+      amount: Number(titlePay.amount),
+    };
+    const security = {
+      paidAmount: paidAmount == null ? null : Number(paidAmount),
+      providerTxnId: snippeRef || null,
+      webhookEventId: eventId,
+    };
+
+    const result = isEscrow
+      ? await fulfillJobEscrowPayment(db, payIdentity, security)
+      : isMembership
+        ? await fulfillMembershipPayment(db, payIdentity, plan, security, membershipMonths)
+        : await fulfillTitleChangePayment(
+            db,
+            {
+              ...payIdentity,
+              selection_id: titlePay.selection_id ? String(titlePay.selection_id) : null,
+            },
+            security,
+          );
     if (!result.ok) {
       await markOutcome(db, eventId, "fulfill_error");
       return json(500, result);

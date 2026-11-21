@@ -1,6 +1,6 @@
 /** Nexis peer help (jobs board) — policy shown at post/apply. */
 
-export const PEER_HELP_RULES_VERSION = "2026-11-18";
+export const PEER_HELP_RULES_VERSION = "2026-11-22-escrow";
 
 export const PEER_HELP_RULES_SUMMARY = [
   {
@@ -14,6 +14,10 @@ export const PEER_HELP_RULES_SUMMARY = [
   {
     headline: "What fits",
     line: "Diagrams, slides layout, circuit/CAD help, formatting, and tutoring on work you already started.",
+  },
+  {
+    headline: "Escrow payment",
+    line: "Poster locks mobile-money escrow before work. Helper delivers a watermarked preview + final file. Pay out only after confirm, auto-release, or Honic dispute decision — not off-app.",
   },
   {
     headline: "Enforcement",

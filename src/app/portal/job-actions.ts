@@ -3,11 +3,38 @@
 import { revalidatePath } from "next/cache";
 
 import { isStaffUser } from "@/lib/auth-staff";
+import { simulatedPaymentsAllowed } from "@/lib/payments/security";
+import {
+  defaultPendingExpiresAt,
+  expireStalePendingPayments,
+  isPendingExpired,
+  resolvePendingExpiresAt,
+} from "@/lib/payments/pending-expiry";
+import {
+  createMobilePayment,
+  makeIdempotencyKey,
+  publicWebhookUrl,
+  snippeConfigured,
+  toSnippePhone,
+} from "@/lib/payments/snippe";
+import { PAYMENT_NETWORKS, PAYMENT_PROVIDER } from "@/lib/portal/config";
 import { getPortalUser } from "@/lib/portal/data";
+import {
+  confirmEscrowDelivery,
+  createEscrowForApplication,
+  fulfillJobEscrowPayment,
+  issuePreviewSession,
+  openEscrowDispute,
+  registerDeliverable,
+  resolveEscrowDispute,
+  savePeerPayoutAccount,
+  validateDeliverableUpload,
+  type DeliverableKind,
+} from "@/lib/portal/job-escrow";
 import { peerHelpAccepted, PEER_HELP_METADATA_KEY, PEER_HELP_RULES_VERSION, peerHelpRulesError } from "@/lib/portal/jobs-peer-help";
+import { paymentUnavailableMessage, toUserError } from "@/lib/portal/user-errors";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
-  acceptApplication,
   applyToJob,
   markJobTaken,
   createJob,
@@ -17,6 +44,7 @@ import {
   type JobPriceMode,
 } from "@/lib/portal/jobs";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
+import { STORAGE_BUCKET } from "@/lib/workspace/constants";
 
 import type { PortalResult } from "@/app/portal/auth-actions";
 
@@ -24,6 +52,14 @@ async function requireStudent() {
   const user = await getPortalUser();
   if (!user) throw new Error("Please sign in again.");
   if (isStaffUser(user)) throw new Error("This account cannot use the student portal.");
+  const db = getSupabaseAdminClient();
+  if (!db) throw new Error("Service unavailable. Please try again later.");
+  return { user, db };
+}
+
+async function requirePortalActor() {
+  const user = await getPortalUser();
+  if (!user) throw new Error("Please sign in again.");
   const db = getSupabaseAdminClient();
   if (!db) throw new Error("Service unavailable. Please try again later.");
   return { user, db };
@@ -131,18 +167,155 @@ export async function portalApplyJobAction(input: {
   }
 }
 
-export async function portalAcceptJobApplicationAction(applicationPublicId: string): Promise<PortalResult> {
+/**
+ * Select a helper and open escrow. Pass network+phone to push mobile-money for the locked amount.
+ * Helper is only assigned after payment confirms (webhook or simulated).
+ */
+export async function portalAcceptJobApplicationAction(
+  applicationPublicId: string,
+  network?: string,
+  phone?: string,
+): Promise<PortalResult> {
   try {
     const { user, db } = await requireStudent();
     if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
-    const result = await acceptApplication(db, {
-      userId: user.id,
+
+    const net = String(network ?? "").trim();
+    const telRaw = String(phone ?? "").trim().replace(/\s/g, "");
+    if (!(PAYMENT_NETWORKS as readonly string[]).includes(net)) {
+      return { ok: false, message: "Choose your mobile-money network to lock escrow." };
+    }
+    if (!toSnippePhone(telRaw)) {
+      return { ok: false, message: "Enter a valid Tanzanian mobile number to fund escrow." };
+    }
+
+    const created = await createEscrowForApplication(db, {
+      posterUserId: user.id,
       applicationPublicId: String(applicationPublicId ?? ""),
     });
-    if (!result.ok) return { ok: false, message: result.message };
+    if (!created.ok) return { ok: false, message: created.message };
+
+    const live = PAYMENT_PROVIDER === "snippe" && snippeConfigured();
+    if (!live && !simulatedPaymentsAllowed()) {
+      return { ok: false, message: paymentUnavailableMessage() };
+    }
+
+    await expireStalePendingPayments(db, { userId: user.id, referencePrefix: "ESC" });
+    const { data: openPay } = await db
+      .from("title_change_payments")
+      .select("id, reference, created_at, expires_at")
+      .eq("user_id", user.id)
+      .eq("status", "pending")
+      .ilike("reference", "ESC%")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (
+      openPay &&
+      !isPendingExpired({
+        status: "pending",
+        expiresAt: openPay.expires_at ? String(openPay.expires_at) : null,
+        createdAt: openPay.created_at ? String(openPay.created_at) : null,
+      })
+    ) {
+      return {
+        ok: true,
+        message: `Escrow payment already open (ref ${openPay.reference}). Approve on your phone to lock funds.`,
+      };
+    }
+
+    const reference = makeIdempotencyKey("ESC");
+    const amount = created.amountTsh;
+    const pendingExpires = live ? defaultPendingExpiresAt() : null;
+    const { data: paymentRow, error: insertError } = await db
+      .from("title_change_payments")
+      .insert({
+        user_id: user.id,
+        amount,
+        currency: "TZS",
+        provider: live ? "snippe" : "simulated",
+        network: net,
+        phone: telRaw,
+        status: live ? "pending" : "paid",
+        reference,
+        purpose: "job_escrow",
+        selection_id: null,
+        expires_at: pendingExpires,
+        paid_at: live ? null : new Date().toISOString(),
+      })
+      .select("id, user_id, status, reference, amount")
+      .single();
+    if (insertError) return { ok: false, message: insertError.message };
+
+    await db
+      .from("portal_job_escrows")
+      .update({
+        payment_id: paymentRow.id,
+        payment_reference: reference,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", created.escrow.id);
+
+    if (live) {
+      try {
+        const { data: profile } = await db
+          .from("student_profiles")
+          .select("full_name")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        const parts = String(profile?.full_name ?? "")
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean);
+        const firstname = parts[0] || "Student";
+        const lastname = parts.length > 1 ? parts.slice(1).join(" ") : "Portal";
+        const payment = await createMobilePayment({
+          amountTsh: amount,
+          phoneNumber: telRaw,
+          customer: { firstname, lastname, email: user.email || "student@honiccompany.com" },
+          orderId: reference,
+          webhookUrl: publicWebhookUrl(),
+          idempotencyKey: reference,
+          metadata: {
+            purpose: "job_escrow",
+            escrow_id: created.escrow.publicId,
+            job_id: created.jobPublicId,
+          },
+        });
+        const expiresAt = resolvePendingExpiresAt(payment.expiresAt);
+        await db
+          .from("title_change_payments")
+          .update({ provider_txn_id: payment.reference, network: net, expires_at: expiresAt })
+          .eq("id", paymentRow.id);
+      } catch (err) {
+        await db.from("title_change_payments").update({ status: "failed" }).eq("id", paymentRow.id);
+        return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };
+      }
+      revalidatePath("/portal/jobs");
+      revalidatePath("/portal/jobs/mine");
+      revalidatePath(`/portal/jobs/${encodeURIComponent(created.jobPublicId)}`);
+      return {
+        ok: true,
+        message: `Check your phone to lock TSh ${amount.toLocaleString()} in escrow (ref ${reference}). Helper is assigned only after payment confirms.`,
+      };
+    }
+
+    const fulfilled = await fulfillJobEscrowPayment(db, {
+      id: String(paymentRow.id),
+      user_id: user.id,
+      status: "pending",
+      reference,
+      amount,
+    });
+    if (!fulfilled.ok) return { ok: false, message: toUserError(fulfilled.message, paymentUnavailableMessage()) };
+
     revalidatePath("/portal/jobs");
     revalidatePath("/portal/jobs/mine");
-    return { ok: true, message: "Helper selected. Keep talking in the job thread. Still no real names." };
+    revalidatePath(`/portal/jobs/${encodeURIComponent(created.jobPublicId)}`);
+    return {
+      ok: true,
+      message: `Escrow locked (TSh ${amount.toLocaleString()}). Helper selected — they can deliver a watermarked preview + final file.`,
+    };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not accept." };
   }
@@ -206,3 +379,192 @@ export async function portalMarkJobTakenAction(jobPublicId: string): Promise<Por
     return { ok: false, message: err instanceof Error ? err.message : "Could not update the request." };
   }
 }
+
+export async function portalEscrowConfirmAction(escrowPublicId: string): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
+    const result = await confirmEscrowDelivery(db, {
+      userId: user.id,
+      escrowPublicId: String(escrowPublicId ?? ""),
+    });
+    if (!result.ok) return { ok: false, message: result.message };
+    revalidatePath("/portal/jobs");
+    revalidatePath("/portal/jobs/mine");
+    return { ok: true, message: "Confirmed. Final file unlocked. Helper payout is queued." };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not confirm." };
+  }
+}
+
+export async function portalEscrowDisputeAction(escrowPublicId: string, reason: string): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
+    const result = await openEscrowDispute(db, {
+      userId: user.id,
+      escrowPublicId: String(escrowPublicId ?? ""),
+      reason: String(reason ?? ""),
+    });
+    if (!result.ok) return { ok: false, message: result.message };
+    revalidatePath("/portal/jobs");
+    revalidatePath("/portal/jobs/mine");
+    return { ok: true, message: "Dispute opened. Honic will review chat + preview evidence." };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not open dispute." };
+  }
+}
+
+export async function portalEscrowResolveAction(
+  escrowPublicId: string,
+  resolution: "release" | "refund",
+  note: string,
+): Promise<PortalResult> {
+  try {
+    const { user, db } = await requirePortalActor();
+    if (!isStaffUser(user)) return { ok: false, message: "Staff only." };
+    const result = await resolveEscrowDispute(db, {
+      staffUserId: user.id,
+      escrowPublicId: String(escrowPublicId ?? ""),
+      resolution,
+      note: String(note ?? ""),
+    });
+    if (!result.ok) return { ok: false, message: result.message };
+    revalidatePath("/portal/jobs");
+    return { ok: true, message: resolution === "release" ? "Released to helper." : "Refunded to poster." };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not resolve." };
+  }
+}
+
+export async function portalSavePeerPayoutAction(input: {
+  network: string;
+  phone: string;
+  accountName: string;
+}): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    const { data: profile } = await db
+      .from("student_profiles")
+      .select("full_name")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!profile?.full_name) return { ok: false, message: "Complete your profile name first." };
+    const result = await savePeerPayoutAccount(db, {
+      userId: user.id,
+      network: String(input.network ?? ""),
+      phone: String(input.phone ?? ""),
+      accountName: String(input.accountName ?? ""),
+      registeredName: String(profile.full_name),
+    });
+    if (!result.ok) return { ok: false, message: result.message };
+    revalidatePath("/portal/jobs");
+    revalidatePath("/portal/jobs/mine");
+    return { ok: true, message: "Peer-help payout number saved. Changes later require Help desk." };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not save payout." };
+  }
+}
+
+/** Helper: get a signed upload URL for preview/final deliverable. */
+export async function portalEscrowUploadUrlAction(input: {
+  escrowPublicId: string;
+  kind: DeliverableKind;
+  fileName: string;
+  mimeType: string;
+  byteSize: number;
+}): Promise<PortalResult & { uploadUrl?: string; storagePath?: string; token?: string }> {
+  try {
+    const { user, db } = await requireStudent();
+    if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
+    const kind = input.kind === "final" ? "final" : "preview";
+    const check = validateDeliverableUpload({
+      kind,
+      mimeType: String(input.mimeType ?? ""),
+      byteSize: Number(input.byteSize),
+      originalName: String(input.fileName ?? ""),
+    });
+    if (!check.ok) return { ok: false, message: check.message };
+
+    const { data: escrow } = await db
+      .from("portal_job_escrows")
+      .select("id, helper_user_id, status, public_id")
+      .eq("public_id", String(input.escrowPublicId ?? ""))
+      .maybeSingle();
+    if (!escrow) return { ok: false, message: "Escrow not found." };
+    if (String(escrow.helper_user_id) !== user.id) return { ok: false, message: "Only the helper can upload." };
+    if (!["locked", "delivered"].includes(String(escrow.status))) {
+      return { ok: false, message: "Upload after funds are locked." };
+    }
+
+    const safeName = String(input.fileName ?? "file")
+      .replace(/[^a-zA-Z0-9._-]+/g, "_")
+      .slice(0, 80);
+    const storagePath = `job-escrow/${escrow.id}/${kind}-${Date.now()}-${safeName}`;
+    const { data, error } = await db.storage.from(STORAGE_BUCKET).createSignedUploadUrl(storagePath);
+    if (error || !data?.signedUrl) return { ok: false, message: error?.message || "Upload URL failed." };
+    return {
+      ok: true,
+      message: "Upload URL ready.",
+      uploadUrl: data.signedUrl,
+      storagePath,
+      token: data.token,
+    };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not start upload." };
+  }
+}
+
+export async function portalEscrowRegisterUploadAction(input: {
+  escrowPublicId: string;
+  kind: DeliverableKind;
+  storagePath: string;
+  mimeType: string;
+  byteSize: number;
+  originalName: string;
+  contentSha256: string;
+}): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
+    const result = await registerDeliverable(db, {
+      userId: user.id,
+      escrowPublicId: String(input.escrowPublicId ?? ""),
+      kind: input.kind === "final" ? "final" : "preview",
+      storagePath: String(input.storagePath ?? ""),
+      mimeType: String(input.mimeType ?? ""),
+      byteSize: Number(input.byteSize),
+      originalName: String(input.originalName ?? ""),
+      contentSha256: String(input.contentSha256 ?? ""),
+    });
+    if (!result.ok) return { ok: false, message: result.message };
+    revalidatePath("/portal/jobs");
+    revalidatePath("/portal/jobs/mine");
+    return {
+      ok: true,
+      message:
+        input.kind === "preview"
+          ? "Watermarked preview stored. Upload the final file too to open the review window."
+          : "Final file stored. When both files are in, the poster gets a secure preview window.",
+    };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not register upload." };
+  }
+}
+
+export async function portalEscrowPreviewTokenAction(deliverablePublicId: string): Promise<
+  PortalResult & { token?: string; expiresAt?: string }
+> {
+  try {
+    const { user, db } = await requireStudent();
+    const result = await issuePreviewSession(db, {
+      viewerUserId: user.id,
+      deliverablePublicId: String(deliverablePublicId ?? ""),
+    });
+    if (!result.ok) return { ok: false, message: result.message };
+    return { ok: true, message: "Preview session ready.", token: result.token, expiresAt: result.expiresAt };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not open preview." };
+  }
+}
+

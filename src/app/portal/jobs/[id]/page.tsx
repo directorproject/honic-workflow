@@ -6,6 +6,13 @@ import { PortalShell } from "@/components/portal/portal-shell";
 import { studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
 import {
+  getEscrowForJob,
+  getEscrowForJobStaff,
+  listDeliverablesForEscrow,
+  loadPeerPayoutAccount,
+  maybeAutoReleaseEscrowsForJob,
+} from "@/lib/portal/job-escrow";
+import {
   getJobByPublicId,
   getMyApplicationForJob,
   listApplicationsForJob,
@@ -32,6 +39,8 @@ export default async function PortalJobDetailPage(props: { params: Promise<{ id:
   const job = await getJobByPublicId(db, id, viewerId);
   if (!job) notFound();
 
+  if (!guest) await maybeAutoReleaseEscrowsForJob(db, job.id);
+
   const applications = !guest && (job.isMine || state.isStaff) ? await listApplicationsForJob(db, job.id, viewerId) : [];
   const myApplication = !guest && viewerId && !job.isMine ? await getMyApplicationForJob(db, job.id, viewerId) : null;
 
@@ -45,6 +54,12 @@ export default async function PortalJobDetailPage(props: { params: Promise<{ id:
   for (const app of threadApps) {
     messagesByApplicationPublicId[app.publicId] = await listMessagesForApplication(db, app.id, viewerId);
   }
+
+  let escrow = !guest && viewerId ? await getEscrowForJob(db, job.id, viewerId) : null;
+  if (!escrow && state.isStaff) escrow = await getEscrowForJobStaff(db, job.id);
+  const deliverables = escrow ? await listDeliverablesForEscrow(db, escrow.id) : [];
+  const peerPayout =
+    !guest && viewerId && escrow?.isHelper ? await loadPeerPayoutAccount(db, viewerId) : null;
 
   const membership = !guest && !state.isStaff && user ? await findMembership(db, user.id) : null;
   const viewerDetail = guest
@@ -71,6 +86,10 @@ export default async function PortalJobDetailPage(props: { params: Promise<{ id:
           messagesByApplicationPublicId={messagesByApplicationPublicId}
           canUseJobs={!guest && hasActiveDeskPlan(profile?.deskExpiresAt)}
           needsPolicy={Boolean(user) && !state.isStaff && !state.peerHelpAccepted}
+          escrow={escrow}
+          deliverables={deliverables}
+          peerPayoutSaved={Boolean(peerPayout?.sealOk && peerPayout.status === "active")}
+          isStaff={state.isStaff}
         />
       </PortalShell>
     </Suspense>

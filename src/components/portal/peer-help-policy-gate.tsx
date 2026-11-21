@@ -25,12 +25,12 @@ const POINTS = [
   {
     icon: IconLock,
     title: "Stay anonymous",
-    body: "Do not share real names, phone numbers, or contact details in requests, offers, or chat.",
+    body: "Do not share real names, phone numbers, or contact details in requests, offers, or chat. Pay through Nexis escrow only.",
   },
   {
     icon: IconUsers,
-    title: "Enforcement",
-    body: "Honic may remove posts, or limit accounts, that break these rules.",
+    title: "Escrow & delivery",
+    body: "Poster locks payment first. Helper uploads a watermarked preview + final file. Funds release on confirm, auto-timeout, or Honic dispute decision.",
   },
 ];
 
