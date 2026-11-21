@@ -115,8 +115,8 @@ export default async function AnalyticsPage() {
         </div>
       ) : (
         <>
-          <section className="mb-6" aria-label="Summary">
-            <h2 className="text-dash-foreground mb-3 text-sm font-semibold tracking-wide uppercase">Summary</h2>
+          <section className="mb-10 space-y-4" aria-label="Summary">
+            <h2 className="text-dash-foreground text-sm font-semibold tracking-wide uppercase">Summary</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard
                 label="Visits today"
@@ -128,102 +128,116 @@ export default async function AnalyticsPage() {
                 value={String(visits.last7Pageviews)}
                 hint={`${visits.last7Sessions} sessions`}
               />
-              <StatCard label="Pages tracked" value={String(pages.length)} hint="Distinct paths in last 30 days" />
+              <StatCard label="Pages tracked" value={String(pages.length)} hint="Open below when you want the list" />
               <StatCard
                 label="Title opens"
                 value={String(titleClickTotal)}
                 hint={`${titleBuyTotal} document unlocks · ${linkTotal} link clicks`}
               />
             </div>
-          </section>
 
-          <section className="mb-10" aria-label="Pages visited">
-            <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-              <div>
-                <h2 className="text-dash-foreground text-sm font-semibold tracking-wide uppercase">Pages visited</h2>
-                <p className="text-dash-muted-foreground mt-1 text-xs">
-                  Every path opened in the last 30 days, with today and 7-day counts.
-                </p>
-              </div>
-              <p className="text-dash-muted-foreground text-xs tabular-nums">{pages.length} pages</p>
-            </div>
-
-            {pages.length === 0 ? (
-              <p className="text-dash-muted-foreground border-dash-border bg-dash-card rounded-2xl border px-4 py-8 text-sm">
-                No page visits yet. Browse the portal after deploy, then refresh this page.
-              </p>
-            ) : (
-              <div className="border-dash-border bg-dash-card overflow-hidden rounded-2xl border">
-                <ul className="divide-dash-border divide-y">
-                  {pages.map((row) => {
-                    const pct = Math.round((row.pageviewCount / maxPageViews) * 100);
-                    const label = pageLabel(row.path);
-                    const showPath = label !== row.path;
-                    return (
-                      <li key={row.path} className="relative px-4 py-3 sm:px-5">
-                        <div
-                          className="bg-dash-accent/10 pointer-events-none absolute inset-y-0 left-0"
-                          style={{ width: `${pct}%` }}
-                          aria-hidden
-                        />
-                        <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-dash-foreground text-sm font-semibold">{label}</p>
-                            {showPath ? (
-                              <p className="text-dash-muted-foreground mt-0.5 truncate font-mono text-[11px]" title={row.path}>
-                                {row.path}
-                              </p>
-                            ) : null}
+            <details className="border-dash-border bg-dash-card group rounded-2xl border">
+              <summary className="text-dash-foreground flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-semibold sm:px-5 [&::-webkit-details-marker]:hidden">
+                <span>
+                  Pages visited
+                  <span className="text-dash-muted-foreground ml-2 font-normal">
+                    {pages.length === 0 ? "— none yet" : `· ${pages.length} pages`}
+                  </span>
+                </span>
+                <span className="border-dash-border text-dash-muted-foreground inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs transition-transform group-open:rotate-180">
+                  ▾
+                </span>
+              </summary>
+              <div className="border-dash-border border-t">
+                {pages.length === 0 ? (
+                  <p className="text-dash-muted-foreground px-4 py-6 text-sm sm:px-5">
+                    No page visits yet. Browse the portal after deploy, then refresh this page.
+                  </p>
+                ) : (
+                  <ul className="divide-dash-border divide-y">
+                    {pages.map((row) => {
+                      const pct = Math.round((row.pageviewCount / maxPageViews) * 100);
+                      const label = pageLabel(row.path);
+                      const showPath = label !== row.path;
+                      return (
+                        <li key={row.path} className="relative px-4 py-3 sm:px-5">
+                          <div
+                            className="bg-dash-accent/10 pointer-events-none absolute inset-y-0 left-0"
+                            style={{ width: `${pct}%` }}
+                            aria-hidden
+                          />
+                          <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-dash-foreground text-sm font-semibold">{label}</p>
+                              {showPath ? (
+                                <p
+                                  className="text-dash-muted-foreground mt-0.5 truncate font-mono text-[11px]"
+                                  title={row.path}
+                                >
+                                  {row.path}
+                                </p>
+                              ) : null}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 text-xs sm:gap-5">
+                              <CountChip label="Today" value={row.todayCount} />
+                              <CountChip label="7 days" value={row.last7Count} />
+                              <CountChip label="30 days" value={row.pageviewCount} strong />
+                              <span className="text-dash-muted-foreground hidden whitespace-nowrap sm:inline">
+                                Last {formatDay(row.lastSeenDay)}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex flex-wrap items-center gap-3 text-xs sm:gap-5">
-                            <CountChip label="Today" value={row.todayCount} />
-                            <CountChip label="7 days" value={row.last7Count} />
-                            <CountChip label="30 days" value={row.pageviewCount} strong />
-                            <span className="text-dash-muted-foreground hidden whitespace-nowrap sm:inline">
-                              Last {formatDay(row.lastSeenDay)}
-                            </span>
-                          </div>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
-            )}
-          </section>
+            </details>
 
-          <section className="mb-10" aria-label="Daily visits">
-            <h2 className="text-dash-foreground mb-3 text-sm font-semibold tracking-wide uppercase">Daily totals</h2>
-            <div className="border-dash-border bg-dash-card overflow-x-auto rounded-2xl border">
-              <table className="w-full min-w-[320px] text-left text-sm">
-                <thead>
-                  <tr className="border-dash-border text-dash-muted-foreground border-b text-xs tracking-wide uppercase">
-                    <th className="px-4 py-3 font-semibold">Day</th>
-                    <th className="px-4 py-3 font-semibold tabular-nums">Pageviews</th>
-                    <th className="px-4 py-3 font-semibold tabular-nums">Sessions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visits.days.length === 0 ? (
-                    <tr>
-                      <td colSpan={3} className="text-dash-muted-foreground px-4 py-6 text-sm">
-                        No daily totals yet.
-                      </td>
+            <details className="border-dash-border bg-dash-card group rounded-2xl border">
+              <summary className="text-dash-foreground flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-semibold sm:px-5 [&::-webkit-details-marker]:hidden">
+                <span>
+                  Daily totals
+                  <span className="text-dash-muted-foreground ml-2 font-normal">
+                    {visits.days.length === 0 ? "— none yet" : `· ${visits.days.length} days`}
+                  </span>
+                </span>
+                <span className="border-dash-border text-dash-muted-foreground inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs transition-transform group-open:rotate-180">
+                  ▾
+                </span>
+              </summary>
+              <div className="border-dash-border overflow-x-auto border-t">
+                <table className="w-full min-w-[320px] text-left text-sm">
+                  <thead>
+                    <tr className="border-dash-border text-dash-muted-foreground border-b text-xs tracking-wide uppercase">
+                      <th className="px-4 py-3 font-semibold">Day</th>
+                      <th className="px-4 py-3 font-semibold tabular-nums">Pageviews</th>
+                      <th className="px-4 py-3 font-semibold tabular-nums">Sessions</th>
                     </tr>
-                  ) : (
-                    visits.days.map((row) => (
-                      <tr key={row.dayKey} className="border-dash-border border-b last:border-0">
-                        <td className="text-dash-foreground px-4 py-2.5 font-medium">{formatDay(row.dayKey)}</td>
-                        <td className="text-dash-foreground px-4 py-2.5 tabular-nums font-semibold">
-                          {row.pageviewCount}
+                  </thead>
+                  <tbody>
+                    {visits.days.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="text-dash-muted-foreground px-4 py-6 text-sm">
+                          No daily totals yet.
                         </td>
-                        <td className="text-dash-foreground px-4 py-2.5 tabular-nums">{row.sessionCount}</td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ) : (
+                      visits.days.map((row) => (
+                        <tr key={row.dayKey} className="border-dash-border border-b last:border-0">
+                          <td className="text-dash-foreground px-4 py-2.5 font-medium">{formatDay(row.dayKey)}</td>
+                          <td className="text-dash-foreground px-4 py-2.5 tabular-nums font-semibold">
+                            {row.pageviewCount}
+                          </td>
+                          <td className="text-dash-foreground px-4 py-2.5 tabular-nums">{row.sessionCount}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </details>
           </section>
 
           <section className="mb-10" aria-label="Link clicks">
