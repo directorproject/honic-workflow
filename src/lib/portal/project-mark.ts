@@ -22,7 +22,14 @@ const BENG_MODULE: Record<string, { module: string; label: string }> = {
   ETE: { module: "ETU 08221", label: "Project Realization" },
 };
 
-const OD_MODULE = { module: "NTA L6 FYP", label: "Final year project" };
+/** OD / diploma final-year modules — same code pattern as BEng Project Realization. */
+const OD_MODULE: Record<string, { module: string; label: string }> = {
+  ETE: { module: "ETU 06204", label: "Final year project" },
+  COE: { module: "COU 06204", label: "Final year project" },
+  EE: { module: "EEU 06205", label: "Final year project" },
+  SLT: { module: "LSU 08106", label: "Final year project" },
+};
+const OD_MODULE_DEFAULT = { module: "PRJ 06200", label: "Final year project" };
 const LAB_MODULE = { module: "LSU 08106", label: "Final year project" };
 
 export function shortInstitution(value: string | null | undefined): string | null {
@@ -76,10 +83,11 @@ function catalogueLine(item: {
   const year = academicYear(item.yearLabel) ?? item.yearLabel;
   const cohort = titleCohortFromText(item.batch, item.source);
 
-  // OD / diploma — final year project (never invent a BENG## citation)
+  // OD / diploma — final year project with programme module code (never invent a BENG## citation)
   if (cohort?.kind === "od") {
-    const citation = `${cohort.key} ${programme} ${OD_MODULE.label} (${year})`;
-    return { citation, code: OD_MODULE.module, category: OD_MODULE.label, programme };
+    const courseModule = OD_MODULE[programme] ?? OD_MODULE_DEFAULT;
+    const citation = `${cohort.key} ${programme} ${courseModule.label} ${courseModule.module} (${year})`;
+    return { citation, code: courseModule.module, category: courseModule.label, programme };
   }
 
   if (cohort?.kind === "labtech") {

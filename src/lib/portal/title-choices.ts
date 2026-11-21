@@ -139,6 +139,9 @@ function asGroup(row: Record<string, unknown>): GroupProfile {
 function yearFromSource(source: string): number | null {
   const labeled = source.match(/(20\d{2})\s*\/\s*(20\d{2})/);
   if (labeled) return Number(labeled[1]);
+  // Filenames like "20242025"
+  const glued = source.match(/\b(20\d{2})(20\d{2})\b/);
+  if (glued && Number(glued[2]) === Number(glued[1]) + 1) return Number(glued[1]);
   return academicYearFromText(source);
 }
 
@@ -309,7 +312,13 @@ export async function loadLiterature(
   const studies: ReviewItem[] = (proposals ?? []).map((row) => {
     const created = text(row.created_at);
     const createdDate = created ? new Date(created) : null;
-    const year = createdDate && !Number.isNaN(createdDate.getTime()) ? academicYearOf(createdDate) : null;
+    const batch = text(row.batch);
+    // Prefer the academic year written on the title list (batch / origin), not upload time.
+    const yearFromList = batch ? yearFromSource(batch) : null;
+    const yearFromOrigin = text(row.origin_ref) ? yearFromSource(String(row.origin_ref)) : null;
+    const yearFromUpload =
+      createdDate && !Number.isNaN(createdDate.getTime()) ? academicYearOf(createdDate) : null;
+    const year = yearFromList ?? yearFromOrigin ?? yearFromUpload;
     const id = String(row.id);
     const reserved = String(row.status) === "reserved";
     const workspace = workspaceByTitle.get(id);
@@ -325,7 +334,7 @@ export async function loadLiterature(
       communication: text(row.communication),
       courseCode: text(row.course_code),
       institution: text(row.institution) ?? "Dar es Salaam Institute of Technology (DIT)",
-      batch: text(row.batch),
+      batch,
       source: null,
       sourceUrl,
       year,
