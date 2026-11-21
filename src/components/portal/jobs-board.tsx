@@ -114,10 +114,10 @@ function StatusChip({ status }: { status: string }) {
 
 function LockNotice({ children, href, cta }: { children: ReactNode; href: string; cta: string }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
-      <p className="flex items-start gap-2 text-sm text-amber-900 dark:text-amber-200">
-        <IconLock size={16} className="mt-0.5 shrink-0" />
-        <span>{children}</span>
+    <div className="border-dash-border bg-dash-muted/40 flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-4 py-3">
+      <p className="text-dash-muted-foreground flex items-start gap-2 text-sm">
+        <IconLock size={16} className="text-dash-muted-foreground mt-0.5 shrink-0" />
+        <span className="text-dash-foreground">{children}</span>
       </p>
       <Link href={href} className={`${PRIMARY} !py-2`}>
         {cta}
@@ -355,9 +355,9 @@ function JobCard({ job, canApply }: { job: PortalJob; canApply: boolean }) {
       </div>
 
       {!job.isMine && !canApply ? (
-        <div className="bg-amber-500/5 border-t border-amber-500/20 px-5 py-2.5 flex items-center gap-2">
-          <IconLock size={14} className="text-amber-700 dark:text-amber-300 shrink-0" />
-          <p className="text-amber-900 dark:text-amber-200 text-xs">Free plan: view only</p>
+        <div className="border-dash-border bg-dash-muted/30 flex items-center gap-2 border-t px-5 py-2.5">
+          <IconLock size={14} className="text-dash-muted-foreground shrink-0" />
+          <p className="text-dash-muted-foreground text-xs">Free plan: view only</p>
         </div>
       ) : null}
     </li>
@@ -1110,9 +1110,9 @@ function MessageThread({
             <IconClock size={14} /> Waiting for the poster to reply. You can chat once they answer.
           </div>
         ) : !canSend ? (
-          <div className="flex items-center justify-between gap-2 rounded-xl bg-amber-500/10 px-3 py-2.5">
-            <p className="flex items-center gap-2 text-xs text-amber-900 dark:text-amber-200">
-              <IconLock size={14} /> Messaging is part of the paid plan.
+          <div className="border-dash-border bg-dash-muted/40 flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5">
+            <p className="text-dash-muted-foreground flex items-center gap-2 text-xs">
+              <IconLock size={14} className="shrink-0" /> Messaging is part of the paid plan.
             </p>
             <Link href="/portal/packs#plans" className="text-dash-accent text-xs font-semibold">
               See plans
