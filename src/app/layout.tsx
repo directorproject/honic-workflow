@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { VisitTracker } from "@/components/analytics/visit-tracker";
 import { getPublicAppUrlFromEnv } from "@/lib/site-url";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
@@ -59,6 +61,9 @@ export default function RootLayout({
       <body suppressHydrationWarning className="bg-background text-foreground flex min-h-full min-w-0 flex-col overflow-x-hidden">
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
         <GoogleAnalytics />
+        <Suspense fallback={null}>
+          <VisitTracker />
+        </Suspense>
         {children}
       </body>
     </html>
