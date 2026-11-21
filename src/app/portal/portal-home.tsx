@@ -16,6 +16,7 @@ import { loadPayoutAccount } from "@/lib/portal/payout-accounts";
 import { claimsForUser, listOwnershipCatalogue } from "@/lib/portal/title-claims";
 import { engagementForTargets, engagementKey } from "@/lib/portal/title-engagement";
 import { loadTitleChoices } from "@/lib/portal/title-choices";
+import { fetchPortalHighlights, formatHighlightCount, type PortalHighlights } from "@/lib/portal/highlights";
 import { hasActiveDeskPlan, titleHideEntitlement } from "@/lib/portal/title-limits";
 import { createProjectShareLink } from "@/lib/project-share";
 import { loadProjectDetail } from "@/lib/projects-data";
@@ -218,13 +219,18 @@ export async function PortalHome({
   } else if (onAccount) {
     body = accountPanel;
   } else if (freeExplore) {
-    body = onHome ? (
-      <FreeHomeExplore name={profile.fullName} />
-    ) : (
-      <PlanLock locked title={featureTitle(tab)} body="Free plan can look around. Activate a semester or year Nexis Desk plan to use this tool.">
-        <FeaturePreview featureKey={tab} />
-      </PlanLock>
-    );
+    if (onHome) {
+      const highlights = db
+        ? await fetchPortalHighlights(db)
+        : { titles: 0, students: 0, projects: 0, openJobs: 0 };
+      body = <FreeHomeExplore name={profile.fullName} highlights={highlights} />;
+    } else {
+      body = (
+        <PlanLock locked title={featureTitle(tab)} body="Free plan can look around. Activate a semester or year Nexis Desk plan to use this tool.">
+          <FeaturePreview featureKey={tab} />
+        </PlanLock>
+      );
+    }
   } else if (bundle) {
     body = (
       <WorkspaceView
@@ -283,157 +289,176 @@ export async function PortalHome({
   );
 }
 
-function FreeHomeExplore({ name }: { name: string }) {
+const FREE_HOME_HERO =
+  "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1800&q=80";
+
+function FreeHomeExplore({ name, highlights }: { name: string; highlights: PortalHighlights }) {
   const firstName = name.split(" ")[0] || "there";
+  const titleCount = formatHighlightCount(highlights.titles);
+  const stats = [
+    { label: "Titles", value: titleCount },
+    { label: "Students", value: formatHighlightCount(highlights.students) },
+    { label: "Projects", value: formatHighlightCount(highlights.projects) },
+    { label: "Open jobs", value: formatHighlightCount(highlights.openJobs) },
+  ];
+
+  const freeTools = [
+    { href: "/portal/titles", title: "Literature review", blurb: `${titleCount} titles you can browse and shortlist.` },
+    { href: "/portal/jobs", title: "Peer help", blurb: "See open jobs and how students help each other." },
+  ];
+
+  const deskTools = [
+    { href: "/portal/packs", title: "Nexis Desk plans", blurb: "Unlock the full workspace for your project cycle." },
+    { href: "/portal/home?tab=gantt", title: "Planning & Gantt", blurb: "Timeline, milestones, and week view." },
+    { href: "/portal/home?tab=messages", title: "Help desk", blurb: "Chat with Honic on your project." },
+    { href: "/portal/home?tab=team", title: "Team workspace", blurb: "Invite partners and share one desk." },
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Hero Section */}
-      <div className="border-dash-border bg-dash-card overflow-hidden rounded-3xl border">
-        <div className="relative overflow-hidden">
-          {/* Background gradient */}
-          <div
-            aria-hidden
-            className="absolute inset-0 opacity-50"
-            style={{
-              background:
-                "linear-gradient(135deg, color-mix(in oklab, var(--dash-accent) 20%, transparent) 0%, color-mix(in oklab, var(--dash-accent) 5%, transparent) 100%)",
-            }}
-          />
-          <div className="relative px-5 py-8 sm:px-8 sm:py-12 lg:py-16">
-            <div className="max-w-2xl">
-              <p className="text-dash-accent text-sm font-semibold tracking-wide uppercase">Welcome to Honic Nexis</p>
-              <h1 className="text-dash-foreground mt-3 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-                Hi {firstName}, ready to start?
-              </h1>
-              <p className="text-dash-muted-foreground mt-4 text-base leading-relaxed sm:text-lg">
-                Explore the student portal. Browse project titles, connect with peers through jobs, and unlock full project management with a Nexis Desk plan.
-              </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <Link
-                  href="/portal/packs"
-                  className="bg-dash-accent text-white hover:bg-dash-accent/90 inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-semibold transition"
-                >
-                  Explore plans →
-                </Link>
-                <Link
-                  href="/portal/titles"
-                  className="border-dash-border hover:border-dash-accent/50 hover:bg-dash-muted/40 text-dash-foreground inline-flex items-center justify-center rounded-xl border px-6 py-3 text-sm font-semibold transition"
-                >
-                  Browse titles
-                </Link>
-                <Link
-                  href="/portal/jobs"
-                  className="border-dash-border hover:border-dash-accent/50 hover:bg-dash-muted/40 text-dash-foreground inline-flex items-center justify-center rounded-xl border px-6 py-3 text-sm font-semibold transition"
-                >
-                  Peer help jobs
-                </Link>
-              </div>
-            </div>
+    <div className="free-home -mx-3 -mt-4 sm:-mx-6 sm:-mt-5 lg:-mx-8">
+      {/* One-composition hero */}
+      <section className="relative overflow-hidden bg-slate-950">
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-cover bg-[center_40%] opacity-45"
+          style={{ backgroundImage: `url(${FREE_HOME_HERO})` }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(105deg, rgba(2,6,23,0.92) 0%, rgba(2,6,23,0.72) 48%, rgba(2,6,23,0.55) 100%), radial-gradient(50% 60% at 90% 20%, rgba(34,211,238,0.22), transparent 60%)",
+          }}
+        />
+        <div className="relative mx-auto flex min-h-[52vh] max-w-6xl flex-col justify-end px-4 pb-10 pt-14 sm:min-h-[48vh] sm:px-8 sm:pb-14 sm:pt-20">
+          <p className="packs-fade text-[10px] font-semibold tracking-[0.28em] text-cyan-200/90 uppercase sm:text-[11px]">
+            Honic Nexis
+          </p>
+          <h1 className="packs-fade packs-fade-delay-1 mt-3 max-w-[12ch] text-[2.55rem] leading-[0.95] font-semibold tracking-tight text-white sm:max-w-xl sm:text-5xl lg:text-6xl">
+            Hi {firstName}.
+          </h1>
+          <p className="packs-fade packs-fade-delay-2 mt-4 max-w-md text-[13px] leading-relaxed text-white/70 sm:text-base">
+            Start free with titles and peer help. Add a Desk plan when you need the full project workspace.
+          </p>
+          <div className="packs-fade packs-fade-delay-3 mt-7 flex flex-col gap-2.5 sm:mt-8 sm:flex-row sm:items-center">
+            <Link
+              href="/portal/titles"
+              className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-900 transition hover:bg-cyan-50 active:scale-[0.99] sm:rounded-full sm:py-2.5"
+            >
+              Browse titles
+            </Link>
+            <Link
+              href="/portal/packs"
+              className="inline-flex items-center justify-center rounded-2xl border border-white/25 bg-white/5 px-5 py-3.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10 active:scale-[0.99] sm:rounded-full sm:py-2.5"
+            >
+              View plans
+            </Link>
           </div>
         </div>
-      </div>
 
-      {/* Features Grid */}
-      <div>
-        <h2 className="text-dash-foreground mb-4 text-lg font-semibold sm:text-xl">Explore what's available</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              href: "/portal/titles",
-              title: "Literature Review",
-              description: "Browse and study project titles",
-              icon: "📚",
-              tag: "Free",
-            },
-            {
-              href: "/portal/jobs",
-              title: "Peer Help Jobs",
-              description: "Connect with students for support",
-              icon: "🤝",
-              tag: "Free",
-            },
-            {
-              href: "/portal/packs",
-              title: "Nexis Desk Plans",
-              description: "Unlock project workspace & tools",
-              icon: "🎯",
-              tag: "Paid",
-            },
-            {
-              href: "/portal/home?tab=gantt",
-              title: "Project Planning",
-              description: "Gantt timeline and milestones",
-              icon: "📅",
-              tag: "Paid",
-            },
-            {
-              href: "/portal/home?tab=messages",
-              title: "Help Desk",
-              description: "Chat with Honic support team",
-              icon: "💬",
-              tag: "Paid",
-            },
-            {
-              href: "/portal/home?tab=team",
-              title: "Team Workspace",
-              description: "Collaborate with team members",
-              icon: "👥",
-              tag: "Paid",
-            },
-          ].map((feature) => (
-            <Link
-              key={feature.href}
-              href={feature.href}
-              className="border-dash-border hover:border-dash-accent/40 hover:bg-dash-muted/30 group rounded-2xl border px-4 py-5 transition sm:px-5 sm:py-6"
-            >
-              <div className="flex items-start justify-between">
-                <div className="text-2xl sm:text-3xl">{feature.icon}</div>
-                <span
-                  className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                    feature.tag === "Free"
-                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                      : "bg-dash-accent/15 text-dash-accent"
-                  }`}
-                >
-                  {feature.tag}
-                </span>
+        {/* Live highlights strip — part of hero composition */}
+        <div className="relative border-t border-white/10 bg-black/25 backdrop-blur-md">
+          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px sm:grid-cols-4">
+            {stats.map((s) => (
+              <div key={s.label} className="px-4 py-4 sm:px-6 sm:py-5">
+                <p className="text-xl font-semibold tracking-tight text-white tabular-nums sm:text-2xl">{s.value}</p>
+                <p className="mt-0.5 text-[11px] font-medium tracking-wide text-white/50 uppercase">{s.label}</p>
               </div>
-              <h3 className="text-dash-foreground mt-3 font-semibold group-hover:text-dash-accent transition">
-                {feature.title}
-              </h3>
-              <p className="text-dash-muted-foreground mt-1 text-sm">{feature.description}</p>
-            </Link>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Quick Stats */}
-      <div className="bg-dash-card border-dash-border rounded-2xl border px-5 py-6 sm:px-8">
-        <h2 className="text-dash-foreground mb-4 text-lg font-semibold sm:text-xl">Portal highlights</h2>
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
-          {[
-            { label: "Titles available", value: "500+" },
-            { label: "Peer helpers", value: "1000+" },
-            { label: "Active projects", value: "250+" },
-            { label: "Support ready", value: "24/7" },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <p className="text-dash-accent text-xl sm:text-2xl font-bold">{stat.value}</p>
-              <p className="text-dash-muted-foreground text-xs sm:text-sm">{stat.label}</p>
-            </div>
-          ))}
+      {/* Free tools — large editorial rows */}
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-8 sm:py-14">
+        <div className="flex items-end justify-between gap-4 border-b border-dash-border pb-4">
+          <div>
+            <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.2em] uppercase">Open now</p>
+            <h2 className="text-dash-foreground mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">On the free plan</h2>
+          </div>
+          <p className="text-dash-muted-foreground hidden text-right text-xs sm:block">
+            No payment needed
+          </p>
         </div>
-      </div>
-
-      {/* Info Section */}
-      <div className="bg-gradient-to-br from-dash-accent/10 to-dash-accent/5 border-dash-border rounded-2xl border px-5 py-6 sm:px-8">
-        <h3 className="text-dash-foreground font-semibold">Get started</h3>
-        <ul className="text-dash-muted-foreground mt-3 space-y-2 text-sm">
-          <li>✓ Browse 500+ project titles free</li>
-          <li>✓ Connect with peer helpers for support</li>
-          <li>✓ Upgrade anytime for full workspace access</li>
+        <ul className="divide-dash-border divide-y">
+          {freeTools.map((item, i) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className="group flex items-baseline gap-4 py-6 transition sm:gap-8 sm:py-7"
+              >
+                <span className="text-dash-muted-foreground w-8 shrink-0 font-mono text-sm tabular-nums">
+                  0{i + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-dash-foreground text-lg font-semibold tracking-tight transition group-hover:text-dash-accent sm:text-xl">
+                    {item.title}
+                  </h3>
+                  <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed">{item.blurb}</p>
+                </div>
+                <span className="text-dash-muted-foreground group-hover:text-dash-accent shrink-0 text-sm font-semibold transition">
+                  Open →
+                </span>
+              </Link>
+            </li>
+          ))}
         </ul>
-      </div>
+      </section>
+
+      {/* Desk tools — dense modern list, monochrome tags */}
+      <section className="border-dash-border bg-dash-card/60 border-y">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8 sm:py-14">
+          <div className="max-w-xl">
+            <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.2em] uppercase">With a desk plan</p>
+            <h2 className="text-dash-foreground mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+              Full project workspace
+            </h2>
+            <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
+              Planning, help desk, and team tools unlock when your Nexis Desk plan is active.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-0 sm:grid-cols-2 sm:gap-x-10">
+            {deskTools.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="border-dash-border group flex items-start justify-between gap-4 border-t py-5 transition first:border-t-0 sm:py-6"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-dash-foreground text-base font-semibold tracking-tight group-hover:underline">
+                      {item.title}
+                    </h3>
+                    <span className="border-dash-border text-dash-muted-foreground rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
+                      Paid
+                    </span>
+                  </div>
+                  <p className="text-dash-muted-foreground mt-1.5 text-sm leading-relaxed">{item.blurb}</p>
+                </div>
+                <span className="text-dash-muted-foreground mt-1 shrink-0 text-sm" aria-hidden>
+                  →
+                </span>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-8">
+            <Link
+              href="/portal/packs"
+              className="bg-dash-foreground text-dash-canvas hover:opacity-90 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-sm font-semibold transition sm:w-auto sm:rounded-full"
+            >
+              Compare Desk plans →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-8 sm:py-12">
+        <p className="text-dash-muted-foreground text-sm leading-relaxed">
+          Browse <span className="text-dash-foreground font-medium tabular-nums">{titleCount}</span> titles free · open peer
+          jobs anytime · upgrade when you need the desk.
+        </p>
+      </section>
     </div>
   );
 }
