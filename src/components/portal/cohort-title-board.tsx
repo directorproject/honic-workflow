@@ -533,16 +533,16 @@ function TitlesMainPanel() {
 
 function TitlePolicyPanel() {
   return (
-    <div className="mx-3 mb-10 sm:mx-8">
-      <div className="border-dash-border bg-dash-card rounded-lg border p-4 sm:p-8">
-        <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className="text-dash-foreground text-xl font-semibold tracking-tight">Policy and rules</h2>
-          <Link href="/portal/titles" className="text-dash-accent text-sm font-semibold">
-            ← Back to titles
-          </Link>
-        </div>
-        <TitleRules />
+    <div className="mx-auto w-full max-w-5xl px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mb-6 flex justify-end">
+        <Link
+          href="/portal/titles"
+          className="text-dash-muted-foreground hover:text-dash-accent text-sm font-semibold transition-colors"
+        >
+          ← Back to titles
+        </Link>
       </div>
+      <TitleRules />
     </div>
   );
 }
