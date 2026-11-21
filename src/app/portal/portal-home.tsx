@@ -318,7 +318,7 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
     <div className="free-home">
       {/* Hero with Background Image */}
       <section
-        className="relative overflow-hidden min-h-screen flex items-center"
+        className="relative overflow-hidden h-[500px] sm:h-[600px] lg:h-[700px] flex items-center"
         style={{
           backgroundImage: `url(${FREE_HOME_HERO})`,
           backgroundSize: 'cover',
@@ -330,46 +330,46 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/85 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent" />
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-blue-500 blur-3xl" />
-          <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-cyan-500 blur-3xl" />
+          <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-cyan-400 blur-3xl" />
+          <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-purple-500 blur-3xl" />
         </div>
 
         {/* Content */}
         <div className="relative w-full">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-            <div className="grid grid-cols-1 gap-8 md:gap-12 lg:grid-cols-3 lg:gap-16">
+          <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
+            <div className="grid grid-cols-1 gap-6 md:gap-8 lg:grid-cols-3 lg:gap-12">
               {/* Left Column - Text & CTA */}
               <div className="lg:col-span-2 flex flex-col justify-center">
                 <div>
-                  <p className="text-xs font-semibold tracking-widest text-blue-300 uppercase animate-fade-in">Honic Nexis Platform</p>
-                  <h1 className="mt-4 text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white lg:leading-tight">
-                    Welcome back,<br />
-                    <span className="bg-gradient-to-r from-blue-300 via-cyan-300 to-blue-300 bg-clip-text text-transparent">
+                  <p className="text-xs font-semibold tracking-widest text-cyan-300 uppercase">Honic Nexis</p>
+                  <h1 className="mt-2 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white">
+                    Welcome,<br />
+                    <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
                       {firstName}
                     </span>
                   </h1>
-                  <p className="mt-6 text-lg sm:text-xl text-slate-200 max-w-xl leading-relaxed">
-                    Explore titles and peer opportunities. Unlock the full workspace with a Nexis Desk plan when you're ready to build your project.
+                  <p className="mt-4 text-base sm:text-lg text-slate-200 max-w-lg leading-relaxed">
+                    Explore titles and peer opportunities. Upgrade when you need the full workspace.
                   </p>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:gap-4">
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:gap-3">
                   <Link
                     href="/portal/titles"
-                    className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-8 py-4 font-semibold text-white transition-all hover:bg-blue-700 hover:shadow-2xl active:scale-95"
+                    className="inline-flex items-center justify-center rounded-lg bg-cyan-600 px-6 py-2.5 font-semibold text-white transition-all hover:bg-cyan-700 hover:shadow-lg active:scale-95 sm:px-7 sm:py-3"
                   >
                     Browse Titles
                   </Link>
                   <Link
                     href="/portal/jobs"
-                    className="inline-flex items-center justify-center rounded-xl border-2 border-amber-400/50 bg-amber-500/10 px-8 py-4 font-semibold text-amber-200 backdrop-blur transition-all hover:border-amber-400 hover:bg-amber-500/20"
+                    className="inline-flex items-center justify-center rounded-lg border-2 border-purple-400/60 bg-purple-500/15 px-6 py-2.5 font-semibold text-purple-200 backdrop-blur transition-all hover:border-purple-400 hover:bg-purple-500/30 sm:px-7 sm:py-3"
                   >
                     View Jobs
                   </Link>
                   <Link
                     href="/portal/packs"
-                    className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-8 py-4 font-semibold text-white backdrop-blur transition-all hover:bg-white/10 hover:border-white/30"
+                    className="inline-flex items-center justify-center rounded-lg border border-white/30 bg-white/10 px-6 py-2.5 font-semibold text-white backdrop-blur transition-all hover:bg-white/20 hover:border-white/50 sm:px-7 sm:py-3"
                   >
                     View Plans
                   </Link>
@@ -377,34 +377,32 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
               </div>
 
               {/* Right Column - Featured Counts */}
-              <div className="flex flex-col gap-6 lg:gap-8 justify-center">
-                {/* Title Count */}
+              <div className="flex flex-col gap-4 lg:gap-5 justify-center">
+                {/* Title Count - Cyan */}
                 <Link
                   href="/portal/titles"
-                  className="group relative overflow-hidden rounded-2xl"
+                  className="group relative overflow-hidden rounded-xl"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 blur-xl opacity-40 group-hover:opacity-60 transition-opacity" />
-                  <div className="relative bg-gradient-to-br from-blue-500/30 to-cyan-500/20 backdrop-blur-2xl border border-blue-400/40 rounded-2xl p-8 text-center group-hover:border-blue-400/70 transition-colors">
-                    <p className="text-xs font-semibold tracking-widest text-blue-300 uppercase">Available Titles</p>
-                    <p className="mt-3 text-6xl sm:text-7xl font-bold bg-gradient-to-r from-blue-200 to-cyan-200 bg-clip-text text-transparent leading-none">
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-blue-600 blur-lg opacity-50 group-hover:opacity-70 transition-opacity" />
+                  <div className="relative bg-gradient-to-br from-cyan-500/25 to-blue-600/15 backdrop-blur-xl border border-cyan-400/50 rounded-xl p-5 sm:p-6 text-center group-hover:border-cyan-400 transition-colors">
+                    <p className="text-xs font-bold tracking-widest text-cyan-300 uppercase">Titles</p>
+                    <p className="mt-2 text-5xl sm:text-6xl font-black bg-gradient-to-r from-cyan-200 to-blue-200 bg-clip-text text-transparent leading-none">
                       {titleCount}
                     </p>
-                    <p className="mt-2 text-sm text-blue-200">ready to explore</p>
                   </div>
                 </Link>
 
-                {/* Jobs Count */}
+                {/* Jobs Count - Purple */}
                 <Link
                   href="/portal/jobs"
-                  className="group relative overflow-hidden rounded-2xl"
+                  className="group relative overflow-hidden rounded-xl"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-600 to-orange-500 blur-xl opacity-40 group-hover:opacity-60 transition-opacity" />
-                  <div className="relative bg-gradient-to-br from-amber-500/30 to-orange-500/20 backdrop-blur-2xl border border-amber-400/40 rounded-2xl p-8 text-center group-hover:border-amber-400/70 transition-colors">
-                    <p className="text-xs font-semibold tracking-widest text-amber-300 uppercase">Open Jobs</p>
-                    <p className="mt-3 text-6xl sm:text-7xl font-bold bg-gradient-to-r from-amber-200 to-orange-200 bg-clip-text text-transparent leading-none">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-600 blur-lg opacity-50 group-hover:opacity-70 transition-opacity" />
+                  <div className="relative bg-gradient-to-br from-purple-500/25 to-pink-600/15 backdrop-blur-xl border border-purple-400/50 rounded-xl p-5 sm:p-6 text-center group-hover:border-purple-400 transition-colors">
+                    <p className="text-xs font-bold tracking-widest text-purple-300 uppercase">Jobs</p>
+                    <p className="mt-2 text-5xl sm:text-6xl font-black bg-gradient-to-r from-purple-200 to-pink-200 bg-clip-text text-transparent leading-none">
                       {formatHighlightCount(highlights.openJobs)}
                     </p>
-                    <p className="mt-2 text-sm text-amber-200">view opportunities</p>
                   </div>
                 </Link>
               </div>
