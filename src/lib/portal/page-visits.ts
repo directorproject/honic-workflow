@@ -15,6 +15,8 @@ export type PathVisitRow = {
   /** Pageviews in the last 7 EAT days. */
   last7Count: number;
   lastSeenDay: string;
+  /** Latest open timestamp for this path (ISO). */
+  lastSeenAt: string | null;
 };
 
 export type VisitSummary = {
@@ -22,6 +24,8 @@ export type VisitSummary = {
   todaySessions: number;
   last7Pageviews: number;
   last7Sessions: number;
+  /** Most recent page open across tracked paths. */
+  lastActivityAt: string | null;
   days: VisitDayRow[];
   /** @deprecated use `pages` — kept for older callers */
   topPaths: PathVisitRow[];
@@ -211,6 +215,7 @@ export async function fetchVisitSummary(db: SupabaseClient, days = 30): Promise<
     todaySessions: 0,
     last7Pageviews: 0,
     last7Sessions: 0,
+    lastActivityAt: null,
     days: [],
     topPaths: [],
     pages: [],
@@ -241,7 +246,7 @@ export async function fetchVisitSummary(db: SupabaseClient, days = 30): Promise<
   // Pull a wide window of path rows, then roll up per path.
   const { data: pathRows, error: pathErr } = await db
     .from("portal_path_visits")
-    .select("day_key, path, pageview_count")
+    .select("day_key, path, pageview_count, updated_at")
     .gte("day_key", daysAgoKey(Math.max(days - 1, 0)))
     .order("day_key", { ascending: false })
     .limit(2000);
@@ -252,17 +257,19 @@ export async function fetchVisitSummary(db: SupabaseClient, days = 30): Promise<
 
   const byPath = new Map<
     string,
-    { total: number; today: number; last7: number; lastSeen: string }
+    { total: number; today: number; last7: number; lastSeen: string; lastSeenAt: string | null }
   >();
   for (const r of pathRows ?? []) {
     const path = String(r.path);
     const day = String(r.day_key);
     const count = Number(r.pageview_count ?? 0);
-    const cur = byPath.get(path) ?? { total: 0, today: 0, last7: 0, lastSeen: day };
+    const updatedAt = r.updated_at ? String(r.updated_at) : null;
+    const cur = byPath.get(path) ?? { total: 0, today: 0, last7: 0, lastSeen: day, lastSeenAt: updatedAt };
     cur.total += count;
     if (day === today) cur.today += count;
     if (day >= last7Start) cur.last7 += count;
     if (day > cur.lastSeen) cur.lastSeen = day;
+    if (updatedAt && (!cur.lastSeenAt || updatedAt > cur.lastSeenAt)) cur.lastSeenAt = updatedAt;
     byPath.set(path, cur);
   }
 
@@ -273,14 +280,21 @@ export async function fetchVisitSummary(db: SupabaseClient, days = 30): Promise<
       todayCount: v.today,
       last7Count: v.last7,
       lastSeenDay: v.lastSeen,
+      lastSeenAt: v.lastSeenAt,
     }))
     .sort((a, b) => b.pageviewCount - a.pageviewCount || a.path.localeCompare(b.path));
+
+  let lastActivityAt: string | null = null;
+  for (const p of pages) {
+    if (p.lastSeenAt && (!lastActivityAt || p.lastSeenAt > lastActivityAt)) lastActivityAt = p.lastSeenAt;
+  }
 
   return {
     todayPageviews: todayRow?.pageviewCount ?? 0,
     todaySessions: todayRow?.sessionCount ?? 0,
     last7Pageviews: last7.reduce((n, d) => n + d.pageviewCount, 0),
     last7Sessions: last7.reduce((n, d) => n + d.sessionCount, 0),
+    lastActivityAt,
     days: mapped,
     topPaths: pages,
     pages,

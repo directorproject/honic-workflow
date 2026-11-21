@@ -26,7 +26,7 @@ const PAID_STORAGE = formatStorageQuota(PAID_PLAN_FILE_STORAGE_BYTES);
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1800&q=80";
 
-const SECTION = "mx-auto w-full max-w-6xl px-5 sm:px-8";
+const SECTION = "mx-auto w-full max-w-6xl px-4 sm:px-8";
 const EYEBROW = "text-dash-accent text-[11px] font-semibold tracking-[0.2em] uppercase";
 
 export function DocumentPacksBoard({
@@ -47,13 +47,29 @@ export function DocumentPacksBoard({
   const yearPerMonth = Math.round(SUBSCRIPTION_YEAR_TSH / 12);
   const semesterPerMonth = Math.round(SUBSCRIPTION_SEMESTER_TSH / 6);
 
+  const yearPoints = [
+    "Full Nexis Desk for the academic year",
+    "Workspace, help desk, literature",
+    "Peer help post, offer, and message",
+    `${FREE_TITLE_SLOTS} free title hides`,
+    `Storage up to ${PAID_STORAGE}`,
+    `Save ${formatTsh(yearSave)} vs two semesters`,
+  ];
+  const semesterPoints = [
+    "Full Nexis Desk for one project cycle",
+    "Workspace, help desk, literature",
+    "Peer help post, offer, and message",
+    `${FREE_TITLE_SLOTS} free title hides`,
+    `Storage up to ${PAID_STORAGE}`,
+  ];
+
   return (
-    <div className="packs-site -mx-3 -mt-4 pb-16 sm:-mx-6 sm:-mt-5 lg:-mx-8">
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-slate-950">
+    <div className="packs-site -mx-3 -mt-4 pb-24 sm:-mx-6 sm:-mt-5 sm:pb-16 lg:-mx-8">
+      {/* Phone-first hero: one composition, brand + one line + CTA */}
+      <section className="packs-hero relative overflow-hidden bg-slate-950">
         <div
           aria-hidden
-          className="absolute inset-0 bg-cover bg-[center_35%] opacity-40"
+          className="absolute inset-0 bg-cover bg-[center_30%] opacity-45 sm:opacity-40"
           style={{ backgroundImage: `url(${HERO_IMAGE})` }}
         />
         <div
@@ -61,63 +77,107 @@ export function DocumentPacksBoard({
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(2,6,23,0.55) 0%, rgba(2,6,23,0.92) 85%), radial-gradient(60% 50% at 85% 0%, rgba(6,182,212,0.25), transparent 60%)",
+              "linear-gradient(180deg, rgba(2,6,23,0.45) 0%, rgba(2,6,23,0.88) 70%, rgba(2,6,23,0.98) 100%), radial-gradient(70% 55% at 90% -10%, rgba(6,182,212,0.35), transparent 55%)",
           }}
         />
-        <div className={`${SECTION} relative py-14 sm:py-20`}>
-          <p className="text-[11px] font-semibold tracking-[0.25em] text-cyan-200/90 uppercase">Honic Nexis · Plans</p>
-          <h1 className="mt-4 max-w-2xl text-[2.1rem] leading-[1.05] font-semibold tracking-tight text-white sm:text-5xl">
+        <div className={`${SECTION} relative flex min-h-[42vh] flex-col justify-end py-10 sm:min-h-0 sm:py-20`}>
+          <p className="packs-fade text-[10px] font-semibold tracking-[0.28em] text-cyan-200/90 uppercase sm:text-[11px]">
+            Honic Nexis
+          </p>
+          <h1 className="packs-fade packs-fade-delay-1 mt-3 max-w-[14ch] text-[2.35rem] leading-[0.98] font-semibold tracking-tight text-white sm:max-w-2xl sm:text-5xl">
             Your desk, your pace.
           </h1>
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base">
-            One Nexis Desk plan unlocks the workspace, peer help, and extra title hides. Pay with mobile money. Your
-            plan activates once payment is verified.
+          <p className="packs-fade packs-fade-delay-2 mt-3 max-w-md text-[13px] leading-relaxed text-white/75 sm:mt-4 sm:text-base">
+            Unlock workspace, peer help, and title hides. Pay with mobile money — activates when verified.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="packs-fade packs-fade-delay-3 mt-6 flex gap-2 sm:mt-8 sm:gap-3">
             <a
               href="#plans"
-              className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-cyan-100"
+              className="inline-flex flex-1 items-center justify-center rounded-2xl bg-white px-4 py-3.5 text-sm font-semibold text-slate-900 transition active:scale-[0.98] sm:flex-none sm:rounded-full sm:px-5 sm:py-2.5"
             >
               Choose a plan
             </a>
             <Link
               href="/portal/titles"
-              className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10"
+              className="inline-flex flex-1 items-center justify-center rounded-2xl border border-white/25 bg-white/5 px-4 py-3.5 text-sm font-semibold text-white backdrop-blur transition active:scale-[0.98] sm:flex-none sm:rounded-full sm:px-5 sm:py-2.5"
             >
-              Browse literature
+              Literature
             </Link>
-          </div>
-
-          <div className="mt-10 inline-flex items-center gap-3 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 backdrop-blur">
-            <span
-              className={`h-2 w-2 rounded-full ${planActive ? "bg-emerald-400" : "bg-amber-300"}`}
-              aria-hidden
-            />
-            <p className="text-sm text-white/85">
-              <span className="font-semibold text-white">Your access</span>
-              <span className="mx-2 text-white/40">·</span>
-              {planLabel}
-            </p>
           </div>
         </div>
       </section>
 
-      {/* Plans */}
-      <section id="plans" className="scroll-mt-24 pt-14 sm:pt-20">
+      {/* Sticky access strip — sits under the portal header on phone */}
+      <div className="border-dash-border/60 bg-dash-canvas/90 sticky top-[3.6rem] z-20 border-b backdrop-blur-md sm:static sm:border-0 sm:bg-transparent sm:pt-0 sm:backdrop-blur-none">
+        <div className={`${SECTION} flex items-center gap-3 py-2.5 sm:pt-6 sm:pb-0`}>
+          <span
+            className={`h-2 w-2 shrink-0 rounded-full ${planActive ? "bg-emerald-400" : "bg-amber-300"}`}
+            aria-hidden
+          />
+          <p className="text-dash-foreground min-w-0 truncate text-xs sm:text-sm">
+            <span className="font-semibold">Your access</span>
+            <span className="text-dash-muted-foreground mx-1.5">·</span>
+            <span className="text-dash-muted-foreground">{planLabel}</span>
+          </p>
+        </div>
+      </div>
+
+      {/* Plans — snap carousel on phone, grid on desktop */}
+      <section id="plans" className="scroll-mt-16 pt-6 sm:scroll-mt-24 sm:pt-14">
         <div className={SECTION}>
-          <div className="max-w-2xl">
+          <div className="max-w-2xl px-0.5">
             <p className={EYEBROW}>Plans</p>
-            <h2 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-              Pick the length that fits your project
+            <h2 className="text-dash-foreground mt-1.5 text-xl font-semibold tracking-tight sm:mt-2 sm:text-3xl">
+              Pick the length that fits
             </h2>
-            <p className="text-dash-muted-foreground mt-2 text-sm leading-relaxed">
-              Every paid plan includes {FREE_TITLE_SLOTS} free classmate hides and peer-help posting. Renewals stack on
-              your current expiry, so you never lose days.
+            <p className="text-dash-muted-foreground mt-1.5 text-[13px] leading-relaxed sm:mt-2 sm:text-sm">
+              Paid plans include {FREE_TITLE_SLOTS} free hides and peer-help posting. Renewals stack — you never lose
+              days.
             </p>
           </div>
 
-          <div className="mt-10 grid items-stretch gap-5 md:grid-cols-2 xl:grid-cols-4">
+          {/* Mobile: horizontal snap tickets (best value first) */}
+          <div className="packs-snap -mx-4 mt-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 [-ms-overflow-style:none] [scrollbar-width:none] sm:hidden [&::-webkit-scrollbar]:hidden">
+            <div className="w-[82vw] max-w-[320px] shrink-0 snap-center">
+              <SubscriptionPlanCard
+                planId="year"
+                name="Full year"
+                period="12 months"
+                price={SUBSCRIPTION_YEAR_TSH}
+                perMonth={yearPerMonth}
+                badge="Best value"
+                highlight
+                points={yearPoints}
+                signedIn={signedIn}
+                phone={phone}
+                active={planActive && deskPlan === "year"}
+              />
+            </div>
+            <div className="w-[82vw] max-w-[320px] shrink-0 snap-center">
+              <SubscriptionPlanCard
+                planId="semester"
+                name="Semester"
+                period="6 months"
+                price={SUBSCRIPTION_SEMESTER_TSH}
+                perMonth={semesterPerMonth}
+                points={semesterPoints}
+                signedIn={signedIn}
+                phone={phone}
+                active={planActive && deskPlan === "semester"}
+              />
+            </div>
+            <div className="w-[82vw] max-w-[320px] shrink-0 snap-center">
+              <MonthlyPlanCard signedIn={signedIn} phone={phone} active={planActive && deskPlan === "monthly"} />
+            </div>
+            <div className="w-[82vw] max-w-[320px] shrink-0 snap-center">
+              <FreePlanCard active={!planActive} />
+            </div>
+          </div>
+          <p className="text-dash-muted-foreground mt-1 text-center text-[11px] sm:hidden">Swipe for more plans →</p>
+
+          {/* Desktop / tablet grid */}
+          <div className="mt-10 hidden items-stretch gap-5 sm:grid md:grid-cols-2 xl:grid-cols-4">
             <FreePlanCard active={!planActive} />
             <MonthlyPlanCard signedIn={signedIn} phone={phone} active={planActive && deskPlan === "monthly"} />
             <SubscriptionPlanCard
@@ -126,13 +186,7 @@ export function DocumentPacksBoard({
               period="6 months"
               price={SUBSCRIPTION_SEMESTER_TSH}
               perMonth={semesterPerMonth}
-              points={[
-                "Full Nexis Desk for one project cycle",
-                "Workspace, help desk, literature",
-                "Peer help post, offer, and message",
-                `${FREE_TITLE_SLOTS} free title hides`,
-                `Storage up to ${PAID_STORAGE}`,
-              ]}
+              points={semesterPoints}
               signedIn={signedIn}
               phone={phone}
               active={planActive && deskPlan === "semester"}
@@ -145,14 +199,7 @@ export function DocumentPacksBoard({
               perMonth={yearPerMonth}
               badge="Best value"
               highlight
-              points={[
-                "Full Nexis Desk for the academic year",
-                "Workspace, help desk, literature",
-                "Peer help post, offer, and message",
-                `${FREE_TITLE_SLOTS} free title hides`,
-                `Storage up to ${PAID_STORAGE}`,
-                `Save ${formatTsh(yearSave)} vs two semesters`,
-              ]}
+              points={yearPoints}
               signedIn={signedIn}
               phone={phone}
               active={planActive && deskPlan === "year"}
@@ -161,79 +208,102 @@ export function DocumentPacksBoard({
         </div>
       </section>
 
-      {/* What paid unlocks + free vs paid */}
-      <section className="pt-12 sm:pt-16">
+      {/* Benefits — compact phone rows, not sparse card grid */}
+      <section className="pt-10 sm:pt-16">
         <div className={SECTION}>
           <p className={EYEBROW}>What you get</p>
-          <h2 className="text-dash-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+          <h2 className="text-dash-foreground mt-1.5 text-xl font-semibold tracking-tight sm:mt-2 sm:text-3xl">
             Everything a paid plan opens
           </h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <FeatureTile
+
+          <div className="border-dash-border bg-dash-card mt-5 divide-dash-border/70 divide-y overflow-hidden rounded-2xl border sm:mt-8 sm:grid sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:rounded-3xl">
+            <BenefitRow
               title="Peer help"
               body={PRICING_BOARD.jobs.note}
-              action={<Link href="/portal/jobs" className="text-dash-accent text-sm font-semibold">Open peer help →</Link>}
+              action={
+                <Link href="/portal/jobs" className="text-dash-accent text-sm font-semibold">
+                  Open →
+                </Link>
+              }
             />
-            <FeatureTile
+            <BenefitRow
               title="Title hides"
-              body={`${formatTsh(EXTRA_TITLE_HIDE_FEE_TSH)} per hide outside the ${FREE_TITLE_SLOTS} included on a paid plan.`}
-              action={<Link href="/portal/titles" className="text-dash-accent text-sm font-semibold">Open literature →</Link>}
+              body={`${formatTsh(EXTRA_TITLE_HIDE_FEE_TSH)} per hide outside the ${FREE_TITLE_SLOTS} included.`}
+              action={
+                <Link href="/portal/titles" className="text-dash-accent text-sm font-semibold">
+                  Open →
+                </Link>
+              }
             />
-            <FeatureTile
+            <BenefitRow
               title="Project documents"
               body={
                 planActive
                   ? "Included with your active plan."
-                  : `${formatTsh(PROJECT_DOCUMENTS_ACCESS_TSH)} to unlock, or included on any paid plan.`
+                  : `${formatTsh(PROJECT_DOCUMENTS_ACCESS_TSH)} to unlock, or free on any paid plan.`
               }
               action={
                 signedIn && !planActive ? (
-                  <div className="mt-1">
-                    <DocumentsUnlockPanel phone={phone} compact />
-                  </div>
+                  <DocumentsUnlockPanel phone={phone} compact />
                 ) : !signedIn ? (
-                  <Link href="/portal" className="text-dash-accent text-sm font-semibold">Sign in to unlock →</Link>
+                  <Link href="/portal" className="text-dash-accent text-sm font-semibold">
+                    Sign in →
+                  </Link>
                 ) : null
               }
             />
           </div>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <ChecklistPanel title="Always free" items={PRICING_BOARD.freeAlways} />
-            <ChecklistPanel title="Paid plan only" items={PRICING_BOARD.paidOnly} highlight />
+
+          {/* Free vs paid — single split panel on phone */}
+          <div className="border-dash-border mt-4 grid grid-cols-2 overflow-hidden rounded-2xl border sm:mt-5 sm:gap-4 sm:border-0 sm:bg-transparent md:grid-cols-2">
+            <ChecklistPanel title="Always free" items={PRICING_BOARD.freeAlways} compact />
+            <ChecklistPanel title="Paid only" items={PRICING_BOARD.paidOnly} highlight compact />
           </div>
         </div>
       </section>
 
-      {/* Title rules */}
-      <section className="pt-12 sm:pt-16">
+      {/* Title rules — phone timeline */}
+      <section className="pt-10 sm:pt-16">
         <div className={SECTION}>
-          <div className="rounded-3xl border border-dash-border bg-dash-card p-6 sm:p-10">
+          <div className="border-dash-border bg-dash-card rounded-2xl border p-5 sm:rounded-3xl sm:p-10">
             <p className={EYEBROW}>How titles work</p>
-            <h2 className="text-dash-foreground mt-2 max-w-xl text-2xl font-semibold tracking-tight sm:text-3xl">
-              Selecting is free. Hiding protects your group.
+            <h2 className="text-dash-foreground mt-1.5 text-xl font-semibold tracking-tight sm:mt-2 sm:text-3xl">
+              Select free. Hide to protect.
             </h2>
-            <p className="text-dash-muted-foreground mt-2 max-w-xl text-sm leading-relaxed">
-              Hiding is not buying the idea. It keeps a title from classmates at your institution, course, and level
+            <p className="text-dash-muted-foreground mt-2 text-[13px] leading-relaxed sm:text-sm">
+              Hiding is not buying the idea — it keeps a title from classmates at your institution, course, and level
               until defence.
             </p>
-            <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <ol className="relative mt-6 space-y-0 sm:mt-8 sm:grid sm:grid-cols-2 sm:gap-6 sm:space-y-0 lg:grid-cols-4">
               {[
-                { n: "1", t: "Select free", d: "Keeps a title in front. Classmates can still see it until it is hidden." },
-                { n: "2", t: "Hide when ready", d: `Free plan pays ${formatTsh(EXTRA_TITLE_HIDE_FEE_TSH)} per hide. Paid plans include ${FREE_TITLE_SLOTS}.` },
+                { n: "1", t: "Select free", d: "Keeps a title in front. Classmates can still see it until hidden." },
+                {
+                  n: "2",
+                  t: "Hide when ready",
+                  d: `Free plan pays ${formatTsh(EXTRA_TITLE_HIDE_FEE_TSH)} per hide. Paid plans include ${FREE_TITLE_SLOTS}.`,
+                },
                 { n: "3", t: "Not a title shop", d: "Payment only activates classmate-hide protection on this portal." },
                 { n: "4", t: "Defend clearly", d: "Hiding blocks others at your institution, course, and level." },
-              ].map((item) => (
-                <li key={item.n} className="relative pl-12">
-                  <span className="bg-dash-accent/10 text-dash-accent absolute top-0 left-0 flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold">
+              ].map((item, i, arr) => (
+                <li key={item.n} className="relative flex gap-3 pb-6 last:pb-0 sm:block sm:pl-12 sm:pb-0">
+                  {i < arr.length - 1 ? (
+                    <span
+                      aria-hidden
+                      className="bg-dash-border absolute top-8 bottom-0 left-[15px] w-px sm:hidden"
+                    />
+                  ) : null}
+                  <span className="bg-dash-accent/15 text-dash-accent relative z-[1] flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold sm:absolute sm:top-0 sm:left-0">
                     {item.n}
                   </span>
-                  <h3 className="text-dash-foreground text-base font-semibold">{item.t}</h3>
-                  <p className="text-dash-muted-foreground mt-1.5 text-sm leading-relaxed">{item.d}</p>
+                  <div className="min-w-0 pt-0.5">
+                    <h3 className="text-dash-foreground text-sm font-semibold sm:text-base">{item.t}</h3>
+                    <p className="text-dash-muted-foreground mt-1 text-[13px] leading-relaxed sm:text-sm">{item.d}</p>
+                  </div>
                 </li>
               ))}
             </ol>
-            <div className="mt-8">
-              <Link href="/portal/titles" className={`${SECONDARY} inline-flex`}>
+            <div className="mt-6 sm:mt-8">
+              <Link href="/portal/titles" className={`${SECONDARY} inline-flex w-full justify-center sm:w-auto`}>
                 Open literature review
               </Link>
             </div>
@@ -268,38 +338,42 @@ function PlanShell({
 }) {
   return (
     <article
-      className={`relative flex flex-col rounded-3xl border p-6 transition duration-300 hover:-translate-y-0.5 sm:p-7 ${
+      className={`relative flex h-full flex-col rounded-2xl border p-5 transition duration-300 sm:rounded-3xl sm:p-7 sm:hover:-translate-y-0.5 ${
         highlight
-          ? "border-dash-accent/50 bg-dash-card shadow-[0_30px_70px_-35px_color-mix(in_oklab,var(--dash-accent)_55%,transparent)] ring-1 ring-dash-accent/25"
+          ? "border-dash-accent/50 bg-dash-card shadow-[0_24px_50px_-30px_color-mix(in_oklab,var(--dash-accent)_55%,transparent)] ring-1 ring-dash-accent/25"
           : "border-dash-border bg-dash-card"
       }`}
     >
       <div className="flex min-w-0 items-center justify-between gap-2">
-        <p className="text-dash-muted-foreground min-w-0 truncate text-[11px] font-semibold tracking-[0.18em] uppercase">{eyebrow}</p>
+        <p className="text-dash-muted-foreground min-w-0 truncate text-[10px] font-semibold tracking-[0.18em] uppercase sm:text-[11px]">
+          {eyebrow}
+        </p>
         {badge ? (
           <span className="bg-dash-accent shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase">
             {badge}
           </span>
         ) : active ? (
-          <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-800 uppercase dark:text-emerald-200">
+          <span className="shrink-0 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-semibold tracking-wide text-emerald-800 uppercase dark:text-emerald-200">
             Active
           </span>
         ) : null}
       </div>
-      <h3 className="text-dash-foreground mt-3 text-2xl font-semibold tracking-tight">{name}</h3>
-      <p className="text-dash-foreground mt-4 flex flex-wrap items-baseline gap-x-2">
-        <span className="text-3xl font-semibold tracking-tight whitespace-nowrap tabular-nums">{price}</span>
-        {priceNote ? <span className="text-dash-muted-foreground text-xs tabular-nums">{priceNote}</span> : null}
+      <h3 className="text-dash-foreground mt-2 text-xl font-semibold tracking-tight sm:mt-3 sm:text-2xl">{name}</h3>
+      <p className="text-dash-foreground mt-3 flex flex-wrap items-baseline gap-x-2 sm:mt-4">
+        <span className="text-[1.65rem] font-semibold tracking-tight whitespace-nowrap tabular-nums sm:text-3xl">
+          {price}
+        </span>
+        {priceNote ? <span className="text-dash-muted-foreground text-[11px] tabular-nums sm:text-xs">{priceNote}</span> : null}
       </p>
       {children}
-      <div className="mt-auto pt-6">{footer}</div>
+      <div className="mt-auto pt-5 sm:pt-6">{footer}</div>
     </article>
   );
 }
 
 function FeatureList({ items }: { items: string[] }) {
   return (
-    <ul className="text-dash-muted-foreground mt-6 space-y-2.5 text-sm leading-relaxed">
+    <ul className="text-dash-muted-foreground mt-4 space-y-2 text-[13px] leading-relaxed sm:mt-6 sm:space-y-2.5 sm:text-sm">
       {items.map((p) => (
         <li key={p} className="flex gap-2.5">
           <CheckIcon className="text-dash-accent mt-0.5 shrink-0" />
@@ -374,7 +448,7 @@ function MonthlyPlanCard({ signedIn, phone, active }: { signedIn: boolean; phone
         />
       }
     >
-      <div className="mt-4">
+      <div className="mt-3 sm:mt-4">
         <Field label="How many months?">
           <select className={INPUT} value={months} onChange={(e) => setMonths(Number(e.target.value))} disabled={open && pending}>
             {monthOptions.map((m) => (
@@ -488,7 +562,7 @@ function CheckoutBlock({
           type="button"
           disabled={!signedIn}
           onClick={() => setOpen(true)}
-          className={`${PRIMARY} w-full whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50`}
+          className={`${PRIMARY} w-full whitespace-nowrap py-3.5 sm:py-2.5 disabled:cursor-not-allowed disabled:opacity-50`}
         >
           {ctaIdle}
         </button>
@@ -497,7 +571,7 @@ function CheckoutBlock({
             Sign in first →
           </Link>
         ) : (
-          <p className="text-dash-muted-foreground mt-3 text-center text-[11px]">Activates after verified payment</p>
+          <p className="text-dash-muted-foreground mt-2.5 text-center text-[11px]">Activates after verified payment</p>
         )}
       </>
     );
@@ -505,7 +579,7 @@ function CheckoutBlock({
 
   return (
     <form
-      className="border-dash-border grid gap-3 border-t pt-5"
+      className="border-dash-border grid gap-3 border-t pt-4 sm:pt-5"
       onSubmit={(e) => {
         e.preventDefault();
         onPay(new FormData(e.currentTarget));
@@ -523,9 +597,9 @@ function CheckoutBlock({
         </select>
       </Field>
       <Field label="Mobile money number">
-        <input name="phone" required type="tel" className={INPUT} defaultValue={phone} placeholder="07XX XXX XXX" autoComplete="tel" />
+        <input name="phone" required type="tel" className={INPUT} defaultValue={phone} placeholder="07XX XXX XXX" autoComplete="tel" inputMode="tel" />
       </Field>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2">
         <button type="button" className={`${SECONDARY} w-full`} onClick={() => setOpen(false)} disabled={pending}>
           Cancel
         </button>
@@ -538,17 +612,29 @@ function CheckoutBlock({
   );
 }
 
-function ChecklistPanel({ title, items, highlight }: { title: string; items: readonly string[]; highlight?: boolean }) {
+function ChecklistPanel({
+  title,
+  items,
+  highlight,
+  compact,
+}: {
+  title: string;
+  items: readonly string[];
+  highlight?: boolean;
+  compact?: boolean;
+}) {
   return (
     <div
-      className={`rounded-3xl border p-6 sm:p-8 ${
-        highlight ? "border-dash-accent/40 bg-dash-card" : "border-dash-border bg-dash-muted/40"
-      }`}
+      className={`${compact ? "rounded-none border-0 p-4 sm:rounded-3xl sm:border sm:p-8" : "rounded-3xl border p-6 sm:p-8"} ${
+        highlight
+          ? "border-dash-accent/40 bg-dash-card"
+          : "border-dash-border bg-dash-muted/30 sm:bg-dash-muted/40"
+      } ${compact && highlight ? "border-l border-dash-border sm:border" : ""} ${compact && !highlight ? "border-r border-dash-border sm:border" : ""}`}
     >
-      <h2 className="text-dash-foreground text-lg font-semibold tracking-tight">{title}</h2>
-      <ul className="text-dash-muted-foreground mt-5 space-y-3 text-sm leading-relaxed">
+      <h2 className="text-dash-foreground text-sm font-semibold tracking-tight sm:text-lg">{title}</h2>
+      <ul className="text-dash-muted-foreground mt-3 space-y-2.5 text-[12px] leading-snug sm:mt-5 sm:space-y-3 sm:text-sm sm:leading-relaxed">
         {items.map((line) => (
-          <li key={line} className="flex gap-3">
+          <li key={line} className="flex gap-2 sm:gap-3">
             <CheckIcon className="text-dash-accent mt-0.5 shrink-0" />
             <span>{line}</span>
           </li>
@@ -558,12 +644,15 @@ function ChecklistPanel({ title, items, highlight }: { title: string; items: rea
   );
 }
 
-function FeatureTile({ title, body, action }: { title: string; body: string; action?: ReactNode }) {
+function BenefitRow({ title, body, action }: { title: string; body: string; action?: ReactNode }) {
   return (
-    <div className="border-dash-border bg-dash-card flex flex-col rounded-2xl border p-6">
-      <h3 className="text-dash-foreground text-base font-semibold">{title}</h3>
-      <p className="text-dash-muted-foreground mt-2 flex-1 text-sm leading-relaxed">{body}</p>
-      {action ? <div className="mt-4">{action}</div> : null}
+    <div className="flex flex-col gap-2 p-4 sm:p-6">
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="text-dash-foreground text-sm font-semibold sm:text-base">{title}</h3>
+        {action ? <div className="shrink-0 sm:hidden">{action}</div> : null}
+      </div>
+      <p className="text-dash-muted-foreground flex-1 text-[13px] leading-relaxed sm:text-sm">{body}</p>
+      {action ? <div className="mt-1 hidden sm:block">{action}</div> : null}
     </div>
   );
 }
