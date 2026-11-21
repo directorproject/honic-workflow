@@ -67,7 +67,7 @@ export async function portalSignUpAction(
   if (!name) return { ok: false, message: "Enter your name." };
 
   const isSupervisor = role === "supervisor";
-  const nextPath = isSupervisor ? "/supervisor" : "/portal/packs";
+  const nextPath = isSupervisor ? "/supervisor" : "/portal/packs?nav=1";
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
     email: e,
@@ -103,7 +103,7 @@ export async function portalSignUpAction(
     revalidatePath("/portal");
     revalidatePath("/portal/home");
     revalidatePath("/portal/packs");
-    redirect("/portal/packs");
+    redirect("/portal/packs?nav=1#plans");
   }
   redirect(isSupervisor ? "/supervisor?auth=signin&notice=check_email" : "/portal?auth=signin&notice=check_email");
 }

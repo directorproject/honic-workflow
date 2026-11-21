@@ -82,7 +82,7 @@ export function TitleTermsGate({ step }: { step: "policy" | "rules" }) {
         router.refresh();
         return;
       }
-      router.push("/portal/packs");
+      router.push("/portal/packs?nav=1#plans");
       router.refresh();
     });
   }

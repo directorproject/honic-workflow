@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { NexisWordmark } from "@/components/brand/nexis-wordmark";
@@ -13,6 +13,8 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { hasActiveDeskPlan } from "@/lib/portal/title-limits";
 
 export { portalNavGroups, type PortalNavGroup, type PortalNavItem, type PortalNavMode } from "@/components/portal/portal-nav";
+
+const NAV_INTRO_MS = 2000;
 
 export function PortalShell({
   viewer,
@@ -38,10 +40,11 @@ export function PortalShell({
 }) {
   const hasPaidDesk = guest ? false : mode !== "student" || hasActiveDeskPlan(deskExpiresAt);
   const pathname = usePathname();
+  const router = useRouter();
   const search = useSearchParams();
   const tab = search.get("tab") ?? "home";
-  const isPacksPage = pathname === "/portal/packs";
-  const [drawer, setDrawer] = useState(isPacksPage);
+  const navIntro = search.get("nav") === "1";
+  const [drawer, setDrawer] = useState(navIntro);
   const [isLg, setIsLg] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const activeLabel = usePortalActiveLabel({ mode, hasWorkspace, hasProgress, workspaceBase, hasPaidDesk });
@@ -59,11 +62,38 @@ export function PortalShell({
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // One-time intro after signup: open side nav briefly on mobile, then clear ?nav=1 so later visits are normal.
+  useEffect(() => {
+    if (!navIntro) return;
+
+    function clearNavParam() {
+      const params = new URLSearchParams(search.toString());
+      params.delete("nav");
+      const qs = params.toString();
+      const hash = typeof window !== "undefined" ? window.location.hash : "";
+      router.replace(`${pathname}${qs ? `?${qs}` : ""}${hash}`, { scroll: false });
+    }
+
+    if (isLg) {
+      clearNavParam();
+      return;
+    }
+
+    setDrawer(true);
+    const t = window.setTimeout(() => {
+      setDrawer(false);
+      clearNavParam();
+    }, NAV_INTRO_MS);
+    return () => window.clearTimeout(t);
+  }, [navIntro, isLg, pathname, router, search]);
+
   const navKey = `${pathname}?tab=${tab}`;
   const [prevNavKey, setPrevNavKey] = useState(navKey);
   if (navKey !== prevNavKey) {
     setPrevNavKey(navKey);
-    if (drawer) setDrawer(false);
+    // Don't close during the one-time nav intro.
+    if (drawer && !navIntro) setDrawer(false);
   }
 
   const sidebarVisible = isLg || drawer;

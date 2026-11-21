@@ -188,7 +188,7 @@ export async function portalSkipProfileAction(): Promise<PortalResult> {
   revalidatePath("/portal/titles");
   revalidatePath("/portal/home");
   revalidatePath("/portal/packs");
-  redirect("/portal/packs");
+  redirect("/portal/packs?nav=1#plans");
 }
 
 export async function portalSaveProfileAction(input: ProfileInput): Promise<PortalResult> {
