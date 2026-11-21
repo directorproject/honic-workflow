@@ -47,7 +47,7 @@ function ChoiceChips({
         </span>
         {hint ? <p className="text-dash-muted-foreground mt-0.5 text-xs leading-relaxed">{hint}</p> : null}
       </div>
-      <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
+      <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap">
         {options.map((o) => {
           const active = o.value === value;
           return (
@@ -57,7 +57,7 @@ function ChoiceChips({
               role="radio"
               aria-checked={active}
               onClick={() => onChange(value === o.value ? "" : o.value)}
-              className={`min-h-11 rounded-xl px-4 py-2.5 text-left text-sm font-semibold transition-all sm:min-h-0 sm:text-center ${
+              className={`min-h-11 max-w-full rounded-xl px-3.5 py-2.5 text-left text-sm leading-snug font-semibold break-words whitespace-normal transition-all sm:min-h-0 sm:px-4 sm:text-center ${
                 active
                   ? "bg-dash-accent text-white shadow-sm"
                   : "border-dash-border bg-dash-muted/30 text-dash-muted-foreground hover:border-dash-accent/40 hover:text-dash-foreground border"
@@ -82,12 +82,12 @@ function FormSection({
   children: ReactNode;
 }) {
   return (
-    <section className="border-dash-border bg-dash-canvas/40 space-y-3 rounded-2xl border p-4 sm:p-5">
-      <div>
+    <section className="border-dash-border bg-dash-canvas/40 box-border w-full min-w-0 max-w-full space-y-3 overflow-x-clip rounded-2xl border p-3.5 sm:p-5">
+      <div className="min-w-0">
         <h3 className="text-dash-foreground text-sm font-semibold tracking-tight">{title}</h3>
-        {hint ? <p className="text-dash-muted-foreground mt-0.5 text-xs leading-relaxed">{hint}</p> : null}
+        {hint ? <p className="text-dash-muted-foreground mt-0.5 text-xs leading-relaxed break-words">{hint}</p> : null}
       </div>
-      {children}
+      <div className="min-w-0 space-y-3">{children}</div>
     </section>
   );
 }
@@ -140,7 +140,7 @@ export function ProfileForm({
             Keep your college details up to date. Search to find yours quickly.
           </p>
         </div>
-        <div className="border-dash-border bg-dash-card rounded-2xl border p-4 sm:rounded-3xl sm:p-7">
+        <div className="border-dash-border bg-dash-card w-full min-w-0 max-w-full overflow-x-clip rounded-2xl border p-3.5 sm:rounded-3xl sm:p-7">
           <AcademicDetailsForm
             courses={courses}
             profile={profile!}
@@ -195,7 +195,7 @@ export function ProfileForm({
 
   return (
     <OnboardingShell step={step}>
-      <div className="border-dash-border bg-dash-card rounded-2xl border p-4 shadow-[0_20px_50px_-28px_rgba(15,23,42,0.35)] sm:p-6">
+      <div className="border-dash-border bg-dash-card w-full min-w-0 max-w-full overflow-x-clip rounded-2xl border p-3.5 shadow-[0_20px_50px_-28px_rgba(15,23,42,0.35)] sm:p-6">
         <p className="text-dash-muted-foreground text-[10px] font-semibold tracking-[0.2em] uppercase">
           Step {step} of 2
         </p>
@@ -368,7 +368,7 @@ function AcademicDetailsForm({
 }) {
   return (
     <form
-      className="space-y-4"
+      className="w-full min-w-0 max-w-full space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);

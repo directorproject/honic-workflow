@@ -56,8 +56,8 @@ export function OnboardingShell({
         </div>
       </aside>
 
-      <section className="flex-1 px-3 py-5 sm:px-8 sm:py-10 lg:px-10">
-        <div className="mx-auto w-full max-w-3xl">{children}</div>
+      <section className="min-w-0 flex-1 overflow-x-clip px-3 py-5 sm:px-8 sm:py-10 lg:px-10">
+        <div className="mx-auto w-full min-w-0 max-w-3xl">{children}</div>
       </section>
 
       <SiteFooter />

@@ -3,11 +3,11 @@ import type { ReactNode } from "react";
 import { toUserError } from "@/lib/portal/user-errors";
 
 export const INPUT =
-  "border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 w-full rounded-xl border px-3 py-2.5 text-base outline-none focus:ring-2 sm:text-sm";
+  "border-dash-border bg-dash-muted/30 text-dash-foreground focus:ring-dash-accent/25 box-border w-full max-w-full min-w-0 rounded-xl border px-3 py-2.5 text-base outline-none focus:ring-2 sm:text-sm";
 export const PRIMARY =
-  "bg-dash-accent inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-opacity disabled:cursor-wait disabled:opacity-60 sm:min-h-0";
+  "bg-dash-accent inline-flex min-h-11 max-w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-opacity disabled:cursor-wait disabled:opacity-60 sm:min-h-0";
 export const SECONDARY =
-  "border-dash-border bg-dash-muted hover:bg-dash-border inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold disabled:cursor-wait disabled:opacity-60 sm:min-h-0";
+  "border-dash-border bg-dash-muted hover:bg-dash-border inline-flex min-h-11 max-w-full cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold disabled:cursor-wait disabled:opacity-60 sm:min-h-0";
 
 export function Card({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   return (
@@ -21,7 +21,7 @@ export function Card({ title, subtitle, children }: { title: string; subtitle?: 
 
 export function Field({ label, wide, children }: { label: string; wide?: boolean; children: ReactNode }) {
   return (
-    <label className={wide ? "sm:col-span-2" : undefined}>
+    <label className={`block w-full min-w-0 max-w-full ${wide ? "sm:col-span-2" : ""}`}>
       <span className="text-dash-muted-foreground mb-1 block text-xs font-semibold uppercase">{label}</span>
       {children}
     </label>
