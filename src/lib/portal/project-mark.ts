@@ -130,8 +130,14 @@ export function projectMark(item: {
   const catalogue = catalogueLine(item);
 
   const cohort = titleCohortFromText(item.batch, item.source);
+  // DIT BEng / OD / Lab Tech catalogue rows are final-year work (Project Realization / FYP),
+  // not "new project title" proposals.
   const asFinalYear =
-    item.kind === "earlier" || cohort?.kind === "od" || cohort?.kind === "labtech";
+    item.kind === "earlier" ||
+    cohort?.kind === "beng" ||
+    cohort?.kind === "od" ||
+    cohort?.kind === "labtech" ||
+    courseCode === "SLT";
 
   if (asFinalYear) {
     return {
