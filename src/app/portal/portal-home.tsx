@@ -222,7 +222,7 @@ export async function PortalHome({
     if (onHome) {
       const highlights = db
         ? await fetchPortalHighlights(db)
-        : { titles: 0, students: 0, projects: 0, openJobs: 0 };
+        : { titles: 0, openJobs: 0, titlesProtected: 0, studyGroups: 0 };
       body = <FreeHomeExplore name={profile.fullName} highlights={highlights} />;
     } else {
       body = (
@@ -297,9 +297,9 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
   const titleCount = formatHighlightCount(highlights.titles);
   const stats = [
     { label: "Titles", value: titleCount },
-    { label: "Students", value: formatHighlightCount(highlights.students) },
-    { label: "Projects", value: formatHighlightCount(highlights.projects) },
     { label: "Open jobs", value: formatHighlightCount(highlights.openJobs) },
+    { label: "Protected", value: formatHighlightCount(highlights.titlesProtected) },
+    { label: "Study groups", value: formatHighlightCount(highlights.studyGroups) },
   ];
 
   const freeTools = [

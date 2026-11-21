@@ -2,9 +2,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type PortalHighlights = {
   titles: number;
-  students: number;
-  projects: number;
   openJobs: number;
+  titlesProtected: number;
+  studyGroups: number;
 };
 
 function countOrZero(error: { message: string } | null, count: number | null): number {
@@ -15,22 +15,19 @@ function countOrZero(error: { message: string } | null, count: number | null): n
 
 /** Live portal totals for the free-plan home highlights strip. */
 export async function fetchPortalHighlights(db: SupabaseClient): Promise<PortalHighlights> {
-  const [proposals, earlier, students, projects, jobs] = await Promise.all([
+  const [proposals, earlier, jobs, hidden, groups] = await Promise.all([
     db.from("title_proposals").select("id", { count: "exact", head: true }).neq("status", "dropped"),
     db.from("last_year_projects").select("id", { count: "exact", head: true }),
-    db.from("student_profiles").select("user_id", { count: "exact", head: true }),
-    db.from("portal_workspaces").select("id", { count: "exact", head: true }),
     db.from("portal_jobs").select("id", { count: "exact", head: true }).eq("status", "open"),
+    db.from("title_selections").select("id", { count: "exact", head: true }).not("hidden_at", "is", null).is("released_at", null),
+    db.from("zimamoto_groups").select("id", { count: "exact", head: true }),
   ]);
 
-  const proposalCount = countOrZero(proposals.error, proposals.count);
-  const earlierCount = countOrZero(earlier.error, earlier.count);
-
   return {
-    titles: proposalCount + earlierCount,
-    students: countOrZero(students.error, students.count),
-    projects: countOrZero(projects.error, projects.count),
+    titles: countOrZero(proposals.error, proposals.count) + countOrZero(earlier.error, earlier.count),
     openJobs: countOrZero(jobs.error, jobs.count),
+    titlesProtected: countOrZero(hidden.error, hidden.count),
+    studyGroups: countOrZero(groups.error, groups.count),
   };
 }
 
