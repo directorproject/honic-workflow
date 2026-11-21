@@ -378,29 +378,29 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
 
               {/* Right Column - Featured Counts */}
               <div className="flex flex-col gap-4 lg:gap-5 justify-center">
-                {/* Title Count - Cyan */}
+                {/* Title Count */}
                 <Link
                   href="/portal/titles"
                   className="group relative overflow-hidden rounded-xl"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-blue-600 blur-lg opacity-50 group-hover:opacity-70 transition-opacity" />
-                  <div className="relative bg-gradient-to-br from-cyan-500/25 to-blue-600/15 backdrop-blur-xl border border-cyan-400/50 rounded-xl p-5 sm:p-6 text-center group-hover:border-cyan-400 transition-colors">
-                    <p className="text-xs font-bold tracking-widest text-cyan-300 uppercase">Titles</p>
-                    <p className="mt-2 text-5xl sm:text-6xl font-black bg-gradient-to-r from-cyan-200 to-blue-200 bg-clip-text text-transparent leading-none">
+                  <div className="absolute inset-0 bg-gradient-to-br from-slate-400 to-slate-600 blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
+                  <div className="relative bg-gradient-to-br from-white/15 to-slate-500/10 backdrop-blur-xl border border-white/40 rounded-xl p-5 sm:p-6 text-center group-hover:border-white/60 transition-colors">
+                    <p className="text-xs font-bold tracking-widest text-white/70 uppercase">Titles</p>
+                    <p className="mt-2 text-5xl sm:text-6xl font-black text-white leading-none">
                       {titleCount}
                     </p>
                   </div>
                 </Link>
 
-                {/* Jobs Count - Purple */}
+                {/* Jobs Count */}
                 <Link
                   href="/portal/jobs"
                   className="group relative overflow-hidden rounded-xl"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-600 blur-lg opacity-50 group-hover:opacity-70 transition-opacity" />
-                  <div className="relative bg-gradient-to-br from-purple-500/25 to-pink-600/15 backdrop-blur-xl border border-purple-400/50 rounded-xl p-5 sm:p-6 text-center group-hover:border-purple-400 transition-colors">
-                    <p className="text-xs font-bold tracking-widest text-purple-300 uppercase">Jobs</p>
-                    <p className="mt-2 text-5xl sm:text-6xl font-black bg-gradient-to-r from-purple-200 to-pink-200 bg-clip-text text-transparent leading-none">
+                  <div className="absolute inset-0 bg-gradient-to-br from-slate-400 to-slate-600 blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
+                  <div className="relative bg-gradient-to-br from-white/15 to-slate-500/10 backdrop-blur-xl border border-white/40 rounded-xl p-5 sm:p-6 text-center group-hover:border-white/60 transition-colors">
+                    <p className="text-xs font-bold tracking-widest text-white/70 uppercase">Jobs</p>
+                    <p className="mt-2 text-5xl sm:text-6xl font-black text-white leading-none">
                       {formatHighlightCount(highlights.openJobs)}
                     </p>
                   </div>
