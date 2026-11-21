@@ -41,8 +41,33 @@ function canonicalizePortalCase(request: NextRequest): NextResponse | null {
   return NextResponse.redirect(url);
 }
 
+/** Staff / Inova dashboard paths — never served on the student share host. */
+function isStaffDashboardPath(pathname: string): boolean {
+  const p = pathname.toLowerCase();
+  if (p === "/login" || p.startsWith("/login/")) return true;
+  if (p === "/poster" || p.startsWith("/poster/")) return true;
+  // Staff catalogue is /titles — student literature is /portal/titles.
+  if (p === "/titles" || (p.startsWith("/titles/") && !p.startsWith("/portal/"))) return true;
+  const staffRoots = [
+    "/users",
+    "/clients",
+    "/finance",
+    "/analytics",
+    "/students",
+    "/projects",
+    "/plans",
+    "/drive",
+    "/client-side",
+    "/api/staff",
+    "/api/google",
+    "/api/drive",
+  ];
+  return staffRoots.some((root) => p === root || p.startsWith(`${root}/`));
+}
+
 function isAllowedOnShareHost(pathname: string): boolean {
   const p = pathname.toLowerCase();
+  if (isStaffDashboardPath(pathname)) return false;
   if (p.startsWith("/_next/")) return true;
   if (p === "/about" || p === "/share-portal") return true;
   if (p === "/share" || p.startsWith("/share/")) return true;
@@ -81,6 +106,20 @@ export async function middleware(request: NextRequest) {
   if (shareHost && hostname === shareHost) {
     if (pathname === "/") {
       return NextResponse.redirect(new URL("/portal", request.url));
+    }
+    // Never expose staff login / Inova dashboard on the student share host.
+    if (isStaffDashboardPath(pathname)) {
+      if (pathname.toLowerCase() === "/login" || pathname.toLowerCase().startsWith("/login/")) {
+        const signIn = request.nextUrl.clone();
+        signIn.pathname = "/portal";
+        signIn.search = "";
+        signIn.searchParams.set("auth", "signin");
+        return NextResponse.redirect(signIn);
+      }
+      return new NextResponse("Not found.", {
+        status: 404,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      });
     }
     if (isPortalPath(pathname) || pathname.toLowerCase() === "/supervisor" || pathname.toLowerCase().startsWith("/supervisor/")) {
       const { supabaseResponse, user } = await updateSession(request);

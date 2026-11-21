@@ -1,12 +1,8 @@
 import type { MetadataRoute } from "next";
 
-import { getPublicAppUrlFromEnv } from "@/lib/site-url";
-
-/** Public crawl rules — portal marketing pages indexable; private app paths blocked. */
+/** Public crawl rules — student share host only; never advertise the staff (Inova) host. */
 export default function robots(): MetadataRoute.Robots {
-  const share = (process.env.NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN || "").replace(/\/$/, "");
-  const app = (getPublicAppUrlFromEnv() || "").replace(/\/$/, "");
-  const host = share || app || "https://share.honiccompany.com";
+  const host = (process.env.NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN || "https://share.honiccompany.com").replace(/\/$/, "");
 
   return {
     rules: [
@@ -22,6 +18,13 @@ export default function robots(): MetadataRoute.Robots {
           "/projects",
           "/users",
           "/drive",
+          "/finance",
+          "/analytics",
+          "/clients",
+          "/plans",
+          "/poster",
+          "/client-side",
+          "/titles",
           "/supervisor",
           "/share/",
         ],

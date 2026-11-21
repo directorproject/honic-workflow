@@ -18,8 +18,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+/** Prefer the student share origin so absolute/OG URLs never point at the staff host. */
 function metadataBaseFromEnv(): URL | undefined {
-  const u = getPublicAppUrlFromEnv();
+  const share = (process.env.NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN ?? "").trim().replace(/\/$/, "");
+  const app = getPublicAppUrlFromEnv();
+  const u = share || app;
   if (!u) return undefined;
   try {
     return new URL(u.endsWith("/") ? u : `${u}/`);

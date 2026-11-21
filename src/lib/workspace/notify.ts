@@ -9,9 +9,9 @@ export function portalOrigin(): string {
   return (process.env.NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN || process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/$/, "");
 }
 
-/** Internal dashboard / staff host (never the public share student origin). */
+/** Internal dashboard / staff host only — never fall back to the student share origin. */
 export function appOrigin(): string {
-  return (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SHARE_PUBLIC_ORIGIN || "").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/$/, "");
 }
 
 export function portalTabUrl(tab: string): string {
