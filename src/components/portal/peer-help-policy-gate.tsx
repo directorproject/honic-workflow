@@ -1,37 +1,28 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, type ComponentType } from "react";
 import { useRouter } from "next/navigation";
 
 import { portalAcceptPeerHelpRulesAction } from "@/app/portal/job-actions";
-import { IconBook, IconCheck, IconLock, IconShield, IconUsers } from "@/components/zimamoto/icons";
+import {
+  IconBook,
+  IconCheck,
+  IconLock,
+  IconShield,
+  IconUsers,
+  IconWallet,
+} from "@/components/zimamoto/icons";
+import { PEER_HELP_RULES_SUMMARY } from "@/lib/portal/jobs-peer-help";
 
-const POINTS = [
-  {
-    icon: IconBook,
-    title: "You stay the author",
-    body: "Peer help only. Helpers advise, format, draw, or tutor. They do not write work you will submit.",
-  },
-  {
-    icon: IconShield,
-    title: "Not for sale here",
-    body: "No full reports, chapters, proposals, exam answers, or “write it for me” requests.",
-  },
-  {
-    icon: IconCheck,
-    title: "What fits",
-    body: "Diagrams, slide layout, circuit or CAD help, formatting, and tutoring on work you have already started.",
-  },
-  {
-    icon: IconLock,
-    title: "Stay anonymous",
-    body: "Do not share real names, phone numbers, or contact details in requests, offers, or chat. Pay through Nexis escrow only.",
-  },
-  {
-    icon: IconUsers,
-    title: "Escrow & delivery",
-    body: "Poster locks payment first. Helper uploads a watermarked preview + final file. Funds release on confirm, auto-timeout, or Honic dispute decision.",
-  },
+const ICONS: ComponentType<{ size?: number; className?: string }>[] = [
+  IconBook,
+  IconShield,
+  IconCheck,
+  IconLock,
+  IconUsers,
+  IconWallet,
+  IconWallet,
+  IconShield,
 ];
 
 /**
@@ -77,17 +68,20 @@ export function PeerHelpPolicyGate() {
         </div>
 
         <ul className="flex-1 space-y-3 overflow-y-auto px-6 py-5">
-          {POINTS.map((p) => (
-            <li key={p.title} className="flex gap-3">
-              <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
-                <p.icon size={18} />
-              </span>
-              <span>
-                <span className="text-dash-foreground block text-sm font-semibold">{p.title}</span>
-                <span className="text-dash-muted-foreground block text-sm leading-relaxed">{p.body}</span>
-              </span>
-            </li>
-          ))}
+          {PEER_HELP_RULES_SUMMARY.map((p, i) => {
+            const Icon = ICONS[i % ICONS.length] ?? IconCheck;
+            return (
+              <li key={p.headline} className="flex gap-3">
+                <span className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+                  <Icon size={18} />
+                </span>
+                <span>
+                  <span className="text-dash-foreground block text-sm font-semibold">{p.headline}</span>
+                  <span className="text-dash-muted-foreground block text-sm leading-relaxed">{p.line}</span>
+                </span>
+              </li>
+            );
+          })}
         </ul>
 
         <div className="border-dash-border space-y-3 border-t px-6 py-5">

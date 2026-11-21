@@ -1,11 +1,11 @@
 /** Nexis peer help (jobs board) — policy shown at post/apply. */
 
-export const PEER_HELP_RULES_VERSION = "2026-11-22-escrow";
+export const PEER_HELP_RULES_VERSION = "2026-11-22-escrow-v2";
 
 export const PEER_HELP_RULES_SUMMARY = [
   {
     headline: "You stay the author",
-    line: "Peer help only. Work you submit to your college must be yours — helpers advise, format, or draw; they do not ghostwrite.",
+    line: "Peer help only. Helpers may advise, format, draw, or tutor. They must not ghostwrite work you will submit to your college.",
   },
   {
     headline: "Not for sale here",
@@ -13,15 +13,27 @@ export const PEER_HELP_RULES_SUMMARY = [
   },
   {
     headline: "What fits",
-    line: "Diagrams, slides layout, circuit/CAD help, formatting, and tutoring on work you already started.",
+    line: "Diagrams, slide layout, circuit or CAD help, formatting, and tutoring on work you already started.",
   },
   {
-    headline: "Escrow payment",
-    line: "Poster locks mobile-money escrow before work. Helper delivers a watermarked preview + final file. Pay out only after confirm, auto-release, or Honic dispute decision — not off-app.",
+    headline: "Stay anonymous",
+    line: "Do not share real names, phone numbers, WhatsApp, or other contacts in posts, offers, or chat. Use Nexis only.",
+  },
+  {
+    headline: "One helper via escrow",
+    line: "Many people may offer. The poster picks one, locks mobile-money escrow, then that helper is assigned and other offers close.",
+  },
+  {
+    headline: "Secure delivery",
+    line: "Helper uploads a watermarked preview plus a final file. The poster reviews the preview only — the final file unlocks after release.",
+  },
+  {
+    headline: "Payment & disputes",
+    line: "Funds release when the poster confirms, after the review timeout, or when Honic settles a dispute. No off-app peer payments.",
   },
   {
     headline: "Enforcement",
-    line: "Honic may remove posts or limit accounts that break these rules.",
+    line: "Honic may remove posts, hold escrow decisions, or limit accounts that break these rules.",
   },
 ] as const;
 
