@@ -1,7 +1,5 @@
 /**
- * OD NTA L6 Mini One / “DIT NTA L6 ETE & CST …” list is NOT imported into the
- * live catalogue (those rows are soft-dropped). Kept only as a local parser
- * reference if staff re-import under a different batch later.
+ * Import DIT OD NTA L6 final-year titles from the OD projects PDF.
  *
  *   node scripts/import-dit-title-lists.mjs
  */
@@ -33,7 +31,19 @@ if (!url || !key) {
 const db = createClient(url, key, { auth: { persistSession: false } });
 
 const FILES = [
-  // Intentionally empty: do not re-import the OD Mini One PDF into production.
+  {
+    path: path.resolve(
+      process.cwd(),
+      "..",
+      "..",
+      "OD_projects titles 20242025 - Mini 01 S1 (2).pdf",
+    ),
+    sourceKey: "dit-od-mini-2024-25",
+    batch: "OD NTA Level 6 · 2024/2025",
+    course: "ETE",
+    domain: "Final year project titles",
+    kind: "od",
+  },
 ];
 
 const INSTITUTION = "Dar es Salaam Institute of Technology (DIT)";
@@ -166,11 +176,6 @@ function buildRow({ title, sourceKey, batch, course, domain, comment, originLabe
     notes,
     updated_at: new Date().toISOString(),
   };
-}
-
-if (!FILES.length) {
-  console.log("No OD/Approved PDFs configured for import (batch removed from catalogue).");
-  process.exit(0);
 }
 
 const byKey = new Map();

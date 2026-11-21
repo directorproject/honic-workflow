@@ -7,6 +7,7 @@ import { polishBriefText, polishReferencesText } from "@/lib/portal/pdf-sections
 import { cachedConfirmedProposalIds, cachedLastYearProjects } from "@/lib/portal/portal-catalogue-cache";
 import { MAX_TITLE_CHOICES, titleHideEntitlement } from "@/lib/portal/title-limits";
 import { titleTermsStatus } from "@/lib/portal/title-terms";
+import { academicYearStartForTitle } from "@/lib/portal/title-cohort";
 import { academicYearFromText } from "@/lib/title-bank";
 
 export { MAX_TITLE_CHOICES };
@@ -313,12 +314,12 @@ export async function loadLiterature(
     const created = text(row.created_at);
     const createdDate = created ? new Date(created) : null;
     const batch = text(row.batch);
-    // Prefer the academic year written on the title list (batch / origin), not upload time.
-    const yearFromList = batch ? yearFromSource(batch) : null;
-    const yearFromOrigin = text(row.origin_ref) ? yearFromSource(String(row.origin_ref)) : null;
+    const originRef = text(row.origin_ref);
+    // Prefer list/BENG cohort year — never invent from upload when the title already encodes a year.
+    const yearFromTitle = academicYearStartForTitle({ batch, originRef });
     const yearFromUpload =
       createdDate && !Number.isNaN(createdDate.getTime()) ? academicYearOf(createdDate) : null;
-    const year = yearFromList ?? yearFromOrigin ?? yearFromUpload;
+    const year = yearFromTitle ?? yearFromUpload;
     const id = String(row.id);
     const reserved = String(row.status) === "reserved";
     const workspace = workspaceByTitle.get(id);

@@ -1,4 +1,7 @@
-import { titleCohortFromText } from "@/lib/portal/title-cohort";
+import {
+  academicYearStartForTitle,
+  titleCohortFromText,
+} from "@/lib/portal/title-cohort";
 
 export type ProjectMark = {
   year: string;
@@ -73,6 +76,16 @@ function programmeOf(item: { courseCode: string | null; source: string | null; b
   return code || "ETE";
 }
 
+function citationYear(item: {
+  source: string | null;
+  batch: string | null;
+  yearLabel: string;
+}): string {
+  const fromTitle = academicYearStartForTitle({ batch: item.batch, source: item.source });
+  if (fromTitle != null) return `${fromTitle}/${fromTitle + 1}`;
+  return academicYear(item.yearLabel) ?? item.yearLabel;
+}
+
 function catalogueLine(item: {
   courseCode: string | null;
   source: string | null;
@@ -80,7 +93,7 @@ function catalogueLine(item: {
   yearLabel: string;
 }): { citation: string; code: string; category: string; programme: string } {
   const programme = programmeOf(item);
-  const year = academicYear(item.yearLabel) ?? item.yearLabel;
+  const year = citationYear(item);
   const cohort = titleCohortFromText(item.batch, item.source);
 
   // OD / diploma — final year project with programme module code (never invent a BENG## citation)
@@ -110,7 +123,8 @@ export function projectMark(item: {
   courseCode: string | null;
   institution: string | null;
 }): ProjectMark {
-  const year = yearPart(item.yearLabel);
+  const fromTitle = academicYearStartForTitle({ batch: item.batch, source: item.source });
+  const year = fromTitle != null ? String(fromTitle) : yearPart(item.yearLabel);
   const courseCode = item.courseCode?.trim().toUpperCase() || null;
   const institute = shortInstitution(item.institution) ?? "DIT";
   const catalogue = catalogueLine(item);
