@@ -135,7 +135,7 @@ export default async function PortalTitlePage(props: {
           isDocumentOwner: Boolean(mineClaim),
         })
       : Promise.resolve(false),
-    target && confirmed.length
+    target
       ? engagementForTargets(db, [target])
       : Promise.resolve(new Map<string, TitleEngagement>()),
   ]);
@@ -146,14 +146,15 @@ export default async function PortalTitlePage(props: {
     href: canViewDocuments ? `/api/portal/title-documents/${document.id}` : null,
   }));
 
-  if (!guest && user && target && confirmed.length) {
+  // Count every title open (guest, student, staff). Owner viewing their own title is skipped inside recordTitleClick.
+  if (target) {
     after(() =>
       recordTitleClick(db, {
         targetKind: target.kind,
         targetId: target.id,
-        viewerId: user.id,
+        viewerId: user?.id ?? null,
         ownerId,
-        isStaff: state.isStaff,
+        isStaff: false,
       }),
     );
   }

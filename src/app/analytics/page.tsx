@@ -79,7 +79,8 @@ export default async function AnalyticsPage() {
     >
       <p className="text-dash-muted-foreground mb-5 text-sm">
         First-party counts: page opens (with browser sessions), footer/WhatsApp/CTA clicks, and title opens. Days use
-        Africa/Dar es Salaam. Sessions are approximate — one browser tab session per day.
+        Africa/Dar es Salaam. Sessions are approximate — one browser tab session per day. Title opens count when anyone
+        opens a title page (once per signed-in person per title per day); opening your own owned title is not counted.
       </p>
 
       {error ? (

@@ -109,8 +109,8 @@ async function bumpCount(
 }
 
 /**
- * Count a title open. Confirmed owner and staff are not counted.
- * Same viewer counts at most once per calendar day (EAT).
+ * Count a title open (catalogue browse). Confirmed owner viewing their own title is not counted.
+ * Same signed-in viewer counts at most once per calendar day (EAT). Guests count each open.
  */
 export async function recordTitleClick(
   db: SupabaseClient,
@@ -123,7 +123,8 @@ export async function recordTitleClick(
   },
 ): Promise<void> {
   try {
-    if (input.isStaff) return;
+    // Staff flag kept for callers; opens are counted so Analytics reflects real browsing.
+    void input.isStaff;
     if (input.viewerId && input.ownerId && input.viewerId === input.ownerId) return;
 
     const dayKey = new Intl.DateTimeFormat("en-CA", {
