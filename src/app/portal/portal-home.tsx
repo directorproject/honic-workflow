@@ -324,38 +324,44 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
         </div>
 
         <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold tracking-widest text-blue-300 uppercase">Honic Nexis Platform</p>
-            <h1 className="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Welcome back, {firstName}
-            </h1>
-            <p className="mt-4 text-lg text-slate-300 sm:text-xl">
-              Start free with titles and peer help. Upgrade to Nexis Desk when you need the full project workspace.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
-              <Link
-                href="/portal/titles"
-                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition-all hover:bg-blue-700 hover:shadow-lg active:scale-95 sm:px-8"
-              >
-                Browse Titles
-              </Link>
-              <Link
-                href="/portal/packs"
-                className="inline-flex items-center justify-center rounded-xl border border-blue-400/50 bg-blue-500/10 px-6 py-3 font-semibold text-blue-200 backdrop-blur transition-all hover:bg-blue-500/20 hover:border-blue-400 active:scale-95 sm:px-8"
-              >
-                View Plans
-              </Link>
-            </div>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="mt-14 grid grid-cols-2 gap-3 sm:mt-16 sm:gap-4 md:grid-cols-4">
-            {stats.map((s) => (
-              <div key={s.label} className="rounded-xl bg-white/5 backdrop-blur p-4 border border-white/10 sm:p-5">
-                <p className="text-2xl font-bold text-white sm:text-3xl tabular-nums">{s.value}</p>
-                <p className="mt-1 text-xs font-semibold tracking-wide text-slate-400 uppercase">{s.label}</p>
+          <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:gap-12 lg:items-center">
+            <div className="max-w-2xl flex-1">
+              <p className="text-xs font-semibold tracking-widest text-blue-300 uppercase">Honic Nexis Platform</p>
+              <h1 className="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                Welcome back, {firstName}
+              </h1>
+              <p className="mt-4 text-lg text-slate-300 sm:text-xl">
+                Start free with titles and peer help. Upgrade to Nexis Desk when you need the full project workspace.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
+                <Link
+                  href="/portal/titles"
+                  className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition-all hover:bg-blue-700 hover:shadow-lg active:scale-95 sm:px-8"
+                >
+                  Browse Titles
+                </Link>
+                <Link
+                  href="/portal/packs"
+                  className="inline-flex items-center justify-center rounded-xl border border-blue-400/50 bg-blue-500/10 px-6 py-3 font-semibold text-blue-200 backdrop-blur transition-all hover:bg-blue-500/20 hover:border-blue-400 active:scale-95 sm:px-8"
+                >
+                  View Plans
+                </Link>
               </div>
-            ))}
+            </div>
+
+            {/* Unique Title Count Display */}
+            <div className="w-full lg:w-auto lg:flex-shrink-0">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity" />
+                <div className="relative bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-xl border border-blue-400/30 rounded-3xl p-8 sm:p-10 text-center">
+                  <p className="text-sm font-semibold tracking-widest text-blue-300 uppercase">Available Titles</p>
+                  <p className="mt-3 text-6xl sm:text-7xl lg:text-6xl font-bold bg-gradient-to-r from-blue-200 to-cyan-200 bg-clip-text text-transparent">
+                    {titleCount}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-300">ready to explore</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
