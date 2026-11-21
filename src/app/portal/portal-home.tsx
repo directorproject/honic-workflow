@@ -346,34 +346,32 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
             </div>
 
             {/* Stats Cards - Horizontal */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8 sm:mb-10">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-8 sm:mb-10">
               {/* Title Count */}
               <Link
                 href="/portal/titles"
-                className="group relative overflow-hidden rounded-2xl"
+                className="group relative overflow-hidden rounded-3xl transition-all hover:scale-105 active:scale-95"
               >
-                <div className="absolute inset-0 bg-white blur-xl opacity-10 group-hover:opacity-20 transition-opacity" />
-                <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 sm:p-8 text-center group-hover:border-white/40 transition-colors">
-                  <p className="text-xs font-semibold tracking-widest text-white/70 uppercase">Available</p>
-                  <p className="mt-3 text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-none">
+                <div className="relative bg-gradient-to-b from-white/20 to-white/5 backdrop-blur-md rounded-3xl p-6 sm:p-10 text-center">
+                  <p className="text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Available</p>
+                  <p className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-none mb-2">
                     {titleCount}
                   </p>
-                  <p className="mt-2 text-xs sm:text-sm text-white/60">Titles</p>
+                  <p className="text-sm sm:text-base font-medium text-white/60">Titles</p>
                 </div>
               </Link>
 
               {/* Jobs Count */}
               <Link
                 href="/portal/jobs"
-                className="group relative overflow-hidden rounded-2xl"
+                className="group relative overflow-hidden rounded-3xl transition-all hover:scale-105 active:scale-95"
               >
-                <div className="absolute inset-0 bg-white blur-xl opacity-10 group-hover:opacity-20 transition-opacity" />
-                <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 sm:p-8 text-center group-hover:border-white/40 transition-colors">
-                  <p className="text-xs font-semibold tracking-widest text-white/70 uppercase">Open</p>
-                  <p className="mt-3 text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-none">
+                <div className="relative bg-gradient-to-b from-white/20 to-white/5 backdrop-blur-md rounded-3xl p-6 sm:p-10 text-center">
+                  <p className="text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Open</p>
+                  <p className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-none mb-2">
                     {formatHighlightCount(highlights.openJobs)}
                   </p>
-                  <p className="mt-2 text-xs sm:text-sm text-white/60">Jobs</p>
+                  <p className="text-sm sm:text-base font-medium text-white/60">Jobs</p>
                 </div>
               </Link>
             </div>
