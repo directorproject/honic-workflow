@@ -7,12 +7,14 @@ export type TitleListFilters = {
   year: string;
   department: string;
   institution: string;
+  level: string;
 };
 
 export const EMPTY_TITLE_LIST_FILTERS: TitleListFilters = {
   year: TITLE_FILTER_ALL,
   department: TITLE_FILTER_ALL,
   institution: TITLE_FILTER_ALL,
+  level: TITLE_FILTER_ALL,
 };
 
 type ParamBag = URLSearchParams | { get(name: string): string | null };
@@ -21,10 +23,12 @@ export function parseTitleListFilters(params: ParamBag): TitleListFilters {
   const year = params.get("year");
   const department = params.get("department");
   const institution = params.get("institution");
+  const level = params.get("level");
   return {
     year: year && year.trim() ? year.trim() : TITLE_FILTER_ALL,
     department: department && department.trim() ? department.trim() : TITLE_FILTER_ALL,
     institution: institution && institution.trim() ? institution.trim() : TITLE_FILTER_ALL,
+    level: level && level.trim() ? level.trim() : TITLE_FILTER_ALL,
   };
 }
 
@@ -40,6 +44,7 @@ export function parseTitleListFiltersFromRecord(
     year: pick("year") ?? TITLE_FILTER_ALL,
     department: pick("department") ?? TITLE_FILTER_ALL,
     institution: pick("institution") ?? TITLE_FILTER_ALL,
+    level: pick("level") ?? TITLE_FILTER_ALL,
   };
 }
 
@@ -47,7 +52,8 @@ export function titleListFiltersActive(filters: TitleListFilters): boolean {
   return (
     filters.year !== TITLE_FILTER_ALL ||
     filters.department !== TITLE_FILTER_ALL ||
-    filters.institution !== TITLE_FILTER_ALL
+    filters.institution !== TITLE_FILTER_ALL ||
+    filters.level !== TITLE_FILTER_ALL
   );
 }
 
@@ -56,6 +62,7 @@ export function titleListFiltersQuery(filters: TitleListFilters): string {
   if (filters.year !== TITLE_FILTER_ALL) params.set("year", filters.year);
   if (filters.department !== TITLE_FILTER_ALL) params.set("department", filters.department);
   if (filters.institution !== TITLE_FILTER_ALL) params.set("institution", filters.institution);
+  if (filters.level !== TITLE_FILTER_ALL) params.set("level", filters.level);
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 }
@@ -74,6 +81,7 @@ export function titleDetailHrefWithNotice(id: string, notice: string, filters: T
   if (filters.year !== TITLE_FILTER_ALL) params.set("year", filters.year);
   if (filters.department !== TITLE_FILTER_ALL) params.set("department", filters.department);
   if (filters.institution !== TITLE_FILTER_ALL) params.set("institution", filters.institution);
+  if (filters.level !== TITLE_FILTER_ALL) params.set("level", filters.level);
   return `/portal/titles/${encodeURIComponent(id)}?${params.toString()}`;
 }
 

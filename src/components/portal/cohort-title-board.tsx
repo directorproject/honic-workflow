@@ -129,6 +129,7 @@ function TitlesFrameBody({
   const year = onListPage ? urlFilters.year : TITLE_FILTER_ALL;
   const institution = onListPage ? urlFilters.institution : TITLE_FILTER_ALL;
   const department = onListPage ? urlFilters.department : TITLE_FILTER_ALL;
+  const level = onListPage ? urlFilters.level : TITLE_FILTER_ALL;
   const listFilters = onListPage ? urlFilters : parseTitleListFilters(searchParams);
 
   const setYear = (value: string) => {
@@ -142,6 +143,10 @@ function TitlesFrameBody({
   const setDepartment = (value: string) => {
     if (!onListPage) return;
     pushTitleListFilters(router, pathname, { ...urlFilters, department: value });
+  };
+  const setLevel = (value: string) => {
+    if (!onListPage) return;
+    pushTitleListFilters(router, pathname, { ...urlFilters, level: value });
   };
 
   useEffect(() => {
@@ -179,10 +184,18 @@ function TitlesFrameBody({
   const years = unique(items.map((item) => item.yearLabel));
   const institutions = unique(items.map((item) => item.institution));
   const departments = unique(items.map((item) => item.courseCode));
+  const levels = unique(
+    items
+      .map((item) => {
+        const match = (item.batch ?? item.source ?? "").match(/\b(BENG\s*\d{2})\b/i);
+        return match ? match[1].replace(/\s+/g, "").toUpperCase() : null;
+      })
+      .filter((x): x is string => Boolean(x))
+  );
   const missingInstitution = items.some((item) => !item.institution);
   const slotsLeft = MAX_TITLE_CHOICES - mine.length;
   const filtering =
-    year !== TITLE_FILTER_ALL || institution !== TITLE_FILTER_ALL || department !== TITLE_FILTER_ALL;
+    year !== TITLE_FILTER_ALL || institution !== TITLE_FILTER_ALL || department !== TITLE_FILTER_ALL || level !== TITLE_FILTER_ALL;
 
   const matched = items.filter((item) => {
     if (year !== TITLE_FILTER_ALL && item.yearLabel !== year) return false;
@@ -193,6 +206,10 @@ function TitlesFrameBody({
         : institution !== TITLE_FILTER_ALL && item.institution !== institution
     )
       return false;
+    if (level !== TITLE_FILTER_ALL) {
+      const itemLevel = (item.batch ?? item.source ?? "").match(/\b(BENG\s*\d{2})\b/i)?.[1]?.replace(/\s+/g, "").toUpperCase();
+      if (itemLevel !== level) return false;
+    }
     return true;
   });
 
@@ -267,6 +284,17 @@ function TitlesFrameBody({
               { value: TITLE_FILTER_ALL, label: "All institutions" },
               ...(missingInstitution ? [{ value: TITLE_FILTER_NONE, label: "Not recorded" }] : []),
               ...institutions.map((value) => ({ value, label: value })),
+            ]}
+          />
+          <Filter
+            label="Level"
+            value={level}
+            onChange={setLevel}
+            fieldClass={field}
+            labelClass={labelTone}
+            options={[
+              { value: TITLE_FILTER_ALL, label: "All levels" },
+              ...levels.map((value) => ({ value, label: value })),
             ]}
           />
         </div>
