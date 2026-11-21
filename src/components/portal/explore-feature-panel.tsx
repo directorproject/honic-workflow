@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { TrackedLink } from "@/components/portal/tracked-link";
 
 export const FEATURES: Record<
   string,
@@ -119,15 +119,22 @@ export function ExploreFeaturePanel({
               <p className="text-dash-muted-foreground mt-1.5 text-xs leading-relaxed">
                 You can browse this screen without an account. Sign in to use {feature.title.toLowerCase()}.
               </p>
-              <Link
+              <TrackedLink
+                linkKey="cta-explore-signin"
+                trackLabel="Sign in to use"
                 href="/portal?auth=signin"
                 className="bg-dash-accent mt-4 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white"
               >
                 Sign in to use
-              </Link>
-              <Link href="/portal?auth=signup" className="text-dash-accent mt-3 inline-flex w-full justify-center text-xs font-semibold">
+              </TrackedLink>
+              <TrackedLink
+                linkKey="cta-explore-signup"
+                trackLabel="Create a free account"
+                href="/portal?auth=signup"
+                className="text-dash-accent mt-3 inline-flex w-full justify-center text-xs font-semibold"
+              >
                 Create a free account →
-              </Link>
+              </TrackedLink>
             </>
           ) : blockedByPlan ? (
             <>
@@ -135,15 +142,22 @@ export function ExploreFeaturePanel({
               <p className="text-dash-muted-foreground mt-1.5 text-xs leading-relaxed">
                 You can look around the portal for free. Activate a semester or year plan to use this service.
               </p>
-              <Link
+              <TrackedLink
+                linkKey="cta-explore-plans"
+                trackLabel="View plans"
                 href="/portal/packs"
                 className="bg-dash-accent mt-4 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white"
               >
                 View plans
-              </Link>
-              <Link href="/portal/titles" className="text-dash-accent mt-3 inline-flex w-full justify-center text-xs font-semibold">
+              </TrackedLink>
+              <TrackedLink
+                linkKey="cta-explore-titles"
+                trackLabel="Browse literature free"
+                href="/portal/titles"
+                className="text-dash-accent mt-3 inline-flex w-full justify-center text-xs font-semibold"
+              >
                 Or browse literature free →
-              </Link>
+              </TrackedLink>
             </>
           ) : blockedByWorkspace ? (
             <>
@@ -151,19 +165,26 @@ export function ExploreFeaturePanel({
               <p className="text-dash-muted-foreground mt-1.5 text-xs leading-relaxed">
                 Your plan is active. Create or join a workspace to open {feature.title.toLowerCase()}.
               </p>
-              <Link
+              <TrackedLink
+                linkKey="cta-explore-home-start"
+                trackLabel="Open home to start"
                 href="/portal/home"
                 className="bg-dash-accent mt-4 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white"
               >
                 Open home to start
-              </Link>
+              </TrackedLink>
             </>
           ) : (
             <>
               <p className="text-dash-foreground text-sm font-semibold">Ready to use</p>
-              <Link href="/portal/home" className="bg-dash-accent mt-4 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white">
+              <TrackedLink
+                linkKey="cta-explore-workspace"
+                trackLabel="Go to workspace"
+                href="/portal/home"
+                className="bg-dash-accent mt-4 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white"
+              >
                 Go to workspace
-              </Link>
+              </TrackedLink>
             </>
           )}
         </div>

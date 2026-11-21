@@ -105,6 +105,12 @@ const navSections: NavSection[] = [
         isActive: (p) => p === "/finance" || p.startsWith("/finance/"),
       },
       {
+        href: "/analytics",
+        label: "Analytics",
+        top: true,
+        isActive: (p) => p === "/analytics" || p.startsWith("/analytics/"),
+      },
+      {
         href: "/users/requests",
         label: "Requested titles",
         top: true,

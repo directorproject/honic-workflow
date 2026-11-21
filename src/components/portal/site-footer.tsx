@@ -1,26 +1,27 @@
-import Link from "next/link";
+"use client";
 
 import { NexisWordmark } from "@/components/brand/nexis-wordmark";
+import { TrackedAnchor, TrackedLink } from "@/components/portal/tracked-link";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 const YEAR = new Date().getFullYear();
 
 const SUPPORT = [
-  { name: "PM Eng. N. Hamind", phone: "+255 628 882 871", tel: "+255628882871", wa: "255628882871" },
-  { name: "APM Eng. D. Johndean", phone: "+255 620 518 724", tel: "+255620518724", wa: "255620518724" },
+  { name: "PM Eng. N. Hamind", phone: "+255 628 882 871", tel: "+255628882871", wa: "255628882871", key: "hamind" },
+  { name: "APM Eng. D. Johndean", phone: "+255 620 518 724", tel: "+255620518724", wa: "255620518724", key: "johndean" },
 ] as const;
 
 const PORTAL_LINKS = [
-  { href: "/portal", label: "Student portal" },
-  { href: "/portal/titles", label: "Literature review" },
-  { href: "/portal/home?tab=projects", label: "My projects & titles" },
-  { href: "/portal/jobs", label: "Peer help" },
-  { href: "/portal/packs", label: "Plans & access" },
+  { href: "/portal", label: "Student portal", key: "footer-portal" },
+  { href: "/portal/titles", label: "Literature review", key: "footer-titles" },
+  { href: "/portal/home?tab=projects", label: "My projects & titles", key: "footer-projects" },
+  { href: "/portal/jobs", label: "Peer help", key: "footer-jobs" },
+  { href: "/portal/packs", label: "Plans & access", key: "footer-packs" },
 ] as const;
 
 const COMPANY_LINKS = [
-  { href: "/about", label: "About Honic" },
-  { href: "/share-portal", label: "Share portal" },
+  { href: "/about", label: "About Honic", key: "footer-about" },
+  { href: "/share-portal", label: "Share portal", key: "footer-share-portal" },
 ] as const;
 
 function WhatsAppIcon() {
@@ -60,9 +61,14 @@ export function SiteFooter({
               and project follow-up from Dar es Salaam, Tanzania.
             </p>
             <p className="mt-4 text-sm">
-              <a href="mailto:portal@honiccompany.com" className="text-dash-accent font-medium underline-offset-2 hover:underline">
+              <TrackedAnchor
+                linkKey="footer-email"
+                trackLabel="portal@honiccompany.com"
+                href="mailto:portal@honiccompany.com"
+                className="text-dash-accent font-medium underline-offset-2 hover:underline"
+              >
                 portal@honiccompany.com
-              </a>
+              </TrackedAnchor>
             </p>
           </div>
 
@@ -71,9 +77,14 @@ export function SiteFooter({
             <ul className="mt-3 space-y-2.5 text-sm">
               {PORTAL_LINKS.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="hover:text-dash-foreground transition-colors">
+                  <TrackedLink
+                    linkKey={item.key}
+                    trackLabel={item.label}
+                    href={item.href}
+                    className="hover:text-dash-foreground transition-colors"
+                  >
                     {item.label}
-                  </Link>
+                  </TrackedLink>
                 </li>
               ))}
             </ul>
@@ -84,9 +95,14 @@ export function SiteFooter({
             <ul className="mt-3 space-y-2.5 text-sm">
               {COMPANY_LINKS.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="hover:text-dash-foreground transition-colors">
+                  <TrackedLink
+                    linkKey={item.key}
+                    trackLabel={item.label}
+                    href={item.href}
+                    className="hover:text-dash-foreground transition-colors"
+                  >
                     {item.label}
-                  </Link>
+                  </TrackedLink>
                 </li>
               ))}
             </ul>
@@ -99,14 +115,18 @@ export function SiteFooter({
                 <li key={person.tel}>
                   <p className="text-dash-foreground text-sm font-medium">{person.name}</p>
                   <div className="mt-1.5 flex flex-wrap gap-2">
-                    <a
+                    <TrackedAnchor
+                      linkKey={`support-tel-${person.key}`}
+                      trackLabel={`Call ${person.name}`}
                       href={`tel:${person.tel}`}
                       className="border-dash-border hover:border-dash-foreground/40 hover:text-dash-foreground inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors"
                     >
                       <PhoneIcon />
                       {person.phone}
-                    </a>
-                    <a
+                    </TrackedAnchor>
+                    <TrackedAnchor
+                      linkKey={`support-wa-${person.key}`}
+                      trackLabel={`WhatsApp ${person.name}`}
                       href={`https://wa.me/${person.wa}`}
                       target="_blank"
                       rel="noreferrer"
@@ -114,7 +134,7 @@ export function SiteFooter({
                     >
                       <WhatsAppIcon />
                       WhatsApp
-                    </a>
+                    </TrackedAnchor>
                   </div>
                 </li>
               ))}
