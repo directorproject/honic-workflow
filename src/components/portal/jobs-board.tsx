@@ -16,7 +16,6 @@ import {
   portalPostJobAction,
   portalUpdateJobAction,
 } from "@/app/portal/job-actions";
-import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { EscrowFundFields, JobEscrowPanel } from "@/components/portal/job-escrow-panel";
 import { PeerHelpPolicyGate } from "@/components/portal/peer-help-policy-gate";
 import { Avatar, Chip } from "@/components/zimamoto/ui";
@@ -1188,28 +1187,26 @@ function MessageThread({
   const [status, setStatus] = useState<PortalResult | null>(null);
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState(initialMessages);
-  const [live, setLive] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const lastRef = useRef(initialMessages.at(-1)?.createdAt ?? new Date(0).toISOString());
-  const appIdRef = useRef<string | null>(null);
+  const onMessagesChangeRef = useRef(onMessagesChange);
+  onMessagesChangeRef.current = onMessagesChange;
 
   useEffect(() => {
     setMessages(initialMessages);
     lastRef.current = initialMessages.at(-1)?.createdAt ?? new Date(0).toISOString();
   }, [initialMessages, applicationPublicId]);
 
-  const applyIncoming = useCallback(
-    (incoming: PortalJobMessage[]) => {
-      if (!incoming.length) return;
-      lastRef.current = incoming[incoming.length - 1].createdAt;
-      setMessages((prev) => {
-        const next = mergeJobMessages(prev, incoming);
-        onMessagesChange?.(next);
-        return next;
-      });
-    },
-    [onMessagesChange],
-  );
+  const applyIncoming = useCallback((incoming: PortalJobMessage[]) => {
+    if (!incoming.length) return;
+    lastRef.current = incoming[incoming.length - 1].createdAt;
+    setMessages((prev) => {
+      const next = mergeJobMessages(prev, incoming);
+      // Never call parent setState inside this updater (render phase) — defer lift.
+      queueMicrotask(() => onMessagesChangeRef.current?.(next));
+      return next;
+    });
+  }, []);
 
   const sync = useCallback(async () => {
     const res = await portalJobMessagesSinceAction({
@@ -1217,74 +1214,33 @@ function MessageThread({
       sinceIso: lastRef.current,
     });
     if (!res.ok) return;
-    if (res.applicationId) appIdRef.current = res.applicationId;
     applyIncoming(res.messages);
   }, [applicationPublicId, applyIncoming]);
 
+  // Poll-only live chat — avoids Supabase Realtime channel reuse crashes on remount.
   useEffect(() => {
-    void sync();
-    const client = getSupabaseBrowserClient();
     let cancelled = false;
-    let channel: ReturnType<NonNullable<typeof client>["channel"]> | null = null;
-
-    async function subscribe() {
-      // Resolve application UUID once, then listen for inserts.
-      const boot = await portalJobMessagesSinceAction({
-        applicationPublicId,
-        sinceIso: lastRef.current,
-      });
+    async function tick() {
       if (cancelled) return;
-      if (boot.applicationId) appIdRef.current = boot.applicationId;
-      applyIncoming(boot.messages);
-      if (!client || !appIdRef.current) return;
-
-      // Unique topic each mount — reusing a subscribed channel throws if .on() runs again
-      // (React Strict Mode / fast remount). Poll still works if Realtime is unavailable.
-      const topic = `peer-help-chat-${appIdRef.current}-${Math.random().toString(36).slice(2, 9)}`;
-      for (const existing of client.getChannels()) {
-        if (existing.topic.includes(`peer-help-chat-${appIdRef.current}`)) {
-          await client.removeChannel(existing);
-        }
-      }
-      if (cancelled) return;
-
-      const next = client.channel(topic);
-      next.on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "portal_job_messages",
-          filter: `application_id=eq.${appIdRef.current}`,
-        },
-        () => {
-          if (!cancelled) void sync();
-        },
-      );
-      if (cancelled) {
-        void client.removeChannel(next);
-        return;
-      }
-      channel = next;
-      next.subscribe((status: string) => {
-        if (!cancelled) setLive(status === "SUBSCRIBED");
-      });
+      await sync();
     }
-    void subscribe();
-
-    const timer = window.setInterval(() => void sync(), 4000);
+    void tick();
+    const timer = window.setInterval(() => void tick(), 3000);
     function onFocus() {
-      void sync();
+      void tick();
+    }
+    function onVis() {
+      if (!document.hidden) void tick();
     }
     window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
       window.removeEventListener("focus", onFocus);
-      setLive(false);
-      if (client && channel) void client.removeChannel(channel);
+      document.removeEventListener("visibilitychange", onVis);
     };
-  }, [applicationPublicId, applyIncoming, sync]);
+  }, [sync]);
 
   useEffect(() => {
     const el = listRef.current;
@@ -1319,7 +1275,6 @@ function MessageThread({
             <p className="text-dash-foreground text-sm font-bold">{threadFor ? `Chat · ${threadFor}` : "Chat"}</p>
             <p className="text-dash-muted-foreground text-[11px]">
               {canSend ? "Anonymous · live updates" : "View only on the free plan"}
-              {live ? " · connected" : ""}
             </p>
           </div>
         </div>
