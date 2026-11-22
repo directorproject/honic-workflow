@@ -1224,6 +1224,7 @@ function MessageThread({
   useEffect(() => {
     void sync();
     const client = getSupabaseBrowserClient();
+    let cancelled = false;
     let channel: ReturnType<NonNullable<typeof client>["channel"]> | null = null;
 
     async function subscribe() {
@@ -1232,22 +1233,42 @@ function MessageThread({
         applicationPublicId,
         sinceIso: lastRef.current,
       });
+      if (cancelled) return;
       if (boot.applicationId) appIdRef.current = boot.applicationId;
       applyIncoming(boot.messages);
       if (!client || !appIdRef.current) return;
-      channel = client
-        .channel(`peer-help-chat-${appIdRef.current}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "portal_job_messages",
-            filter: `application_id=eq.${appIdRef.current}`,
-          },
-          () => void sync(),
-        )
-        .subscribe((status: string) => setLive(status === "SUBSCRIBED"));
+
+      // Unique topic each mount — reusing a subscribed channel throws if .on() runs again
+      // (React Strict Mode / fast remount). Poll still works if Realtime is unavailable.
+      const topic = `peer-help-chat-${appIdRef.current}-${Math.random().toString(36).slice(2, 9)}`;
+      for (const existing of client.getChannels()) {
+        if (existing.topic.includes(`peer-help-chat-${appIdRef.current}`)) {
+          await client.removeChannel(existing);
+        }
+      }
+      if (cancelled) return;
+
+      const next = client.channel(topic);
+      next.on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "portal_job_messages",
+          filter: `application_id=eq.${appIdRef.current}`,
+        },
+        () => {
+          if (!cancelled) void sync();
+        },
+      );
+      if (cancelled) {
+        void client.removeChannel(next);
+        return;
+      }
+      channel = next;
+      next.subscribe((status: string) => {
+        if (!cancelled) setLive(status === "SUBSCRIBED");
+      });
     }
     void subscribe();
 
@@ -1257,8 +1278,10 @@ function MessageThread({
     }
     window.addEventListener("focus", onFocus);
     return () => {
+      cancelled = true;
       window.clearInterval(timer);
       window.removeEventListener("focus", onFocus);
+      setLive(false);
       if (client && channel) void client.removeChannel(channel);
     };
   }, [applicationPublicId, applyIncoming, sync]);
