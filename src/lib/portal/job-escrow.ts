@@ -242,11 +242,40 @@ export async function createEscrowForApplication(
 
   const { data: existing } = await db
     .from("portal_job_escrows")
-    .select("id, status, public_id")
+    .select("id, status, public_id, application_id, amount_tsh")
     .eq("job_id", job.id)
     .maybeSingle();
   if (existing) {
-    if (String(existing.status) === "awaiting_funds") {
+    const st = String(existing.status);
+    if (st === "cancelled" || st === "refunded") {
+      // Free the unique job/application slots so the poster can retry lock.
+      await db.from("portal_job_escrows").delete().eq("id", existing.id);
+    } else if (st === "awaiting_funds") {
+      // Retarget the open escrow to the helper the poster just picked.
+      const amount =
+        job.price_mode === "negotiable" && app.proposed_tsh != null
+          ? Math.round(Number(app.proposed_tsh))
+          : Math.round(Number(job.offer_tsh));
+      const integrity = sealEscrowRow({
+        jobId: String(job.id),
+        applicationId: String(app.id),
+        posterUserId: input.posterUserId,
+        helperUserId: String(app.applicant_user_id),
+        amountTsh: amount,
+      });
+      await db
+        .from("portal_job_escrows")
+        .update({
+          application_id: app.id,
+          helper_user_id: app.applicant_user_id,
+          amount_tsh: amount,
+          integrity_hash: integrity,
+          payment_id: null,
+          payment_reference: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id)
+        .eq("status", "awaiting_funds");
       const esc = await getEscrowForJob(db, String(job.id), input.posterUserId);
       if (esc) {
         return {
@@ -257,16 +286,18 @@ export async function createEscrowForApplication(
           jobPublicId: String(job.public_id),
         };
       }
+      return { ok: false, message: "Could not reopen escrow. Refresh and try again." };
+    } else {
+      return { ok: false, message: "Escrow already exists for this request." };
     }
-    return { ok: false, message: "Escrow already exists for this request." };
   }
 
   const amount =
     job.price_mode === "negotiable" && app.proposed_tsh != null
       ? Math.round(Number(app.proposed_tsh))
       : Math.round(Number(job.offer_tsh));
-  if (!Number.isFinite(amount) || amount < 200) {
-    return { ok: false, message: "Escrow amount must be at least TSh 200." };
+  if (!Number.isFinite(amount) || amount < 500) {
+    return { ok: false, message: "Escrow amount must be at least TSh 500 (mobile-money minimum)." };
   }
 
   const publicId = newPublicId();

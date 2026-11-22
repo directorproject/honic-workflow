@@ -14,6 +14,7 @@ import {
   createMobilePayment,
   makeIdempotencyKey,
   publicWebhookUrl,
+  SNIPPE_MIN_AMOUNT_TSH,
   snippeConfigured,
   toSnippePhone,
 } from "@/lib/payments/snippe";
@@ -202,7 +203,7 @@ export async function portalAcceptJobApplicationAction(
   applicationPublicId: string,
   network?: string,
   phone?: string,
-): Promise<PortalResult> {
+): Promise<PortalResult & { awaitingPayment?: boolean; paymentReference?: string }> {
   try {
     const { user, db } = await requireStudent();
     if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
@@ -216,21 +217,16 @@ export async function portalAcceptJobApplicationAction(
       return { ok: false, message: "Enter a valid Tanzanian mobile number to fund escrow." };
     }
 
-    const created = await createEscrowForApplication(db, {
-      posterUserId: user.id,
-      applicationPublicId: String(applicationPublicId ?? ""),
-    });
-    if (!created.ok) return { ok: false, message: created.message };
-
     const live = PAYMENT_PROVIDER === "snippe" && snippeConfigured();
     if (!live && !simulatedPaymentsAllowed()) {
       return { ok: false, message: paymentUnavailableMessage() };
     }
 
+    // Expire stale prompts first so a dead ESC row does not block a new lock.
     await expireStalePendingPayments(db, { userId: user.id, referencePrefix: "ESC" });
     const { data: openPay } = await db
       .from("title_change_payments")
-      .select("id, reference, created_at, expires_at")
+      .select("id, reference, created_at, expires_at, amount")
       .eq("user_id", user.id)
       .eq("status", "pending")
       .ilike("reference", "ESC%")
@@ -247,12 +243,33 @@ export async function portalAcceptJobApplicationAction(
     ) {
       return {
         ok: true,
-        message: `Escrow payment already open (ref ${openPay.reference}). Approve on your phone to lock funds.`,
+        awaitingPayment: true,
+        paymentReference: String(openPay.reference),
+        message: `Escrow payment already open (ref ${openPay.reference}). Approve the mobile-money prompt on your phone — SMS/USSD can take up to ~30 seconds to arrive.`,
+      };
+    }
+
+    const created = await createEscrowForApplication(db, {
+      posterUserId: user.id,
+      applicationPublicId: String(applicationPublicId ?? ""),
+    });
+    if (!created.ok) return { ok: false, message: created.message };
+
+    const amount = created.amountTsh;
+    // Fail fast before Snippe — provider rejects below this and the wait feels like a hang.
+    if (live && amount < SNIPPE_MIN_AMOUNT_TSH) {
+      await db
+        .from("portal_job_escrows")
+        .update({ status: "cancelled", cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq("id", created.escrow.id)
+        .eq("status", "awaiting_funds");
+      return {
+        ok: false,
+        message: `Mobile money needs at least TSh ${SNIPPE_MIN_AMOUNT_TSH.toLocaleString("en-TZ")}. This offer is TSh ${amount.toLocaleString("en-TZ")} — raise the job offer (or proposed price) and try again.`,
       };
     }
 
     const reference = makeIdempotencyKey("ESC");
-    const amount = created.amountTsh;
     const pendingExpires = live ? defaultPendingExpiresAt() : null;
     const { data: paymentRow, error: insertError } = await db
       .from("title_change_payments")
@@ -316,6 +333,11 @@ export async function portalAcceptJobApplicationAction(
           .eq("id", paymentRow.id);
       } catch (err) {
         await db.from("title_change_payments").update({ status: "failed" }).eq("id", paymentRow.id);
+        await db
+          .from("portal_job_escrows")
+          .update({ status: "cancelled", cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+          .eq("id", created.escrow.id)
+          .eq("status", "awaiting_funds");
         return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };
       }
       revalidatePath("/portal/jobs");
@@ -323,7 +345,9 @@ export async function portalAcceptJobApplicationAction(
       revalidatePath(`/portal/jobs/${encodeURIComponent(created.jobPublicId)}`);
       return {
         ok: true,
-        message: `Check your phone to lock TSh ${amount.toLocaleString()} in escrow (ref ${reference}). Helper is assigned only after payment confirms.`,
+        awaitingPayment: true,
+        paymentReference: reference,
+        message: `Mobile-money prompt sent for TSh ${amount.toLocaleString("en-TZ")} (ref ${reference}). SMS/USSD can take 10–30 seconds — enter your PIN. Helper is assigned only after payment confirms.`,
       };
     }
 

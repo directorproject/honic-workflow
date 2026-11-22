@@ -5,6 +5,9 @@ const MAX_WEBHOOK_BYTES = 64 * 1024;
 const WEBHOOK_MAX_AGE_SEC = 300;
 const WEBHOOK_MAX_FUTURE_SEC = 60;
 
+/** Snippe mobile-money collection floor (TZS). Keep app escrow mins in sync. */
+export const SNIPPE_MIN_AMOUNT_TSH = 500;
+
 function apiKey() {
   return process.env.SNIPPE_API_KEY?.trim() || "";
 }
@@ -84,7 +87,9 @@ export async function createMobilePayment(input: {
   const phone = toSnippePhone(input.phoneNumber);
   if (!phone) throw new Error("Enter a valid Tanzanian mobile number (e.g. 07XX XXX XXX).");
   const amount = Math.round(Number(input.amountTsh));
-  if (!Number.isFinite(amount) || amount < 500) throw new Error("Amount must be at least 500 TZS.");
+  if (!Number.isFinite(amount) || amount < SNIPPE_MIN_AMOUNT_TSH) {
+    throw new Error(`Mobile money needs at least TSh ${SNIPPE_MIN_AMOUNT_TSH.toLocaleString("en-TZ")}.`);
+  }
   if (amount > 50_000_000) throw new Error("Amount exceeds the allowed maximum.");
 
   const body = {

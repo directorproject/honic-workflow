@@ -47,6 +47,10 @@ export function toUserError(raw: unknown, fallback = FRIENDLY_GENERIC): string {
   if (/^Choose /i.test(text)) return text;
   if (/^Type /i.test(text)) return text;
   if (/^Enter a /i.test(text) && !/SNIPPE|API_KEY|env|supabase|webhook/i.test(text)) return text;
+  if (/^Mobile money needs at least TSh /i.test(text)) return text;
+  if (/^Amount must be at least /i.test(text)) return text;
+  if (/^Escrow (amount|payment) /i.test(text)) return text;
+  if (/^Check your phone/i.test(text)) return text;
 
   if (text === "PAYMENT_UNAVAILABLE" || /payment is temporarily unavailable/i.test(text)) {
     return FRIENDLY_PAYMENT;
