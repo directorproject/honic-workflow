@@ -72,20 +72,33 @@ export function GroupChat({
     setMessages((prev) => mergeMessages(prev, res.messages));
   }, [group.id, group.isMember]);
 
-  // Live: Realtime pings on each new row, then we fetch the full message. Polling covers dropped sockets.
+  // Live: unique channel topic per mount (reuse after subscribe() throws). Polling covers dropped sockets.
   useEffect(() => {
     if (!group.isMember) return;
     const client = getSupabaseBrowserClient();
-    const channel = client
-      ?.channel(`zimamoto-group-${group.id}`)
-      .on(
+    let channel: ReturnType<NonNullable<typeof client>["channel"]> | null = null;
+    let cancelled = false;
+    if (client) {
+      const topic = `zimamoto-group-${group.id}-${Math.random().toString(36).slice(2, 8)}`;
+      for (const existing of client.getChannels()) {
+        if (existing.topic.includes(`zimamoto-group-${group.id}`)) {
+          void client.removeChannel(existing);
+        }
+      }
+      const next = client.channel(topic);
+      next.on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "zimamoto_messages", filter: `group_id=eq.${group.id}` },
-        () => void sync(),
-      )
-      .subscribe();
+        () => {
+          if (!cancelled) void sync();
+        },
+      );
+      channel = next;
+      next.subscribe();
+    }
     const timer = setInterval(() => void sync(), POLL_MS);
     return () => {
+      cancelled = true;
       clearInterval(timer);
       if (client && channel) void client.removeChannel(channel);
     };

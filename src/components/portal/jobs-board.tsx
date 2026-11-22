@@ -18,6 +18,7 @@ import { EscrowFundFields, JobEscrowPanel } from "@/components/portal/job-escrow
 import { PeerHelpPolicyGate } from "@/components/portal/peer-help-policy-gate";
 import { Avatar, Chip } from "@/components/zimamoto/ui";
 import { PAYMENT_NETWORKS } from "@/lib/portal/config";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type {
   PortalJobDeliverableMeta,
   PortalJobEscrow,
@@ -802,47 +803,44 @@ export function JobDetailPanel({
     setEvents(initialEvents);
   }, [initialEvents]);
 
-  const threadableApps = applications.filter((a) => a.status === "pending" || a.status === "accepted");
+  const threadableApps = useMemo(
+    () => applications.filter((a) => a.status === "pending" || a.status === "accepted"),
+    [applications],
+  );
+  const threadableKey = threadableApps.map((a) => a.publicId).join(",");
   const [activeAppId, setActiveAppId] = useState(() => threadableApps[0]?.publicId ?? myApplication?.publicId ?? null);
 
   const activeApp =
     (job.isMine ? threadableApps.find((a) => a.publicId === activeAppId) : null) ??
-    (!job.isMine && myApplication && (myApplication.status === "pending" || myApplication.status === "accepted") ? myApplication : null);
+    (!job.isMine && myApplication && (myApplication.status === "pending" || myApplication.status === "accepted")
+      ? myApplication
+      : null);
 
-  // Keep selection valid when live offers arrive / change.
+  // Keep selection valid when live offers arrive / change (stable deps — avoids max update depth).
   useEffect(() => {
-    if (activeAppId && threadableApps.some((a) => a.publicId === activeAppId)) return;
-    setActiveAppId(threadableApps[0]?.publicId ?? myApplication?.publicId ?? null);
-  }, [activeAppId, threadableApps, myApplication?.publicId]);
+    if (activeAppId && threadableKey.split(",").includes(activeAppId)) return;
+    const first = threadableKey.split(",").filter(Boolean)[0] ?? myApplication?.publicId ?? null;
+    setActiveAppId((prev) => (prev === first ? prev : first));
+  }, [activeAppId, threadableKey, myApplication?.publicId]);
 
-  // Live offers + chat + escrow tools / shared activity without full page refresh.
+  // Live offers + escrow / activity (chat has its own /api poll — do not drive chat via this).
   useEffect(() => {
     let stopped = false;
     async function sync() {
-      const since =
-        activeAppId && messagesByApplicationPublicId[activeAppId]?.length
-          ? messagesByApplicationPublicId[activeAppId][messagesByApplicationPublicId[activeAppId].length - 1].createdAt
-          : new Date(0).toISOString();
       const res = await portalJobDetailSyncAction({
         jobPublicId: job.publicId,
         applicationPublicId: activeAppId,
-        messagesSinceIso: since,
+        messagesSinceIso: new Date(0).toISOString(),
       });
       if (stopped || !res.ok) return;
       if (job.isMine) setApplications(res.applications);
       else setMyApplication(res.myApplication);
-      if (activeAppId && res.messages.length) {
-        setMessagesByApp((prev) => ({
-          ...prev,
-          [activeAppId]: mergeJobMessages(prev[activeAppId] ?? [], res.messages),
-        }));
-      }
       setEscrow(res.escrow);
       setDeliverables(res.deliverables);
       setEvents(res.events);
     }
     void sync();
-    const timer = window.setInterval(() => void sync(), 4000);
+    const timer = window.setInterval(() => void sync(), 5000);
     function onFocus() {
       void sync();
     }
@@ -852,8 +850,6 @@ export function JobDetailPanel({
       window.clearInterval(timer);
       window.removeEventListener("focus", onFocus);
     };
-    // intentionally omit messages map from deps — since uses latest via closure each tick
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [job.publicId, job.isMine, activeAppId]);
 
   const showApplySlot = !job.isMine && job.status === "open" && !myApplication;
@@ -1189,6 +1185,17 @@ function MessageThread({
   const lastRef = useRef(initialMessages.at(-1)?.createdAt ?? new Date(0).toISOString());
   const appBootRef = useRef(applicationPublicId);
 
+  // Drop any leftover Realtime channels from older peer-help builds (shared Supabase singleton).
+  useEffect(() => {
+    const client = getSupabaseBrowserClient();
+    if (!client) return;
+    for (const ch of client.getChannels()) {
+      if (ch.topic.includes("peer-help-chat")) {
+        void client.removeChannel(ch);
+      }
+    }
+  }, [applicationPublicId]);
+
   // Only reset when switching threads — never clobber optimistic bubbles from parent polls.
   useEffect(() => {
     if (appBootRef.current === applicationPublicId) return;
@@ -1197,7 +1204,9 @@ function MessageThread({
     lastRef.current = initialMessages.at(-1)?.createdAt ?? new Date(0).toISOString();
     setDraft("");
     setStatus(null);
-  }, [applicationPublicId, initialMessages]);
+    // intentionally only when the thread id changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applicationPublicId]);
 
   const applyIncoming = useCallback((incoming: PortalJobMessage[]) => {
     if (!incoming.length) return;
@@ -1309,7 +1318,10 @@ function MessageThread({
   }
 
   return (
-    <section className={`${CARD} flex h-[min(34rem,75vh)] flex-col overflow-hidden lg:h-[min(36rem,calc(100vh-8rem))]`}>
+    <section
+      data-peer-help-chat="poll-v3"
+      className={`${CARD} flex h-[min(34rem,75vh)] flex-col overflow-hidden lg:h-[min(36rem,calc(100vh-8rem))]`}
+    >
       <header className="border-dash-border flex items-center justify-between gap-2 border-b px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="bg-dash-accent/10 text-dash-accent flex h-9 w-9 items-center justify-center rounded-full">
@@ -1318,7 +1330,7 @@ function MessageThread({
           <div>
             <p className="text-dash-foreground text-sm font-bold">{threadFor ? `Chat · ${threadFor}` : "Chat"}</p>
             <p className="text-dash-muted-foreground text-[11px]">
-              {canSend ? "Anonymous · live updates" : "View only on the free plan"}
+              {canSend ? "Anonymous · instant send" : "View only on the free plan"}
             </p>
           </div>
         </div>
