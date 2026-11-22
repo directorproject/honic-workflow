@@ -37,12 +37,18 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { notifyPosterNewApplication } from "@/lib/portal/job-notifications";
 import {
   applyToJob,
+  getJobByPublicId,
+  getMyApplicationForJob,
+  listApplicationsForJob,
+  listMessagesSinceForApplicationPublicId,
   markJobTaken,
   createJob,
   deleteJob,
   postJobMessage,
   updateJob,
   type JobPriceMode,
+  type PortalJobApplication,
+  type PortalJobMessage,
 } from "@/lib/portal/jobs";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { STORAGE_BUCKET } from "@/lib/workspace/constants";
@@ -334,7 +340,10 @@ export async function portalAcceptJobApplicationAction(
   }
 }
 
-export async function portalJobMessageAction(applicationPublicId: string, body: string): Promise<PortalResult> {
+export async function portalJobMessageAction(
+  applicationPublicId: string,
+  body: string,
+): Promise<PortalResult & { chat?: PortalJobMessage }> {
   try {
     const { user, db } = await requireStudent();
     if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
@@ -344,11 +353,73 @@ export async function portalJobMessageAction(applicationPublicId: string, body: 
       body: String(body ?? ""),
     });
     if (!result.ok) return { ok: false, message: result.message };
+    // Soft revalidate for other tabs; live UI appends `chat` without a full refresh.
     revalidatePath("/portal/jobs");
     revalidatePath("/portal/jobs/mine");
-    return { ok: true, message: "Message sent." };
+    return { ok: true, message: "Message sent.", chat: result.chat };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not send message." };
+  }
+}
+
+/** Live peer-help chat poll — returns only messages newer than `sinceIso`. */
+export async function portalJobMessagesSinceAction(input: {
+  applicationPublicId: string;
+  sinceIso: string;
+}): Promise<{ ok: boolean; applicationId?: string; messages: PortalJobMessage[] }> {
+  try {
+    const { user, db } = await requireStudent();
+    const res = await listMessagesSinceForApplicationPublicId(
+      db,
+      String(input.applicationPublicId ?? ""),
+      user.id,
+      String(input.sinceIso ?? ""),
+    );
+    if (!res) return { ok: true, messages: [] };
+    return { ok: true, applicationId: res.applicationId, messages: res.messages };
+  } catch {
+    return { ok: false, messages: [] };
+  }
+}
+
+/** Live sync for a job page: offers + optional open thread messages. */
+export async function portalJobDetailSyncAction(input: {
+  jobPublicId: string;
+  applicationPublicId?: string | null;
+  messagesSinceIso?: string | null;
+}): Promise<{
+  ok: boolean;
+  applications: PortalJobApplication[];
+  myApplication: PortalJobApplication | null;
+  messages: PortalJobMessage[];
+  applicationId?: string;
+}> {
+  try {
+    const { user, db } = await requireStudent();
+    const jobPublicId = String(input.jobPublicId ?? "");
+    const job = await getJobByPublicId(db, jobPublicId, user.id);
+    if (!job) {
+      return { ok: false, applications: [], myApplication: null, messages: [] };
+    }
+
+    const applications = job.isMine ? await listApplicationsForJob(db, job.id, user.id) : [];
+    const myApplication = !job.isMine ? await getMyApplicationForJob(db, job.id, user.id) : null;
+
+    let messages: PortalJobMessage[] = [];
+    let applicationId: string | undefined;
+    const appPublicId = input.applicationPublicId ? String(input.applicationPublicId) : "";
+    if (appPublicId) {
+      const since = String(input.messagesSinceIso ?? new Date(0).toISOString());
+      const res = await listMessagesSinceForApplicationPublicId(db, appPublicId, user.id, since);
+      if (res) {
+        messages = res.messages;
+        applicationId = res.applicationId;
+      }
+    }
+
+    return { ok: true, applications, myApplication, messages, applicationId };
+  } catch {
+    return { ok: false, applications: [], myApplication: null, messages: [] };
   }
 }
 

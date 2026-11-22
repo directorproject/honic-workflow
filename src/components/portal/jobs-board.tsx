@@ -2,18 +2,21 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 
 import type { PortalResult } from "@/app/portal/auth-actions";
 import {
   portalAcceptJobApplicationAction,
   portalApplyJobAction,
   portalDeleteJobAction,
+  portalJobDetailSyncAction,
   portalJobMessageAction,
+  portalJobMessagesSinceAction,
   portalMarkJobTakenAction,
   portalPostJobAction,
   portalUpdateJobAction,
 } from "@/app/portal/job-actions";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { EscrowFundFields, JobEscrowPanel } from "@/components/portal/job-escrow-panel";
 import { PeerHelpPolicyGate } from "@/components/portal/peer-help-policy-gate";
 import { Avatar, Chip } from "@/components/zimamoto/ui";
@@ -154,6 +157,23 @@ function JobsPlanGate({ action }: { action: "post" | "apply" }) {
   );
 }
 
+/** Soft live refresh for list pages — no spinner, just pulls new server data. */
+function useSoftLiveRefresh(enabled = true, ms = 8000) {
+  const router = useRouter();
+  useEffect(() => {
+    if (!enabled) return;
+    const tick = window.setInterval(() => router.refresh(), ms);
+    function onFocus() {
+      router.refresh();
+    }
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.clearInterval(tick);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [enabled, ms, router]);
+}
+
 /* ---------------------------------------------------------------- Browse */
 
 /** Browse open requests. Anyone can read; posting and offering need a Desk plan. */
@@ -168,6 +188,7 @@ export function JobsBrowseBoard({
   guest?: boolean;
   needsPolicy?: boolean;
 }) {
+  useSoftLiveRefresh(!guest);
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<string>("all");
   const [sort, setSort] = useState<"newest" | "price">("newest");
@@ -381,6 +402,7 @@ export function MyJobsBoard({
   canUseJobs: boolean;
   needsPolicy?: boolean;
 }) {
+  useSoftLiveRefresh(true, 6000);
   const [tab, setTab] = useState<"requests" | "offers">("requests");
 
   return (
@@ -730,9 +752,9 @@ function PostJobForm() {
 /** One request: details, offers (for the requester), and the anonymous chat. */
 export function JobDetailPanel({
   job,
-  applications,
-  myApplication,
-  messagesByApplicationPublicId,
+  applications: initialApplications,
+  myApplication: initialMyApplication,
+  messagesByApplicationPublicId: initialMessages,
   canUseJobs,
   needsPolicy = false,
   escrow = null,
@@ -751,12 +773,70 @@ export function JobDetailPanel({
   peerPayoutSaved?: boolean;
   isStaff?: boolean;
 }) {
+  const [applications, setApplications] = useState(initialApplications);
+  const [myApplication, setMyApplication] = useState(initialMyApplication);
+  const [messagesByApplicationPublicId, setMessagesByApp] = useState(initialMessages);
+
+  useEffect(() => {
+    setApplications(initialApplications);
+  }, [initialApplications]);
+  useEffect(() => {
+    setMyApplication(initialMyApplication);
+  }, [initialMyApplication]);
+  useEffect(() => {
+    setMessagesByApp(initialMessages);
+  }, [initialMessages]);
+
   const threadableApps = applications.filter((a) => a.status === "pending" || a.status === "accepted");
   const [activeAppId, setActiveAppId] = useState(() => threadableApps[0]?.publicId ?? myApplication?.publicId ?? null);
 
   const activeApp =
     (job.isMine ? threadableApps.find((a) => a.publicId === activeAppId) : null) ??
     (!job.isMine && myApplication && (myApplication.status === "pending" || myApplication.status === "accepted") ? myApplication : null);
+
+  // Keep selection valid when live offers arrive / change.
+  useEffect(() => {
+    if (activeAppId && threadableApps.some((a) => a.publicId === activeAppId)) return;
+    setActiveAppId(threadableApps[0]?.publicId ?? myApplication?.publicId ?? null);
+  }, [activeAppId, threadableApps, myApplication?.publicId]);
+
+  // Live offers + open thread without full page refresh.
+  useEffect(() => {
+    let stopped = false;
+    async function sync() {
+      const since =
+        activeAppId && messagesByApplicationPublicId[activeAppId]?.length
+          ? messagesByApplicationPublicId[activeAppId][messagesByApplicationPublicId[activeAppId].length - 1].createdAt
+          : new Date(0).toISOString();
+      const res = await portalJobDetailSyncAction({
+        jobPublicId: job.publicId,
+        applicationPublicId: activeAppId,
+        messagesSinceIso: since,
+      });
+      if (stopped || !res.ok) return;
+      if (job.isMine) setApplications(res.applications);
+      else setMyApplication(res.myApplication);
+      if (activeAppId && res.messages.length) {
+        setMessagesByApp((prev) => ({
+          ...prev,
+          [activeAppId]: mergeJobMessages(prev[activeAppId] ?? [], res.messages),
+        }));
+      }
+    }
+    void sync();
+    const timer = window.setInterval(() => void sync(), 4000);
+    function onFocus() {
+      void sync();
+    }
+    window.addEventListener("focus", onFocus);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
+    };
+    // intentionally omit messages map from deps — since uses latest via closure each tick
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [job.publicId, job.isMine, activeAppId]);
 
   const showApplySlot = !job.isMine && job.status === "open" && !myApplication;
   // The helper can chat only after the poster has replied in that thread.
@@ -869,10 +949,13 @@ export function JobDetailPanel({
               <MessageThread
                 key={activeApp.publicId}
                 applicationPublicId={activeApp.publicId}
-                messages={messagesByApplicationPublicId[activeApp.publicId] ?? []}
+                initialMessages={messagesByApplicationPublicId[activeApp.publicId] ?? []}
                 threadFor={job.isMine ? activeApp.applicantLabel : undefined}
                 canSend={canChatNow}
                 waitingForPoster={!job.isMine && !posterReplied}
+                onMessagesChange={(next) => {
+                  setMessagesByApp((prev) => ({ ...prev, [activeApp.publicId]: next }));
+                }}
               />
             ) : job.isMine && applications.length ? (
               <div className={`${CARD} px-6 py-10 text-center`}>
@@ -1043,24 +1126,106 @@ function ApplicationRow({
   );
 }
 
+function mergeJobMessages(prev: PortalJobMessage[], incoming: PortalJobMessage[]): PortalJobMessage[] {
+  if (!incoming.length) return prev;
+  const byId = new Map(prev.map((m) => [m.id, m]));
+  for (const m of incoming) byId.set(m.id, m);
+  return [...byId.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
 function MessageThread({
   applicationPublicId,
-  messages,
+  initialMessages,
   threadFor,
   canSend,
   waitingForPoster = false,
+  onMessagesChange,
 }: {
   applicationPublicId: string;
-  messages: PortalJobMessage[];
+  initialMessages: PortalJobMessage[];
   threadFor?: string;
   canSend: boolean;
   waitingForPoster?: boolean;
+  onMessagesChange?: (messages: PortalJobMessage[]) => void;
 }) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
   const [draft, setDraft] = useState("");
+  const [messages, setMessages] = useState(initialMessages);
+  const [live, setLive] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const lastRef = useRef(initialMessages.at(-1)?.createdAt ?? new Date(0).toISOString());
+  const appIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    setMessages(initialMessages);
+    lastRef.current = initialMessages.at(-1)?.createdAt ?? new Date(0).toISOString();
+  }, [initialMessages, applicationPublicId]);
+
+  const applyIncoming = useCallback(
+    (incoming: PortalJobMessage[]) => {
+      if (!incoming.length) return;
+      lastRef.current = incoming[incoming.length - 1].createdAt;
+      setMessages((prev) => {
+        const next = mergeJobMessages(prev, incoming);
+        onMessagesChange?.(next);
+        return next;
+      });
+    },
+    [onMessagesChange],
+  );
+
+  const sync = useCallback(async () => {
+    const res = await portalJobMessagesSinceAction({
+      applicationPublicId,
+      sinceIso: lastRef.current,
+    });
+    if (!res.ok) return;
+    if (res.applicationId) appIdRef.current = res.applicationId;
+    applyIncoming(res.messages);
+  }, [applicationPublicId, applyIncoming]);
+
+  useEffect(() => {
+    void sync();
+    const client = getSupabaseBrowserClient();
+    let channel: ReturnType<NonNullable<typeof client>["channel"]> | null = null;
+
+    async function subscribe() {
+      // Resolve application UUID once, then listen for inserts.
+      const boot = await portalJobMessagesSinceAction({
+        applicationPublicId,
+        sinceIso: lastRef.current,
+      });
+      if (boot.applicationId) appIdRef.current = boot.applicationId;
+      applyIncoming(boot.messages);
+      if (!client || !appIdRef.current) return;
+      channel = client
+        .channel(`peer-help-chat-${appIdRef.current}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "portal_job_messages",
+            filter: `application_id=eq.${appIdRef.current}`,
+          },
+          () => void sync(),
+        )
+        .subscribe((status: string) => setLive(status === "SUBSCRIBED"));
+    }
+    void subscribe();
+
+    const timer = window.setInterval(() => void sync(), 4000);
+    function onFocus() {
+      void sync();
+    }
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
+      if (client && channel) void client.removeChannel(channel);
+    };
+  }, [applicationPublicId, applyIncoming, sync]);
 
   useEffect(() => {
     const el = listRef.current;
@@ -1077,7 +1242,9 @@ function MessageThread({
       setStatus(res);
       if (res.ok) {
         setDraft("");
-        router.refresh();
+        const chat = "chat" in res ? res.chat : undefined;
+        if (chat) applyIncoming([chat]);
+        else void sync();
       }
     });
   }
@@ -1091,7 +1258,10 @@ function MessageThread({
           </span>
           <div>
             <p className="text-dash-foreground text-sm font-bold">{threadFor ? `Chat · ${threadFor}` : "Chat"}</p>
-            <p className="text-dash-muted-foreground text-[11px]">{canSend ? "Anonymous · no real names" : "View only on the free plan"}</p>
+            <p className="text-dash-muted-foreground text-[11px]">
+              {canSend ? "Anonymous · live updates" : "View only on the free plan"}
+              {live ? " · connected" : ""}
+            </p>
           </div>
         </div>
       </header>

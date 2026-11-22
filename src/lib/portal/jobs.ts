@@ -207,6 +207,18 @@ export async function listMyApplications(db: SupabaseClient, userId: string): Pr
   return (data ?? []).map((row) => asApplication(row as Record<string, unknown>, userId));
 }
 
+function mapJobMessage(row: Record<string, unknown>, viewerId: string | null): PortalJobMessage {
+  const senderPublicId = String(row.sender_public_id ?? "");
+  return {
+    id: String(row.id),
+    senderPublicId,
+    senderLabel: anonymousLabel(senderPublicId, "Helper").replace("Helper", "ID"),
+    body: String(row.body ?? ""),
+    createdAt: String(row.created_at),
+    isMine: Boolean(viewerId && String(row.sender_user_id) === viewerId),
+  };
+}
+
 export async function listMessagesForApplication(
   db: SupabaseClient,
   applicationId: string,
@@ -222,17 +234,45 @@ export async function listMessagesForApplication(
     if (missingJobs(error.message)) return [];
     throw new Error(error.message);
   }
-  return (data ?? []).map((row) => {
-    const senderPublicId = String(row.sender_public_id ?? "");
-    return {
-      id: String(row.id),
-      senderPublicId,
-      senderLabel: anonymousLabel(senderPublicId, "Helper").replace("Helper", "ID"),
-      body: String(row.body ?? ""),
-      createdAt: String(row.created_at),
-      isMine: Boolean(viewerId && String(row.sender_user_id) === viewerId),
-    };
-  });
+  return (data ?? []).map((row) => mapJobMessage(row as Record<string, unknown>, viewerId));
+}
+
+/** Newer messages after `sinceIso` (exclusive) for live chat polling. */
+export async function listMessagesSinceForApplicationPublicId(
+  db: SupabaseClient,
+  applicationPublicId: string,
+  viewerId: string,
+  sinceIso: string,
+): Promise<{ applicationId: string; messages: PortalJobMessage[] } | null> {
+  const { data: app } = await db
+    .from("portal_job_applications")
+    .select("id, job_id, applicant_user_id")
+    .eq("public_id", applicationPublicId)
+    .maybeSingle();
+  if (!app) return null;
+
+  const { data: job } = await db.from("portal_jobs").select("poster_user_id").eq("id", app.job_id).maybeSingle();
+  if (!job) return null;
+  const isPoster = String(job.poster_user_id) === viewerId;
+  const isApplicant = String(app.applicant_user_id) === viewerId;
+  if (!isPoster && !isApplicant) return null;
+
+  const since = Number.isNaN(Date.parse(sinceIso)) ? new Date(0).toISOString() : sinceIso;
+  const { data, error } = await db
+    .from("portal_job_messages")
+    .select("id, sender_user_id, sender_public_id, body, created_at")
+    .eq("application_id", app.id)
+    .gt("created_at", since)
+    .order("created_at", { ascending: true })
+    .limit(100);
+  if (error) {
+    if (missingJobs(error.message)) return { applicationId: String(app.id), messages: [] };
+    throw new Error(error.message);
+  }
+  return {
+    applicationId: String(app.id),
+    messages: (data ?? []).map((row) => mapJobMessage(row as Record<string, unknown>, viewerId)),
+  };
 }
 
 export async function createJob(
@@ -529,7 +569,7 @@ export async function markJobTaken(
 export async function postJobMessage(
   db: SupabaseClient,
   input: { userId: string; applicationPublicId: string; body: string },
-): Promise<{ ok: true } | { ok: false; message: string }> {
+): Promise<{ ok: true; chat: PortalJobMessage } | { ok: false; message: string }> {
   const plan = await requirePaidDeskForJobs(db, input.userId, "jobsMessage");
   if (!plan.ok) return plan;
 
@@ -566,17 +606,24 @@ export async function postJobMessage(
   }
 
   const senderPublicId = await ensurePortalAccount(db, input.userId);
-  const { error: msgErr } = await db.from("portal_job_messages").insert({
-    application_id: app.id,
-    sender_user_id: input.userId,
-    sender_public_id: senderPublicId,
-    body,
-  });
+  const { data: inserted, error: msgErr } = await db
+    .from("portal_job_messages")
+    .insert({
+      application_id: app.id,
+      sender_user_id: input.userId,
+      sender_public_id: senderPublicId,
+      body,
+    })
+    .select("id, sender_user_id, sender_public_id, body, created_at")
+    .single();
   if (msgErr) {
     if (missingJobs(msgErr.message)) {
       return { ok: false, message: "Jobs storage is not ready. Ask staff to apply migration 023." };
     }
     return { ok: false, message: msgErr.message };
   }
-  return { ok: true };
+  return {
+    ok: true,
+    chat: mapJobMessage(inserted as Record<string, unknown>, input.userId),
+  };
 }
