@@ -627,3 +627,61 @@ export async function postJobMessage(
     chat: mapJobMessage(inserted as Record<string, unknown>, input.userId),
   };
 }
+
+/** Hours to keep chat after a job finishes (release / refund / cancel) or an offer is rejected. */
+export const PEER_HELP_CHAT_RETENTION_HOURS = 96;
+
+/**
+ * Delete peer-help chats that are no longer needed:
+ * - rejected / withdrawn offers older than 96h
+ * - finished jobs (closed / cancelled) older than 96h after last update
+ * Keeps active negotiation + assigned work chats intact.
+ */
+export async function purgeExpiredPeerHelpMessages(
+  db: SupabaseClient,
+): Promise<{ applicationsCleared: number; messagesDeleted: number }> {
+  const cutoff = new Date(Date.now() - PEER_HELP_CHAT_RETENTION_HOURS * 3600 * 1000).toISOString();
+  const appIds = new Set<string>();
+
+  const { data: staleApps, error: appErr } = await db
+    .from("portal_job_applications")
+    .select("id")
+    .in("status", ["rejected", "withdrawn"])
+    .lte("updated_at", cutoff)
+    .limit(500);
+  if (appErr && !missingJobs(appErr.message)) throw new Error(appErr.message);
+  for (const row of staleApps ?? []) appIds.add(String(row.id));
+
+  const { data: finishedJobs, error: jobErr } = await db
+    .from("portal_jobs")
+    .select("id")
+    .in("status", ["closed", "cancelled"])
+    .lte("updated_at", cutoff)
+    .limit(200);
+  if (jobErr && !missingJobs(jobErr.message)) throw new Error(jobErr.message);
+
+  const finishedJobIds = (finishedJobs ?? []).map((j) => String(j.id));
+  if (finishedJobIds.length) {
+    const { data: finishedApps, error: finErr } = await db
+      .from("portal_job_applications")
+      .select("id")
+      .in("job_id", finishedJobIds)
+      .limit(1000);
+    if (finErr && !missingJobs(finErr.message)) throw new Error(finErr.message);
+    for (const row of finishedApps ?? []) appIds.add(String(row.id));
+  }
+
+  if (!appIds.size) return { applicationsCleared: 0, messagesDeleted: 0 };
+
+  const ids = [...appIds];
+  const { data: deleted, error: delErr } = await db
+    .from("portal_job_messages")
+    .delete()
+    .in("application_id", ids)
+    .select("id");
+  if (delErr) {
+    if (missingJobs(delErr.message)) return { applicationsCleared: 0, messagesDeleted: 0 };
+    throw new Error(delErr.message);
+  }
+  return { applicationsCleared: ids.length, messagesDeleted: (deleted ?? []).length };
+}

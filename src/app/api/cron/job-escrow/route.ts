@@ -1,13 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { sweepPeerHelpEscrows } from "@/lib/portal/job-escrow";
+import { purgeExpiredPeerHelpMessages } from "@/lib/portal/jobs";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-/** Hourly: auto-release overdue poster checks + auto-refund overdue helper deliveries. */
+/** Hourly: escrow timers + clear finished peer-help chats after 96h. */
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET?.trim();
   if (!secret) {
@@ -20,8 +21,9 @@ export async function GET(request: NextRequest) {
   if (!db) return NextResponse.json({ ok: false, error: "Database not configured" }, { status: 503 });
 
   try {
-    const result = await sweepPeerHelpEscrows(db);
-    return NextResponse.json({ ok: true, ...result });
+    const escrow = await sweepPeerHelpEscrows(db);
+    const chat = await purgeExpiredPeerHelpMessages(db);
+    return NextResponse.json({ ok: true, ...escrow, chat });
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: err instanceof Error ? err.message : "Sweep failed" },

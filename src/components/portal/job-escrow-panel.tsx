@@ -96,12 +96,27 @@ export function JobEscrowPanel({
         </p>
       ) : null}
 
+      {escrow.isPoster && (escrow.status === "locked" || escrow.status === "delivered" || escrow.status === "awaiting_funds") ? (
+        <p className="rounded-xl border border-dash-border bg-dash-muted/30 px-3 py-2 text-xs text-dash-foreground">
+          <span className="font-semibold">Your money:</span> {formatTsh(escrow.amountTsh)} is held by Honic escrow — not sent to the
+          helper yet. It only moves after you release, auto-release, refund, or a Honic dispute decision.
+        </p>
+      ) : null}
+
+      {escrow.isHelper && (escrow.status === "locked" || escrow.status === "delivered") ? (
+        <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-950">
+          <span className="font-semibold">Poster locked {formatTsh(escrow.amountTsh)}.</span> You can work with confidence — funds
+          are held until poster check (or auto-release). Keep chatting on this page, then upload preview + final when done.
+        </p>
+      ) : null}
+
       <ul className="text-dash-muted-foreground grid gap-1.5 text-xs leading-relaxed">
         <li>Money stays locked until confirm, auto-release, refund, or Honic dispute decision.</li>
         <li>Helper uploads a watermarked preview + final. Poster checks the preview only until release.</li>
         <li>
           Delivery window ~{ESCROW_DELIVERY_HOURS}h after lock; poster check ~{ESCROW_REVIEW_HOURS}h (then auto-release).
         </li>
+        <li>Chat stays open while the job is active. Messages are cleared ~96h after the job finishes to save storage.</li>
       </ul>
 
       {escrow.isHelper && (escrow.status === "locked" || escrow.status === "delivered") ? (
@@ -625,11 +640,9 @@ export function EscrowFundFields({
   onPhone: (v: string) => void;
 }) {
   return (
-    <div className="mt-3 space-y-2 rounded-xl border border-dash-border bg-dash-canvas/50 p-3">
-      <p className="text-dash-foreground text-xs font-semibold">Lock escrow to select this helper</p>
+    <div className="mt-3 space-y-2">
       <p className="text-dash-muted-foreground text-[11px]">
-        Your mobile money pays Honic escrow. The helper is assigned only after payment confirms. Funds release on confirm
-        or auto after {48}h review.
+        Mobile money pays <strong>Honic escrow</strong> (held safely). Helper is assigned only after payment confirms.
       </p>
       <select className={INPUT} value={network} onChange={(e) => onNetwork(e.target.value)}>
         {PAYMENT_NETWORKS.map((n) => (

@@ -937,7 +937,14 @@ export function JobDetailPanel({
 
             {job.isMine ? (
               <section className="space-y-3">
-                <h2 className="text-dash-foreground text-lg font-bold">Offers ({applications.length})</h2>
+                <div>
+                  <h2 className="text-dash-foreground text-lg font-bold">Offers ({applications.length})</h2>
+                  <p className="text-dash-muted-foreground mt-1 text-xs">
+                    Chat with anyone below. When you decide, open that offer and use{" "}
+                    <span className="text-dash-foreground font-semibold">Pick this helper &amp; lock my money</span>.
+                    Other offers are rejected automatically after payment confirms.
+                  </p>
+                </div>
                 {applications.length ? (
                   applications.map((app) => {
                     const canThread = app.status === "pending" || app.status === "accepted";
@@ -1125,22 +1132,29 @@ function ApplicationRow({
       {app.proposedTsh != null ? <p className="text-dash-foreground mt-2 text-xs font-semibold">Proposed {formatTsh(app.proposedTsh)}</p> : null}
       {canAccept ? (
         <>
-          <EscrowFundFields network={network} phone={phone} onNetwork={setNetwork} onPhone={setPhone} />
-          <button
-            type="button"
-            className={`${PRIMARY} mt-3 w-full`}
-            disabled={pending}
-            onClick={() => {
-              setStatus(null);
-              startTransition(async () => {
-                const res = await portalAcceptJobApplicationAction(app.publicId, network, phone);
-                setStatus(res);
-                if (res.ok) router.refresh();
-              });
-            }}
-          >
-            <IconWallet size={15} /> {pending ? "Locking escrow…" : "Select helper & lock escrow"}
-          </button>
+          <div className="border-dash-border mt-3 rounded-xl border bg-dash-canvas/50 p-3">
+            <p className="text-dash-foreground text-xs font-semibold">Pick this helper</p>
+            <p className="text-dash-muted-foreground mt-1 text-[11px] leading-relaxed">
+              Enter your mobile money below and tap the button. Your pay locks in Honic escrow (not paid to the helper yet).
+              All other offers are rejected. Chat with this helper continues until the job and payment finish.
+            </p>
+            <EscrowFundFields network={network} phone={phone} onNetwork={setNetwork} onPhone={setPhone} />
+            <button
+              type="button"
+              className={`${PRIMARY} mt-3 w-full`}
+              disabled={pending}
+              onClick={() => {
+                setStatus(null);
+                startTransition(async () => {
+                  const res = await portalAcceptJobApplicationAction(app.publicId, network, phone);
+                  setStatus(res);
+                  if (res.ok) router.refresh();
+                });
+              }}
+            >
+              <IconWallet size={15} /> {pending ? "Locking escrow…" : "Pick this helper & lock my money"}
+            </button>
+          </div>
         </>
       ) : null}
       {status ? <p className={`mt-2 text-xs ${status.ok ? "text-emerald-700" : "text-red-600"}`}>{status.ok ? status.message : toUserError(status.message ?? "")}</p> : null}
