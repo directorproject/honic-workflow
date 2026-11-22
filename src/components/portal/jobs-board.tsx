@@ -17,6 +17,7 @@ import {
 import { EscrowFundFields, JobEscrowPanel } from "@/components/portal/job-escrow-panel";
 import { PeerHelpPolicyGate } from "@/components/portal/peer-help-policy-gate";
 import { Avatar, Chip } from "@/components/zimamoto/ui";
+import { useJobMessageStream } from "@/hooks/useJobMessageStream";
 import { PAYMENT_NETWORKS } from "@/lib/portal/config";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type {
@@ -1221,43 +1222,9 @@ function MessageThread({
     });
   }, []);
 
-  const sync = useCallback(async () => {
-    try {
-      const url = new URL("/api/portal/jobs/messages", window.location.origin);
-      url.searchParams.set("applicationPublicId", applicationPublicId);
-      url.searchParams.set("sinceIso", lastRef.current);
-      const res = await fetch(url.toString(), { credentials: "same-origin", cache: "no-store" });
-      if (!res.ok) return;
-      const data = (await res.json()) as { ok?: boolean; messages?: PortalJobMessage[] };
-      if (data.ok && data.messages?.length) applyIncoming(data.messages);
-    } catch {
-      /* ignore transient poll errors */
-    }
-  }, [applicationPublicId, applyIncoming]);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function tick() {
-      if (cancelled || document.hidden) return;
-      await sync();
-    }
-    void tick();
-    const timer = window.setInterval(() => void tick(), 1500);
-    function onFocus() {
-      void tick();
-    }
-    function onVis() {
-      if (!document.hidden) void tick();
-    }
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onVis);
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onVis);
-    };
-  }, [sync]);
+  // Real-time messages via SSE (Server-Sent Events) instead of polling
+  // 3x faster: Updates every 500ms instead of 1500ms, with instant delivery like WhatsApp
+  useJobMessageStream(applicationPublicId, applyIncoming, true);
 
   useEffect(() => {
     const el = listRef.current;
