@@ -9,6 +9,7 @@ import {
   getEscrowForJob,
   getEscrowForJobStaff,
   listDeliverablesForEscrow,
+  listEscrowEvents,
   loadPeerPayoutAccount,
   maybeAutoReleaseEscrowsForJob,
 } from "@/lib/portal/job-escrow";
@@ -58,6 +59,7 @@ export default async function PortalJobDetailPage(props: { params: Promise<{ id:
   let escrow = !guest && viewerId ? await getEscrowForJob(db, job.id, viewerId) : null;
   if (!escrow && state.isStaff) escrow = await getEscrowForJobStaff(db, job.id);
   const deliverables = escrow ? await listDeliverablesForEscrow(db, escrow.id) : [];
+  const events = escrow ? await listEscrowEvents(db, escrow.id) : [];
   const peerPayout =
     !guest && viewerId && escrow?.isHelper ? await loadPeerPayoutAccount(db, viewerId) : null;
 
@@ -88,6 +90,7 @@ export default async function PortalJobDetailPage(props: { params: Promise<{ id:
           needsPolicy={Boolean(user) && !state.isStaff && !state.peerHelpAccepted}
           escrow={escrow}
           deliverables={deliverables}
+          events={events}
           peerPayoutSaved={Boolean(peerPayout?.sealOk && peerPayout.status === "active")}
           isStaff={state.isStaff}
         />

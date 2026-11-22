@@ -63,7 +63,10 @@ export default async function FinancePage() {
       <p className="text-dash-muted-foreground mb-5 text-sm">
         Records every mobile-money / simulated charge from the student portal (plans, title change, title hide,
         documents) and every workspace quote or invoice. Summary totals use the full selected year; the table lists
-        individual movements.
+        individual movements.{" "}
+        <Link href="/finance/peer-help" className="text-dash-accent font-semibold">
+          Peer-help disputes & payouts →
+        </Link>
       </p>
 
       {error ? (

@@ -9,14 +9,20 @@ import {
   portalEscrowDisputeAction,
   portalEscrowPreviewTokenAction,
   portalEscrowRegisterUploadAction,
+  portalEscrowRevisionAction,
   portalEscrowUploadUrlAction,
   portalSavePeerPayoutAction,
 } from "@/app/portal/job-actions";
 import { PAYMENT_NETWORKS } from "@/lib/portal/config";
 import {
+  ESCROW_DELIVERY_HOURS,
+  ESCROW_MAX_REVISIONS,
+  ESCROW_REVIEW_HOURS,
   escrowStatusLabel,
+  peerHelpActivitySteps,
   type PortalJobDeliverableMeta,
   type PortalJobEscrow,
+  type PortalJobEscrowEvent,
 } from "@/lib/portal/job-escrow-shared";
 import { toUserError } from "@/lib/portal/user-errors";
 
@@ -43,21 +49,25 @@ async function sha256Hex(file: File): Promise<string> {
 export function JobEscrowPanel({
   escrow,
   deliverables,
+  events = [],
   peerPayoutSaved,
   isStaff = false,
 }: {
   escrow: PortalJobEscrow;
   deliverables: PortalJobDeliverableMeta[];
+  events?: PortalJobEscrowEvent[];
   peerPayoutSaved: boolean;
   isStaff?: boolean;
 }) {
   const preview = deliverables.find((d) => d.kind === "preview") ?? null;
   const finalFile = deliverables.find((d) => d.kind === "final") ?? null;
-  const deadlineMs = escrow.reviewDeadlineAt ? new Date(escrow.reviewDeadlineAt).getTime() : null;
-  const hoursLeft =
-    deadlineMs && escrow.status === "delivered"
-      ? Math.max(0, Math.ceil((deadlineMs - Date.now()) / 3600000))
-      : null;
+  const steps = peerHelpActivitySteps(escrow, deliverables);
+  const reviewMs = escrow.reviewDeadlineAt ? new Date(escrow.reviewDeadlineAt).getTime() : null;
+  const deliveryMs = escrow.deliveryDeadlineAt ? new Date(escrow.deliveryDeadlineAt).getTime() : null;
+  const reviewHoursLeft =
+    reviewMs && escrow.status === "delivered" ? Math.max(0, Math.ceil((reviewMs - Date.now()) / 3600000)) : null;
+  const deliveryHoursLeft =
+    deliveryMs && escrow.status === "locked" ? Math.max(0, Math.ceil((deliveryMs - Date.now()) / 3600000)) : null;
 
   return (
     <section className={`${CARD} space-y-4 p-5`}>
@@ -67,7 +77,8 @@ export function JobEscrowPanel({
           <h2 className="text-dash-foreground mt-1 text-lg font-bold">{escrowStatusLabel(escrow.status)}</h2>
           <p className="text-dash-muted-foreground mt-1 text-sm">
             Locked amount <span className="text-dash-foreground font-semibold tabular-nums">{formatTsh(escrow.amountTsh)}</span>
-            {hoursLeft != null ? ` · auto-release in ~${hoursLeft}h if no action` : null}
+            {reviewHoursLeft != null ? ` · auto-release in ~${reviewHoursLeft}h if no action` : null}
+            {deliveryHoursLeft != null ? ` · deliver within ~${deliveryHoursLeft}h or auto-refund` : null}
           </p>
         </div>
         <span className="rounded-full bg-dash-muted px-3 py-1 text-[11px] font-semibold text-dash-muted-foreground">
@@ -75,14 +86,31 @@ export function JobEscrowPanel({
         </span>
       </div>
 
+      <PeerHelpActivityTrack steps={steps} />
+      <SharedActivityFeed events={events} />
+
+      {escrow.revisionNote && escrow.status === "locked" ? (
+        <p className="rounded-xl border border-dash-border bg-amber-500/10 px-3 py-2 text-xs text-dash-foreground">
+          <span className="font-semibold">Needs fix{escrow.revisionCount ? ` (${escrow.revisionCount}/${ESCROW_MAX_REVISIONS})` : ""}:</span>{" "}
+          {escrow.revisionNote}
+        </p>
+      ) : null}
+
       <ul className="text-dash-muted-foreground grid gap-1.5 text-xs leading-relaxed">
         <li>Money stays locked until confirm, auto-release, refund, or Honic dispute decision.</li>
-        <li>Poster reviews a watermarked preview only — no final download until release.</li>
-        <li>Screenshot deterrence + short preview sessions; leaks are tagged with this escrow id.</li>
+        <li>Helper uploads a watermarked preview + final. Poster checks the preview only until release.</li>
+        <li>
+          Delivery window ~{ESCROW_DELIVERY_HOURS}h after lock; poster check ~{ESCROW_REVIEW_HOURS}h (then auto-release).
+        </li>
       </ul>
 
       {escrow.isHelper && (escrow.status === "locked" || escrow.status === "delivered") ? (
-        <HelperUploadZone escrowPublicId={escrow.publicId} hasPreview={Boolean(preview)} hasFinal={Boolean(finalFile)} />
+        <HelperUploadZone
+          escrowPublicId={escrow.publicId}
+          hasPreview={Boolean(preview)}
+          hasFinal={Boolean(finalFile)}
+          revisionNote={escrow.status === "locked" ? escrow.revisionNote : null}
+        />
       ) : null}
 
       {escrow.isHelper && !peerPayoutSaved ? <PeerPayoutForm /> : null}
@@ -92,7 +120,7 @@ export function JobEscrowPanel({
       ) : null}
 
       {escrow.isPoster && escrow.status === "delivered" ? (
-        <PosterReviewActions escrowPublicId={escrow.publicId} />
+        <PosterReviewActions escrowPublicId={escrow.publicId} revisionCount={escrow.revisionCount} />
       ) : null}
 
       {escrow.status === "released" && finalFile ? (
@@ -112,14 +140,81 @@ export function JobEscrowPanel({
   );
 }
 
+function PeerHelpActivityTrack({
+  steps,
+}: {
+  steps: ReturnType<typeof peerHelpActivitySteps>;
+}) {
+  return (
+    <ol className="grid gap-2 sm:grid-cols-5">
+      {steps.map((step, i) => {
+        const tone =
+          step.state === "done"
+            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-900"
+            : step.state === "current"
+              ? "border-dash-accent/40 bg-dash-accent/10 text-dash-foreground"
+              : step.state === "blocked"
+                ? "border-amber-500/40 bg-amber-500/10 text-amber-950"
+                : "border-dash-border bg-dash-muted/20 text-dash-muted-foreground";
+        return (
+          <li key={step.key} className={`rounded-xl border px-2.5 py-2 ${tone}`}>
+            <p className="text-[10px] font-semibold tracking-wide uppercase opacity-70">
+              {i + 1}. {step.label}
+            </p>
+            <p className="mt-1 text-[11px] leading-snug">{step.detail}</p>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function SharedActivityFeed({ events }: { events: PortalJobEscrowEvent[] }) {
+  if (!events.length) {
+    return (
+      <div className="rounded-xl border border-dash-border bg-dash-canvas/50 px-3 py-2.5">
+        <p className="text-dash-foreground text-xs font-semibold">Shared activity</p>
+        <p className="text-dash-muted-foreground mt-1 text-[11px]">
+          Upload, poster check, release, and staff actions will appear here for both sides.
+        </p>
+      </div>
+    );
+  }
+  const latest = events.slice(-8).reverse();
+  return (
+    <div className="rounded-xl border border-dash-border bg-dash-canvas/50 px-3 py-2.5">
+      <p className="text-dash-foreground text-xs font-semibold">Shared activity</p>
+      <ul className="mt-2 space-y-1.5">
+        {latest.map((ev) => (
+          <li key={ev.publicId} className="text-dash-muted-foreground flex gap-2 text-[11px] leading-snug">
+            <span className="text-dash-foreground shrink-0 font-semibold tabular-nums">
+              {new Date(ev.createdAt).toLocaleString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+            <span>
+              <span className="text-dash-foreground capitalize">{ev.actorRole}</span> · {ev.message}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function HelperUploadZone({
   escrowPublicId,
   hasPreview,
   hasFinal,
+  revisionNote = null,
 }: {
   escrowPublicId: string;
   hasPreview: boolean;
   hasFinal: boolean;
+  revisionNote?: string | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -166,10 +261,10 @@ function HelperUploadZone({
 
   return (
     <div className="space-y-3 rounded-xl border border-dash-border bg-dash-canvas/60 p-4">
-      <p className="text-dash-foreground text-sm font-semibold">Deliver work (helper)</p>
+      <p className="text-dash-foreground text-sm font-semibold">{revisionNote ? "Re-upload after fix request" : "Upload deliverables (helper)"}</p>
       <p className="text-dash-muted-foreground text-xs">
-        Upload a clear <strong>preview image</strong> (JPG/PNG) for watermarked review, then the <strong>final file</strong>.
-        Review starts only when both are in.
+        Upload a clear <strong>preview image</strong> (JPG/PNG/WebP) for watermarked poster check, then the{" "}
+        <strong>final file</strong>. Poster check opens only when both are in.
       </p>
       <label className="block text-xs font-semibold text-dash-muted-foreground">
         Preview image {hasPreview ? "· replaced ok" : "· required"}
@@ -247,18 +342,25 @@ function PeerPayoutForm() {
   );
 }
 
-function PosterReviewActions({ escrowPublicId }: { escrowPublicId: string }) {
+function PosterReviewActions({
+  escrowPublicId,
+  revisionCount,
+}: {
+  escrowPublicId: string;
+  revisionCount: number;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
-  const [disputeOpen, setDisputeOpen] = useState(false);
+  const [mode, setMode] = useState<"none" | "fix" | "dispute">("none");
+  const canFix = revisionCount < ESCROW_MAX_REVISIONS;
 
   return (
     <div className="space-y-3 rounded-xl border border-dash-border bg-dash-canvas/60 p-4">
-      <p className="text-dash-foreground text-sm font-semibold">Poster review</p>
+      <p className="text-dash-foreground text-sm font-semibold">Poster check</p>
       <p className="text-dash-muted-foreground text-xs">
-        Confirm only if the watermarked preview matches what you asked for. Confirming releases funds and unlocks the final file.
-        Fake “not done” after seeing the work does not cancel a locked escrow — open a dispute with a reason instead.
+        Review the watermarked preview. Release unlocks the final file and queues helper payout. Ask for a fix once or twice,
+        or open a dispute for Honic to decide.
       </p>
       <div className="flex flex-wrap gap-2">
         <button
@@ -277,11 +379,46 @@ function PosterReviewActions({ escrowPublicId }: { escrowPublicId: string }) {
         >
           {pending ? "Saving…" : "Looks good — release"}
         </button>
-        <button type="button" className={SOFT} disabled={pending} onClick={() => setDisputeOpen((v) => !v)}>
+        <button
+          type="button"
+          className={SOFT}
+          disabled={pending || !canFix}
+          onClick={() => setMode((m) => (m === "fix" ? "none" : "fix"))}
+        >
+          Needs fix ({revisionCount}/{ESCROW_MAX_REVISIONS})
+        </button>
+        <button type="button" className={SOFT} disabled={pending} onClick={() => setMode((m) => (m === "dispute" ? "none" : "dispute"))}>
           Open dispute
         </button>
       </div>
-      {disputeOpen ? (
+      {mode === "fix" ? (
+        <form
+          className="space-y-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const note = String(new FormData(e.currentTarget).get("note") ?? "");
+            setStatus(null);
+            startTransition(async () => {
+              const res = await portalEscrowRevisionAction(escrowPublicId, note);
+              setStatus(res);
+              if (res.ok) router.refresh();
+            });
+          }}
+        >
+          <textarea
+            name="note"
+            required
+            minLength={12}
+            rows={3}
+            className={INPUT}
+            placeholder="What should the helper change? They will re-upload preview + final."
+          />
+          <button type="submit" className={SOFT} disabled={pending}>
+            Send fix request
+          </button>
+        </form>
+      ) : null}
+      {mode === "dispute" ? (
         <form
           className="space-y-2"
           onSubmit={(e) => {

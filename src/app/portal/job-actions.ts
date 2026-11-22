@@ -23,13 +23,21 @@ import {
   confirmEscrowDelivery,
   createEscrowForApplication,
   fulfillJobEscrowPayment,
+  getEscrowForJob,
   issuePreviewSession,
+  listDeliverablesForEscrow,
+  listEscrowEvents,
+  markPeerPayoutStatus,
   openEscrowDispute,
   registerDeliverable,
+  requestEscrowRevision,
   resolveEscrowDispute,
   savePeerPayoutAccount,
   validateDeliverableUpload,
   type DeliverableKind,
+  type PortalJobDeliverableMeta,
+  type PortalJobEscrow,
+  type PortalJobEscrowEvent,
 } from "@/lib/portal/job-escrow";
 import { peerHelpAccepted, PEER_HELP_METADATA_KEY, PEER_HELP_RULES_VERSION, peerHelpRulesError } from "@/lib/portal/jobs-peer-help";
 import { paymentUnavailableMessage, toUserError } from "@/lib/portal/user-errors";
@@ -382,7 +390,7 @@ export async function portalJobMessagesSinceAction(input: {
   }
 }
 
-/** Live sync for a job page: offers + optional open thread messages. */
+/** Live sync for a job page: offers, chat, escrow tools, shared activity. */
 export async function portalJobDetailSyncAction(input: {
   jobPublicId: string;
   applicationPublicId?: string | null;
@@ -393,13 +401,24 @@ export async function portalJobDetailSyncAction(input: {
   myApplication: PortalJobApplication | null;
   messages: PortalJobMessage[];
   applicationId?: string;
+  escrow: PortalJobEscrow | null;
+  deliverables: PortalJobDeliverableMeta[];
+  events: PortalJobEscrowEvent[];
 }> {
   try {
     const { user, db } = await requireStudent();
     const jobPublicId = String(input.jobPublicId ?? "");
     const job = await getJobByPublicId(db, jobPublicId, user.id);
     if (!job) {
-      return { ok: false, applications: [], myApplication: null, messages: [] };
+      return {
+        ok: false,
+        applications: [],
+        myApplication: null,
+        messages: [],
+        escrow: null,
+        deliverables: [],
+        events: [],
+      };
     }
 
     const applications = job.isMine ? await listApplicationsForJob(db, job.id, user.id) : [];
@@ -417,9 +436,21 @@ export async function portalJobDetailSyncAction(input: {
       }
     }
 
-    return { ok: true, applications, myApplication, messages, applicationId };
+    const escrow = await getEscrowForJob(db, job.id, user.id);
+    const deliverables = escrow ? await listDeliverablesForEscrow(db, escrow.id) : [];
+    const events = escrow ? await listEscrowEvents(db, escrow.id) : [];
+
+    return { ok: true, applications, myApplication, messages, applicationId, escrow, deliverables, events };
   } catch {
-    return { ok: false, applications: [], myApplication: null, messages: [] };
+    return {
+      ok: false,
+      applications: [],
+      myApplication: null,
+      messages: [],
+      escrow: null,
+      deliverables: [],
+      events: [],
+    };
   }
 }
 
@@ -496,6 +527,50 @@ export async function portalEscrowDisputeAction(escrowPublicId: string, reason: 
     return { ok: true, message: "Dispute opened. Honic will review chat + preview evidence." };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not open dispute." };
+  }
+}
+
+export async function portalEscrowRevisionAction(escrowPublicId: string, note: string): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
+    const result = await requestEscrowRevision(db, {
+      userId: user.id,
+      escrowPublicId: String(escrowPublicId ?? ""),
+      note: String(note ?? ""),
+    });
+    if (!result.ok) return { ok: false, message: result.message };
+    revalidatePath("/portal/jobs");
+    revalidatePath("/portal/jobs/mine");
+    return { ok: true, message: "Fix requested. Helper can re-upload preview + final." };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not request a fix." };
+  }
+}
+
+export async function portalMarkPeerPayoutAction(
+  payoutPublicId: string,
+  status: "processing" | "paid" | "failed",
+  note?: string,
+): Promise<PortalResult> {
+  try {
+    const { user, db } = await requirePortalActor();
+    if (!isStaffUser(user)) return { ok: false, message: "Staff only." };
+    const result = await markPeerPayoutStatus(db, {
+      payoutPublicId: String(payoutPublicId ?? ""),
+      status,
+      note: note ? String(note) : undefined,
+    });
+    if (!result.ok) return { ok: false, message: result.message };
+    revalidatePath("/finance/peer-help");
+    revalidatePath("/portal/jobs");
+    return {
+      ok: true,
+      message:
+        status === "paid" ? "Marked paid." : status === "failed" ? "Marked failed." : "Marked processing.",
+    };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not update payout." };
   }
 }
 

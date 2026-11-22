@@ -21,7 +21,11 @@ import { EscrowFundFields, JobEscrowPanel } from "@/components/portal/job-escrow
 import { PeerHelpPolicyGate } from "@/components/portal/peer-help-policy-gate";
 import { Avatar, Chip } from "@/components/zimamoto/ui";
 import { PAYMENT_NETWORKS } from "@/lib/portal/config";
-import type { PortalJobDeliverableMeta, PortalJobEscrow } from "@/lib/portal/job-escrow-shared";
+import type {
+  PortalJobDeliverableMeta,
+  PortalJobEscrow,
+  PortalJobEscrowEvent,
+} from "@/lib/portal/job-escrow-shared";
 import {
   IconBack,
   IconChat,
@@ -757,8 +761,9 @@ export function JobDetailPanel({
   messagesByApplicationPublicId: initialMessages,
   canUseJobs,
   needsPolicy = false,
-  escrow = null,
-  deliverables = [],
+  escrow: initialEscrow = null,
+  deliverables: initialDeliverables = [],
+  events: initialEvents = [],
   peerPayoutSaved = false,
   isStaff = false,
 }: {
@@ -770,12 +775,16 @@ export function JobDetailPanel({
   needsPolicy?: boolean;
   escrow?: PortalJobEscrow | null;
   deliverables?: PortalJobDeliverableMeta[];
+  events?: PortalJobEscrowEvent[];
   peerPayoutSaved?: boolean;
   isStaff?: boolean;
 }) {
   const [applications, setApplications] = useState(initialApplications);
   const [myApplication, setMyApplication] = useState(initialMyApplication);
   const [messagesByApplicationPublicId, setMessagesByApp] = useState(initialMessages);
+  const [escrow, setEscrow] = useState(initialEscrow);
+  const [deliverables, setDeliverables] = useState(initialDeliverables);
+  const [events, setEvents] = useState(initialEvents);
 
   useEffect(() => {
     setApplications(initialApplications);
@@ -786,6 +795,15 @@ export function JobDetailPanel({
   useEffect(() => {
     setMessagesByApp(initialMessages);
   }, [initialMessages]);
+  useEffect(() => {
+    setEscrow(initialEscrow);
+  }, [initialEscrow]);
+  useEffect(() => {
+    setDeliverables(initialDeliverables);
+  }, [initialDeliverables]);
+  useEffect(() => {
+    setEvents(initialEvents);
+  }, [initialEvents]);
 
   const threadableApps = applications.filter((a) => a.status === "pending" || a.status === "accepted");
   const [activeAppId, setActiveAppId] = useState(() => threadableApps[0]?.publicId ?? myApplication?.publicId ?? null);
@@ -800,7 +818,7 @@ export function JobDetailPanel({
     setActiveAppId(threadableApps[0]?.publicId ?? myApplication?.publicId ?? null);
   }, [activeAppId, threadableApps, myApplication?.publicId]);
 
-  // Live offers + open thread without full page refresh.
+  // Live offers + chat + escrow tools / shared activity without full page refresh.
   useEffect(() => {
     let stopped = false;
     async function sync() {
@@ -822,6 +840,9 @@ export function JobDetailPanel({
           [activeAppId]: mergeJobMessages(prev[activeAppId] ?? [], res.messages),
         }));
       }
+      setEscrow(res.escrow);
+      setDeliverables(res.deliverables);
+      setEvents(res.events);
     }
     void sync();
     const timer = window.setInterval(() => void sync(), 4000);
@@ -898,6 +919,7 @@ export function JobDetailPanel({
               <JobEscrowPanel
                 escrow={escrow}
                 deliverables={deliverables}
+                events={events}
                 peerPayoutSaved={peerPayoutSaved}
                 isStaff={isStaff}
               />

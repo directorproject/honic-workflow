@@ -4,16 +4,24 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { newPublicId } from "@/lib/portal/accounts";
 import {
+  ESCROW_DELIVERY_HOURS,
   ESCROW_FINAL_MAX_BYTES,
   ESCROW_FINAL_MIME,
+  ESCROW_MAX_REVISIONS,
   ESCROW_PREVIEW_MAX_BYTES,
   ESCROW_PREVIEW_MIME,
   ESCROW_REVIEW_HOURS,
+  ESCROW_REVISION_EXTRA_HOURS,
   escrowStatusLabel,
   type DeliverableKind,
+  type EscrowActorRole,
   type EscrowStatus,
+  type JobPayoutStatus,
   type PortalJobDeliverableMeta,
   type PortalJobEscrow,
+  type PortalJobEscrowEvent,
+  type StaffEscrowQueueItem,
+  type StaffPayoutQueueItem,
 } from "@/lib/portal/job-escrow-shared";
 import {
   normalizePersonName,
@@ -24,19 +32,53 @@ import { PAYMENT_NETWORKS } from "@/lib/portal/config";
 import { toSnippePhone } from "@/lib/payments/snippe";
 
 export {
+  ESCROW_DELIVERY_HOURS,
   ESCROW_FINAL_MAX_BYTES,
   ESCROW_FINAL_MIME,
+  ESCROW_MAX_REVISIONS,
   ESCROW_PREVIEW_MAX_BYTES,
   ESCROW_PREVIEW_MIME,
   ESCROW_REVIEW_HOURS,
+  ESCROW_REVISION_EXTRA_HOURS,
   escrowStatusLabel,
 };
-export type { DeliverableKind, EscrowStatus, PortalJobDeliverableMeta, PortalJobEscrow };
+export type {
+  DeliverableKind,
+  EscrowActorRole,
+  EscrowStatus,
+  JobPayoutStatus,
+  PortalJobDeliverableMeta,
+  PortalJobEscrow,
+  PortalJobEscrowEvent,
+};
 
 function missingEscrow(message: string): boolean {
-  return /portal_job_escrows|portal_job_deliverables|portal_job_preview_sessions|portal_peer_payout_accounts|portal_job_payouts|does not exist|schema cache/i.test(
+  return /portal_job_escrows|portal_job_deliverables|portal_job_preview_sessions|portal_peer_payout_accounts|portal_job_payouts|portal_job_escrow_events|does not exist|schema cache/i.test(
     message,
   );
+}
+
+async function logEscrowEvent(
+  db: SupabaseClient,
+  input: {
+    escrowId: string;
+    eventType: string;
+    actorRole: EscrowActorRole;
+    message: string;
+    meta?: Record<string, unknown>;
+  },
+): Promise<void> {
+  const { error } = await db.from("portal_job_escrow_events").insert({
+    public_id: newPublicId(),
+    escrow_id: input.escrowId,
+    event_type: input.eventType,
+    actor_role: input.actorRole,
+    message: input.message.slice(0, 500),
+    meta: input.meta ?? {},
+  });
+  if (error && !missingEscrow(error.message)) {
+    console.warn("[peer-help] activity log failed", error.message);
+  }
 }
 
 function sealSecret(): string {
@@ -93,11 +135,15 @@ function asEscrow(row: Record<string, unknown>, viewerId: string | null): Portal
     paymentReference: row.payment_reference ? String(row.payment_reference) : null,
     lockedAt: row.locked_at ? String(row.locked_at) : null,
     deliveredAt: row.delivered_at ? String(row.delivered_at) : null,
+    deliveryDeadlineAt: row.delivery_deadline_at ? String(row.delivery_deadline_at) : null,
     reviewDeadlineAt: row.review_deadline_at ? String(row.review_deadline_at) : null,
     releasedAt: row.released_at ? String(row.released_at) : null,
     refundedAt: row.refunded_at ? String(row.refunded_at) : null,
     disputeReason: row.dispute_reason ? String(row.dispute_reason) : null,
     disputeOpenedAt: row.dispute_opened_at ? String(row.dispute_opened_at) : null,
+    revisionNote: row.revision_note ? String(row.revision_note) : null,
+    revisionRequestedAt: row.revision_requested_at ? String(row.revision_requested_at) : null,
+    revisionCount: Math.max(0, Number(row.revision_count) || 0),
     isPoster: Boolean(viewerId && String(row.poster_user_id) === viewerId),
     isHelper: Boolean(viewerId && String(row.helper_user_id) === viewerId),
   };
@@ -387,11 +433,13 @@ async function fulfillLockedEscrow(
     .eq("id", jobId);
   if (jobErr) return { ok: false, message: jobErr.message };
 
+  const deliveryDeadline = new Date(Date.now() + ESCROW_DELIVERY_HOURS * 3600 * 1000).toISOString();
   const { error: escErr } = await db
     .from("portal_job_escrows")
     .update({
       status: "locked",
       locked_at: now,
+      delivery_deadline_at: deliveryDeadline,
       payment_id: payment.id,
       payment_reference: payment.reference,
       updated_at: now,
@@ -399,6 +447,13 @@ async function fulfillLockedEscrow(
     .eq("id", escrow.id)
     .in("status", ["awaiting_funds", "locked"]);
   if (escErr) return { ok: false, message: escErr.message };
+
+  await logEscrowEvent(db, {
+    escrowId: String(escrow.id),
+    eventType: "funds_locked",
+    actorRole: "system",
+    message: `Escrow locked. Helper has ~${ESCROW_DELIVERY_HOURS}h to upload preview + final.`,
+  });
 
   return { ok: true, fulfilled: true };
 }
@@ -493,6 +548,16 @@ export async function registerDeliverable(
     return { ok: false, message: upErr.message };
   }
 
+  await logEscrowEvent(db, {
+    escrowId: String(escrow.id),
+    eventType: input.kind === "preview" ? "preview_uploaded" : "final_uploaded",
+    actorRole: "helper",
+    message:
+      input.kind === "preview"
+        ? `Helper uploaded preview “${input.originalName.trim().slice(0, 80)}”.`
+        : `Helper uploaded final “${input.originalName.trim().slice(0, 80)}”.`,
+  });
+
   // Mark delivered only when both preview + final exist.
   const { data: kinds } = await db
     .from("portal_job_deliverables")
@@ -508,10 +573,17 @@ export async function registerDeliverable(
         status: "delivered",
         delivered_at: now,
         review_deadline_at: deadline,
+        revision_note: null,
         updated_at: now,
       })
       .eq("id", escrow.id)
       .eq("status", "locked");
+    await logEscrowEvent(db, {
+      escrowId: String(escrow.id),
+      eventType: "delivered",
+      actorRole: "helper",
+      message: `Both files in. Poster check open for ~${ESCROW_REVIEW_HOURS}h (then auto-release).`,
+    });
   }
 
   return { ok: true };
@@ -535,7 +607,63 @@ export async function confirmEscrowDelivery(
   if (String(escrow.status) !== "delivered") {
     return { ok: false, message: "Confirm is only available during the review window." };
   }
-  return releaseEscrow(db, escrow as Record<string, unknown>);
+  return releaseEscrow(db, escrow as Record<string, unknown>, "poster");
+}
+
+/** Poster asks helper to fix work without opening a dispute (free revision). */
+export async function requestEscrowRevision(
+  db: SupabaseClient,
+  input: { userId: string; escrowPublicId: string; note: string },
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const note = input.note.trim().slice(0, 1000);
+  if (note.length < 12) return { ok: false, message: "Say what needs fixing (at least 12 characters)." };
+
+  const { data: escrow } = await db
+    .from("portal_job_escrows")
+    .select("*")
+    .eq("public_id", input.escrowPublicId)
+    .maybeSingle();
+  if (!escrow) return { ok: false, message: "Escrow not found." };
+  if (String(escrow.poster_user_id) !== input.userId) {
+    return { ok: false, message: "Only the poster can request a fix." };
+  }
+  if (String(escrow.status) !== "delivered") {
+    return { ok: false, message: "Revision is only available during poster check." };
+  }
+  const count = Math.max(0, Number(escrow.revision_count) || 0);
+  if (count >= ESCROW_MAX_REVISIONS) {
+    return {
+      ok: false,
+      message: `Already used ${ESCROW_MAX_REVISIONS} free revisions. Open a dispute if it still is not right.`,
+    };
+  }
+
+  const now = new Date().toISOString();
+  const deliveryDeadline = new Date(Date.now() + ESCROW_REVISION_EXTRA_HOURS * 3600 * 1000).toISOString();
+  const { error } = await db
+    .from("portal_job_escrows")
+    .update({
+      status: "locked",
+      delivered_at: null,
+      review_deadline_at: null,
+      revision_note: note,
+      revision_requested_at: now,
+      revision_count: count + 1,
+      delivery_deadline_at: deliveryDeadline,
+      updated_at: now,
+    })
+    .eq("id", escrow.id)
+    .eq("status", "delivered");
+  if (error) return { ok: false, message: error.message };
+
+  await logEscrowEvent(db, {
+    escrowId: String(escrow.id),
+    eventType: "revision_requested",
+    actorRole: "poster",
+    message: `Poster requested a fix: ${note.slice(0, 200)}`,
+    meta: { revisionCount: count + 1 },
+  });
+  return { ok: true };
 }
 
 export async function openEscrowDispute(
@@ -571,6 +699,12 @@ export async function openEscrowDispute(
     .eq("id", escrow.id)
     .eq("status", "delivered");
   if (error) return { ok: false, message: error.message };
+  await logEscrowEvent(db, {
+    escrowId: String(escrow.id),
+    eventType: "dispute_opened",
+    actorRole: isPoster ? "poster" : "helper",
+    message: `Dispute opened: ${reason.slice(0, 200)}`,
+  });
   return { ok: true };
 }
 
@@ -605,15 +739,23 @@ export async function resolveEscrowDispute(
     })
     .eq("id", escrow.id);
 
+  await logEscrowEvent(db, {
+    escrowId: String(escrow.id),
+    eventType: input.resolution === "release" ? "staff_release" : "staff_refund",
+    actorRole: "staff",
+    message: `Staff ${input.resolution}: ${note.slice(0, 200)}`,
+  });
+
   if (input.resolution === "release") {
-    return releaseEscrow(db, escrow as Record<string, unknown>);
+    return releaseEscrow(db, escrow as Record<string, unknown>, "staff");
   }
-  return refundEscrow(db, escrow as Record<string, unknown>);
+  return refundEscrow(db, escrow as Record<string, unknown>, "staff");
 }
 
 async function releaseEscrow(
   db: SupabaseClient,
   escrow: Record<string, unknown>,
+  actor: EscrowActorRole = "system",
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const now = new Date().toISOString();
   const { error } = await db
@@ -654,12 +796,23 @@ async function releaseEscrow(
     { onConflict: "escrow_id" },
   );
 
+  await logEscrowEvent(db, {
+    escrowId: String(escrow.id),
+    eventType: actor === "system" ? "auto_released" : "released",
+    actorRole: actor,
+    message:
+      actor === "system"
+        ? "Auto-released after review window. Helper payout queued."
+        : "Escrow released. Final unlocked and helper payout queued.",
+  });
+
   return { ok: true };
 }
 
 async function refundEscrow(
   db: SupabaseClient,
   escrow: Record<string, unknown>,
+  actor: EscrowActorRole = "system",
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const now = new Date().toISOString();
   const { error } = await db
@@ -673,6 +826,16 @@ async function refundEscrow(
     .from("portal_jobs")
     .update({ status: "cancelled", updated_at: now })
     .eq("id", escrow.job_id);
+
+  await logEscrowEvent(db, {
+    escrowId: String(escrow.id),
+    eventType: actor === "system" ? "auto_refunded" : "refunded",
+    actorRole: actor,
+    message:
+      actor === "system"
+        ? "Auto-refunded — helper did not deliver before the deadline."
+        : "Escrow refunded to poster.",
+  });
 
   return { ok: true };
 }
@@ -691,17 +854,206 @@ export async function maybeAutoReleaseEscrow(
   if (String(escrow.status) !== "delivered") return;
   const deadline = escrow.review_deadline_at ? new Date(String(escrow.review_deadline_at)).getTime() : 0;
   if (!deadline || Date.now() < deadline) return;
-  await releaseEscrow(db, escrow as Record<string, unknown>);
+  await releaseEscrow(db, escrow as Record<string, unknown>, "system");
+}
+
+/** Auto-refund when helper never finishes delivery before the deadline. */
+export async function maybeAutoRefundEscrow(
+  db: SupabaseClient,
+  escrowPublicId: string,
+): Promise<void> {
+  const { data: escrow } = await db
+    .from("portal_job_escrows")
+    .select("*")
+    .eq("public_id", escrowPublicId)
+    .maybeSingle();
+  if (!escrow) return;
+  if (String(escrow.status) !== "locked") return;
+  const deadline = escrow.delivery_deadline_at ? new Date(String(escrow.delivery_deadline_at)).getTime() : 0;
+  if (!deadline || Date.now() < deadline) return;
+  await refundEscrow(db, escrow as Record<string, unknown>, "system");
 }
 
 export async function maybeAutoReleaseEscrowsForJob(db: SupabaseClient, jobId: string): Promise<void> {
   const { data } = await db
     .from("portal_job_escrows")
-    .select("public_id")
+    .select("public_id, status")
     .eq("job_id", jobId)
-    .eq("status", "delivered")
     .maybeSingle();
-  if (data?.public_id) await maybeAutoReleaseEscrow(db, String(data.public_id));
+  if (!data?.public_id) return;
+  if (String(data.status) === "delivered") await maybeAutoReleaseEscrow(db, String(data.public_id));
+  if (String(data.status) === "locked") await maybeAutoRefundEscrow(db, String(data.public_id));
+}
+
+/** Cron sweep: auto-release overdue reviews + auto-refund overdue deliveries. */
+export async function sweepPeerHelpEscrows(
+  db: SupabaseClient,
+): Promise<{ released: number; refunded: number }> {
+  const nowIso = new Date().toISOString();
+  let released = 0;
+  let refunded = 0;
+
+  const { data: dueRelease } = await db
+    .from("portal_job_escrows")
+    .select("public_id")
+    .eq("status", "delivered")
+    .lte("review_deadline_at", nowIso)
+    .limit(100);
+  for (const row of dueRelease ?? []) {
+    await maybeAutoReleaseEscrow(db, String(row.public_id));
+    released += 1;
+  }
+
+  const { data: dueRefund } = await db
+    .from("portal_job_escrows")
+    .select("public_id")
+    .eq("status", "locked")
+    .lte("delivery_deadline_at", nowIso)
+    .limit(100);
+  for (const row of dueRefund ?? []) {
+    await maybeAutoRefundEscrow(db, String(row.public_id));
+    refunded += 1;
+  }
+
+  return { released, refunded };
+}
+
+export async function listEscrowEvents(
+  db: SupabaseClient,
+  escrowId: string,
+): Promise<PortalJobEscrowEvent[]> {
+  const { data, error } = await db
+    .from("portal_job_escrow_events")
+    .select("public_id, event_type, actor_role, message, created_at")
+    .eq("escrow_id", escrowId)
+    .order("created_at", { ascending: true })
+    .limit(80);
+  if (error) {
+    if (missingEscrow(error.message)) return [];
+    throw new Error(error.message);
+  }
+  return (data ?? []).map((row) => ({
+    publicId: String(row.public_id),
+    eventType: String(row.event_type),
+    actorRole: String(row.actor_role) as EscrowActorRole,
+    message: String(row.message),
+    createdAt: String(row.created_at),
+  }));
+}
+
+export type { StaffEscrowQueueItem, StaffPayoutQueueItem };
+
+export async function listDisputedEscrowsForStaff(db: SupabaseClient): Promise<StaffEscrowQueueItem[]> {
+  const { data, error } = await db
+    .from("portal_job_escrows")
+    .select("public_id, amount_tsh, status, dispute_reason, updated_at, job_id")
+    .eq("status", "disputed")
+    .order("updated_at", { ascending: true })
+    .limit(100);
+  if (error) {
+    if (missingEscrow(error.message)) return [];
+    throw new Error(error.message);
+  }
+  const jobIds = [...new Set((data ?? []).map((r) => String(r.job_id)))];
+  const { data: jobs } = jobIds.length
+    ? await db.from("portal_jobs").select("id, public_id, title").in("id", jobIds)
+    : { data: [] as { id: string; public_id: string; title: string }[] };
+  const byId = new Map((jobs ?? []).map((j) => [String(j.id), j]));
+  return (data ?? []).map((row) => {
+    const job = byId.get(String(row.job_id));
+    const jobPublicId = job ? String(job.public_id) : "";
+    return {
+      escrowPublicId: String(row.public_id),
+      jobPublicId,
+      jobTitle: job ? String(job.title) : "Peer-help job",
+      amountTsh: Number(row.amount_tsh) || 0,
+      status: String(row.status) as EscrowStatus,
+      disputeReason: row.dispute_reason ? String(row.dispute_reason) : null,
+      updatedAt: String(row.updated_at),
+      href: jobPublicId ? `/portal/jobs/${encodeURIComponent(jobPublicId)}` : "/portal/jobs",
+    };
+  });
+}
+
+export async function listQueuedPeerPayoutsForStaff(db: SupabaseClient): Promise<StaffPayoutQueueItem[]> {
+  const { data, error } = await db
+    .from("portal_job_payouts")
+    .select("public_id, escrow_id, amount_tsh, status, network, phone, account_name, updated_at")
+    .in("status", ["queued", "processing", "failed"])
+    .order("updated_at", { ascending: true })
+    .limit(100);
+  if (error) {
+    if (missingEscrow(error.message)) return [];
+    throw new Error(error.message);
+  }
+  const escrowIds = [...new Set((data ?? []).map((r) => String(r.escrow_id)))];
+  const { data: escrows } = escrowIds.length
+    ? await db.from("portal_job_escrows").select("id, public_id, job_id").in("id", escrowIds)
+    : { data: [] as { id: string; public_id: string; job_id: string }[] };
+  const escById = new Map((escrows ?? []).map((e) => [String(e.id), e]));
+  const jobIds = [...new Set((escrows ?? []).map((e) => String(e.job_id)))];
+  const { data: jobs } = jobIds.length
+    ? await db.from("portal_jobs").select("id, public_id").in("id", jobIds)
+    : { data: [] as { id: string; public_id: string }[] };
+  const jobById = new Map((jobs ?? []).map((j) => [String(j.id), j]));
+
+  return (data ?? []).map((row) => {
+    const esc = escById.get(String(row.escrow_id));
+    const job = esc ? jobById.get(String(esc.job_id)) : null;
+    const jobPublicId = job ? String(job.public_id) : "";
+    return {
+      payoutPublicId: String(row.public_id),
+      escrowPublicId: esc ? String(esc.public_id) : "",
+      jobPublicId,
+      amountTsh: Number(row.amount_tsh) || 0,
+      status: String(row.status) as JobPayoutStatus,
+      network: row.network ? String(row.network) : null,
+      phone: row.phone ? String(row.phone) : null,
+      accountName: row.account_name ? String(row.account_name) : null,
+      updatedAt: String(row.updated_at),
+      href: jobPublicId ? `/portal/jobs/${encodeURIComponent(jobPublicId)}` : "/portal/jobs",
+    };
+  });
+}
+
+export async function markPeerPayoutStatus(
+  db: SupabaseClient,
+  input: { payoutPublicId: string; status: "processing" | "paid" | "failed"; note?: string },
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const now = new Date().toISOString();
+  const patch: Record<string, unknown> = { status: input.status, updated_at: now };
+  if (input.status === "paid") {
+    patch.paid_at = now;
+    patch.failure_reason = null;
+  }
+  if (input.status === "failed" && input.note?.trim()) {
+    patch.failure_reason = input.note.trim().slice(0, 500);
+  }
+
+  const { data, error } = await db
+    .from("portal_job_payouts")
+    .update(patch)
+    .eq("public_id", input.payoutPublicId)
+    .in("status", ["queued", "processing", "failed"])
+    .select("escrow_id")
+    .maybeSingle();
+  if (error) return { ok: false, message: error.message };
+  if (!data) return { ok: false, message: "Payout not found or already paid." };
+
+  if (data.escrow_id) {
+    await logEscrowEvent(db, {
+      escrowId: String(data.escrow_id),
+      eventType: `payout_${input.status}`,
+      actorRole: "staff",
+      message:
+        input.status === "paid"
+          ? "Staff marked helper payout as paid."
+          : input.status === "failed"
+            ? "Staff marked helper payout as failed."
+            : "Staff marked helper payout as processing.",
+    });
+  }
+  return { ok: true };
 }
 
 /* ---------- Preview session tokens ---------- */
