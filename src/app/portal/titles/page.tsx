@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { after } from "next/server";
+import { redirect } from "next/navigation";
 
 import { portalSignOutAction } from "@/app/portal/auth-actions";
 import { NexisBrandBar } from "@/components/brand/nexis-brand-bar";
@@ -24,43 +25,24 @@ export default async function PortalTitlesPage() {
   const { user, profile } = state;
   const db = getSupabaseAdminClient();
 
+  if (!user) {
+    redirect("/portal?auth=signin&next=/portal/titles");
+  }
+
   // Server-side visit so analytics sees /portal/titles even when the browser beacon misses.
   if (db) {
     after(() => {
       void recordPageVisit(db, {
         path: "/portal/titles",
         sessionKey: null,
-        viewerId: user?.id ?? null,
+        viewerId: user.id,
       });
     });
   }
 
   let content: React.ReactNode;
   let catalogue = false;
-  if (!user && db) {
-    const review = await loadGuestLiteratureCatalogue();
-    catalogue = true;
-    content = (
-      <CohortTitleBoard
-        items={review.items}
-        mine={[]}
-        courses={state.courses}
-        studentYear={null}
-        readOnly
-        guest
-        viewer={{ name: "Guest", detail: "Preview · sign in to shortlist", homeHref: "/portal/home" }}
-      />
-    );
-  } else if (!user) {
-    content = (
-      <p className="text-dash-muted-foreground text-sm">
-        Literature is not available right now.{" "}
-        <Link href="/portal?auth=signin" className="text-dash-accent font-semibold">
-          Sign in
-        </Link>
-      </p>
-    );
-  } else if (state.isStaff && db) {
+  if (state.isStaff && db) {
     const review = await loadGuestLiteratureCatalogue();
     catalogue = true;
     content = (

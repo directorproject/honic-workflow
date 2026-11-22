@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { after } from "next/server";
+import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { publishTitleDocument } from "@/app/portal/title-claim-actions";
@@ -68,6 +69,11 @@ export default async function PortalTitlePage(props: {
   const state = await loadPortalState();
   const { user, profile } = state;
   const db = getSupabaseAdminClient();
+  const routeIdEarly = decodeURIComponent(id);
+
+  if (!user) {
+    redirect(`/portal?auth=signin&next=${encodeURIComponent(`/portal/titles/${encodeURIComponent(routeIdEarly)}`)}`);
+  }
 
   if (!db) {
     return (
@@ -77,8 +83,7 @@ export default async function PortalTitlePage(props: {
     );
   }
 
-  const guest = !user;
-  if (user && !state.isStaff && (!profile || state.profileAcademicPending)) {
+  if (!state.isStaff && (!profile || state.profileAcademicPending)) {
     return (
       <ProfileForm
         courses={state.courses}
@@ -88,10 +93,10 @@ export default async function PortalTitlePage(props: {
       />
     );
   }
-  const routeId = decodeURIComponent(id);
+  const routeId = routeIdEarly;
   const terms = state.titleTerms ?? { accepted: false, policyAccepted: false, rulesAccepted: false, acceptedAt: null };
   const acceptedAt = terms.acceptedAt;
-  if (user && !state.isStaff && profile && !terms.accepted) {
+  if (!state.isStaff && profile && !terms.accepted) {
     return (
       <Gate>
         <TitleTermsGate
@@ -101,19 +106,17 @@ export default async function PortalTitlePage(props: {
       </Gate>
     );
   }
-  const cataloguePromise =
-    guest || state.isStaff
-      ? loadGuestLiteratureCatalogue()
-      : loadStudentLiteratureCatalogue(user!.id, profile!);
-  const membershipPromise =
-    user && !state.isStaff && db ? findMembership(db, user.id) : Promise.resolve(null);
+  const cataloguePromise = state.isStaff
+    ? loadGuestLiteratureCatalogue()
+    : loadStudentLiteratureCatalogue(user.id, profile!);
+  const membershipPromise = !state.isStaff && db ? findMembership(db, user.id) : Promise.resolve(null);
 
   const [prefetched, membership] = await Promise.all([cataloguePromise, membershipPromise]);
 
   const { item, review } = await loadReviewItemWithCatalogue(
     db,
-    guest || state.isStaff ? null : user!.id,
-    guest || state.isStaff ? null : profile,
+    state.isStaff ? null : user.id,
+    state.isStaff ? null : profile,
     routeId,
     prefetched,
   );
@@ -125,19 +128,17 @@ export default async function PortalTitlePage(props: {
   const claims = target ? await claimsForTarget(db, target.kind, target.id) : [];
   const confirmed = claims.filter((claim) => claim.status === "confirmed");
   const mineClaim =
-    !guest && !state.isStaff && user ? confirmed.find((claim) => claim.requesterId === user.id) ?? null : null;
+    !state.isStaff ? confirmed.find((claim) => claim.requesterId === user.id) ?? null : null;
   const ownerId = confirmed[0]?.requesterId ?? null;
 
   const [documents, canViewDocuments, engagementMap] = await Promise.all([
     confirmed.length ? publishedDocuments(db, confirmed.map((claim) => claim.id)) : Promise.resolve([]),
-    !guest && user
-      ? hasProjectDocumentsAccess(db, {
-          userId: user.id,
-          deskExpiresAt: profile?.deskExpiresAt ?? null,
-          isStaff: state.isStaff,
-          isDocumentOwner: Boolean(mineClaim),
-        })
-      : Promise.resolve(false),
+    hasProjectDocumentsAccess(db, {
+      userId: user.id,
+      deskExpiresAt: profile?.deskExpiresAt ?? null,
+      isStaff: state.isStaff,
+      isDocumentOwner: Boolean(mineClaim),
+    }),
     target
       ? engagementForTargets(db, [target])
       : Promise.resolve(new Map<string, TitleEngagement>()),
@@ -156,33 +157,31 @@ export default async function PortalTitlePage(props: {
       void recordTitleClick(db, {
         targetKind: target.kind,
         targetId: target.id,
-        viewerId: user?.id ?? null,
+        viewerId: user.id,
         ownerId,
         isStaff: false,
       });
       void recordPageVisit(db, {
         path: `/portal/titles/${routeId}`,
         sessionKey: null,
-        viewerId: user?.id ?? null,
+        viewerId: user.id,
       });
     });
   }
 
   const engagement = target ? engagementMap.get(`${target.kind}:${target.id}`) ?? null : null;
   const isMine = Boolean(item && review.mine.some((entry) => entry.id === item.id));
-  const viewer = guest
-    ? { name: "Guest", detail: "Preview · sign in to use", homeHref: "/portal/home" as string | null }
-    : state.isStaff
-      ? { name: user!.email, detail: "Staff · reading only", homeHref: null }
-      : {
-          name: profile?.fullName || user!.email,
-          detail: profile
-            ? [profile.courseOther ?? profile.courseCode, studyLevelLabel(profile.studyLevel, profile.studyLevelOther), profile.institution]
-                .filter(Boolean)
-                .join(" · ") || null
-            : null,
-          homeHref: "/portal",
-        };
+  const viewer = state.isStaff
+    ? { name: user.email, detail: "Staff · reading only", homeHref: null }
+    : {
+        name: profile?.fullName || user.email,
+        detail: profile
+          ? [profile.courseOther ?? profile.courseCode, studyLevelLabel(profile.studyLevel, profile.studyLevelOther), profile.institution]
+              .filter(Boolean)
+              .join(" · ") || null
+          : null,
+        homeHref: "/portal",
+      };
   const others = item ? [...review.mine, ...review.items].filter((entry) => entry.id !== item.id) : [];
   const related = item
     ? {
@@ -192,17 +191,16 @@ export default async function PortalTitlePage(props: {
       }
     : null;
 
-  const locked = guest || state.isStaff;
+  const locked = state.isStaff;
 
   return (
     <TitlesFrame
       items={review.items}
       mine={review.mine}
       courses={state.courses}
-      studentYear={guest || state.isStaff ? null : profile?.academicYear ?? null}
+      studentYear={state.isStaff ? null : profile?.academicYear ?? null}
       acceptedOn={acceptedAt ? formatDate(acceptedAt) : null}
       readOnly={locked}
-      guest={guest}
       viewer={viewer}
       hasWorkspace={Boolean(membership)}
       hasProgress={Boolean(profile?.trackedProjectId)}
@@ -210,15 +208,6 @@ export default async function PortalTitlePage(props: {
       catalogueTools={false}
     >
       <article className="w-full px-4 pt-4 pb-10 sm:px-6 sm:pt-5 lg:px-8">
-        {guest ? (
-          <p className="border-dash-border bg-dash-card mb-6 rounded-xl border px-4 py-3 text-sm">
-            Preview mode — read the brief and references.{" "}
-            <Link href="/portal?auth=signin" className="text-dash-accent font-semibold">
-              Sign in
-            </Link>{" "}
-            to shortlist, claim, or open source files.
-          </p>
-        ) : null}
         {notice ? <p className="border-dash-border mb-6 rounded-lg border bg-emerald-500/10 px-3 py-2 text-sm">{notice}</p> : null}
         {item && target && related ? (
           <TitleDetail
@@ -234,7 +223,7 @@ export default async function PortalTitlePage(props: {
             isMine={isMine}
             selectedCount={review.mine.length}
             readOnly={locked}
-            readOnlyReason={guest ? "guest" : "staff"}
+            readOnlyReason="staff"
             phone={profile?.phone ?? ""}
             canViewDocuments={canViewDocuments}
             entitlement={

@@ -32,13 +32,8 @@ export function portalAppRequiresSignIn(pathname: string): boolean {
   if (p.startsWith("/portal/reset")) return false;
   if (p.startsWith("/portal/join/")) return false;
   if (p.startsWith("/portal/s/")) return false;
-  // Public browse (guest catalogue) — matches page-level guest UIs.
-  // /portal/titles/mine stays signed-in only.
-  if (p === "/portal/titles/mine" || p.startsWith("/portal/titles/mine/")) {
-    /* require sign-in below */
-  } else if (p === "/portal/titles" || p.startsWith("/portal/titles/")) {
-    return false;
-  }
+  // Literature review requires an account (no guest catalogue).
+  if (p === "/portal/titles" || p.startsWith("/portal/titles/")) return true;
   if (p === "/portal/packs" || p.startsWith("/portal/packs/")) return false;
   if (p === "/portal/jobs" || (p.startsWith("/portal/jobs/") && !p.startsWith("/portal/jobs/mine"))) return false;
   if (p === "/portal/zimamoto" || p.startsWith("/portal/zimamoto/")) return false;
