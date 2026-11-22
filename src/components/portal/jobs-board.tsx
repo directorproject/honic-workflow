@@ -633,7 +633,7 @@ function EditJobForm({ job, onDone }: { job: PortalJob; onDone?: () => void }) {
             </option>
           ))}
         </select>
-        <input name="offerTsh" type="number" min={500} step={100} required className={INPUT} defaultValue={job.offerTsh} />
+        <input name="offerTsh" type="number" min={200} step={100} required className={INPUT} defaultValue={job.offerTsh} />
       </div>
       <input name="title" required minLength={8} maxLength={160} className={INPUT} defaultValue={job.title} />
       <textarea name="description" required minLength={20} maxLength={4000} rows={4} className={INPUT} defaultValue={job.description} />
@@ -738,7 +738,7 @@ function PostJobForm() {
           placeholder="What you need, the deadline, tools, and what you will supply. Not a full report or chapter."
         />
         <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-          <input name="offerTsh" type="number" min={500} step={100} required className={INPUT} placeholder="Offer, e.g. 5000" />
+          <input name="offerTsh" type="number" min={200} step={100} required className={INPUT} placeholder="Offer, e.g. 5000" />
           <span className="text-dash-muted-foreground text-xs font-semibold">TSh</span>
         </div>
         <PriceModeChoice value={priceMode} onChange={setPriceMode} />
@@ -1082,7 +1082,7 @@ function ApplyForm({ job }: { job: PortalJob }) {
         placeholder="What peer help you can give. Not writing their full report."
       />
       {job.priceMode === "negotiable" ? (
-        <input name="proposedTsh" type="number" min={500} step={100} className={INPUT} placeholder={`Your price (optional), e.g. ${job.offerTsh}`} />
+        <input name="proposedTsh" type="number" min={200} step={100} className={INPUT} placeholder={`Your price (optional), e.g. ${job.offerTsh}`} />
       ) : null}
       <button type="submit" className={PRIMARY} disabled={pending}>
         <IconSend size={15} /> {pending ? "Sending…" : "Send offer"}
