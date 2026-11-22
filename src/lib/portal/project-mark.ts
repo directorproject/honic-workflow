@@ -29,6 +29,8 @@ const BENG_MODULE: Record<string, { module: string; label: string }> = {
 /** OD / diploma final-year modules — same code pattern as BEng Project Realization. */
 const OD_MODULE: Record<string, { module: string; label: string }> = {
   ETE: { module: "ETU 06204", label: "Final year project" },
+  /** Ordinary Diploma in Communication System Technology (not BEng ETE). */
+  CST: { module: "CST 06212", label: "Project Realization" },
   COE: { module: "COU 06204", label: "Final year project" },
   EE: { module: "EEU 06205", label: "Final year project" },
   SLT: { module: "LSU 08106", label: "Final year project" },
@@ -103,10 +105,12 @@ function academicYear(yearLabel: string): string | null {
 
 function programmeOf(item: { courseCode: string | null; source: string | null; batch: string | null }): string {
   const code = item.courseCode?.trim().toUpperCase();
-  if (code && (BENG_MODULE[code] || code === "SLT" || code === "CST")) return code === "CST" ? "ETE" : code;
+  // CST = OD Communication System Technology — keep separate from BEng/OD ETE.
+  if (code && (BENG_MODULE[code] || OD_MODULE[code] || code === "SLT")) return code;
   const blob = `${item.source ?? ""} ${item.batch ?? ""}`;
+  if (/\bCST\b/i.test(blob) || /\bCommunication System Technology\b/i.test(blob)) return "CST";
   if (/\bCOE\b/i.test(blob)) return "COE";
-  if (/\bETE\b/i.test(blob) || /\bCST\b/i.test(blob)) return "ETE";
+  if (/\bETE\b/i.test(blob)) return "ETE";
   if (/\bEE\b/i.test(blob)) return "EE";
   if (/\bSLT\b|\bLab Tech\b|\bLaboratory Science\b/i.test(blob)) return "SLT";
   return code || "ETE";
