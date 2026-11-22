@@ -67,14 +67,15 @@ export async function listJobNotifications(
 export async function markJobNotificationsRead(
   db: SupabaseClient,
   userId: string,
-  opts?: { jobId?: string; all?: boolean },
+  opts?: { jobId?: string; notificationPublicId?: string; all?: boolean },
 ): Promise<void> {
   let q = db
     .from("portal_job_notifications")
     .update({ read_at: new Date().toISOString() })
     .eq("user_id", userId)
     .is("read_at", null);
-  if (opts?.jobId) q = q.eq("job_id", opts.jobId);
+  if (opts?.notificationPublicId) q = q.eq("public_id", opts.notificationPublicId);
+  else if (opts?.jobId) q = q.eq("job_id", opts.jobId);
   const { error } = await q;
   if (error && !missing(error.message)) throw new Error(error.message);
 }

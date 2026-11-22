@@ -8,12 +8,11 @@ import { NexisWordmark } from "@/components/brand/nexis-wordmark";
 import { GuestPreviewBanner } from "@/components/portal/guest-preview-banner";
 import { PlanModeChip } from "@/components/portal/plan-mode-chip";
 import { PortalNavLinks, usePortalActiveLabel, type PortalNavMode } from "@/components/portal/portal-nav";
+import { PosterNotificationsBell, type PosterNotice } from "@/components/portal/poster-notifications-bell";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { hasActiveDeskPlan } from "@/lib/portal/title-limits";
-
-type JobNotice = { title: string; body: string; href: string; readAt: string | null };
 
 export { portalNavGroups, type PortalNavGroup, type PortalNavItem, type PortalNavMode } from "@/components/portal/portal-nav";
 
@@ -51,7 +50,7 @@ export function PortalShell({
   const [isLg, setIsLg] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [jobsBadge, setJobsBadge] = useState(0);
-  const [latestNotice, setLatestNotice] = useState<JobNotice | null>(null);
+  const [noticeItems, setNoticeItems] = useState<PosterNotice[]>([]);
   const activeLabel = usePortalActiveLabel({ mode, hasWorkspace, hasProgress, workspaceBase, hasPaidDesk });
 
   const refreshJobNotices = useCallback(async () => {
@@ -61,42 +60,36 @@ export function PortalShell({
       if (!res.ok) return;
       const data = (await res.json()) as {
         unread?: number;
-        items?: JobNotice[];
+        items?: PosterNotice[];
       };
-      const unread = Math.max(0, Number(data.unread) || 0);
-      setJobsBadge(unread);
-      const firstUnread = (data.items ?? []).find((n) => !n.readAt) ?? null;
-      setLatestNotice(unread > 0 ? firstUnread : null);
+      setJobsBadge(Math.max(0, Number(data.unread) || 0));
+      setNoticeItems(Array.isArray(data.items) ? data.items : []);
     } catch {
       /* ignore */
     }
   }, [guest, mode]);
 
+  // Near real-time for posters: poll often + refresh when tab becomes visible / window focused.
   useEffect(() => {
     void refreshJobNotices();
     if (guest || mode !== "student") return;
     const t = window.setInterval(() => {
       void refreshJobNotices();
-    }, 45000);
-    return () => window.clearInterval(t);
-  }, [guest, mode, refreshJobNotices, pathname]);
-
-  // Visiting my requests / a job detail clears the unread badge.
-  useEffect(() => {
-    if (guest || mode !== "student") return;
-    const onMine = pathname.startsWith("/portal/jobs/mine");
-    const onJobDetail = /^\/portal\/jobs\/[^/]+$/.test(pathname) && !pathname.endsWith("/mine");
-    if (!onMine && !onJobDetail) return;
-    if (jobsBadge <= 0) return;
-    void fetch("/api/portal/job-notifications", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ all: true }),
-    }).then(() => {
-      setJobsBadge(0);
-      setLatestNotice(null);
-    });
-  }, [pathname, guest, mode, jobsBadge]);
+    }, 5000);
+    function onFocus() {
+      void refreshJobNotices();
+    }
+    function onVis() {
+      if (!document.hidden) void refreshJobNotices();
+    }
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.clearInterval(t);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [guest, mode, refreshJobNotices]);
 
   useEffect(() => {
     const query = window.matchMedia("(min-width: 1024px)");
@@ -211,18 +204,16 @@ export function PortalShell({
             </div>
             <div className="border-dash-border flex shrink-0 items-center gap-0.5 border-l pl-1.5 sm:gap-2 sm:pl-3">
               <ThemeToggle />
-              {mode === "student" && !guest && jobsBadge > 0 ? (
-                <Link
-                  href="/portal/jobs/mine"
-                  className="relative inline-flex rounded-lg p-2 hover:bg-dash-muted"
-                  aria-label={`${jobsBadge} new peer-help offers`}
-                  title="New peer-help offers"
-                >
-                  <BellIcon />
-                  <span className="bg-dash-accent absolute top-1 right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white">
-                    {jobsBadge > 9 ? "9+" : jobsBadge}
-                  </span>
-                </Link>
+              {mode === "student" && !guest ? (
+                <PosterNotificationsBell
+                  unread={jobsBadge}
+                  items={noticeItems}
+                  onRefresh={refreshJobNotices}
+                  onChange={({ unread, items }) => {
+                    setJobsBadge(unread);
+                    setNoticeItems(items);
+                  }}
+                />
               ) : null}
               {mode === "student" && !guest ? <PlanModeChip deskExpiresAt={deskExpiresAt} compact /> : null}
               {guest ? (
@@ -255,20 +246,6 @@ export function PortalShell({
 
         <div className="min-w-0 flex-1 px-3 py-4 sm:px-6 sm:py-5 lg:px-8">
           {guest ? <GuestPreviewBanner /> : null}
-          {latestNotice && jobsBadge > 0 ? (
-            <div className="border-dash-border bg-dash-card mb-4 flex flex-wrap items-start justify-between gap-3 rounded-2xl border px-4 py-3 shadow-sm">
-              <div className="min-w-0">
-                <p className="text-dash-foreground text-sm font-semibold">{latestNotice.title}</p>
-                <p className="text-dash-muted-foreground mt-0.5 text-sm leading-relaxed">{latestNotice.body}</p>
-              </div>
-              <Link
-                href={latestNotice.href || "/portal/jobs/mine"}
-                className="bg-dash-accent inline-flex shrink-0 items-center rounded-xl px-3.5 py-2 text-xs font-semibold text-white"
-              >
-                Open offer
-              </Link>
-            </div>
-          ) : null}
           {children}
         </div>
         <SiteFooter />
@@ -293,14 +270,3 @@ function CloseIcon() {
   );
 }
 
-function BellIcon() {
-  return (
-    <svg className="text-dash-foreground h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.6} stroke="currentColor" aria-hidden>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
-      />
-    </svg>
-  );
-}

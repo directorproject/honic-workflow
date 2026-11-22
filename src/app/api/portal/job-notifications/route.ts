@@ -19,7 +19,7 @@ export async function GET() {
 
   const [unread, items] = await Promise.all([
     countUnreadJobNotifications(db, user.id),
-    listJobNotifications(db, user.id, 8),
+    listJobNotifications(db, user.id, 12),
   ]);
   return NextResponse.json(
     { unread, items },
@@ -34,11 +34,19 @@ export async function POST(req: Request) {
   const db = getSupabaseAdminClient();
   if (!db) return NextResponse.json({ ok: false }, { status: 503 });
 
-  const body = (await req.json().catch(() => ({}))) as { jobId?: string; all?: boolean };
+  const body = (await req.json().catch(() => ({}))) as {
+    jobId?: string;
+    notificationPublicId?: string;
+    all?: boolean;
+  };
   await markJobNotificationsRead(db, user.id, {
     jobId: body.jobId ? String(body.jobId) : undefined,
+    notificationPublicId: body.notificationPublicId ? String(body.notificationPublicId) : undefined,
     all: Boolean(body.all),
   });
-  const unread = await countUnreadJobNotifications(db, user.id);
-  return NextResponse.json({ ok: true, unread });
+  const [unread, items] = await Promise.all([
+    countUnreadJobNotifications(db, user.id),
+    listJobNotifications(db, user.id, 12),
+  ]);
+  return NextResponse.json({ ok: true, unread, items });
 }
