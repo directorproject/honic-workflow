@@ -322,48 +322,56 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
         <div className="absolute inset-0 bg-slate-950/80" />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/90 to-transparent" />
 
-        <div className="relative mx-auto flex min-h-[min(72vh,36rem)] max-w-5xl flex-col justify-end px-4 pb-8 pt-10 sm:min-h-[min(68vh,34rem)] sm:px-8 sm:pb-10 sm:pt-12 lg:px-10">
-          <p className="text-[11px] font-semibold tracking-[0.22em] text-cyan-300/90 uppercase">Honic Nexis</p>
-          <h1 className="mt-2 max-w-xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-[3.25rem] lg:leading-[1.05]">
-            Welcome, {firstName}
-          </h1>
-          <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/75 sm:text-base">
-            Explore titles and peer opportunities. Upgrade when you need the full project workspace.
-          </p>
+        <div className="relative mx-auto flex min-h-[min(78vh,40rem)] max-w-6xl flex-col px-4 pt-12 pb-8 sm:min-h-[min(72vh,38rem)] sm:px-8 sm:pt-14 sm:pb-10 lg:px-10 lg:pt-16 lg:pb-12">
+          <div className="grid flex-1 items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-8">
+            {/* Center-left copy — large and clear */}
+            <div className="text-center lg:text-left">
+              <p className="text-[11px] font-semibold tracking-[0.22em] text-cyan-300/90 uppercase">Honic Nexis</p>
+              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl lg:leading-[1.05]">
+                Welcome, {firstName}
+              </h1>
+              <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-white/75 sm:text-lg lg:mx-0">
+                Explore titles and peer opportunities. Upgrade when you need the full project workspace.
+              </p>
+            </div>
 
-          <div className="mt-6 flex flex-wrap items-end gap-x-8 gap-y-3 border-t border-white/15 pt-5 sm:mt-7 sm:gap-x-12">
-            <Link href="/portal/titles" className="group min-w-0">
-              <p className="text-[10px] font-semibold tracking-[0.18em] text-white/45 uppercase">Titles</p>
-              <p className="mt-0.5 text-3xl font-semibold tabular-nums tracking-tight text-white sm:text-4xl group-hover:text-cyan-200">
-                {titleCount}
-              </p>
-            </Link>
-            <Link href="/portal/jobs" className="group min-w-0">
-              <p className="text-[10px] font-semibold tracking-[0.18em] text-white/45 uppercase">Open jobs</p>
-              <p className="mt-0.5 text-3xl font-semibold tabular-nums tracking-tight text-white sm:text-4xl group-hover:text-cyan-200">
-                {jobsCount}
-              </p>
-            </Link>
-            <div className="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto sm:justify-end">
-              <Link
-                href="/portal/titles"
-                className="inline-flex items-center justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-white/90"
-              >
-                Browse titles
+            {/* Right — large title count, open jobs below, no cards */}
+            <div className="flex flex-col items-center text-center lg:items-end lg:text-right">
+              <Link href="/portal/titles" className="group block">
+                <p className="text-[11px] font-semibold tracking-[0.2em] text-white/50 uppercase">Titles available</p>
+                <p className="mt-1 text-7xl font-semibold tabular-nums tracking-tight text-white sm:text-8xl lg:text-[7.5rem] lg:leading-none group-hover:text-cyan-200">
+                  {titleCount}
+                </p>
               </Link>
-              <Link
-                href="/portal/jobs"
-                className="inline-flex items-center justify-center rounded-lg border border-white/35 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
-              >
-                View jobs
-              </Link>
-              <Link
-                href="/portal/packs"
-                className="inline-flex items-center justify-center rounded-lg border border-white/25 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:border-white/50"
-              >
-                Plans
+              <Link href="/portal/jobs" className="group mt-4 block border-t border-white/20 pt-4 lg:mt-5">
+                <p className="text-[11px] font-semibold tracking-[0.2em] text-white/50 uppercase">Open jobs</p>
+                <p className="mt-1 text-4xl font-semibold tabular-nums tracking-tight text-white sm:text-5xl group-hover:text-cyan-200">
+                  {jobsCount}
+                </p>
               </Link>
             </div>
+          </div>
+
+          {/* CTAs at the bottom of the hero */}
+          <div className="mt-10 flex flex-wrap justify-center gap-2.5 border-t border-white/15 pt-6 sm:mt-12 lg:justify-start">
+            <Link
+              href="/portal/titles"
+              className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-white/90"
+            >
+              Browse titles
+            </Link>
+            <Link
+              href="/portal/jobs"
+              className="inline-flex items-center justify-center rounded-lg border border-white/35 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+            >
+              View jobs
+            </Link>
+            <Link
+              href="/portal/packs"
+              className="inline-flex items-center justify-center rounded-lg border border-white/25 px-5 py-2.5 text-sm font-semibold text-white/90 transition hover:border-white/50"
+            >
+              Plans
+            </Link>
           </div>
         </div>
       </section>
