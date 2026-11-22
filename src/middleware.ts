@@ -72,6 +72,8 @@ function isAllowedOnShareHost(pathname: string): boolean {
   if (p === "/about" || p === "/share-portal") return true;
   if (p === "/share" || p.startsWith("/share/")) return true;
   if (p.startsWith("/api/share/")) return true;
+  // Portal crons (reminders, escrow, cache refresh) run on the share deployment.
+  if (p.startsWith("/api/cron/")) return true;
   if (p === "/supervisor" || p.startsWith("/supervisor/")) return true;
   if (isPortalPath(pathname)) return true;
   if (p === "/share-push-sw.js") return true;
