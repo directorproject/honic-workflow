@@ -1246,11 +1246,23 @@ function MessageThread({
       createdAt: new Date().toISOString(),
       isMine: true,
     };
-    // Paint bubble + clear input immediately (WhatsApp-style). Network is background.
+
+    // Ultra-fast: Message appears immediately, input clears, focus leaves. No waiting.
     setDraft("");
     setMessages((prev) => [...prev, optimistic]);
-    requestAnimationFrame(() => draftRef.current?.focus());
 
+    // Blur input immediately (don't refocus)
+    if (draftRef.current) {
+      draftRef.current.blur();
+    }
+
+    // Scroll to bottom immediately on next frame
+    requestAnimationFrame(() => {
+      const el = listRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
+
+    // Send in background - no UI blocking
     void (async () => {
       try {
         const res = await fetch("/api/portal/jobs/messages", {
@@ -1263,23 +1275,27 @@ function MessageThread({
           | { ok?: boolean; message?: string; chat?: PortalJobMessage }
           | null;
         if (res.ok && data?.ok && data.chat) {
+          // Replace temp message with server version
           setMessages((prev) => {
             const cleaned = prev.filter((m) => m.id !== tempId);
             if (data.chat!.createdAt > lastRef.current) lastRef.current = data.chat!.createdAt;
             return mergeJobMessages(cleaned, [data.chat!]);
           });
-        } else if (res.ok && data?.ok) {
-          setMessages((prev) => prev.filter((m) => m.id !== tempId));
-          void sync();
         } else {
+          // Network error: remove temp message and show error
           setMessages((prev) => prev.filter((m) => m.id !== tempId));
           setDraft(body);
           setStatus({ ok: false, message: data?.message || "Could not send. Try again." });
+          // Refocus on error so user can retry
+          draftRef.current?.focus();
         }
       } catch {
+        // Network error: remove temp message and show error
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
         setDraft(body);
         setStatus({ ok: false, message: "Could not send. Try again." });
+        // Refocus on error so user can retry
+        draftRef.current?.focus();
       }
     })();
   }
