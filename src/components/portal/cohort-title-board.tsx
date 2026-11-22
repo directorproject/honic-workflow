@@ -918,8 +918,18 @@ function yearFromTo(list: ReviewItem[]): string {
   return `from ${Math.min(...starts)} to ${Math.max(...ends)}`;
 }
 
-function emptyProblem(item: ReviewItem): string {
+type LazyBrief = {
+  problemStatement: string | null;
+  objectives: string | null;
+  specificObjectives: string | null;
+  limitations: string | null;
+  summary: string | null;
+};
+
+function emptyProblem(item: ReviewItem, brief: LazyBrief | null): string {
+  if (brief?.problemStatement) return brief.problemStatement;
   if (item.problemStatement) return item.problemStatement;
+  if (brief?.summary) return brief.summary;
   if (item.summary) return item.summary;
   return "No problem statement has been published yet for this title.";
 }
@@ -927,8 +937,44 @@ function emptyProblem(item: ReviewItem): string {
 function TitleRow({ item, courseName }: { item: ReviewItem; courseName: Map<string, string> }) {
   const { listFilters } = useTitlesFrame();
   const [open, setOpen] = useState(false);
+  const [brief, setBrief] = useState<LazyBrief | null>(null);
+  const [briefLoading, setBriefLoading] = useState(false);
+  const [briefError, setBriefError] = useState<string | null>(null);
   const mark = projectMark(item);
   const courseFull = mark.courseCode ? (courseName.get(mark.courseCode) ?? mark.courseCode) : null;
+
+  useEffect(() => {
+    if (!open) return;
+    if (brief || item.problemStatement || item.objectives) return;
+    let cancelled = false;
+    setBriefLoading(true);
+    setBriefError(null);
+    void (async () => {
+      try {
+        const res = await fetch(`/api/portal/title-brief?id=${encodeURIComponent(item.id)}`, { cache: "no-store" });
+        const data = (await res.json()) as { ok?: boolean; brief?: LazyBrief; message?: string };
+        if (cancelled) return;
+        if (!res.ok || !data.ok || !data.brief) {
+          setBriefError(data.message || "Could not load brief.");
+          return;
+        }
+        setBrief(data.brief);
+      } catch {
+        if (!cancelled) setBriefError("Could not load brief.");
+      } finally {
+        if (!cancelled) setBriefLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, brief, item.id, item.problemStatement, item.objectives]);
+
+  const problem = emptyProblem(item, brief);
+  const objectives = brief?.objectives ?? item.objectives;
+  const specific = brief?.specificObjectives ?? item.specificObjectives;
+  const recommendations = brief?.limitations ?? item.limitations;
+
   return (
     <li className="border-dash-foreground/15 border-b py-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
@@ -957,23 +1003,25 @@ function TitleRow({ item, courseName }: { item: ReviewItem; courseName: Map<stri
           <p className="mt-2 text-xs leading-relaxed text-blue-950 italic dark:text-blue-300">{mark.note}</p>
           {open ? (
             <div className="border-dash-border mt-3 space-y-3 rounded-lg border px-3 py-3">
+              {briefLoading ? <p className="text-dash-muted-foreground text-sm">Loading brief…</p> : null}
+              {briefError ? <p className="text-sm text-red-600 dark:text-red-300">{briefError}</p> : null}
               <div>
                 <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Problem statement</p>
                 <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                  <LinkifiedText text={emptyProblem(item)} />
+                  <LinkifiedText text={problem} />
                 </p>
               </div>
               <div>
                 <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Main objective</p>
                 <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                  <LinkifiedText text={item.objectives ?? "No main objective has been published yet for this title."} />
+                  <LinkifiedText text={objectives ?? "No main objective has been published yet for this title."} />
                 </p>
               </div>
               <div>
                 <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Specific objectives</p>
                 <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
                   <LinkifiedText
-                    text={item.specificObjectives ?? "Open the title page — extracted from the source document when available."}
+                    text={specific ?? "Open the title page — extracted from the source document when available."}
                   />
                 </p>
               </div>
@@ -981,7 +1029,7 @@ function TitleRow({ item, courseName }: { item: ReviewItem; courseName: Map<stri
                 <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Recommendations</p>
                 <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed break-words whitespace-pre-wrap">
                   <LinkifiedText
-                    text={item.limitations ?? "Open the title page — extracted from the source document when available."}
+                    text={recommendations ?? "Open the title page — extracted from the source document when available."}
                   />
                 </p>
               </div>

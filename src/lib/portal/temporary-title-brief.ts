@@ -88,6 +88,9 @@ export function buildTemporaryTitleBrief(
     "",
     "## Specific objectives",
     specific,
+    "",
+    "## Recommendations",
+    `Test the prototype with local users, record limits, and replace this temporary brief with findings from the source PDF when available.`,
   ];
 
   const literature = literatureSection(opts?.existingNotes);

@@ -2,6 +2,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { isStaffUser } from "@/lib/auth-staff";
+import { productGuidePending, withProductGuidePending } from "@/lib/portal/product-guide";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseAdminClient, getSupabaseServiceRoleClient } from "@/lib/supabase-server";
 
@@ -39,7 +40,21 @@ async function provisionAfterGoogle(opts: {
     }
     const { ensurePortalAccount } = await import("@/lib/portal/accounts");
     const admin = getSupabaseServiceRoleClient();
-    if (admin) await ensurePortalAccount(admin, opts.userId);
+    if (admin) {
+      await ensurePortalAccount(admin, opts.userId);
+      const [{ data: account }, { data: profile }] = await Promise.all([
+        admin.auth.admin.getUserById(opts.userId),
+        admin.from("student_profiles").select("user_id").eq("user_id", opts.userId).maybeSingle(),
+      ]);
+      const meta = (account.user?.user_metadata ?? {}) as Record<string, unknown>;
+      const guide = meta.portal_product_guide;
+      // Brand-new students (no profile yet) must take the product tour.
+      if (!profile && guide !== "done" && guide !== "pending") {
+        await admin.auth.admin.updateUserById(opts.userId, {
+          user_metadata: withProductGuidePending(meta),
+        });
+      }
+    }
   } catch {
     /* profile rows can be created later */
   }
@@ -71,7 +86,7 @@ export async function GET(request: NextRequest) {
     if (staffBlock) return staffBlock;
     if (type === "recovery") next = "/portal/reset";
     if (type === "signup" && (next === "/portal" || next === "/portal/home" || next === "/portal/packs")) {
-      next = "/portal/packs?nav=1";
+      next = "/portal/packs?guide=1";
     }
     return NextResponse.redirect(`${origin}${next}`);
   }
@@ -110,8 +125,16 @@ export async function GET(request: NextRequest) {
         role,
       });
       if (role === "supervisor" && !next.startsWith("/supervisor")) next = "/supervisor";
-      if (role === "student" && (next === "/portal" || next === "/portal/home" || next === "/portal/packs" || next.startsWith("/portal/packs?"))) {
-        next = "/portal/packs?nav=1";
+      if (role === "student") {
+        const db = getSupabaseAdminClient();
+        const { data: profile } = db
+          ? await db.from("student_profiles").select("user_id").eq("user_id", user.id).maybeSingle()
+          : { data: null };
+        // New / guide-pending students always land in the mandatory tour.
+        if (!profile || productGuidePending(user)) {
+          next = "/portal/packs?guide=1";
+          await supabase.auth.updateUser({ data: withProductGuidePending((user.user_metadata ?? {}) as Record<string, unknown>) }).catch(() => null);
+        }
       }
     }
 

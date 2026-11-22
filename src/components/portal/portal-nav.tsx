@@ -99,6 +99,7 @@ export function portalNavGroups(opts: {
       badge: jobsBadge > 0 ? jobsBadge : undefined,
     },
     { key: "zimamoto", label: "Zimamoto", href: "/portal/zimamoto", external: true },
+    { key: "titles", label: "Literature review", href: "/portal/titles", external: true },
     { key: "messages", label: "Help desk", href: tabHref(base, "messages"), tabs: ["messages"] },
   ];
 
@@ -126,7 +127,6 @@ export function portalNavGroups(opts: {
         { key: "projects", label: "My projects & titles", href: tabHref(base, "projects"), tabs: ["projects", "title"] },
         { key: "payments", label: "Payments & invoices", href: tabHref(base, "payments"), tabs: ["payments"] },
         { key: "account", label: "My account", href: tabHref(base, "account"), tabs: ["account"] },
-        { key: "titles", label: "Literature review", href: "/portal/titles", external: true },
         { key: "packs", label: "Plans & access", href: "/portal/packs", external: true },
       ],
     },
@@ -213,7 +213,24 @@ export function PortalNavLinks({
         className={onSide ? "mt-4 space-y-5 px-3" : "space-y-4"}
       >
         {groups.map((group) => (
-          <div key={group.label}>
+          <div
+            key={group.label}
+            data-tour={
+              group.label === "Workspace"
+                ? "portal-nav-workspace"
+                : group.label === "Plan"
+                  ? "portal-nav-plan"
+                  : group.label === "Work"
+                    ? "portal-nav-work"
+                    : group.label === "Team & supervisor"
+                      ? "portal-nav-team"
+                      : group.label === "Honic"
+                        ? "portal-nav-honic"
+                        : group.label === "You"
+                          ? "portal-nav-you"
+                          : undefined
+            }
+          >
             <p className={`px-3 pb-1 text-[10px] font-semibold tracking-widest uppercase ${onSide ? "text-white/45" : "text-dash-muted-foreground"}`}>
               {group.label}
             </p>
@@ -221,8 +238,18 @@ export function PortalNavLinks({
               {group.items.map((item) => {
                 const on = portalItemActive(item, pathname, tab, mode);
                 const badge = item.badge && item.badge > 0 ? (item.badge > 9 ? "9+" : String(item.badge)) : null;
+                const tourTarget =
+                  item.key === "jobs"
+                    ? "portal-nav-peer-help"
+                    : item.key === "zimamoto"
+                      ? "portal-nav-zimamoto"
+                      : item.key === "titles"
+                        ? "portal-nav-literature"
+                        : item.key === "messages"
+                          ? "portal-nav-help-desk"
+                          : undefined;
                 return (
-                  <li key={item.key}>
+                  <li key={item.key} data-tour={tourTarget}>
                     <Link
                       href={item.href}
                       prefetch

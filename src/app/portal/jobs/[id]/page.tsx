@@ -17,6 +17,7 @@ import {
   getJobByPublicId,
   getMyApplicationForJob,
   listApplicationsForJob,
+  listChatThreads,
   listMessagesForApplication,
   type PortalJobMessage,
 } from "@/lib/portal/jobs";
@@ -27,8 +28,13 @@ import { findMembership } from "@/lib/workspace/access";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export default async function PortalJobDetailPage(props: { params: Promise<{ id: string }> }) {
+export default async function PortalJobDetailPage(props: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ chat?: string | string[] }>;
+}) {
   const { id } = await props.params;
+  const { chat } = await props.searchParams;
+  const initialChat = typeof chat === "string" && chat ? chat : null;
   const state = await loadPortalState();
   const { user, profile } = state;
   const db = getSupabaseAdminClient();
@@ -52,9 +58,13 @@ export default async function PortalJobDetailPage(props: { params: Promise<{ id:
       : [];
 
   const messagesByApplicationPublicId: Record<string, PortalJobMessage[]> = {};
-  for (const app of threadApps) {
-    messagesByApplicationPublicId[app.publicId] = await listMessagesForApplication(db, app.id, viewerId);
-  }
+  const [threadMessages, threads] = await Promise.all([
+    Promise.all(threadApps.map((app) => listMessagesForApplication(db, app.id, viewerId))),
+    job.isMine && viewerId ? listChatThreads(db, viewerId, { jobId: job.id }) : Promise.resolve([]),
+  ]);
+  threadApps.forEach((app, i) => {
+    messagesByApplicationPublicId[app.publicId] = threadMessages[i];
+  });
 
   let escrow = !guest && viewerId ? await getEscrowForJob(db, job.id, viewerId) : null;
   if (!escrow && state.isStaff) escrow = await getEscrowForJobStaff(db, job.id);
@@ -93,6 +103,8 @@ export default async function PortalJobDetailPage(props: { params: Promise<{ id:
           events={events}
           peerPayoutSaved={Boolean(peerPayout?.sealOk && peerPayout.status === "active")}
           isStaff={state.isStaff}
+          threads={threads}
+          initialChat={initialChat}
         />
       </PortalShell>
     </Suspense>

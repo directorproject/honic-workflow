@@ -421,6 +421,7 @@ export async function loadReviewItemWithCatalogue(
   id: string,
   prefetchedReview?: { mine: ReviewItem[]; items: ReviewItem[] },
 ): Promise<{ item: ReviewItem | null; review: { mine: ReviewItem[]; items: ReviewItem[] } }> {
+  // Light catalogue only — this item's notes are loaded below (keeps list caches under 2MB).
   const review = prefetchedReview ?? (await loadLiterature(db, userId, profile, { includeBriefs: false }));
   let item = [...review.mine, ...review.items].find((entry) => entry.id === id) ?? null;
   if (!item) return { item: null, review };
@@ -484,6 +485,54 @@ export async function loadReviewItemWithCatalogue(
   };
 
   return { item, review };
+}
+
+export type TitleBriefFields = {
+  problemStatement: string | null;
+  objectives: string | null;
+  specificObjectives: string | null;
+  limitations: string | null;
+  summary: string | null;
+};
+
+/** One-title brief for list “Read” expand — not cached with the catalogue. */
+export async function loadTitleBriefFields(db: SupabaseClient, id: string): Promise<TitleBriefFields | null> {
+  const text = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
+
+  if (id.startsWith("earlier:")) {
+    const rawId = id.slice("earlier:".length);
+    const { data, error } = await db.from("last_year_projects").select("notes").eq("id", rawId).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+    const brief = parseTitleBrief(text(data.notes));
+    return {
+      problemStatement: brief.problemStatement,
+      objectives: brief.objectives,
+      specificObjectives: brief.specificObjectives,
+      limitations: brief.limitations,
+      summary: brief.problemStatement,
+    };
+  }
+
+  const [proposalRes, workspaceRes] = await Promise.all([
+    db.from("title_proposals").select("summary, notes").eq("id", id).neq("status", "dropped").maybeSingle(),
+    db.from("portal_workspaces").select("problem_statement, objectives").eq("title_proposal_id", id).limit(1).maybeSingle(),
+  ]);
+  if (proposalRes.error) throw new Error(proposalRes.error.message);
+  if (!proposalRes.data) return null;
+  const workspace =
+    workspaceRes.error && !/does not exist|schema cache|portal_workspaces/i.test(workspaceRes.error.message)
+      ? null
+      : workspaceRes.data;
+  const brief = parseTitleBrief(text(proposalRes.data.notes));
+  const summary = text(proposalRes.data.summary);
+  return {
+    problemStatement: text(workspace?.problem_statement) ?? brief.problemStatement ?? summary,
+    objectives: text(workspace?.objectives) ?? brief.objectives,
+    specificObjectives: brief.specificObjectives,
+    limitations: brief.limitations,
+    summary,
+  };
 }
 
 /**

@@ -75,7 +75,7 @@ export function ProfileForm({
   const [projectCategory, setProjectCategory] = useState(profile?.projectCategory ?? "");
 
   const listedCourses = courses.filter((c) => c.code !== OTHER_COURSE_CODE);
-  const afterSavePath = editMode ? "/portal/home?tab=account" : "/portal/packs?nav=1#plans";
+  const afterSavePath = editMode ? "/portal/home?tab=account" : "/portal/packs?guide=1";
 
   function goNext() {
     window.location.assign(afterSavePath);

@@ -56,6 +56,7 @@ export default async function DocumentPacksPage() {
     <Suspense fallback={<main className="bg-dash-canvas min-h-screen" />}>
       <PortalShell
         guest={guest}
+        forceGuide={!guest && !state.isStaff && state.productGuideNeeded}
         viewer={{ name: guest ? "Guest" : profile?.fullName || user!.email, detail: viewerDetail }}
         hasWorkspace={Boolean(membership)}
         hasProgress={Boolean(profile?.trackedProjectId)}

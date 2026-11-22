@@ -7,7 +7,7 @@ import { PortalShell } from "@/components/portal/portal-shell";
 import { ProfileForm } from "@/components/portal/profile-form";
 import { studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
-import { listMyApplications, listMyJobs } from "@/lib/portal/jobs";
+import { listChatThreads, listMyApplications, listMyJobs } from "@/lib/portal/jobs";
 import { hasActiveDeskPlan } from "@/lib/portal/title-limits";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { findMembership } from "@/lib/workspace/access";
@@ -70,10 +70,10 @@ export default async function PortalMyJobsPage() {
         .filter(Boolean)
         .join(" · ") || user.email;
 
-  const [myJobs, myApplications] =
+  const [myJobs, myApplications, threads] =
     db && !state.isStaff
-      ? await Promise.all([listMyJobs(db, user.id), listMyApplications(db, user.id)])
-      : [[], []];
+      ? await Promise.all([listMyJobs(db, user.id), listMyApplications(db, user.id), listChatThreads(db, user.id)])
+      : [[], [], []];
 
   return (
     <Suspense fallback={<main className="bg-dash-canvas min-h-screen" />}>
@@ -88,6 +88,7 @@ export default async function PortalMyJobsPage() {
           myApplications={myApplications}
           canUseJobs={hasActiveDeskPlan(profile?.deskExpiresAt)}
           needsPolicy={Boolean(user) && !state.isStaff && !state.peerHelpAccepted}
+          threads={threads}
         />
       </PortalShell>
     </Suspense>

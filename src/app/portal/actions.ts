@@ -46,6 +46,12 @@ import {
   profileAcademicStepPending,
 } from "@/lib/portal/data";
 import { hasProjectDocumentsAccess } from "@/lib/portal/document-access";
+import {
+  PORTAL_PRODUCT_GUIDE_DONE,
+  PORTAL_PRODUCT_GUIDE_KEY,
+  needsProductGuide,
+  productGuidePending,
+} from "@/lib/portal/product-guide";
 import { chooseTitle, hideTitleFromPeers, loadLiterature } from "@/lib/portal/title-choices";
 import { hasActiveDeskPlan, titleHideEntitlement } from "@/lib/portal/title-limits";
 import { POLICY_VERSION, TITLE_RULES_VERSION, titleTermsStatus } from "@/lib/portal/title-terms";
@@ -190,7 +196,43 @@ export async function portalSkipProfileAction(): Promise<PortalResult> {
   revalidatePath("/portal/titles");
   revalidatePath("/portal/home");
   revalidatePath("/portal/packs");
-  redirect("/portal/packs?nav=1#plans");
+  redirect("/portal/packs?guide=1");
+}
+
+/** Marks the mandatory new-user product tour complete on the account. */
+export async function portalCompleteProductGuideAction(): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    const { data, error } = await db.auth.admin.getUserById(user.id);
+    if (error) return { ok: false, message: error.message };
+    if (!data.user) return { ok: false, message: "Please sign in again." };
+    const merged = {
+      ...((data.user.user_metadata ?? {}) as Record<string, unknown>),
+      [PORTAL_PRODUCT_GUIDE_KEY]: PORTAL_PRODUCT_GUIDE_DONE,
+      portal_product_guide_done_at: new Date().toISOString(),
+    };
+    const { error: updateError } = await db.auth.admin.updateUserById(user.id, { user_metadata: merged });
+    if (updateError) return { ok: false, message: updateError.message };
+    const supabase = await createSupabaseServerClient();
+    await supabase.auth.updateUser({ data: merged });
+    revalidatePath("/portal");
+    revalidatePath("/portal/packs");
+    revalidatePath("/portal/home");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Could not save tour progress." };
+  }
+}
+
+/** True when this signed-in student still owes the product tour. */
+export async function portalProductGuidePendingAction(): Promise<boolean> {
+  try {
+    const user = await getPortalUser();
+    if (!user || isStaffUser(user)) return false;
+    return needsProductGuide(user);
+  } catch {
+    return false;
+  }
 }
 
 export async function portalSaveProfileAction(input: ProfileInput): Promise<PortalResult> {

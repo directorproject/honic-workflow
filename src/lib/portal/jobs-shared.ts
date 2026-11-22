@@ -55,6 +55,28 @@ export type PortalJobMessage = {
   isMine: boolean;
 };
 
+/** One conversation in the peer-help inbox (one offer = one chat). */
+export type PortalChatThread = {
+  applicationPublicId: string;
+  jobPublicId: string;
+  jobTitle: string;
+  role: "poster" | "helper";
+  counterpartLabel: string;
+  status: ApplicationStatus;
+  offerMessage: string;
+  proposedTsh: number | null;
+  createdAt: string;
+  lastMessage: { body: string; createdAt: string; isMine: boolean } | null;
+  messageCount: number;
+  /** Times of messages from the other side, newest first (unread is computed on the device). */
+  incomingAt: string[];
+  posterReplied: boolean;
+};
+
+export function threadActivityAt(t: PortalChatThread): string {
+  return t.lastMessage?.createdAt ?? t.createdAt;
+}
+
 export function jobCategoryLabel(id: string): string {
   return JOB_CATEGORIES.find((c) => c.id === id)?.label ?? id;
 }

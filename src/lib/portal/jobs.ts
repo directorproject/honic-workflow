@@ -8,6 +8,7 @@ import {
   type ApplicationStatus,
   type JobPriceMode,
   type JobStatus,
+  type PortalChatThread,
   type PortalJob,
   type PortalJobApplication,
   type PortalJobMessage,
@@ -27,6 +28,7 @@ export type {
   JobCategoryId,
   JobPriceMode,
   JobStatus,
+  PortalChatThread,
   PortalJob,
   PortalJobApplication,
   PortalJobMessage,
@@ -273,6 +275,116 @@ export async function listMessagesSinceForApplicationPublicId(
     applicationId: String(app.id),
     messages: (data ?? []).map((row) => mapJobMessage(row as Record<string, unknown>, viewerId)),
   };
+}
+
+type ThreadJobRow = { id: string; public_id: string; title: string; poster_user_id: string; poster_public_id: string };
+type ThreadAppRow = {
+  id: string;
+  public_id: string;
+  job_id: string;
+  applicant_user_id: string;
+  applicant_public_id: string;
+  message: string;
+  proposed_tsh: number | null;
+  status: string;
+  created_at: string;
+};
+
+/** Inbox: every open chat the user is in (as poster or helper), newest activity first. */
+export async function listChatThreads(
+  db: SupabaseClient,
+  userId: string,
+  opts: { jobId?: string } = {},
+): Promise<PortalChatThread[]> {
+  const jobCols = "id, public_id, title, poster_user_id, poster_public_id";
+  const appCols = "id, public_id, job_id, applicant_user_id, applicant_public_id, message, proposed_tsh, status, created_at";
+  const chatStatuses = ["pending", "accepted"];
+
+  let myJobsQ = db.from("portal_jobs").select(jobCols).eq("poster_user_id", userId).limit(60);
+  if (opts.jobId) myJobsQ = myJobsQ.eq("id", opts.jobId);
+  let myAppsQ = db
+    .from("portal_job_applications")
+    .select(appCols)
+    .eq("applicant_user_id", userId)
+    .in("status", chatStatuses)
+    .limit(60);
+  if (opts.jobId) myAppsQ = myAppsQ.eq("job_id", opts.jobId);
+
+  const [myJobsRes, myAppsRes] = await Promise.all([myJobsQ, myAppsQ]);
+  for (const res of [myJobsRes, myAppsRes]) {
+    if (res.error) {
+      if (missingJobs(res.error.message)) return [];
+      throw new Error(res.error.message);
+    }
+  }
+  const myJobs = (myJobsRes.data ?? []) as ThreadJobRow[];
+  const myApps = (myAppsRes.data ?? []) as ThreadAppRow[];
+
+  const [offersOnMyJobsRes, helperJobsRes] = await Promise.all([
+    myJobs.length
+      ? db.from("portal_job_applications").select(appCols).in("job_id", myJobs.map((j) => j.id)).in("status", chatStatuses)
+      : Promise.resolve({ data: [], error: null }),
+    myApps.length
+      ? db.from("portal_jobs").select(jobCols).in("id", [...new Set(myApps.map((a) => a.job_id))])
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (offersOnMyJobsRes.error) throw new Error(offersOnMyJobsRes.error.message);
+  if (helperJobsRes.error) throw new Error(helperJobsRes.error.message);
+
+  const jobsById = new Map<string, ThreadJobRow>();
+  for (const j of [...myJobs, ...((helperJobsRes.data ?? []) as ThreadJobRow[])]) jobsById.set(j.id, j);
+
+  const offersOnMyJobs = (offersOnMyJobsRes.data ?? []) as ThreadAppRow[];
+  const posterAppIds = new Set(offersOnMyJobs.map((a) => a.id));
+  // Someone offering on their own request would otherwise show the same chat twice.
+  const entries: { app: ThreadAppRow; role: "poster" | "helper" }[] = [
+    ...offersOnMyJobs.map((app) => ({ app, role: "poster" as const })),
+    ...myApps.filter((app) => !posterAppIds.has(app.id)).map((app) => ({ app, role: "helper" as const })),
+  ];
+  if (!entries.length) return [];
+
+  // Chats are purged 96h after a job ends, so this stays small.
+  const { data: msgRows, error: msgErr } = await db
+    .from("portal_job_messages")
+    .select("application_id, sender_user_id, body, created_at")
+    .in("application_id", entries.map((e) => e.app.id))
+    .order("created_at", { ascending: false })
+    .limit(3000);
+  if (msgErr && !missingJobs(msgErr.message)) throw new Error(msgErr.message);
+
+  const msgsByApp = new Map<string, { sender_user_id: string; body: string; created_at: string }[]>();
+  for (const m of (msgRows ?? []) as { application_id: string; sender_user_id: string; body: string; created_at: string }[]) {
+    const list = msgsByApp.get(m.application_id) ?? [];
+    list.push(m);
+    msgsByApp.set(m.application_id, list);
+  }
+
+  const threads: PortalChatThread[] = [];
+  for (const { app, role } of entries) {
+    const job = jobsById.get(app.job_id);
+    if (!job) continue;
+    const msgs = msgsByApp.get(app.id) ?? [];
+    const newest = msgs[0];
+    threads.push({
+      applicationPublicId: app.public_id,
+      jobPublicId: job.public_id,
+      jobTitle: job.title,
+      role,
+      counterpartLabel:
+        role === "poster" ? anonymousLabel(app.applicant_public_id, "Helper") : anonymousLabel(job.poster_public_id, "Poster"),
+      status: app.status as ApplicationStatus,
+      offerMessage: app.message,
+      proposedTsh: app.proposed_tsh != null ? Number(app.proposed_tsh) : null,
+      createdAt: app.created_at,
+      lastMessage: newest
+        ? { body: newest.body, createdAt: newest.created_at, isMine: String(newest.sender_user_id) === userId }
+        : null,
+      messageCount: msgs.length,
+      incomingAt: msgs.filter((m) => String(m.sender_user_id) !== userId).slice(0, 99).map((m) => m.created_at),
+      posterReplied: msgs.some((m) => String(m.sender_user_id) === job.poster_user_id),
+    });
+  }
+  return threads.sort((a, b) => (b.lastMessage?.createdAt ?? b.createdAt).localeCompare(a.lastMessage?.createdAt ?? a.createdAt));
 }
 
 export async function createJob(

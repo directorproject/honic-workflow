@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import { isStaffUser } from "@/lib/auth-staff";
+import { needsProductGuide, withProductGuidePending } from "@/lib/portal/product-guide";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { safePortalNextPath } from "@/lib/portal/safe-next";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
@@ -67,17 +68,22 @@ export async function portalSignUpAction(
   if (!name) return { ok: false, message: "Enter your name." };
 
   const isSupervisor = role === "supervisor";
-  const nextPath = isSupervisor ? "/supervisor" : "/portal/packs?nav=1";
+  const nextPath = isSupervisor ? "/supervisor" : "/portal/packs?guide=1";
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
     email: e,
     password: String(password),
     options: {
       emailRedirectTo: `${await requestOrigin()}/portal/auth/callback?next=${encodeURIComponent(nextPath)}`,
-      data: {
-        full_name: name,
-        role: isSupervisor ? "supervisor" : "student",
-      },
+      data: isSupervisor
+        ? {
+            full_name: name,
+            role: "supervisor",
+          }
+        : withProductGuidePending({
+            full_name: name,
+            role: "student",
+          }),
     },
   });
   if (error) return { ok: false, message: error.message };
@@ -89,7 +95,14 @@ export async function portalSignUpAction(
         const { ensurePortalAccount } = await import("@/lib/portal/accounts");
         const { getSupabaseServiceRoleClient } = await import("@/lib/supabase-server");
         const admin = getSupabaseServiceRoleClient();
-        if (admin) await ensurePortalAccount(admin, data.user.id);
+        if (admin) {
+          await ensurePortalAccount(admin, data.user.id);
+          // Ensure pending sticks even if signup metadata merge was partial.
+          const existing = (data.user.user_metadata ?? {}) as Record<string, unknown>;
+          await admin.auth.admin.updateUserById(data.user.id, {
+            user_metadata: withProductGuidePending({ ...existing, full_name: name, role: "student" }),
+          });
+        }
       } catch {
         /* account row is created on first staff list / open */
       }
@@ -103,7 +116,7 @@ export async function portalSignUpAction(
     revalidatePath("/portal");
     revalidatePath("/portal/home");
     revalidatePath("/portal/packs");
-    redirect("/portal/packs?nav=1#plans");
+    redirect("/portal/packs?guide=1");
   }
   redirect(isSupervisor ? "/supervisor?auth=signin&notice=check_email" : "/portal?auth=signin&notice=check_email");
 }
@@ -156,7 +169,13 @@ export async function portalSignInAction(
       if (!profile) {
         revalidatePath("/portal");
         revalidatePath("/portal/packs");
-        redirect(nextPath ?? "/portal/packs");
+        redirect(nextPath ?? "/portal/packs?guide=1");
+      }
+      // Students who still owe the product tour go through it before browsing.
+      if (needsProductGuide(data.user)) {
+        revalidatePath("/portal");
+        revalidatePath("/portal/packs");
+        redirect(nextPath ?? "/portal/packs?guide=1");
       }
     } else if (preferredRole === "supervisor" && data.user?.id) {
       await upsertSupervisorProfile(data.user.id, e, name);
@@ -165,6 +184,11 @@ export async function portalSignInAction(
     }
   } catch {
     /* fall through to student home */
+  }
+  if (needsProductGuide(data.user)) {
+    revalidatePath("/portal");
+    revalidatePath("/portal/packs");
+    redirect(nextPath ?? "/portal/packs?guide=1");
   }
   revalidatePath("/portal");
   revalidatePath("/portal/home");

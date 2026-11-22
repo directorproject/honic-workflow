@@ -4,19 +4,24 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
+import { portalProductGuidePendingAction } from "@/app/portal/actions";
 import { NexisWordmark } from "@/components/brand/nexis-wordmark";
 import { GuestPreviewBanner } from "@/components/portal/guest-preview-banner";
 import { PlanModeChip } from "@/components/portal/plan-mode-chip";
+import {
+  PortalNewUserGuide,
+  shouldShowPortalGuide,
+} from "@/components/portal/portal-new-user-guide";
 import { PortalNavLinks, usePortalActiveLabel, type PortalNavMode } from "@/components/portal/portal-nav";
 import { PosterNotificationsBell, type PosterNotice } from "@/components/portal/poster-notifications-bell";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { needsProductGuide } from "@/lib/portal/product-guide";
 import { hasActiveDeskPlan } from "@/lib/portal/title-limits";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export { portalNavGroups, type PortalNavGroup, type PortalNavItem, type PortalNavMode } from "@/components/portal/portal-nav";
-
-const NAV_INTRO_MS = 2000;
 
 export function PortalShell({
   viewer,
@@ -26,6 +31,7 @@ export function PortalShell({
   workspaceBase,
   deskExpiresAt = null,
   guest = false,
+  forceGuide = false,
   children,
 }: {
   viewer: { name: string; detail: string | null };
@@ -38,6 +44,8 @@ export function PortalShell({
   deskExpiresAt?: string | null;
   /** Anonymous browse: full nav visible, actions locked, sign-in CTA. */
   guest?: boolean;
+  /** Server says this student still owes the mandatory product tour. */
+  forceGuide?: boolean;
   children: ReactNode;
 }) {
   const hasPaidDesk = guest ? false : mode !== "student" || hasActiveDeskPlan(deskExpiresAt);
@@ -45,13 +53,61 @@ export function PortalShell({
   const router = useRouter();
   const search = useSearchParams();
   const tab = search.get("tab") ?? "home";
-  const navIntro = search.get("nav") === "1";
-  const [drawer, setDrawer] = useState(navIntro);
+  // ?guide=1 starts the tour (works for signed-in and guest preview); forceGuide is account-required.
+  const guideFromUrl = mode === "student" && shouldShowPortalGuide(search.get("guide"), search.get("nav"));
+  const guideShouldStart = mode === "student" && (guideFromUrl || (!guest && forceGuide));
+  const [guideActive, setGuideActive] = useState(guideShouldStart);
+  const [guideRequired, setGuideRequired] = useState(!guest && mode === "student" && forceGuide);
+  const [drawer, setDrawer] = useState(false);
   const [isLg, setIsLg] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [jobsBadge, setJobsBadge] = useState(0);
   const [noticeItems, setNoticeItems] = useState<PosterNotice[]>([]);
   const activeLabel = usePortalActiveLabel({ mode, hasWorkspace, hasProgress, workspaceBase, hasPaidDesk });
+
+  useEffect(() => {
+    if (guideShouldStart) {
+      setGuideActive(true);
+      if (forceGuide) setGuideRequired(true);
+    }
+  }, [guideShouldStart, forceGuide]);
+
+  // Keep the required tour open until the account is marked done (missing flag = still owed).
+  useEffect(() => {
+    if (guest || mode !== "student") return;
+    if (forceGuide) {
+      setGuideRequired(true);
+      setGuideActive(true);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const browser = getSupabaseBrowserClient();
+        if (browser) {
+          const { data } = await browser.auth.getUser();
+          if (data.user && needsProductGuide(data.user)) {
+            if (!cancelled) {
+              setGuideRequired(true);
+              setGuideActive(true);
+            }
+            return;
+          }
+          if (data.user && !needsProductGuide(data.user)) return;
+        }
+        const pending = await portalProductGuidePendingAction();
+        if (!cancelled && pending) {
+          setGuideRequired(true);
+          setGuideActive(true);
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [guest, mode, pathname, forceGuide]);
 
   const refreshJobNotices = useCallback(async () => {
     if (guest || mode !== "student") return;
@@ -105,37 +161,23 @@ export function PortalShell({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // One-time intro after signup: open side nav briefly on mobile, then clear ?nav=1 so later visits are normal.
+  // Clear ?guide=1 / ?nav=1 from the URL once the tour is showing (finish navigates to plans).
   useEffect(() => {
-    if (!navIntro) return;
-
-    function clearNavParam() {
-      const params = new URLSearchParams(search.toString());
-      params.delete("nav");
-      const qs = params.toString();
-      const hash = typeof window !== "undefined" ? window.location.hash : "";
-      router.replace(`${pathname}${qs ? `?${qs}` : ""}${hash}`, { scroll: false });
-    }
-
-    if (isLg) {
-      clearNavParam();
-      return;
-    }
-
-    setDrawer(true);
-    const t = window.setTimeout(() => {
-      setDrawer(false);
-      clearNavParam();
-    }, NAV_INTRO_MS);
-    return () => window.clearTimeout(t);
-  }, [navIntro, isLg, pathname, router, search]);
+    if (!guideActive) return;
+    const params = new URLSearchParams(search.toString());
+    if (!params.has("guide") && !params.has("nav")) return;
+    params.delete("guide");
+    params.delete("nav");
+    const qs = params.toString();
+    const hash = typeof window !== "undefined" ? window.location.hash : "";
+    router.replace(`${pathname}${qs ? `?${qs}` : ""}${hash}`, { scroll: false });
+  }, [guideActive, pathname, router, search]);
 
   const navKey = `${pathname}?tab=${tab}`;
   const [prevNavKey, setPrevNavKey] = useState(navKey);
   if (navKey !== prevNavKey) {
     setPrevNavKey(navKey);
-    // Don't close during the one-time nav intro.
-    if (drawer && !navIntro) setDrawer(false);
+    if (drawer && !guideActive) setDrawer(false);
   }
 
   const sidebarVisible = isLg || drawer;
@@ -154,6 +196,7 @@ export function PortalShell({
 
       <aside
         id={navId}
+        data-tour="portal-nav"
         aria-hidden={sidebarVisible ? undefined : true}
         inert={!sidebarVisible ? true : undefined}
         className={`bg-dash-sidebar fixed inset-y-0 left-0 z-50 flex w-[17rem] -translate-x-full flex-col overflow-y-auto pb-5 shadow-xl transition-transform duration-200 ease-out motion-reduce:transition-none lg:translate-x-0 ${drawer ? "max-lg:translate-x-0" : "max-lg:pointer-events-none"}`}
@@ -179,6 +222,7 @@ export function PortalShell({
           <div className="flex min-h-[3.6rem] items-center gap-x-1.5 gap-y-1 px-2.5 py-1.5 sm:h-[4.25rem] sm:gap-4 sm:px-6 sm:py-0">
             <button
               type="button"
+              data-tour="portal-menu"
               className="hover:bg-dash-muted inline-flex shrink-0 rounded-lg p-2 lg:hidden"
               aria-expanded={drawer}
               aria-controls={navId}
@@ -203,7 +247,9 @@ export function PortalShell({
               </p>
             </div>
             <div className="border-dash-border flex shrink-0 items-center gap-0.5 border-l pl-1.5 sm:gap-2 sm:pl-3">
-              <ThemeToggle />
+              <span data-tour="portal-theme" className="inline-flex">
+                <ThemeToggle />
+              </span>
               {mode === "student" && !guest ? (
                 <PosterNotificationsBell
                   unread={jobsBadge}
@@ -215,7 +261,11 @@ export function PortalShell({
                   }}
                 />
               ) : null}
-              {mode === "student" && !guest ? <PlanModeChip deskExpiresAt={deskExpiresAt} compact /> : null}
+              {mode === "student" ? (
+                <span data-tour="portal-plan" className="inline-flex">
+                  <PlanModeChip deskExpiresAt={deskExpiresAt} compact />
+                </span>
+              ) : null}
               {guest ? (
                 <Link
                   href="/portal?auth=signin"
@@ -250,6 +300,17 @@ export function PortalShell({
         </div>
         <SiteFooter />
       </div>
+
+      <PortalNewUserGuide
+        open={guideActive}
+        required={guideRequired}
+        onOpenMenu={() => setDrawer(true)}
+        onCloseMenu={() => setDrawer(false)}
+        onDismiss={() => {
+          setGuideActive(false);
+          setGuideRequired(false);
+        }}
+      />
     </div>
   );
 }

@@ -17,7 +17,13 @@ import {
 import { EscrowFundFields, JobEscrowPanel } from "@/components/portal/job-escrow-panel";
 import { PeerHelpPolicyGate } from "@/components/portal/peer-help-policy-gate";
 import { Avatar, Chip } from "@/components/zimamoto/ui";
-import { useJobMessageStream } from "@/hooks/useJobMessageStream";
+import {
+  ChatThreadList,
+  PeerChatInbox,
+  markThreadRead,
+  useChatThreads,
+  useTotalUnread,
+} from "@/components/portal/peer-chat-inbox";
 import { PAYMENT_NETWORKS } from "@/lib/portal/config";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type {
@@ -46,6 +52,7 @@ import { toUserError } from "@/lib/portal/user-errors";
 import {
   JOB_CATEGORIES,
   jobRefLabel,
+  type PortalChatThread,
   type PortalJob,
   type PortalJobApplication,
   type PortalJobMessage,
@@ -399,14 +406,18 @@ export function MyJobsBoard({
   myApplications,
   canUseJobs,
   needsPolicy = false,
+  threads: initialThreads = [],
 }: {
   myJobs: PortalJob[];
   myApplications: PortalJobApplication[];
   canUseJobs: boolean;
   needsPolicy?: boolean;
+  threads?: PortalChatThread[];
 }) {
   useSoftLiveRefresh(true, 6000);
-  const [tab, setTab] = useState<"requests" | "offers">("requests");
+  const { threads } = useChatThreads(null, initialThreads);
+  const unread = useTotalUnread(threads);
+  const [tab, setTab] = useState<"chats" | "requests" | "offers">("chats");
 
   return (
     <PolicyWall needed={needsPolicy}>
@@ -420,14 +431,16 @@ export function MyJobsBoard({
               : "Browsing is free. Posting and offering help need an active Nexis Desk plan."
           }
         >
+          <Stat icon={<IconChat size={20} />} label="unread" value={unread} />
           <Stat icon={<IconInbox size={20} />} label="requests" value={myJobs.length} />
           <Stat icon={<IconSend size={20} />} label="offers" value={myApplications.length} />
         </Hero>
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="bg-dash-muted inline-flex rounded-full p-1 text-sm font-semibold">
             {(
               [
+                { id: "chats", label: "Chats", icon: <IconChat size={15} /> },
                 { id: "requests", label: "Requests", icon: <IconInbox size={15} /> },
                 { id: "offers", label: "Offers", icon: <IconSend size={15} /> },
               ] as const
@@ -436,12 +449,17 @@ export function MyJobsBoard({
                 key={t.id}
                 type="button"
                 onClick={() => setTab(t.id)}
-                className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 transition ${
+                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 transition sm:px-4 ${
                   tab === t.id ? "bg-dash-card text-dash-foreground shadow-sm" : "text-dash-muted-foreground"
                 }`}
               >
                 {t.icon}
                 {t.label}
+                {t.id === "chats" && unread > 0 ? (
+                  <span className="bg-dash-accent flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-white tabular-nums">
+                    {unread > 99 ? "99+" : unread}
+                  </span>
+                ) : null}
               </button>
             ))}
           </div>
@@ -452,7 +470,9 @@ export function MyJobsBoard({
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-start">
           <div className="space-y-3">
-            {tab === "requests" ? (
+            {tab === "chats" ? (
+              <PeerChatInbox threads={threads} />
+            ) : tab === "requests" ? (
               myJobs.length ? (
                 myJobs.map((job) => <ManagedPostRow key={job.id} job={job} canManage={canUseJobs} />)
               ) : (
@@ -765,6 +785,8 @@ export function JobDetailPanel({
   events: initialEvents = [],
   peerPayoutSaved = false,
   isStaff = false,
+  threads: initialThreads = [],
+  initialChat = null,
 }: {
   job: PortalJob;
   applications: PortalJobApplication[];
@@ -777,6 +799,8 @@ export function JobDetailPanel({
   events?: PortalJobEscrowEvent[];
   peerPayoutSaved?: boolean;
   isStaff?: boolean;
+  threads?: PortalChatThread[];
+  initialChat?: string | null;
 }) {
   const [applications, setApplications] = useState(initialApplications);
   const [myApplication, setMyApplication] = useState(initialMyApplication);
@@ -804,25 +828,62 @@ export function JobDetailPanel({
     setEvents(initialEvents);
   }, [initialEvents]);
 
-  const threadableApps = useMemo(
-    () => applications.filter((a) => a.status === "pending" || a.status === "accepted"),
-    [applications],
+  const posterInbox = job.isMine && !isStaff;
+  const { threads: liveThreads, setThreads } = useChatThreads(job.publicId, initialThreads, posterInbox);
+  const threads = useMemo(
+    () =>
+      [...liveThreads].sort(
+        (a, b) => Date.parse(b.lastMessage?.createdAt ?? b.createdAt) - Date.parse(a.lastMessage?.createdAt ?? a.createdAt),
+      ),
+    [liveThreads],
   );
-  const threadableKey = threadableApps.map((a) => a.publicId).join(",");
-  const [activeAppId, setActiveAppId] = useState(() => threadableApps[0]?.publicId ?? myApplication?.publicId ?? null);
 
-  const activeApp =
-    (job.isMine ? threadableApps.find((a) => a.publicId === activeAppId) : null) ??
-    (!job.isMine && myApplication && (myApplication.status === "pending" || myApplication.status === "accepted")
+  const [pickedAppId, setActiveAppId] = useState<string | null>(() => {
+    if (!job.isMine) return myApplication?.publicId ?? null;
+    if (initialChat && initialThreads.some((t) => t.applicationPublicId === initialChat)) return initialChat;
+    return initialThreads[0]?.applicationPublicId ?? null;
+  });
+  // Fall back to the newest chat if the picked one closes (e.g. offer rejected).
+  const activeAppId =
+    posterInbox && !threads.some((t) => t.applicationPublicId === pickedAppId)
+      ? (threads[0]?.applicationPublicId ?? null)
+      : pickedAppId;
+  // Mobile shows one pane at a time, like WhatsApp: the list, or the open chat.
+  const [mobilePane, setMobilePane] = useState<"list" | "chat">(initialChat ? "chat" : "list");
+  const [offerOpen, setOfferOpen] = useState(
+    () => (initialThreads.find((t) => t.applicationPublicId === pickedAppId)?.messageCount ?? 1) === 0,
+  );
+
+  const activeThread = posterInbox ? (threads.find((t) => t.applicationPublicId === activeAppId) ?? null) : null;
+  const activeOfferApp = posterInbox ? (applications.find((a) => a.publicId === activeAppId) ?? null) : null;
+  const helperApp =
+    !job.isMine && myApplication && (myApplication.status === "pending" || myApplication.status === "accepted")
       ? myApplication
-      : null);
+      : null;
+  const closedOffers = posterInbox ? applications.filter((a) => a.status === "rejected" || a.status === "withdrawn") : [];
 
-  // Keep selection valid when live offers arrive / change (stable deps — avoids max update depth).
-  useEffect(() => {
-    if (activeAppId && threadableKey.split(",").includes(activeAppId)) return;
-    const first = threadableKey.split(",").filter(Boolean)[0] ?? myApplication?.publicId ?? null;
-    setActiveAppId((prev) => (prev === first ? prev : first));
-  }, [activeAppId, threadableKey, myApplication?.publicId]);
+  function selectThread(id: string) {
+    setActiveAppId(id);
+    setMobilePane("chat");
+    setOfferOpen((threads.find((t) => t.applicationPublicId === id)?.messageCount ?? 1) === 0);
+    window.history.replaceState(null, "", `?chat=${id}`);
+  }
+
+  // Reflect the open chat's newest message in the list right away (the list poll confirms it).
+  const handleActivity = useCallback(
+    (appId: string, msgs: PortalJobMessage[]) => {
+      const newest = msgs.at(-1);
+      if (!newest) return;
+      setThreads((prev) =>
+        prev.map((t) => {
+          if (t.applicationPublicId !== appId) return t;
+          if (t.lastMessage && Date.parse(t.lastMessage.createdAt) >= Date.parse(newest.createdAt)) return t;
+          return { ...t, lastMessage: { body: newest.body, createdAt: newest.createdAt, isMine: newest.isMine } };
+        }),
+      );
+    },
+    [setThreads],
+  );
 
   // Live offers + escrow / activity (chat has its own /api poll — do not drive chat via this).
   useEffect(() => {
@@ -854,11 +915,12 @@ export function JobDetailPanel({
   }, [job.publicId, job.isMine, activeAppId]);
 
   const showApplySlot = !job.isMine && job.status === "open" && !myApplication;
-  // The helper can chat only after the poster has replied in that thread.
-  const activeMessages = activeApp ? (messagesByApplicationPublicId[activeApp.publicId] ?? []) : [];
-  const posterReplied = activeMessages.some((m) => !m.isMine);
-  const canChatNow = canUseJobs && (job.isMine || posterReplied);
-  const showAside = showApplySlot || Boolean(activeApp) || (job.isMine && applications.length > 0);
+  const showAside = !posterInbox && (showApplySlot || Boolean(helperApp));
+
+  const chatsRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (initialChat) chatsRef.current?.scrollIntoView({ block: "start" });
+  }, [initialChat]);
 
   return (
     <PolicyWall needed={needsPolicy}>
@@ -929,33 +991,88 @@ export function JobDetailPanel({
               </div>
             ) : null}
 
-            {job.isMine ? (
-              <section className="space-y-3">
-                <div>
-                  <h2 className="text-dash-foreground text-lg font-bold">Offers ({applications.length})</h2>
-                  <p className="text-dash-muted-foreground mt-1 text-xs">
-                    Chat with anyone below. When you decide, open that offer and use{" "}
-                    <span className="text-dash-foreground font-semibold">Pick this helper &amp; lock my money</span>.
-                    Other offers are rejected automatically after payment confirms.
-                  </p>
+            {posterInbox ? (
+              <section ref={chatsRef} className="scroll-mt-24 space-y-2">
+                <p className="text-dash-muted-foreground text-xs">
+                  Chat with any helper. When you decide, tap <span className="text-dash-foreground font-semibold">Offer</span>{" "}
+                  in their chat and use <span className="text-dash-foreground font-semibold">Pick this helper &amp; lock my money</span>.
+                  Other offers close automatically after payment confirms.
+                </p>
+                <div className={`${CARD} grid h-[min(40rem,calc(100dvh-7rem))] grid-rows-[minmax(0,1fr)] overflow-hidden lg:grid-cols-[20rem_minmax(0,1fr)]`}>
+                  <div className={`border-dash-border min-h-0 flex-col lg:flex lg:border-r ${mobilePane === "chat" ? "hidden" : "flex"}`}>
+                    <ChatThreadList
+                      threads={threads}
+                      activeId={activeAppId}
+                      onSelect={selectThread}
+                      title={`Helpers (${threads.length})`}
+                    />
+                  </div>
+                  <div className={`min-h-0 flex-col lg:flex ${mobilePane === "list" ? "hidden" : "flex"}`}>
+                    {activeThread ? (
+                      <>
+                        <div className="border-dash-border flex items-center gap-3 border-b px-3 py-2.5">
+                          <button
+                            type="button"
+                            onClick={() => setMobilePane("list")}
+                            aria-label="Back to chats"
+                            className="text-dash-muted-foreground hover:text-dash-foreground -ml-1 rounded-full p-1 lg:hidden"
+                          >
+                            <IconBack size={18} />
+                          </button>
+                          <Avatar name={activeThread.counterpartLabel} size={36} />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-dash-foreground truncate text-sm font-bold">{activeThread.counterpartLabel}</p>
+                            <p className="text-dash-muted-foreground truncate text-[11px]">
+                              {activeThread.status === "accepted" ? "Hired" : "Offer pending"}
+                              {activeThread.proposedTsh != null ? ` · proposed ${formatTsh(activeThread.proposedTsh)}` : ""}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setOfferOpen((v) => !v)}
+                            className={`${offerOpen ? PRIMARY : SOFT} !px-3 !py-1.5 !text-xs`}
+                          >
+                            <IconWallet size={13} /> {offerOpen ? "Hide offer" : "Offer"}
+                          </button>
+                        </div>
+                        {offerOpen && activeOfferApp ? (
+                          <div className="border-dash-border bg-dash-muted/20 max-h-[45%] shrink-0 overflow-y-auto border-b p-3">
+                            <ApplicationRow
+                              app={activeOfferApp}
+                              canAccept={job.status === "open" && activeOfferApp.status === "pending" && !escrow}
+                            />
+                          </div>
+                        ) : null}
+                        <MessageThread
+                          key={activeThread.applicationPublicId}
+                          embedded
+                          paneOpen={mobilePane === "chat"}
+                          applicationPublicId={activeThread.applicationPublicId}
+                          initialMessages={messagesByApplicationPublicId[activeThread.applicationPublicId] ?? []}
+                          canSend={canUseJobs}
+                          onActivity={(msgs) => handleActivity(activeThread.applicationPublicId, msgs)}
+                        />
+                      </>
+                    ) : (
+                      <div className="text-dash-muted-foreground flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center text-sm">
+                        <IconChat size={26} />
+                        {threads.length ? "Pick a helper to open the chat." : "No offers yet. Helpers who offer will show up here."}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                {applications.length ? (
-                  applications.map((app) => {
-                    const canThread = app.status === "pending" || app.status === "accepted";
-                    const selected = canThread && app.publicId === activeAppId;
-                    return (
-                      <ApplicationRow
-                        key={app.id}
-                        app={app}
-                        canAccept={job.status === "open" && app.status === "pending" && !escrow}
-                        onOpenThread={canThread ? () => setActiveAppId(app.publicId) : undefined}
-                        threadSelected={selected}
-                      />
-                    );
-                  })
-                ) : (
-                  <p className="text-dash-muted-foreground text-sm">No offers yet. Helpers will appear here.</p>
-                )}
+                {closedOffers.length ? (
+                  <details className="group">
+                    <summary className="text-dash-muted-foreground hover:text-dash-foreground cursor-pointer text-xs font-semibold">
+                      Closed offers ({closedOffers.length})
+                    </summary>
+                    <div className="mt-3 space-y-3">
+                      {closedOffers.map((app) => (
+                        <ApplicationRow key={app.id} app={app} canAccept={false} />
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
               </section>
             ) : null}
 
@@ -968,20 +1085,15 @@ export function JobDetailPanel({
             {showApplySlot ? (
               <div className="hidden lg:block">{canUseJobs ? <ApplyForm job={job} /> : <JobsPlanGate action="apply" />}</div>
             ) : null}
-            {activeApp ? (
+            {helperApp ? (
               <MessageThread
-                key={activeApp.publicId}
-                applicationPublicId={activeApp.publicId}
-                initialMessages={messagesByApplicationPublicId[activeApp.publicId] ?? []}
-                threadFor={job.isMine ? activeApp.applicantLabel : undefined}
-                canSend={canChatNow}
-                waitingForPoster={!job.isMine && !posterReplied}
+                key={helperApp.publicId}
+                applicationPublicId={helperApp.publicId}
+                initialMessages={messagesByApplicationPublicId[helperApp.publicId] ?? []}
+                threadFor={job.posterLabel}
+                canSend={false}
+                unlockOnReply={canUseJobs}
               />
-            ) : job.isMine && applications.length ? (
-              <div className={`${CARD} px-6 py-10 text-center`}>
-                <IconChat size={22} className="text-dash-muted-foreground mx-auto" />
-                <p className="text-dash-muted-foreground mt-2 text-sm">Pick an offer to open its chat.</p>
-              </div>
             ) : null}
           </aside>
         </div>
@@ -1086,13 +1198,9 @@ function ApplyForm({ job }: { job: PortalJob }) {
 function ApplicationRow({
   app,
   canAccept,
-  onOpenThread,
-  threadSelected,
 }: {
   app: PortalJobApplication;
   canAccept: boolean;
-  onOpenThread?: () => void;
-  threadSelected?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -1101,7 +1209,7 @@ function ApplicationRow({
   const [phone, setPhone] = useState("");
 
   return (
-    <article className={`${CARD} p-4 transition ${threadSelected ? "ring-dash-accent/40 ring-2" : ""}`}>
+    <article className={`${CARD} p-4`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Avatar name={app.applicantLabel || "Helper"} size={32} />
@@ -1110,14 +1218,7 @@ function ApplicationRow({
             <p className="text-dash-muted-foreground text-[11px]">{formatDateTime(app.createdAt)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <StatusChip status={app.status} />
-          {onOpenThread ? (
-            <button type="button" onClick={onOpenThread} className={`${threadSelected ? PRIMARY : SOFT} !py-1.5 !text-xs`}>
-              <IconChat size={13} /> {threadSelected ? "Chatting" : "Chat"}
-            </button>
-          ) : null}
-        </div>
+        <StatusChip status={app.status} />
       </div>
       <p className="text-dash-muted-foreground mt-3 text-sm leading-relaxed">{app.message}</p>
       {app.proposedTsh != null ? <p className="text-dash-foreground mt-2 text-xs font-semibold">Proposed {formatTsh(app.proposedTsh)}</p> : null}
@@ -1168,15 +1269,23 @@ function MessageThread({
   applicationPublicId,
   initialMessages,
   threadFor,
-  canSend,
-  waitingForPoster = false,
+  canSend: canSendNow,
+  unlockOnReply = false,
+  embedded = false,
+  paneOpen = true,
+  onActivity,
 }: {
   applicationPublicId: string;
   initialMessages: PortalJobMessage[];
   threadFor?: string;
   canSend: boolean;
-  waitingForPoster?: boolean;
-  onMessagesChange?: (messages: PortalJobMessage[]) => void;
+  /** Helper side: sending opens as soon as the poster's first reply arrives. */
+  unlockOnReply?: boolean;
+  /** Rendered inside the inbox pane (parent draws the card and header). */
+  embedded?: boolean;
+  /** Changes when a mobile pane is shown, so read-marking re-checks visibility. */
+  paneOpen?: boolean;
+  onActivity?: (messages: PortalJobMessage[]) => void;
 }) {
   const [status, setStatus] = useState<PortalResult | null>(null);
   const [draft, setDraft] = useState("");
@@ -1185,6 +1294,14 @@ function MessageThread({
   const draftRef = useRef<HTMLTextAreaElement>(null);
   const lastRef = useRef(initialMessages.at(-1)?.createdAt ?? new Date(0).toISOString());
   const appBootRef = useRef(applicationPublicId);
+  const onActivityRef = useRef(onActivity);
+  useEffect(() => {
+    onActivityRef.current = onActivity;
+  });
+
+  const otherSideReplied = messages.some((m) => !m.isMine);
+  const canSend = canSendNow || (unlockOnReply && otherSideReplied);
+  const waitingForPoster = unlockOnReply && !otherSideReplied;
 
   // Drop any leftover Realtime channels from older peer-help builds (shared Supabase singleton).
   useEffect(() => {
@@ -1222,14 +1339,62 @@ function MessageThread({
     });
   }, []);
 
-  // Real-time messages via SSE (Server-Sent Events) instead of polling
-  // 3x faster: Updates every 500ms instead of 1500ms, with instant delivery like WhatsApp
-  useJobMessageStream(applicationPublicId, applyIncoming, true);
+  // Cursor = newest message we hold, so nothing sent between page load and the first poll is missed.
+  const sync = useCallback(async () => {
+    try {
+      const url = new URL("/api/portal/jobs/messages", window.location.origin);
+      url.searchParams.set("applicationPublicId", applicationPublicId);
+      url.searchParams.set("sinceIso", lastRef.current);
+      const res = await fetch(url.toString(), { credentials: "same-origin", cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as { ok?: boolean; messages?: PortalJobMessage[] };
+      if (data.ok && data.messages?.length) applyIncoming(data.messages);
+    } catch {
+      /* transient — next tick retries */
+    }
+  }, [applicationPublicId, applyIncoming]);
+
+  useEffect(() => {
+    function tick() {
+      if (!document.hidden) void sync();
+    }
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    window.addEventListener("focus", tick);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", tick);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, [sync]);
 
   useEffect(() => {
     const el = listRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages.length, applicationPublicId]);
+
+  useEffect(() => {
+    onActivityRef.current?.(messages);
+  }, [messages]);
+
+  // Mark read only while this chat is actually on screen (hidden mobile panes have no offsetParent).
+  useEffect(() => {
+    function markIfVisible() {
+      const newest = [...messages].reverse().find((m) => !String(m.id).startsWith("temp-"));
+      if (!newest || document.hidden || !listRef.current?.offsetParent) return;
+      markThreadRead(applicationPublicId, newest.createdAt);
+    }
+    markIfVisible();
+    window.addEventListener("focus", markIfVisible);
+    document.addEventListener("visibilitychange", markIfVisible);
+    window.addEventListener("resize", markIfVisible);
+    return () => {
+      window.removeEventListener("focus", markIfVisible);
+      document.removeEventListener("visibilitychange", markIfVisible);
+      window.removeEventListener("resize", markIfVisible);
+    };
+  }, [messages, applicationPublicId, paneOpen]);
 
   function send() {
     if (!canSend) return;
@@ -1247,20 +1412,11 @@ function MessageThread({
       isMine: true,
     };
 
-    // Ultra-fast: Message appears immediately, input clears, focus leaves. No waiting.
+    // Bubble shows and the box clears at once; the keyboard stays up for the next message.
     setDraft("");
     setMessages((prev) => [...prev, optimistic]);
 
-    // Blur input immediately (don't refocus)
-    if (draftRef.current) {
-      draftRef.current.blur();
-    }
-
-    // Scroll to bottom immediately on next frame
-    requestAnimationFrame(() => {
-      const el = listRef.current;
-      if (el) el.scrollTop = el.scrollHeight;
-    });
+    draftRef.current?.focus();
 
     // Send in background - no UI blocking
     void (async () => {
@@ -1275,12 +1431,8 @@ function MessageThread({
           | { ok?: boolean; message?: string; chat?: PortalJobMessage }
           | null;
         if (res.ok && data?.ok && data.chat) {
-          // Replace temp message with server version
-          setMessages((prev) => {
-            const cleaned = prev.filter((m) => m.id !== tempId);
-            if (data.chat!.createdAt > lastRef.current) lastRef.current = data.chat!.createdAt;
-            return mergeJobMessages(cleaned, [data.chat!]);
-          });
+          // Don't move the poll cursor here: an incoming message older than ours may not be fetched yet.
+          setMessages((prev) => mergeJobMessages(prev.filter((m) => m.id !== tempId), [data.chat!]));
         } else {
           // Network error: remove temp message and show error
           setMessages((prev) => prev.filter((m) => m.id !== tempId));
@@ -1302,10 +1454,14 @@ function MessageThread({
 
   return (
     <section
-      data-peer-help-chat="poll-v3"
-      className={`${CARD} flex h-[min(34rem,75vh)] flex-col overflow-hidden lg:h-[min(36rem,calc(100vh-8rem))]`}
+      data-peer-help-chat="poll-v4"
+      className={
+        embedded
+          ? "flex min-h-0 flex-1 flex-col"
+          : `${CARD} flex h-[min(34rem,75vh)] flex-col overflow-hidden lg:h-[min(36rem,calc(100vh-8rem))]`
+      }
     >
-      <header className="border-dash-border flex items-center justify-between gap-2 border-b px-4 py-3">
+      <header className={`border-dash-border items-center justify-between gap-2 border-b px-4 py-3 ${embedded ? "hidden" : "flex"}`}>
         <div className="flex items-center gap-2">
           <span className="bg-dash-accent/10 text-dash-accent flex h-9 w-9 items-center justify-center rounded-full">
             <IconChat size={17} />

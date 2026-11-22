@@ -278,6 +278,7 @@ export async function PortalHome({
   return (
     <Suspense fallback={<main className="bg-dash-canvas min-h-screen" />}>
       <PortalShell
+        forceGuide={!state.isStaff && state.productGuideNeeded}
         viewer={{ name: profile.fullName, detail: viewerDetail }}
         hasWorkspace={Boolean(membership)}
         hasProgress={hasProgress}

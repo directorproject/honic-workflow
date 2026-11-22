@@ -5,6 +5,7 @@ import { cache } from "react";
 import { isStaffUser } from "@/lib/auth-staff";
 import { peerHelpAccepted } from "@/lib/portal/jobs-peer-help";
 import { PORTAL_COURSES_TAG } from "@/lib/portal/portal-catalogue-cache";
+import { needsProductGuide } from "@/lib/portal/product-guide";
 import { titleTermsStatus, type TermsProgress } from "@/lib/portal/title-terms";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
@@ -102,6 +103,8 @@ export type PortalState = {
   profileAcademicPending: boolean;
   /** Student has accepted the current peer-help rules (stored on the account). */
   peerHelpAccepted: boolean;
+  /** Student still owes the mandatory product tour. */
+  productGuideNeeded: boolean;
 };
 
 export async function getPortalUser(): Promise<User | null> {
@@ -157,19 +160,22 @@ export const loadPortalState = cache(async (): Promise<PortalState> => {
     titleTerms: null,
     profileAcademicPending: false,
     peerHelpAccepted: false,
+    productGuideNeeded: false,
   };
   if (!user) return empty;
 
   const meta = (user.user_metadata ?? {}) as { full_name?: unknown; name?: unknown };
   const suggestedName = [meta.full_name, meta.name].find((v): v is string => typeof v === "string" && v.trim() !== "") ?? null;
   const titleTerms = titleTermsStatus(user.user_metadata);
+  const staff = isStaffUser(user);
   const base = {
     ...empty,
     user: { id: user.id, email: user.email ?? "", suggestedName },
-    isStaff: isStaffUser(user),
+    isStaff: staff,
     titleTerms,
     profileAcademicPending: profileAcademicStepPending(user),
     peerHelpAccepted: peerHelpAccepted(user),
+    productGuideNeeded: !staff && needsProductGuide(user),
   };
   const db = getSupabaseAdminClient();
   if (!db || base.isStaff) return base;

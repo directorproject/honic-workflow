@@ -39,7 +39,8 @@ type EarlierRow = {
   programme: string | null;
   source: string | null;
   title: string | null;
-  notes: string | null;
+  /** Omitted from list cache — fetch via title-brief API / detail page. */
+  notes?: string | null;
 };
 
 export async function cachedLastYearProjects(): Promise<EarlierRow[]> {
@@ -47,11 +48,12 @@ export async function cachedLastYearProjects(): Promise<EarlierRow[]> {
     async () => {
       const db = getSupabaseAdminClient();
       if (!db) return [];
-      const { data, error } = await db.from("last_year_projects").select("id, programme, source, title, notes");
+      // No notes here — full briefs exceed Next unstable_cache 2MB when nested in catalogues.
+      const { data, error } = await db.from("last_year_projects").select("id, programme, source, title");
       if (error) throw new Error(error.message);
       return (data ?? []) as EarlierRow[];
     },
-    ["last-year-projects-v4"],
+    ["last-year-projects-v5"],
     { revalidate: 300, tags: [LITERATURE_CATALOGUE_TAG] },
   )();
 }
@@ -62,9 +64,10 @@ export async function loadGuestLiteratureCatalogue() {
     async () => {
       const db = getSupabaseAdminClient();
       if (!db) return { mine: [], items: [] as Awaited<ReturnType<typeof loadLiterature>>["items"] };
+      // Keep this under Next's 2MB unstable_cache limit — briefs load on Read expand.
       return loadLiterature(db, null, null, { includeBriefs: false });
     },
-    ["portal-literature-guest-v3"],
+    ["portal-literature-guest-v5"],
     { revalidate: 300, tags: [LITERATURE_CATALOGUE_TAG] },
   )();
 }
@@ -76,9 +79,10 @@ export async function loadStudentLiteratureCatalogue(userId: string, profile: St
     async () => {
       const db = getSupabaseAdminClient();
       if (!db) return { mine: [], items: [] as Awaited<ReturnType<typeof loadLiterature>>["items"] };
+      // Briefs are fetched per-title on expand (cache cannot hold full notes payloads).
       return loadLiterature(db, userId, profile, { includeBriefs: false });
     },
-    ["portal-literature-student", userId, cohort],
+    ["portal-literature-student-v3", userId, cohort],
     { revalidate: 60, tags: [LITERATURE_CATALOGUE_TAG, studentLiteratureTag(userId)] },
   )();
 }
