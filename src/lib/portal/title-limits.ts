@@ -10,6 +10,9 @@ export { FREE_TITLE_SLOTS, EXTRA_TITLE_HIDE_FEE_TSH, PAID_PLAN_FREE_HIDES, FREE_
 /** Soft upper bound on simultaneous shortlisted titles. */
 export const MAX_TITLE_CHOICES = 20;
 
+/** Guests may browse this many titles before Create account is required. */
+export const GUEST_TITLE_PREVIEW_LIMIT = 20;
+
 export function hasActiveDeskPlan(deskExpiresAt: string | null | undefined): boolean {
   if (!deskExpiresAt) return false;
   const t = new Date(deskExpiresAt).getTime();

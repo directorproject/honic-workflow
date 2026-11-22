@@ -73,6 +73,8 @@ export function CohortTitleBoard(props: {
   acceptedOn?: string | null;
   readOnly: boolean;
   guest?: boolean;
+  /** Full catalogue size when `items` is a guest preview slice. */
+  guestTotalCount?: number;
   viewer?: { name: string; detail: string | null; homeHref: string | null } | null;
   hasWorkspace?: boolean;
   hasProgress?: boolean;
@@ -101,6 +103,7 @@ function TitlesFrameBody({
   acceptedOn,
   readOnly,
   guest = false,
+  guestTotalCount,
   viewer,
   hasWorkspace = false,
   hasProgress = false,
@@ -115,6 +118,7 @@ function TitlesFrameBody({
   acceptedOn?: string | null;
   readOnly: boolean;
   guest?: boolean;
+  guestTotalCount?: number;
   viewer?: { name: string; detail: string | null; homeHref: string | null } | null;
   hasWorkspace?: boolean;
   hasProgress?: boolean;
@@ -511,10 +515,40 @@ function TitlesFrameBody({
         <div className="min-w-0 flex-1 overflow-visible">
           {guest ? (
             <div className="px-3 pt-4 sm:px-6 lg:px-8">
-              <GuestPreviewBanner blurb="Browse every title and open a brief. Sign in to shortlist, claim ownership, or open source documents." />
+              <GuestPreviewBanner
+                blurb={
+                  guestTotalCount != null && guestTotalCount > items.length
+                    ? `Preview the first ${items.length} titles. Create a free account to open the full catalogue (${guestTotalCount.toLocaleString("en-TZ")} titles), shortlist, and claim.`
+                    : "Browse preview titles and open a brief. Create a free account to shortlist, claim ownership, or open source documents."
+                }
+              />
             </div>
           ) : null}
           {children}
+          {guest && guestTotalCount != null && guestTotalCount > items.length ? (
+            <div className="border-dash-border mx-3 mb-10 flex flex-col items-center gap-3 rounded-xl border bg-dash-card px-4 py-8 text-center sm:mx-8">
+              <p className="text-dash-foreground text-sm font-semibold">
+                Showing {items.length} of {guestTotalCount.toLocaleString("en-TZ")} titles
+              </p>
+              <p className="text-dash-muted-foreground max-w-md text-sm leading-relaxed">
+                Create a free account to see the rest of the literature review catalogue.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Link
+                  href="/portal?auth=signup&next=/portal/titles"
+                  className="bg-dash-accent inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold text-white"
+                >
+                  See more — create account
+                </Link>
+                <Link
+                  href="/portal?auth=signin&next=/portal/titles"
+                  className="border-dash-border text-dash-foreground inline-flex items-center justify-center rounded-lg border px-5 py-2.5 text-sm font-semibold"
+                >
+                  Sign in
+                </Link>
+              </div>
+            </div>
+          ) : null}
         </div>
         <SiteFooter className="lg:pl-0" />
       </div>

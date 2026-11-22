@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { after } from "next/server";
-import { redirect } from "next/navigation";
 
 import { portalSignOutAction } from "@/app/portal/auth-actions";
 import { NexisBrandBar } from "@/components/brand/nexis-brand-bar";
@@ -12,6 +11,7 @@ import { studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
 import { loadGuestLiteratureCatalogue, loadStudentLiteratureCatalogue } from "@/lib/portal/literature-guest-cache";
 import { recordPageVisit } from "@/lib/portal/page-visits";
+import { GUEST_TITLE_PREVIEW_LIMIT } from "@/lib/portal/title-limits";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { findMembership } from "@/lib/workspace/access";
 import { formatDate } from "@/lib/workspace/dates";
@@ -25,24 +25,46 @@ export default async function PortalTitlesPage() {
   const { user, profile } = state;
   const db = getSupabaseAdminClient();
 
-  if (!user) {
-    redirect("/portal?auth=signin&next=/portal/titles");
-  }
-
   // Server-side visit so analytics sees /portal/titles even when the browser beacon misses.
   if (db) {
     after(() => {
       void recordPageVisit(db, {
         path: "/portal/titles",
         sessionKey: null,
-        viewerId: user.id,
+        viewerId: user?.id ?? null,
       });
     });
   }
 
   let content: React.ReactNode;
   let catalogue = false;
-  if (state.isStaff && db) {
+  if (!user && db) {
+    const review = await loadGuestLiteratureCatalogue();
+    const total = review.items.length;
+    const preview = review.items.slice(0, GUEST_TITLE_PREVIEW_LIMIT);
+    catalogue = true;
+    content = (
+      <CohortTitleBoard
+        items={preview}
+        mine={[]}
+        courses={state.courses}
+        studentYear={null}
+        readOnly
+        guest
+        guestTotalCount={total}
+        viewer={{ name: "Guest", detail: "Preview · sign in to shortlist", homeHref: "/portal/home" }}
+      />
+    );
+  } else if (!user) {
+    content = (
+      <p className="text-dash-muted-foreground text-sm">
+        Literature is not available right now.{" "}
+        <Link href="/portal?auth=signin" className="text-dash-accent font-semibold">
+          Sign in
+        </Link>
+      </p>
+    );
+  } else if (state.isStaff && db) {
     const review = await loadGuestLiteratureCatalogue();
     catalogue = true;
     content = (
