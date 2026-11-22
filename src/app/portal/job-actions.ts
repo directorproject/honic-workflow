@@ -22,14 +22,18 @@ import { PAYMENT_NETWORKS, PAYMENT_PROVIDER } from "@/lib/portal/config";
 import { getPortalUser } from "@/lib/portal/data";
 import {
   confirmEscrowDelivery,
-  createEscrowForApplication,
+  createEscrowForJob,
+  ESCROW_DELIVERY_HOURS,
+  pickHelperForFundedEscrow,
   fulfillJobEscrowPayment,
   getEscrowForJob,
   issuePreviewSession,
   listDeliverablesForEscrow,
   listEscrowEvents,
+  loadPeerPayoutAccount,
   markPeerPayoutStatus,
   openEscrowDispute,
+  reconcileAwaitingJobEscrow,
   registerDeliverable,
   requestEscrowRevision,
   resolveEscrowDispute,
@@ -43,7 +47,8 @@ import {
 import { peerHelpAccepted, PEER_HELP_METADATA_KEY, PEER_HELP_RULES_VERSION, peerHelpRulesError } from "@/lib/portal/jobs-peer-help";
 import { paymentUnavailableMessage, toUserError } from "@/lib/portal/user-errors";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { notifyPosterNewApplication } from "@/lib/portal/job-notifications";
+import { notifyHelperPicked, notifyPosterNewApplication } from "@/lib/portal/job-notifications";
+import { loadPayoutAccount } from "@/lib/portal/payout-accounts";
 import {
   applyToJob,
   getJobByPublicId,
@@ -54,8 +59,10 @@ import {
   createJob,
   deleteJob,
   postJobMessage,
+  postPosterNote,
   updateJob,
   type JobPriceMode,
+  type JobStatus,
   type PortalJobApplication,
   type PortalJobMessage,
 } from "@/lib/portal/jobs";
@@ -199,8 +206,18 @@ export async function portalApplyJobAction(input: {
  * Select a helper and open escrow. Pass network+phone to push mobile-money for the locked amount.
  * Helper is only assigned after payment confirms (webhook or simulated).
  */
-export async function portalAcceptJobApplicationAction(
-  applicationPublicId: string,
+function revalidateJob(jobPublicId: string) {
+  revalidatePath("/portal/jobs");
+  revalidatePath("/portal/jobs/mine");
+  revalidatePath(`/portal/jobs/${encodeURIComponent(jobPublicId)}`);
+}
+
+/**
+ * Poster locks the request's money in Honic escrow (before picking anyone).
+ * Then one tap on "Pick this helper" in any chat assigns that helper.
+ */
+export async function portalLockJobMoneyAction(
+  jobPublicId: string,
   network?: string,
   phone?: string,
 ): Promise<PortalResult & { awaitingPayment?: boolean; paymentReference?: string }> {
@@ -211,15 +228,31 @@ export async function portalAcceptJobApplicationAction(
     const net = String(network ?? "").trim();
     const telRaw = String(phone ?? "").trim().replace(/\s/g, "");
     if (!(PAYMENT_NETWORKS as readonly string[]).includes(net)) {
-      return { ok: false, message: "Choose your mobile-money network to lock escrow." };
+      return { ok: false, message: "Choose how you will pay (M-Pesa, Airtel Money, etc.)." };
     }
     if (!toSnippePhone(telRaw)) {
-      return { ok: false, message: "Enter a valid Tanzanian mobile number to fund escrow." };
+      return { ok: false, message: "Enter a valid Tanzanian mobile number, e.g. 0712 345 678." };
     }
 
     const live = PAYMENT_PROVIDER === "snippe" && snippeConfigured();
     if (!live && !simulatedPaymentsAllowed()) {
       return { ok: false, message: paymentUnavailableMessage() };
+    }
+
+    // Recover a completed Snippe payment before expiring/replacing a stuck prompt.
+    const jobForReconcile = await getJobByPublicId(db, String(jobPublicId ?? ""), user.id);
+    if (jobForReconcile?.isMine) {
+      const recovered = await reconcileAwaitingJobEscrow(db, {
+        jobId: jobForReconcile.id,
+        viewerUserId: user.id,
+      });
+      if (recovered.fulfilled) {
+        revalidateJob(jobForReconcile.publicId);
+        return {
+          ok: true,
+          message: "Payment confirmed. Money is locked — pick a helper in Chats.",
+        };
+      }
     }
 
     // Expire stale prompts first so a dead ESC row does not block a new lock.
@@ -245,18 +278,18 @@ export async function portalAcceptJobApplicationAction(
         ok: true,
         awaitingPayment: true,
         paymentReference: String(openPay.reference),
-        message: `Escrow payment already open (ref ${openPay.reference}). Approve the mobile-money prompt on your phone — SMS/USSD can take up to ~30 seconds to arrive.`,
+        message: "A payment prompt is already open. Check your phone and enter your PIN (it can take up to 30 seconds to arrive).",
       };
     }
 
-    const created = await createEscrowForApplication(db, {
+    const created = await createEscrowForJob(db, {
       posterUserId: user.id,
-      applicationPublicId: String(applicationPublicId ?? ""),
+      jobPublicId: String(jobPublicId ?? ""),
     });
     if (!created.ok) return { ok: false, message: created.message };
 
     const amount = created.amountTsh;
-    // Fail fast before Snippe — provider rejects below this and the wait feels like a hang.
+    // Fail fast before Snippe: provider rejects below this and the wait feels like a hang.
     if (live && amount < SNIPPE_MIN_AMOUNT_TSH) {
       await db
         .from("portal_job_escrows")
@@ -265,7 +298,7 @@ export async function portalAcceptJobApplicationAction(
         .eq("status", "awaiting_funds");
       return {
         ok: false,
-        message: `Mobile money needs at least TSh ${SNIPPE_MIN_AMOUNT_TSH.toLocaleString("en-TZ")}. This offer is TSh ${amount.toLocaleString("en-TZ")} — raise the job offer (or proposed price) and try again.`,
+        message: `Mobile money needs at least TSh ${SNIPPE_MIN_AMOUNT_TSH.toLocaleString("en-TZ")}. Edit your request price and try again.`,
       };
     }
 
@@ -293,11 +326,7 @@ export async function portalAcceptJobApplicationAction(
 
     await db
       .from("portal_job_escrows")
-      .update({
-        payment_id: paymentRow.id,
-        payment_reference: reference,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ payment_id: paymentRow.id, payment_reference: reference, updated_at: new Date().toISOString() })
       .eq("id", created.escrow.id);
 
     if (live) {
@@ -340,14 +369,12 @@ export async function portalAcceptJobApplicationAction(
           .eq("status", "awaiting_funds");
         return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };
       }
-      revalidatePath("/portal/jobs");
-      revalidatePath("/portal/jobs/mine");
-      revalidatePath(`/portal/jobs/${encodeURIComponent(created.jobPublicId)}`);
+      revalidateJob(created.jobPublicId);
       return {
         ok: true,
         awaitingPayment: true,
         paymentReference: reference,
-        message: `Mobile-money prompt sent for TSh ${amount.toLocaleString("en-TZ")} (ref ${reference}). SMS/USSD can take 10–30 seconds — enter your PIN. Helper is assigned only after payment confirms.`,
+        message: `Check your phone: enter your PIN to lock TSh ${amount.toLocaleString("en-TZ")}. The prompt can take 10–30 seconds.`,
       };
     }
 
@@ -360,15 +387,80 @@ export async function portalAcceptJobApplicationAction(
     });
     if (!fulfilled.ok) return { ok: false, message: toUserError(fulfilled.message, paymentUnavailableMessage()) };
 
+    revalidateJob(created.jobPublicId);
+    return { ok: true, message: `TSh ${amount.toLocaleString("en-TZ")} locked. Now pick a helper in Chats.` };
+  } catch (err) {
+    return { ok: false, message: toUserError(err, "Could not lock your money. Please try again.") };
+  }
+}
+
+/** One tap: pick this helper (money must already be locked). Notifies the helper. */
+export async function portalPickHelperAction(applicationPublicId: string): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    if (!peerHelpAccepted(user)) return { ok: false, message: peerHelpRulesError() };
+
+    const picked = await pickHelperForFundedEscrow(db, {
+      posterUserId: user.id,
+      applicationPublicId: String(applicationPublicId ?? ""),
+    });
+    if (!picked.ok) return { ok: false, message: picked.message };
+
+    const peerPayout = await loadPeerPayoutAccount(db, picked.helperUserId);
+    const payoutReady = Boolean(peerPayout?.sealOk && peerPayout.status === "active");
+    const amount = `TSh ${picked.amountTsh.toLocaleString("en-TZ")}`;
+
+    await Promise.all([
+      postPosterNote(db, {
+        posterUserId: user.id,
+        applicationId: picked.applicationId,
+        body: payoutReady
+          ? `You're picked! ${amount} is locked in Honic escrow. Your payout number is saved, so you can start now. Upload a preview + final file on this page within ${ESCROW_DELIVERY_HOURS}h.`
+          : `You're picked! ${amount} is locked in Honic escrow. Next: set the number you'll be paid on (or use your saved payout account) on this page, then start. Upload a preview + final file within ${ESCROW_DELIVERY_HOURS}h.`,
+      }),
+      notifyHelperPicked(db, {
+        jobId: picked.jobId,
+        jobPublicId: picked.jobPublicId,
+        jobTitle: picked.jobTitle,
+        helperUserId: picked.helperUserId,
+        applicationId: picked.applicationId,
+        amountTsh: picked.amountTsh,
+        payoutReady,
+      }),
+    ]);
+
+    revalidateJob(picked.jobPublicId);
+    return { ok: true, message: "Helper picked. We've let them know and they can start now." };
+  } catch (err) {
+    return { ok: false, message: toUserError(err, "Could not pick this helper. Please try again.") };
+  }
+}
+
+/** Helper: copy the number from their saved payout account into peer-help payouts. */
+export async function portalUseSavedPayoutAction(): Promise<PortalResult> {
+  try {
+    const { user, db } = await requireStudent();
+    const [{ data: profile }, saved] = await Promise.all([
+      db.from("student_profiles").select("full_name").eq("user_id", user.id).maybeSingle(),
+      loadPayoutAccount(db, user.id),
+    ]);
+    if (!profile?.full_name) return { ok: false, message: "Complete your profile name first." };
+    if (!saved || !saved.sealOk || saved.status !== "active") {
+      return { ok: false, message: "No saved payout account found. Enter your number below instead." };
+    }
+    const result = await savePeerPayoutAccount(db, {
+      userId: user.id,
+      network: saved.network,
+      phone: saved.phone,
+      accountName: saved.accountName,
+      registeredName: String(profile.full_name),
+    });
+    if (!result.ok) return { ok: false, message: result.message };
     revalidatePath("/portal/jobs");
     revalidatePath("/portal/jobs/mine");
-    revalidatePath(`/portal/jobs/${encodeURIComponent(created.jobPublicId)}`);
-    return {
-      ok: true,
-      message: `Escrow locked (TSh ${amount.toLocaleString()}). Helper selected — they can deliver a watermarked preview + final file.`,
-    };
+    return { ok: true, message: "Done. You'll be paid on your saved number." };
   } catch (err) {
-    return { ok: false, message: err instanceof Error ? err.message : "Could not accept." };
+    return { ok: false, message: toUserError(err, "Could not use your saved number. Please try again.") };
   }
 }
 
@@ -419,6 +511,7 @@ export async function portalJobDetailSyncAction(input: {
   messagesSinceIso?: string | null;
 }): Promise<{
   ok: boolean;
+  jobStatus?: JobStatus;
   applications: PortalJobApplication[];
   myApplication: PortalJobApplication | null;
   messages: PortalJobMessage[];
@@ -458,11 +551,27 @@ export async function portalJobDetailSyncAction(input: {
       }
     }
 
+    // Missed webhook recovery while the poster waits on the lock card.
+    if (job.isMine) {
+      await reconcileAwaitingJobEscrow(db, { jobId: job.id, viewerUserId: user.id });
+    }
+
+    const liveJob = (await getJobByPublicId(db, jobPublicId, user.id)) ?? job;
     const escrow = await getEscrowForJob(db, job.id, user.id);
     const deliverables = escrow ? await listDeliverablesForEscrow(db, escrow.id) : [];
     const events = escrow ? await listEscrowEvents(db, escrow.id) : [];
 
-    return { ok: true, applications, myApplication, messages, applicationId, escrow, deliverables, events };
+    return {
+      ok: true,
+      jobStatus: liveJob.status,
+      applications,
+      myApplication,
+      messages,
+      applicationId,
+      escrow,
+      deliverables,
+      events,
+    };
   } catch {
     return {
       ok: false,

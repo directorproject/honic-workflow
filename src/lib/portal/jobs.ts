@@ -435,6 +435,16 @@ export async function createJob(
   return { ok: true, publicId };
 }
 
+/** Escrow status for a job, or null. Used to stop delete / close / price edits while money is held. */
+async function heldEscrowStatus(db: SupabaseClient, jobId: string): Promise<string | null> {
+  const { data, error } = await db.from("portal_job_escrows").select("status").eq("job_id", jobId).maybeSingle();
+  if (error || !data) return null;
+  const st = String(data.status);
+  return st === "cancelled" || st === "refunded" || st === "released" ? null : st;
+}
+
+const MONEY_HELD_MESSAGE = "Your money is locked for this request. Pick a helper, or contact Help desk for a refund.";
+
 export async function updateJob(
   db: SupabaseClient,
   input: {
@@ -455,6 +465,10 @@ export async function updateJob(
   if (!job.isMine) return { ok: false, message: "Only the poster can edit this job." };
   if (job.status === "closed" || job.status === "cancelled") {
     return { ok: false, message: "This job is closed and cannot be edited." };
+  }
+  const held = await heldEscrowStatus(db, job.id);
+  if (held && held !== "awaiting_funds" && Math.round(input.offerTsh) !== Math.round(job.offerTsh)) {
+    return { ok: false, message: "You can't change the price after locking money. Edit the text only." };
   }
 
   if (!JOB_CATEGORIES.some((c) => c.id === input.category)) {
@@ -499,6 +513,8 @@ export async function deleteJob(
   const job = await getJobByPublicId(db, input.jobPublicId, input.userId);
   if (!job) return { ok: false, message: "That job was not found." };
   if (!job.isMine) return { ok: false, message: "Only the poster can delete this job." };
+  const held = await heldEscrowStatus(db, job.id);
+  if (held && held !== "awaiting_funds") return { ok: false, message: MONEY_HELD_MESSAGE };
 
   // Clear assignment pointer first so cascade delete on applications cannot block the row.
   await db
@@ -660,6 +676,8 @@ export async function markJobTaken(
   if (!job) return { ok: false, message: "Request not found." };
   if (String(job.poster_user_id) !== input.userId) return { ok: false, message: "Only the poster can mark this as taken." };
   if (String(job.status) !== "open") return { ok: false, message: "This request is already closed." };
+  const held = await heldEscrowStatus(db, String(job.id));
+  if (held && held !== "awaiting_funds") return { ok: false, message: MONEY_HELD_MESSAGE };
 
   const now = new Date().toISOString();
   const { error: jobErr } = await db
@@ -749,6 +767,25 @@ export async function postJobMessage(
     ok: true,
     chat: mapJobMessage(inserted as Record<string, unknown>, input.userId),
   };
+}
+
+/** Automatic note in a chat, sent as the poster (e.g. "you're picked"). Skips plan + reply checks. */
+export async function postPosterNote(
+  db: SupabaseClient,
+  input: { posterUserId: string; applicationId: string; body: string },
+): Promise<void> {
+  try {
+    const senderPublicId = await ensurePortalAccount(db, input.posterUserId);
+    const { error } = await db.from("portal_job_messages").insert({
+      application_id: input.applicationId,
+      sender_user_id: input.posterUserId,
+      sender_public_id: senderPublicId,
+      body: input.body.slice(0, 2000),
+    });
+    if (error) console.warn("[peer-help] poster note failed", error.message);
+  } catch (err) {
+    console.warn("[peer-help] poster note failed", err);
+  }
 }
 
 /** Hours to keep chat after a job finishes (release / refund / cancel) or an offer is rejected. */

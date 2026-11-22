@@ -12,6 +12,7 @@ import {
   portalEscrowRevisionAction,
   portalEscrowUploadUrlAction,
   portalSavePeerPayoutAction,
+  portalUseSavedPayoutAction,
 } from "@/app/portal/job-actions";
 import { PAYMENT_NETWORKS } from "@/lib/portal/config";
 import {
@@ -51,12 +52,15 @@ export function JobEscrowPanel({
   deliverables,
   events = [],
   peerPayoutSaved,
+  savedPayout = null,
   isStaff = false,
 }: {
   escrow: PortalJobEscrow;
   deliverables: PortalJobDeliverableMeta[];
   events?: PortalJobEscrowEvent[];
   peerPayoutSaved: boolean;
+  /** Helper's general payout account (masked), offered as a one-tap payout number. */
+  savedPayout?: { network: string; phoneTail: string } | null;
   isStaff?: boolean;
 }) {
   const preview = deliverables.find((d) => d.kind === "preview") ?? null;
@@ -86,6 +90,10 @@ export function JobEscrowPanel({
         </span>
       </div>
 
+      {escrow.isHelper && !peerPayoutSaved && (escrow.status === "locked" || escrow.status === "delivered") ? (
+        <PickedPayoutCard amountTsh={escrow.amountTsh} savedPayout={savedPayout} />
+      ) : null}
+
       <PeerHelpActivityTrack steps={steps} />
       <SharedActivityFeed events={events} />
 
@@ -96,7 +104,7 @@ export function JobEscrowPanel({
         </p>
       ) : null}
 
-      {escrow.isPoster && (escrow.status === "locked" || escrow.status === "delivered" || escrow.status === "awaiting_funds") ? (
+      {escrow.isPoster && (escrow.status === "funded" || escrow.status === "locked" || escrow.status === "delivered") ? (
         <p className="rounded-xl border border-dash-border bg-dash-muted/30 px-3 py-2 text-xs text-dash-foreground">
           <span className="font-semibold">Your money:</span> {formatTsh(escrow.amountTsh)} is held by Honic escrow — not sent to the
           helper yet. It only moves after you release, auto-release, refund, or a Honic dispute decision.
@@ -128,7 +136,7 @@ export function JobEscrowPanel({
         />
       ) : null}
 
-      {escrow.isHelper && !peerPayoutSaved ? <PeerPayoutForm /> : null}
+      {escrow.isHelper && !peerPayoutSaved && escrow.status !== "locked" && escrow.status !== "delivered" ? <PeerPayoutForm /> : null}
 
       {preview && (escrow.isPoster || escrow.isHelper) && ["delivered", "disputed", "released"].includes(escrow.status) ? (
         <SecurePreviewVault deliverablePublicId={preview.publicId} watermarkHint={`NEXIS·${escrow.publicId.slice(0, 8)}`} />
@@ -307,6 +315,59 @@ function HelperUploadZone({
           {status.ok ? status.message : toUserError(status.message ?? "")}
         </p>
       ) : null}
+    </div>
+  );
+}
+
+/** Shown to a helper right after they are picked: tell us where to pay you, then start. */
+function PickedPayoutCard({
+  amountTsh,
+  savedPayout,
+}: {
+  amountTsh: number;
+  savedPayout: { network: string; phoneTail: string } | null;
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [status, setStatus] = useState<PortalResult | null>(null);
+  const [other, setOther] = useState(!savedPayout);
+
+  return (
+    <div className="space-y-3 rounded-xl border border-dash-border bg-dash-canvas/60 p-4">
+      <div>
+        <p className="text-dash-foreground text-sm font-bold">You were picked. Where should we pay you?</p>
+        <p className="text-dash-muted-foreground mt-1 text-xs leading-relaxed">
+          {formatTsh(amountTsh)} is locked for you. Choose the number you will be paid on, then start the work.
+        </p>
+      </div>
+      {savedPayout ? (
+        <button
+          type="button"
+          className={`${PRIMARY} w-full`}
+          disabled={pending}
+          onClick={() => {
+            setStatus(null);
+            startTransition(async () => {
+              const res = await portalUseSavedPayoutAction();
+              setStatus(res);
+              if (res.ok) router.refresh();
+            });
+          }}
+        >
+          {pending ? "Saving…" : `Use my saved number (${savedPayout.network} ···${savedPayout.phoneTail})`}
+        </button>
+      ) : null}
+      {status ? (
+        <p className={`text-xs ${status.ok ? "text-emerald-700" : "text-red-600"}`}>
+          {status.ok ? status.message : toUserError(status.message ?? "")}
+        </p>
+      ) : null}
+      {savedPayout && !other ? (
+        <button type="button" onClick={() => setOther(true)} className="text-dash-muted-foreground text-xs font-semibold underline">
+          Use a different number
+        </button>
+      ) : null}
+      {other ? <PeerPayoutForm /> : null}
     </div>
   );
 }
@@ -642,7 +703,7 @@ export function EscrowFundFields({
   return (
     <div className="mt-3 space-y-2">
       <p className="text-dash-muted-foreground text-[11px]">
-        Mobile money pays <strong>Honic escrow</strong> (held safely). Helper is assigned only after payment confirms.
+        Mobile money pays <strong>Honic escrow</strong> (held safely). Nobody is paid until you approve the work.
       </p>
       <select className={INPUT} value={network} onChange={(e) => onNetwork(e.target.value)}>
         {PAYMENT_NETWORKS.map((n) => (

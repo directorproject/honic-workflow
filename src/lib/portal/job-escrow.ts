@@ -29,7 +29,7 @@ import {
   sealPayoutAccount,
 } from "@/lib/portal/payout-accounts";
 import { PAYMENT_NETWORKS } from "@/lib/portal/config";
-import { toSnippePhone } from "@/lib/payments/snippe";
+import { fetchSnippePayment, snippeConfigured, toSnippePhone } from "@/lib/payments/snippe";
 
 export {
   ESCROW_DELIVERY_HOURS,
@@ -92,16 +92,17 @@ function sealSecret(): string {
 
 export function sealEscrowRow(parts: {
   jobId: string;
-  applicationId: string;
+  /** Empty while money is locked but no helper is picked yet. */
+  applicationId: string | null;
   posterUserId: string;
-  helperUserId: string;
+  helperUserId: string | null;
   amountTsh: number;
 }): string {
   const body = [
     parts.jobId,
-    parts.applicationId,
+    parts.applicationId ?? "",
     parts.posterUserId,
-    parts.helperUserId,
+    parts.helperUserId ?? "",
     String(Math.round(parts.amountTsh)),
   ].join("|");
   return createHmac("sha256", sealSecret()).update(body).digest("hex");
@@ -214,60 +215,57 @@ export async function listDeliverablesForEscrow(
   return (data ?? []).map((row) => asDeliverable(row as Record<string, unknown>));
 }
 
-/** Poster selects a helper and opens escrow (funds not locked until mobile-money confirms). */
-export async function createEscrowForApplication(
+/** Poster locks money for the request before picking anyone (amount = job offer). */
+export async function createEscrowForJob(
   db: SupabaseClient,
-  input: { posterUserId: string; applicationPublicId: string },
+  input: { posterUserId: string; jobPublicId: string },
 ): Promise<
-  | { ok: true; escrow: PortalJobEscrow; amountTsh: number; helperUserId: string; jobPublicId: string }
+  | { ok: true; escrow: PortalJobEscrow; amountTsh: number; jobPublicId: string }
   | { ok: false; message: string }
 > {
-  const { data: app, error } = await db
-    .from("portal_job_applications")
-    .select("id, job_id, applicant_user_id, proposed_tsh, status, public_id")
-    .eq("public_id", input.applicationPublicId)
-    .maybeSingle();
-  if (error || !app) return { ok: false, message: "Offer not found." };
-  if (String(app.status) !== "pending") return { ok: false, message: "This offer is not pending." };
-
   const { data: job } = await db
     .from("portal_jobs")
-    .select("id, public_id, poster_user_id, offer_tsh, price_mode, status")
-    .eq("id", app.job_id)
+    .select("id, public_id, poster_user_id, offer_tsh, status")
+    .eq("public_id", input.jobPublicId)
     .maybeSingle();
-  if (!job || String(job.poster_user_id) !== input.posterUserId) {
-    return { ok: false, message: "Only the poster can fund escrow for a helper." };
+  if (!job) return { ok: false, message: "Request not found." };
+  if (String(job.poster_user_id) !== input.posterUserId) {
+    return { ok: false, message: "Only the poster can lock money for this request." };
   }
   if (String(job.status) !== "open") return { ok: false, message: "This request is no longer open." };
 
+  const amount = Math.round(Number(job.offer_tsh));
+  if (!Number.isFinite(amount) || amount < 500) {
+    return { ok: false, message: "The offer must be at least TSh 500 to lock with mobile money. Edit the request price first." };
+  }
+  const integrity = sealEscrowRow({
+    jobId: String(job.id),
+    applicationId: null,
+    posterUserId: input.posterUserId,
+    helperUserId: null,
+    amountTsh: amount,
+  });
+  const needsMigration = (message: string) =>
+    /null value|not-null|violates check constraint/i.test(message)
+      ? "Escrow storage needs an update. Ask staff to apply migration 043."
+      : message;
+
   const { data: existing } = await db
     .from("portal_job_escrows")
-    .select("id, status, public_id, application_id, amount_tsh")
+    .select("id, status")
     .eq("job_id", job.id)
     .maybeSingle();
   if (existing) {
     const st = String(existing.status);
     if (st === "cancelled" || st === "refunded") {
-      // Free the unique job/application slots so the poster can retry lock.
       await db.from("portal_job_escrows").delete().eq("id", existing.id);
     } else if (st === "awaiting_funds") {
-      // Retarget the open escrow to the helper the poster just picked.
-      const amount =
-        job.price_mode === "negotiable" && app.proposed_tsh != null
-          ? Math.round(Number(app.proposed_tsh))
-          : Math.round(Number(job.offer_tsh));
-      const integrity = sealEscrowRow({
-        jobId: String(job.id),
-        applicationId: String(app.id),
-        posterUserId: input.posterUserId,
-        helperUserId: String(app.applicant_user_id),
-        amountTsh: amount,
-      });
-      await db
+      // Reuse the unpaid row for a fresh prompt.
+      const { error: upErr } = await db
         .from("portal_job_escrows")
         .update({
-          application_id: app.id,
-          helper_user_id: app.applicant_user_id,
+          application_id: null,
+          helper_user_id: null,
           amount_tsh: amount,
           integrity_hash: integrity,
           payment_id: null,
@@ -276,47 +274,25 @@ export async function createEscrowForApplication(
         })
         .eq("id", existing.id)
         .eq("status", "awaiting_funds");
+      if (upErr) return { ok: false, message: needsMigration(upErr.message) };
       const esc = await getEscrowForJob(db, String(job.id), input.posterUserId);
-      if (esc) {
-        return {
-          ok: true,
-          escrow: esc,
-          amountTsh: esc.amountTsh,
-          helperUserId: String(app.applicant_user_id),
-          jobPublicId: String(job.public_id),
-        };
-      }
-      return { ok: false, message: "Could not reopen escrow. Refresh and try again." };
+      if (!esc) return { ok: false, message: "Could not reopen escrow. Refresh and try again." };
+      return { ok: true, escrow: esc, amountTsh: amount, jobPublicId: String(job.public_id) };
+    } else if (st === "funded") {
+      return { ok: false, message: "Your money is already locked. Pick a helper in Chats." };
     } else {
-      return { ok: false, message: "Escrow already exists for this request." };
+      return { ok: false, message: "A helper is already working on this request." };
     }
   }
-
-  const amount =
-    job.price_mode === "negotiable" && app.proposed_tsh != null
-      ? Math.round(Number(app.proposed_tsh))
-      : Math.round(Number(job.offer_tsh));
-  if (!Number.isFinite(amount) || amount < 500) {
-    return { ok: false, message: "Escrow amount must be at least TSh 500 (mobile-money minimum)." };
-  }
-
-  const publicId = newPublicId();
-  const integrity = sealEscrowRow({
-    jobId: String(job.id),
-    applicationId: String(app.id),
-    posterUserId: input.posterUserId,
-    helperUserId: String(app.applicant_user_id),
-    amountTsh: amount,
-  });
 
   const { data: inserted, error: insErr } = await db
     .from("portal_job_escrows")
     .insert({
-      public_id: publicId,
+      public_id: newPublicId(),
       job_id: job.id,
-      application_id: app.id,
+      application_id: null,
+      helper_user_id: null,
       poster_user_id: input.posterUserId,
-      helper_user_id: app.applicant_user_id,
       amount_tsh: amount,
       status: "awaiting_funds",
       review_hours: ESCROW_REVIEW_HOURS,
@@ -326,22 +302,211 @@ export async function createEscrowForApplication(
     .select("*")
     .single();
   if (insErr) {
-    if (missingEscrow(insErr.message)) {
+    if (missingEscrow(insErr.message) && !/null value|not-null/i.test(insErr.message)) {
       return { ok: false, message: "Escrow storage is not ready. Ask staff to apply migration 036." };
     }
-    return { ok: false, message: insErr.message };
+    return { ok: false, message: needsMigration(insErr.message) };
   }
-
   return {
     ok: true,
     escrow: asEscrow(inserted as Record<string, unknown>, input.posterUserId),
     amountTsh: amount,
-    helperUserId: String(app.applicant_user_id),
     jobPublicId: String(job.public_id),
   };
 }
 
+/** Poster picks a helper after money is locked: assign, start the delivery clock, close other offers. */
+export async function pickHelperForFundedEscrow(
+  db: SupabaseClient,
+  input: { posterUserId: string; applicationPublicId: string },
+): Promise<
+  | {
+      ok: true;
+      amountTsh: number;
+      jobId: string;
+      jobPublicId: string;
+      jobTitle: string;
+      applicationId: string;
+      helperUserId: string;
+    }
+  | { ok: false; message: string }
+> {
+  const { data: app } = await db
+    .from("portal_job_applications")
+    .select("id, job_id, applicant_user_id, status")
+    .eq("public_id", input.applicationPublicId)
+    .maybeSingle();
+  if (!app) return { ok: false, message: "Offer not found." };
+  if (String(app.status) !== "pending") return { ok: false, message: "This offer is no longer open." };
+
+  const { data: job } = await db
+    .from("portal_jobs")
+    .select("id, public_id, title, poster_user_id, status")
+    .eq("id", app.job_id)
+    .maybeSingle();
+  if (!job || String(job.poster_user_id) !== input.posterUserId) {
+    return { ok: false, message: "Only the poster can pick a helper." };
+  }
+  // open = still on the board; assigned = already marked taken after money lock (no helper yet).
+  const jobStatus = String(job.status);
+  if (jobStatus !== "open" && jobStatus !== "assigned") {
+    return { ok: false, message: "This request is no longer open." };
+  }
+  if (String(app.applicant_user_id) === input.posterUserId) {
+    return { ok: false, message: "You can't pick yourself as the helper." };
+  }
+
+  const { data: escrow } = await db.from("portal_job_escrows").select("*").eq("job_id", job.id).maybeSingle();
+  if (!escrow) return { ok: false, message: "Lock your money first, then pick a helper." };
+  const st = String(escrow.status);
+  if (st === "awaiting_funds") {
+    return { ok: false, message: "Your payment is still confirming. Approve the prompt on your phone, then try again." };
+  }
+  if (st === "cancelled" || st === "refunded") return { ok: false, message: "Lock your money first, then pick a helper." };
+  if (st !== "funded" || escrow.application_id) {
+    return { ok: false, message: "A helper is already picked for this request." };
+  }
+
+  const amount = Math.round(Number(escrow.amount_tsh));
+  const heldSeal = sealEscrowRow({
+    jobId: String(job.id),
+    applicationId: null,
+    posterUserId: input.posterUserId,
+    helperUserId: null,
+    amountTsh: amount,
+  });
+  if (String(escrow.integrity_hash) !== heldSeal) {
+    return { ok: false, message: "Escrow check failed. Contact Help desk before picking." };
+  }
+
+  const now = new Date().toISOString();
+  const integrity = sealEscrowRow({
+    jobId: String(job.id),
+    applicationId: String(app.id),
+    posterUserId: input.posterUserId,
+    helperUserId: String(app.applicant_user_id),
+    amountTsh: amount,
+  });
+  // Conditional update: two quick taps (or two tabs) can only pick once.
+  const { data: claimed, error: escErr } = await db
+    .from("portal_job_escrows")
+    .update({
+      application_id: app.id,
+      helper_user_id: app.applicant_user_id,
+      integrity_hash: integrity,
+      status: "locked",
+      delivery_deadline_at: new Date(Date.now() + ESCROW_DELIVERY_HOURS * 3600 * 1000).toISOString(),
+      updated_at: now,
+    })
+    .eq("id", escrow.id)
+    .eq("status", "funded")
+    .is("application_id", null)
+    .select("id")
+    .maybeSingle();
+  if (escErr) return { ok: false, message: escErr.message };
+  if (!claimed) return { ok: false, message: "A helper was just picked. Refresh the page." };
+
+  await db
+    .from("portal_job_applications")
+    .update({ status: "rejected", updated_at: now })
+    .eq("job_id", job.id)
+    .eq("status", "pending")
+    .neq("id", app.id);
+  await db.from("portal_job_applications").update({ status: "accepted", updated_at: now }).eq("id", app.id);
+  await db
+    .from("portal_jobs")
+    .update({ status: "assigned", assigned_application_id: app.id, updated_at: now })
+    .eq("id", job.id);
+
+  await logEscrowEvent(db, {
+    escrowId: String(escrow.id),
+    eventType: "helper_picked",
+    actorRole: "poster",
+    message: `Helper picked. They have ~${ESCROW_DELIVERY_HOURS}h to upload preview + final.`,
+  });
+
+  return {
+    ok: true,
+    amountTsh: amount,
+    jobId: String(job.id),
+    jobPublicId: String(job.public_id),
+    jobTitle: String(job.title ?? ""),
+    applicationId: String(app.id),
+    helperUserId: String(app.applicant_user_id),
+  };
+}
+
 /** After Snippe (or simulated) payment: lock funds, accept helper, assign job. */
+/**
+ * If escrow is still awaiting_funds but Snippe already completed the payment
+ * (missed webhook / dead tunnel), confirm with Snippe and fulfill.
+ */
+export async function reconcileAwaitingJobEscrow(
+  db: SupabaseClient,
+  input: { jobId: string; viewerUserId: string },
+): Promise<{ ok: boolean; fulfilled?: boolean; message?: string }> {
+  if (!snippeConfigured()) return { ok: true, fulfilled: false };
+
+  const { data: escrow } = await db
+    .from("portal_job_escrows")
+    .select("id, status, payment_id, payment_reference, poster_user_id")
+    .eq("job_id", input.jobId)
+    .maybeSingle();
+  if (!escrow) return { ok: true, fulfilled: false };
+  if (String(escrow.status) !== "awaiting_funds") return { ok: true, fulfilled: false };
+  if (String(escrow.poster_user_id) !== input.viewerUserId) return { ok: true, fulfilled: false };
+  if (!escrow.payment_id) return { ok: true, fulfilled: false };
+
+  const { data: pay } = await db
+    .from("title_change_payments")
+    .select("id, user_id, status, reference, amount, provider_txn_id")
+    .eq("id", escrow.payment_id)
+    .maybeSingle();
+  if (!pay) return { ok: true, fulfilled: false };
+
+  const st = String(pay.status);
+  if (st === "paid") {
+    // Payment row paid but escrow still awaiting — finish the fund step.
+    return fulfillJobEscrowPayment(
+      db,
+      {
+        id: String(pay.id),
+        user_id: String(pay.user_id),
+        status: "pending",
+        reference: String(pay.reference),
+        amount: Number(pay.amount),
+      },
+      { paidAmount: Number(pay.amount), providerTxnId: pay.provider_txn_id ? String(pay.provider_txn_id) : null },
+    );
+  }
+  if (st !== "pending" && st !== "failed") return { ok: true, fulfilled: false };
+
+  const snippeRef = pay.provider_txn_id ? String(pay.provider_txn_id) : "";
+  if (!snippeRef) return { ok: true, fulfilled: false };
+
+  const live = await fetchSnippePayment(snippeRef);
+  if (!live) return { ok: true, fulfilled: false, message: "Could not reach payment provider." };
+  if (live.status !== "completed") return { ok: true, fulfilled: false };
+  if (live.amount != null && Math.round(live.amount) !== Math.round(Number(pay.amount))) {
+    return { ok: false, message: "Paid amount does not match escrow." };
+  }
+  if (live.orderId && live.orderId !== String(pay.reference)) {
+    return { ok: false, message: "Payment order mismatch." };
+  }
+
+  return fulfillJobEscrowPayment(
+    db,
+    {
+      id: String(pay.id),
+      user_id: String(pay.user_id),
+      status: st,
+      reference: String(pay.reference),
+      amount: Number(pay.amount),
+    },
+    { paidAmount: live.amount, providerTxnId: snippeRef, webhookEventId: null },
+  );
+}
+
 export async function fulfillJobEscrowPayment(
   db: SupabaseClient,
   payment: {
@@ -406,9 +571,9 @@ async function fulfillLockedEscrow(
 
   const expectedSeal = sealEscrowRow({
     jobId: String(escrow.job_id),
-    applicationId: String(escrow.application_id),
+    applicationId: escrow.application_id ? String(escrow.application_id) : null,
     posterUserId: String(escrow.poster_user_id),
-    helperUserId: String(escrow.helper_user_id),
+    helperUserId: escrow.helper_user_id ? String(escrow.helper_user_id) : null,
     amountTsh: expected,
   });
   if (String(escrow.integrity_hash) !== expectedSeal) {
@@ -422,23 +587,62 @@ async function fulfillLockedEscrow(
   if (security?.providerTxnId) payPatch.provider_txn_id = security.providerTxnId;
   if (security?.webhookEventId) payPatch.webhook_event_id = security.webhookEventId;
 
+  // Claim from pending, or from failed when Snippe already confirmed (missed webhook recover).
+  const claimStatuses = security?.paidAmount != null ? ["pending", "failed"] : ["pending"];
   const { data: claimed, error: payErr } = await db
     .from("title_change_payments")
     .update(payPatch)
     .eq("id", payment.id)
-    .eq("status", "pending")
+    .in("status", claimStatuses)
     .select("id")
     .maybeSingle();
   if (payErr) return { ok: false, message: payErr.message };
   if (!claimed) {
-    // Already paid — ensure escrow locked
-    if (String(escrow.status) === "locked" || String(escrow.status) === "delivered" || String(escrow.status) === "released") {
+    // Already paid — ensure escrow locked / funded
+    if (
+      String(escrow.status) === "funded" ||
+      String(escrow.status) === "locked" ||
+      String(escrow.status) === "delivered" ||
+      String(escrow.status) === "released"
+    ) {
       return { ok: true, message: "Already paid.", fulfilled: false };
     }
   }
 
   if (String(escrow.status) !== "awaiting_funds" && String(escrow.status) !== "locked") {
     return { ok: true, message: "Escrow already past funding.", fulfilled: false };
+  }
+
+  // Locked before picking: hold the money, mark the request taken, then poster picks a helper.
+  if (!escrow.application_id) {
+    const at = new Date().toISOString();
+    const { error: fundErr } = await db
+      .from("portal_job_escrows")
+      .update({
+        status: "funded",
+        locked_at: at,
+        payment_id: payment.id,
+        payment_reference: payment.reference,
+        updated_at: at,
+      })
+      .eq("id", escrow.id)
+      .eq("status", "awaiting_funds");
+    if (fundErr) return { ok: false, message: fundErr.message };
+
+    // Same as "Mark as taken": leave the open board, keep pending offers for picking.
+    await db
+      .from("portal_jobs")
+      .update({ status: "assigned", assigned_application_id: null, updated_at: at })
+      .eq("id", escrow.job_id)
+      .eq("status", "open");
+
+    await logEscrowEvent(db, {
+      escrowId: String(escrow.id),
+      eventType: "funds_held",
+      actorRole: "system",
+      message: "Money locked in Honic escrow. Request marked taken. Poster can now pick a helper.",
+    });
+    return { ok: true, fulfilled: true };
   }
 
   const now = new Date().toISOString();
@@ -850,7 +1054,7 @@ async function refundEscrow(
     .from("portal_job_escrows")
     .update({ status: "refunded", refunded_at: now, updated_at: now })
     .eq("id", escrow.id)
-    .in("status", ["delivered", "disputed", "locked", "awaiting_funds"]);
+    .in("status", ["delivered", "disputed", "locked", "funded", "awaiting_funds"]);
   if (error) return { ok: false, message: error.message };
 
   await db

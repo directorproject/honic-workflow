@@ -80,6 +80,68 @@ export async function markJobNotificationsRead(
   if (error && !missing(error.message)) throw new Error(error.message);
 }
 
+/** Tell the helper they were picked and money is locked. In-app + email. Never throws. */
+export async function notifyHelperPicked(
+  db: SupabaseClient,
+  input: {
+    jobId: string;
+    jobPublicId: string;
+    jobTitle: string;
+    helperUserId: string;
+    applicationId: string;
+    amountTsh: number;
+    payoutReady: boolean;
+  },
+): Promise<void> {
+  try {
+    const task = jobRefLabel(input.jobPublicId);
+    const href = `/portal/jobs/${encodeURIComponent(input.jobPublicId)}`;
+    const amount = `TSh ${Math.round(input.amountTsh).toLocaleString("en-TZ")}`;
+    const title = "You were picked for a peer-help request";
+    const next = input.payoutReady
+      ? "Your payout number is saved. Start the work and upload a preview + final file."
+      : "Set the number you'll be paid on (or use your saved payout account), then start the work.";
+    const body = `${amount} is locked for “${input.jobTitle.slice(0, 80)}” (${task}). ${next}`;
+
+    const { error } = await db.from("portal_job_notifications").insert({
+      public_id: newPublicId(),
+      user_id: input.helperUserId,
+      job_id: input.jobId,
+      application_id: input.applicationId,
+      kind: "escrow",
+      title,
+      body,
+      href,
+    });
+    if (error && !missing(error.message)) console.error("job notification insert:", error.message);
+
+    const { data: auth } = await db.auth.admin.getUserById(input.helperUserId);
+    const email = auth.user?.email?.trim();
+    if (!email) return;
+    const { data: profile } = await db
+      .from("student_profiles")
+      .select("full_name")
+      .eq("user_id", input.helperUserId)
+      .maybeSingle();
+    const first = String(profile?.full_name ?? "").trim().split(/\s+/)[0] || "there";
+    const origin = portalOrigin() || "https://share.honiccompany.com";
+    const mail = brandedEmail({
+      greeting: `Hi ${first},`,
+      paragraphs: [
+        `Good news: the poster picked you for “${input.jobTitle}”.`,
+        `${amount} is locked in Honic escrow, so you can start with confidence.`,
+        next,
+      ],
+      button: { label: "Open the request", url: `${origin}${href}` },
+      footnote: "You received this because you offered help on Honic Nexis.",
+    });
+    const sent = await sendEmail({ to: email, subject: `You were picked · ${task}`, ...mail });
+    if (!sent.ok) console.error("helper picked email:", sent.error);
+  } catch (err) {
+    console.error("notifyHelperPicked:", err);
+  }
+}
+
 /** Create in-app notice + email the poster. Never throws to callers. */
 export async function notifyPosterNewApplication(
   db: SupabaseClient,

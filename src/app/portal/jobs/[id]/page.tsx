@@ -21,6 +21,7 @@ import {
   listMessagesForApplication,
   type PortalJobMessage,
 } from "@/lib/portal/jobs";
+import { loadPayoutAccount } from "@/lib/portal/payout-accounts";
 import { hasActiveDeskPlan } from "@/lib/portal/title-limits";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { findMembership } from "@/lib/workspace/access";
@@ -72,6 +73,14 @@ export default async function PortalJobDetailPage(props: {
   const events = escrow ? await listEscrowEvents(db, escrow.id) : [];
   const peerPayout =
     !guest && viewerId && escrow?.isHelper ? await loadPeerPayoutAccount(db, viewerId) : null;
+  const peerPayoutSaved = Boolean(peerPayout?.sealOk && peerPayout.status === "active");
+  // Picked helper without a peer-help number: offer their saved payout account (masked).
+  const savedAccount =
+    viewerId && escrow?.isHelper && !peerPayoutSaved ? await loadPayoutAccount(db, viewerId) : null;
+  const savedPayout =
+    savedAccount?.sealOk && savedAccount.status === "active"
+      ? { network: savedAccount.network, phoneTail: savedAccount.phone.replace(/\D/g, "").slice(-3) }
+      : null;
 
   const membership = !guest && !state.isStaff && user ? await findMembership(db, user.id) : null;
   const viewerDetail = guest
@@ -101,7 +110,8 @@ export default async function PortalJobDetailPage(props: {
           escrow={escrow}
           deliverables={deliverables}
           events={events}
-          peerPayoutSaved={Boolean(peerPayout?.sealOk && peerPayout.status === "active")}
+          peerPayoutSaved={peerPayoutSaved}
+          savedPayout={savedPayout}
           isStaff={state.isStaff}
           threads={threads}
           initialChat={initialChat}

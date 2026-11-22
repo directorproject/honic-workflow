@@ -20,6 +20,8 @@ export const ESCROW_FINAL_MIME = [
 
 export type EscrowStatus =
   | "awaiting_funds"
+  /** Money held by Honic, no helper picked yet. */
+  | "funded"
   | "locked"
   | "delivered"
   | "disputed"
@@ -111,6 +113,8 @@ export function escrowStatusLabel(status: EscrowStatus): string {
   switch (status) {
     case "awaiting_funds":
       return "Awaiting escrow payment";
+    case "funded":
+      return "Money locked · pick a helper";
     case "locked":
       return "Funds locked · work in progress";
     case "delivered":
@@ -143,7 +147,7 @@ export function peerHelpActivitySteps(
   const fundState: PeerHelpStep["state"] =
     status === "awaiting_funds" ? "current" : "done";
   const workState: PeerHelpStep["state"] =
-    status === "awaiting_funds"
+    status === "awaiting_funds" || status === "funded"
       ? "upcoming"
       : status === "locked" && !uploaded
         ? "current"
@@ -151,7 +155,7 @@ export function peerHelpActivitySteps(
           ? "done"
           : "upcoming";
   const uploadState: PeerHelpStep["state"] =
-    status === "awaiting_funds"
+    status === "awaiting_funds" || status === "funded"
       ? "upcoming"
       : status === "locked" && !uploaded
         ? "current"
@@ -179,7 +183,9 @@ export function peerHelpActivitySteps(
       key: "work",
       label: "Helper works",
       detail:
-        escrow.revisionNote && status === "locked"
+        status === "funded"
+          ? "Pick a helper in Chats to start"
+          : escrow.revisionNote && status === "locked"
           ? `Revision requested: ${escrow.revisionNote}`
           : workState === "current"
             ? "Helper prepares the deliverable"

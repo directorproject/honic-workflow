@@ -6,15 +6,16 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition, type 
 
 import type { PortalResult } from "@/app/portal/auth-actions";
 import {
-  portalAcceptJobApplicationAction,
   portalApplyJobAction,
   portalDeleteJobAction,
   portalJobDetailSyncAction,
+  portalLockJobMoneyAction,
   portalMarkJobTakenAction,
+  portalPickHelperAction,
   portalPostJobAction,
   portalUpdateJobAction,
 } from "@/app/portal/job-actions";
-import { EscrowFundFields, JobEscrowPanel } from "@/components/portal/job-escrow-panel";
+import { JobEscrowPanel } from "@/components/portal/job-escrow-panel";
 import { PeerHelpPolicyGate } from "@/components/portal/peer-help-policy-gate";
 import { Avatar, Chip } from "@/components/zimamoto/ui";
 import {
@@ -125,7 +126,8 @@ function StatusChip({ status }: { status: string }) {
       : status === "accepted" || status === "assigned"
         ? "bg-sky-500/15 text-sky-700 dark:text-sky-300"
         : "bg-dash-muted text-dash-muted-foreground";
-  return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize ${tone}`}>{status}</span>;
+  const label = status === "assigned" ? "taken" : status;
+  return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize ${tone}`}>{label}</span>;
 }
 
 function LockNotice({ children, href, cta }: { children: ReactNode; href: string; cta: string }) {
@@ -784,6 +786,7 @@ export function JobDetailPanel({
   deliverables: initialDeliverables = [],
   events: initialEvents = [],
   peerPayoutSaved = false,
+  savedPayout = null,
   isStaff = false,
   threads: initialThreads = [],
   initialChat = null,
@@ -798,6 +801,7 @@ export function JobDetailPanel({
   deliverables?: PortalJobDeliverableMeta[];
   events?: PortalJobEscrowEvent[];
   peerPayoutSaved?: boolean;
+  savedPayout?: { network: string; phoneTail: string } | null;
   isStaff?: boolean;
   threads?: PortalChatThread[];
   initialChat?: string | null;
@@ -808,6 +812,7 @@ export function JobDetailPanel({
   const [escrow, setEscrow] = useState(initialEscrow);
   const [deliverables, setDeliverables] = useState(initialDeliverables);
   const [events, setEvents] = useState(initialEvents);
+  const [jobStatus, setJobStatus] = useState(job.status);
 
   useEffect(() => {
     setApplications(initialApplications);
@@ -827,6 +832,9 @@ export function JobDetailPanel({
   useEffect(() => {
     setEvents(initialEvents);
   }, [initialEvents]);
+  useEffect(() => {
+    setJobStatus(job.status);
+  }, [job.status]);
 
   const posterInbox = job.isMine && !isStaff;
   const { threads: liveThreads, setThreads } = useChatThreads(job.publicId, initialThreads, posterInbox);
@@ -862,8 +870,52 @@ export function JobDetailPanel({
       : null;
   const closedOffers = posterInbox ? applications.filter((a) => a.status === "rejected" || a.status === "withdrawn") : [];
 
+  // Lock money once, then one tap picks a helper from their chat.
+  const router = useRouter();
+  const showLockCard =
+    posterInbox &&
+    jobStatus === "open" &&
+    (!escrow || ["awaiting_funds", "cancelled", "refunded"].includes(escrow.status));
+  const moneyLocked = escrow?.status === "funded";
+  // After money lock the request is marked taken (assigned) but picking is still allowed.
+  const canPick =
+    posterInbox &&
+    (jobStatus === "open" || jobStatus === "assigned") &&
+    activeOfferApp?.status === "pending";
+  const lockRef = useRef<HTMLDivElement>(null);
+  const [pickNote, setPickNote] = useState<PortalResult | null>(null);
+  const [picking, startPick] = useTransition();
+
+  function pickActive() {
+    if (!activeOfferApp || !activeThread) return;
+    if (!moneyLocked) {
+      setPickNote({
+        ok: false,
+        message:
+          escrow?.status === "awaiting_funds"
+            ? "Your payment is still confirming. Approve the prompt on your phone, then tap Pick again."
+            : "Lock your money first (above), then tap Pick.",
+      });
+      lockRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    const locked = escrow ? formatTsh(escrow.amountTsh) : "";
+    const asked =
+      activeOfferApp.proposedTsh != null && escrow && Math.round(activeOfferApp.proposedTsh) !== escrow.amountTsh
+        ? `\n\nThey asked ${formatTsh(activeOfferApp.proposedTsh)}. They will be paid the ${locked} you locked, so agree on it in chat first.`
+        : "";
+    if (!window.confirm(`Pick ${activeThread.counterpartLabel} for this request?${asked}\n\nOther offers will close.`)) return;
+    setPickNote(null);
+    startPick(async () => {
+      const res = await portalPickHelperAction(activeOfferApp.publicId);
+      setPickNote(res);
+      if (res.ok) router.refresh();
+    });
+  }
+
   function selectThread(id: string) {
     setActiveAppId(id);
+    setPickNote(null);
     setMobilePane("chat");
     setOfferOpen((threads.find((t) => t.applicationPublicId === id)?.messageCount ?? 1) === 0);
     window.history.replaceState(null, "", `?chat=${id}`);
@@ -897,6 +949,7 @@ export function JobDetailPanel({
       if (stopped || !res.ok) return;
       if (job.isMine) setApplications(res.applications);
       else setMyApplication(res.myApplication);
+      if (res.jobStatus) setJobStatus(res.jobStatus);
       setEscrow(res.escrow);
       setDeliverables(res.deliverables);
       setEvents(res.events);
@@ -914,8 +967,9 @@ export function JobDetailPanel({
     };
   }, [job.publicId, job.isMine, activeAppId]);
 
-  const showApplySlot = !job.isMine && job.status === "open" && !myApplication;
+  const showApplySlot = !job.isMine && jobStatus === "open" && !myApplication;
   const showAside = !posterInbox && (showApplySlot || Boolean(helperApp));
+  const liveJob = jobStatus === job.status ? job : { ...job, status: jobStatus };
 
   const chatsRef = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -940,7 +994,7 @@ export function JobDetailPanel({
             <section className={`${CARD} overflow-hidden`}>
               <div className="bg-gradient-to-br from-emerald-600/15 via-teal-600/10 to-transparent p-6">
                 <div className="flex flex-wrap items-center gap-2">
-                  <StatusChip status={job.status} />
+                  <StatusChip status={jobStatus} />
                   <Chip tone="neutral">{jobRefLabel(job.publicId)}</Chip>
                   <Chip tone="neutral">
                     <IconTag size={11} /> {job.categoryLabel}
@@ -969,14 +1023,23 @@ export function JobDetailPanel({
               </div>
             </section>
 
-            {job.isMine ? <OwnerTools job={job} canManage={canUseJobs} /> : null}
+            {job.isMine ? <OwnerTools job={liveJob} canManage={canUseJobs} /> : null}
 
-            {escrow ? (
+            {showLockCard ? (
+              <div ref={lockRef} className="scroll-mt-24">
+                <LockMoneyCard
+                  job={job}
+                  awaiting={escrow?.status === "awaiting_funds"}
+                  hasOffers={threads.length > 0}
+                />
+              </div>
+            ) : escrow ? (
               <JobEscrowPanel
                 escrow={escrow}
                 deliverables={deliverables}
                 events={events}
                 peerPayoutSaved={peerPayoutSaved}
+                savedPayout={savedPayout}
                 isStaff={isStaff}
               />
             ) : null}
@@ -994,9 +1057,17 @@ export function JobDetailPanel({
             {posterInbox ? (
               <section ref={chatsRef} className="scroll-mt-24 space-y-2">
                 <p className="text-dash-muted-foreground text-xs">
-                  Chat with any helper. When you decide, tap <span className="text-dash-foreground font-semibold">Offer</span>{" "}
-                  in their chat and use <span className="text-dash-foreground font-semibold">Pick this helper &amp; lock my money</span>.
-                  Other offers close automatically after payment confirms.
+                  {moneyLocked ? (
+                    <>
+                      Money locked. Open the chat of the helper you want and tap{" "}
+                      <span className="text-dash-foreground font-semibold">Pick</span>. Other offers close automatically.
+                    </>
+                  ) : (
+                    <>
+                      Chat with any helper. Lock your money once, then tap{" "}
+                      <span className="text-dash-foreground font-semibold">Pick</span> in the chat of the helper you want.
+                    </>
+                  )}
                 </p>
                 <div className={`${CARD} grid h-[min(40rem,calc(100dvh-7rem))] grid-rows-[minmax(0,1fr)] overflow-hidden lg:grid-cols-[20rem_minmax(0,1fr)]`}>
                   <div className={`border-dash-border min-h-0 flex-col lg:flex lg:border-r ${mobilePane === "chat" ? "hidden" : "flex"}`}>
@@ -1030,17 +1101,33 @@ export function JobDetailPanel({
                           <button
                             type="button"
                             onClick={() => setOfferOpen((v) => !v)}
-                            className={`${offerOpen ? PRIMARY : SOFT} !px-3 !py-1.5 !text-xs`}
+                            aria-pressed={offerOpen}
+                            className={`${SOFT} !px-3 !py-1.5 !text-xs`}
                           >
-                            <IconWallet size={13} /> {offerOpen ? "Hide offer" : "Offer"}
+                            {offerOpen ? "Hide offer" : "Offer"}
                           </button>
+                          {canPick ? (
+                            <button
+                              type="button"
+                              onClick={pickActive}
+                              disabled={picking}
+                              className={`${moneyLocked ? PRIMARY : SOFT} !px-3 !py-1.5 !text-xs`}
+                            >
+                              <IconCheck size={13} /> {picking ? "Picking…" : "Pick"}
+                            </button>
+                          ) : null}
                         </div>
+                        {pickNote ? (
+                          <p
+                            role="status"
+                            className={`border-dash-border border-b px-3 py-2 text-xs ${pickNote.ok ? "text-emerald-700" : "text-red-600"}`}
+                          >
+                            {pickNote.ok ? pickNote.message : toUserError(pickNote.message ?? "")}
+                          </p>
+                        ) : null}
                         {offerOpen && activeOfferApp ? (
                           <div className="border-dash-border bg-dash-muted/20 max-h-[45%] shrink-0 overflow-y-auto border-b p-3">
-                            <ApplicationRow
-                              app={activeOfferApp}
-                              canAccept={job.status === "open" && activeOfferApp.status === "pending" && !escrow}
-                            />
+                            <ApplicationRow app={activeOfferApp} />
                           </div>
                         ) : null}
                         <MessageThread
@@ -1068,7 +1155,7 @@ export function JobDetailPanel({
                     </summary>
                     <div className="mt-3 space-y-3">
                       {closedOffers.map((app) => (
-                        <ApplicationRow key={app.id} app={app} canAccept={false} />
+                        <ApplicationRow key={app.id} app={app} />
                       ))}
                     </div>
                   </details>
@@ -1195,19 +1282,7 @@ function ApplyForm({ job }: { job: PortalJob }) {
   );
 }
 
-function ApplicationRow({
-  app,
-  canAccept,
-}: {
-  app: PortalJobApplication;
-  canAccept: boolean;
-}) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [status, setStatus] = useState<PortalResult | null>(null);
-  const [network, setNetwork] = useState<string>(PAYMENT_NETWORKS[0]);
-  const [phone, setPhone] = useState("");
-
+function ApplicationRow({ app }: { app: PortalJobApplication }) {
   return (
     <article className={`${CARD} p-4`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1222,39 +1297,83 @@ function ApplicationRow({
       </div>
       <p className="text-dash-muted-foreground mt-3 text-sm leading-relaxed">{app.message}</p>
       {app.proposedTsh != null ? <p className="text-dash-foreground mt-2 text-xs font-semibold">Proposed {formatTsh(app.proposedTsh)}</p> : null}
-      {canAccept ? (
-        <>
-          <div className="border-dash-border mt-3 rounded-xl border bg-dash-canvas/50 p-3">
-            <p className="text-dash-foreground text-xs font-semibold">Pick this helper</p>
-            <p className="text-dash-muted-foreground mt-1 text-[11px] leading-relaxed">
-              Enter your mobile money and tap below. Money locks in Honic escrow (not paid to the helper yet). SMS/USSD can
-              take 10–30 seconds after you tap. Minimum TSh 500.
-            </p>
-            <EscrowFundFields network={network} phone={phone} onNetwork={setNetwork} onPhone={setPhone} />
-            <button
-              type="button"
-              className={`${PRIMARY} mt-3 w-full`}
-              disabled={pending}
-              onClick={() => {
-                setStatus(null);
-                startTransition(async () => {
-                  const res = await portalAcceptJobApplicationAction(app.publicId, network, phone);
-                  setStatus(res);
-                  if (res.ok) {
-                    // Delay refresh so the “check your phone” message stays readable.
-                    window.setTimeout(() => router.refresh(), 4000);
-                  }
-                });
-              }}
-            >
-              <IconWallet size={15} />{" "}
-              {pending ? "Sending mobile-money prompt… (up to ~30s)" : "Pick this helper & lock my money"}
-            </button>
-          </div>
-        </>
-      ) : null}
-      {status ? <p className={`mt-2 text-xs ${status.ok ? "text-emerald-700" : "text-red-600"}`}>{status.ok ? status.message : toUserError(status.message ?? "")}</p> : null}
     </article>
+  );
+}
+
+/** Poster: lock the request's money once. After that, any chat has a one-tap Pick. */
+function LockMoneyCard({ job, awaiting, hasOffers }: { job: PortalJob; awaiting: boolean; hasOffers: boolean }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [status, setStatus] = useState<(PortalResult & { awaitingPayment?: boolean }) | null>(null);
+  const [network, setNetwork] = useState<string>(PAYMENT_NETWORKS[0]);
+  const [phone, setPhone] = useState("");
+  const waiting = awaiting || Boolean(status?.ok && status.awaitingPayment);
+
+  // While waiting for PIN confirmation, refresh often so a missed webhook still clears.
+  useEffect(() => {
+    if (!waiting) return;
+    const tick = window.setInterval(() => router.refresh(), 4000);
+    return () => window.clearInterval(tick);
+  }, [waiting, router]);
+
+  return (
+    <section className={`${CARD} p-5`}>
+      <div className="flex items-start gap-3">
+        <span className="bg-dash-muted text-dash-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+          <IconLock size={18} />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-dash-foreground text-base font-bold">
+            {waiting ? "Waiting for your payment…" : `Lock ${formatTsh(job.offerTsh)} to pick a helper`}
+          </h2>
+          <p className="text-dash-muted-foreground mt-1 text-sm leading-relaxed">
+            {waiting
+              ? "Enter your PIN on the phone prompt. This page updates by itself once the money is locked."
+              : `Your money goes into Honic escrow, not to anyone yet. Then pick ${hasOffers ? "any helper" : "a helper"} with one tap in their chat. The helper is paid only after you approve the work.`}
+          </p>
+        </div>
+      </div>
+      <form
+        className="mt-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setStatus(null);
+          startTransition(async () => {
+            const res = await portalLockJobMoneyAction(job.publicId, network, phone);
+            setStatus(res);
+            if (res.ok) window.setTimeout(() => router.refresh(), res.awaitingPayment ? 4000 : 0);
+          });
+        }}
+      >
+        <div className="grid gap-2 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)_auto] sm:items-end">
+          <select className={INPUT} value={network} onChange={(e) => setNetwork(e.target.value)} aria-label="Mobile money">
+            {PAYMENT_NETWORKS.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+          <input
+            className={INPUT}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="07XXXXXXXX"
+            inputMode="tel"
+            aria-label="Phone number"
+            required
+          />
+          <button type="submit" className={PRIMARY} disabled={pending}>
+            <IconWallet size={15} /> {pending ? "Sending prompt…" : waiting ? "Send prompt again" : `Lock ${formatTsh(job.offerTsh)}`}
+          </button>
+        </div>
+      </form>
+      {status ? (
+        <p role="status" className={`mt-2 text-xs ${status.ok ? "text-emerald-700" : "text-red-600"}`}>
+          {status.ok ? status.message : toUserError(status.message ?? "")}
+        </p>
+      ) : null}
+    </section>
   );
 }
 
