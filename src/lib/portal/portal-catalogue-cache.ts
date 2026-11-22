@@ -28,7 +28,7 @@ export async function cachedConfirmedProposalIds(): Promise<Set<string>> {
       if (!db) return [] as string[];
       return [...(await confirmedProposalIds(db))];
     },
-    ["confirmed-proposal-ids-v2"],
+    ["confirmed-proposal-ids-v3"],
     { revalidate: 120, tags: [LITERATURE_CATALOGUE_TAG] },
   )();
   return new Set(ids);
@@ -51,7 +51,7 @@ export async function cachedLastYearProjects(): Promise<EarlierRow[]> {
       if (error) throw new Error(error.message);
       return (data ?? []) as EarlierRow[];
     },
-    ["last-year-projects-v3"],
+    ["last-year-projects-v4"],
     { revalidate: 300, tags: [LITERATURE_CATALOGUE_TAG] },
   )();
 }
@@ -64,7 +64,7 @@ export async function loadGuestLiteratureCatalogue() {
       if (!db) return { mine: [], items: [] as Awaited<ReturnType<typeof loadLiterature>>["items"] };
       return loadLiterature(db, null, null, { includeBriefs: false });
     },
-    ["portal-literature-guest-v2"],
+    ["portal-literature-guest-v3"],
     { revalidate: 300, tags: [LITERATURE_CATALOGUE_TAG] },
   )();
 }
