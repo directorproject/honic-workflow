@@ -296,12 +296,7 @@ const FREE_HOME_HERO =
 function FreeHomeExplore({ name, highlights }: { name: string; highlights: PortalHighlights }) {
   const firstName = name.split(" ")[0] || "there";
   const titleCount = formatHighlightCount(highlights.titles);
-  const stats = [
-    { label: "Titles", value: titleCount },
-    { label: "Open jobs", value: formatHighlightCount(highlights.openJobs) },
-    { label: "Protected", value: formatHighlightCount(highlights.titlesProtected) },
-    { label: "Study groups", value: formatHighlightCount(highlights.studyGroups) },
-  ];
+  const jobsCount = formatHighlightCount(highlights.openJobs);
 
   const freeTools = [
     { href: "/portal/titles", title: "Literature review", blurb: `${titleCount} titles you can browse and shortlist.` },
@@ -317,90 +312,56 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
 
   return (
     <div className="free-home">
-      {/* Modern Hero Section - Centered Card Layout */}
-      <section
-        className="relative overflow-hidden py-16 sm:py-20 lg:py-24"
-        style={{
-          backgroundImage: `url(${FREE_HOME_HERO})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed',
-        }}
-      >
-        {/* Full Overlay */}
-        <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm" />
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute right-20 top-10 h-72 w-72 rounded-full bg-white blur-3xl" />
-          <div className="absolute left-10 bottom-20 h-72 w-72 rounded-full bg-white blur-3xl" />
-        </div>
+      {/* Full-bleed hero — cancels portal-shell content padding */}
+      <section className="relative -mx-3 -mt-4 overflow-hidden sm:-mx-6 sm:-mt-5 lg:-mx-8">
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${FREE_HOME_HERO})` }}
+        />
+        <div className="absolute inset-0 bg-slate-950/80" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/90 to-transparent" />
 
-        {/* Centered Content */}
-        <div className="relative w-full">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            {/* Top Section */}
-            <div className="text-center mb-10 sm:mb-12">
-              <p className="text-xs font-bold tracking-widest text-white/60 uppercase">Honic Nexis Platform</p>
-              <h1 className="mt-3 text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-tight">
-                Welcome, <br className="hidden sm:inline" />
-                <span className="text-white/90">{firstName}</span>
-              </h1>
-            </div>
+        <div className="relative mx-auto flex min-h-[min(72vh,36rem)] max-w-5xl flex-col justify-end px-4 pb-8 pt-10 sm:min-h-[min(68vh,34rem)] sm:px-8 sm:pb-10 sm:pt-12 lg:px-10">
+          <p className="text-[11px] font-semibold tracking-[0.22em] text-cyan-300/90 uppercase">Honic Nexis</p>
+          <h1 className="mt-2 max-w-xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-[3.25rem] lg:leading-[1.05]">
+            Welcome, {firstName}
+          </h1>
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/75 sm:text-base">
+            Explore titles and peer opportunities. Upgrade when you need the full project workspace.
+          </p>
 
-            {/* Stats Cards - Horizontal */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-8 sm:mb-10">
-              {/* Title Count */}
+          <div className="mt-6 flex flex-wrap items-end gap-x-8 gap-y-3 border-t border-white/15 pt-5 sm:mt-7 sm:gap-x-12">
+            <Link href="/portal/titles" className="group min-w-0">
+              <p className="text-[10px] font-semibold tracking-[0.18em] text-white/45 uppercase">Titles</p>
+              <p className="mt-0.5 text-3xl font-semibold tabular-nums tracking-tight text-white sm:text-4xl group-hover:text-cyan-200">
+                {titleCount}
+              </p>
+            </Link>
+            <Link href="/portal/jobs" className="group min-w-0">
+              <p className="text-[10px] font-semibold tracking-[0.18em] text-white/45 uppercase">Open jobs</p>
+              <p className="mt-0.5 text-3xl font-semibold tabular-nums tracking-tight text-white sm:text-4xl group-hover:text-cyan-200">
+                {jobsCount}
+              </p>
+            </Link>
+            <div className="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto sm:justify-end">
               <Link
                 href="/portal/titles"
-                className="group relative overflow-hidden rounded-3xl transition-all hover:scale-105 active:scale-95"
+                className="inline-flex items-center justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-white/90"
               >
-                <div className="relative bg-gradient-to-b from-white/20 to-white/5 backdrop-blur-md rounded-3xl p-6 sm:p-10 text-center">
-                  <p className="text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Available</p>
-                  <p className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-none mb-2">
-                    {titleCount}
-                  </p>
-                  <p className="text-sm sm:text-base font-medium text-white/60">Titles</p>
-                </div>
-              </Link>
-
-              {/* Jobs Count */}
-              <Link
-                href="/portal/jobs"
-                className="group relative overflow-hidden rounded-3xl transition-all hover:scale-105 active:scale-95"
-              >
-                <div className="relative bg-gradient-to-b from-white/20 to-white/5 backdrop-blur-md rounded-3xl p-6 sm:p-10 text-center">
-                  <p className="text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Open</p>
-                  <p className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-none mb-2">
-                    {formatHighlightCount(highlights.openJobs)}
-                  </p>
-                  <p className="text-sm sm:text-base font-medium text-white/60">Jobs</p>
-                </div>
-              </Link>
-            </div>
-
-            {/* Description */}
-            <p className="text-center text-base sm:text-lg text-white/80 max-w-2xl mx-auto mb-10 sm:mb-12">
-              Explore titles and peer opportunities. Upgrade when you need the full project workspace.
-            </p>
-
-            {/* Action Buttons - Full Width Mobile */}
-            <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:justify-center">
-              <Link
-                href="/portal/titles"
-                className="inline-flex items-center justify-center rounded-xl bg-white text-slate-900 px-6 sm:px-8 py-3 sm:py-3.5 font-bold transition-all hover:bg-white/90 hover:shadow-2xl active:scale-95"
-              >
-                Browse Titles
+                Browse titles
               </Link>
               <Link
                 href="/portal/jobs"
-                className="inline-flex items-center justify-center rounded-xl border-2 border-white/40 bg-white/10 text-white px-6 sm:px-8 py-3 sm:py-3.5 font-semibold backdrop-blur transition-all hover:border-white/70 hover:bg-white/20 active:scale-95"
+                className="inline-flex items-center justify-center rounded-lg border border-white/35 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
               >
-                View Jobs
+                View jobs
               </Link>
               <Link
                 href="/portal/packs"
-                className="inline-flex items-center justify-center rounded-xl border border-white/30 bg-transparent text-white px-6 sm:px-8 py-3 sm:py-3.5 font-semibold transition-all hover:border-white/60 hover:bg-white/5 active:scale-95"
+                className="inline-flex items-center justify-center rounded-lg border border-white/25 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:border-white/50"
               >
-                View Plans
+                Plans
               </Link>
             </div>
           </div>
