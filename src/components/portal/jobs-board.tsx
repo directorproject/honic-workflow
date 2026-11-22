@@ -10,8 +10,6 @@ import {
   portalApplyJobAction,
   portalDeleteJobAction,
   portalJobDetailSyncAction,
-  portalJobMessageAction,
-  portalJobMessagesSinceAction,
   portalMarkJobTakenAction,
   portalPostJobAction,
   portalUpdateJobAction,
@@ -981,9 +979,6 @@ export function JobDetailPanel({
                 threadFor={job.isMine ? activeApp.applicantLabel : undefined}
                 canSend={canChatNow}
                 waitingForPoster={!job.isMine && !posterReplied}
-                onMessagesChange={(next) => {
-                  setMessagesByApp((prev) => ({ ...prev, [activeApp.publicId]: next }));
-                }}
               />
             ) : job.isMine && applications.length ? (
               <div className={`${CARD} px-6 py-10 text-center`}>
@@ -1178,7 +1173,6 @@ function MessageThread({
   threadFor,
   canSend,
   waitingForPoster = false,
-  onMessagesChange,
 }: {
   applicationPublicId: string;
   initialMessages: PortalJobMessage[];
@@ -1189,55 +1183,57 @@ function MessageThread({
 }) {
   const [status, setStatus] = useState<PortalResult | null>(null);
   const [draft, setDraft] = useState("");
-  const [sending, setSending] = useState(false);
   const [messages, setMessages] = useState(initialMessages);
   const listRef = useRef<HTMLDivElement>(null);
+  const draftRef = useRef<HTMLTextAreaElement>(null);
   const lastRef = useRef(initialMessages.at(-1)?.createdAt ?? new Date(0).toISOString());
-  const onMessagesChangeRef = useRef(onMessagesChange);
-  const sendingLockRef = useRef(false);
-  onMessagesChangeRef.current = onMessagesChange;
+  const appBootRef = useRef(applicationPublicId);
 
+  // Only reset when switching threads — never clobber optimistic bubbles from parent polls.
   useEffect(() => {
-    setMessages((prev) => {
-      const temps = prev.filter((m) => String(m.id).startsWith("temp-"));
-      return mergeJobMessages(initialMessages, temps);
-    });
-    const lastServer = initialMessages.at(-1)?.createdAt;
-    if (lastServer && lastServer > lastRef.current) lastRef.current = lastServer;
-  }, [initialMessages, applicationPublicId]);
+    if (appBootRef.current === applicationPublicId) return;
+    appBootRef.current = applicationPublicId;
+    setMessages(initialMessages);
+    lastRef.current = initialMessages.at(-1)?.createdAt ?? new Date(0).toISOString();
+    setDraft("");
+    setStatus(null);
+  }, [applicationPublicId, initialMessages]);
 
   const applyIncoming = useCallback((incoming: PortalJobMessage[]) => {
     if (!incoming.length) return;
-    lastRef.current = incoming[incoming.length - 1].createdAt;
+    const newest = incoming[incoming.length - 1].createdAt;
+    if (newest > lastRef.current) lastRef.current = newest;
     setMessages((prev) => {
-      // Drop matching optimistic temps once the real row lands.
       const withoutDupTemps = prev.filter((m) => {
         if (!String(m.id).startsWith("temp-")) return true;
         return !incoming.some((n) => n.isMine && n.body === m.body);
       });
-      const next = mergeJobMessages(withoutDupTemps, incoming);
-      queueMicrotask(() => onMessagesChangeRef.current?.(next));
-      return next;
+      return mergeJobMessages(withoutDupTemps, incoming);
     });
   }, []);
 
   const sync = useCallback(async () => {
-    const res = await portalJobMessagesSinceAction({
-      applicationPublicId,
-      sinceIso: lastRef.current,
-    });
-    if (!res.ok) return;
-    applyIncoming(res.messages);
+    try {
+      const url = new URL("/api/portal/jobs/messages", window.location.origin);
+      url.searchParams.set("applicationPublicId", applicationPublicId);
+      url.searchParams.set("sinceIso", lastRef.current);
+      const res = await fetch(url.toString(), { credentials: "same-origin", cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as { ok?: boolean; messages?: PortalJobMessage[] };
+      if (data.ok && data.messages?.length) applyIncoming(data.messages);
+    } catch {
+      /* ignore transient poll errors */
+    }
   }, [applicationPublicId, applyIncoming]);
 
   useEffect(() => {
     let cancelled = false;
     async function tick() {
-      if (cancelled) return;
+      if (cancelled || document.hidden) return;
       await sync();
     }
     void tick();
-    const timer = window.setInterval(() => void tick(), 2000);
+    const timer = window.setInterval(() => void tick(), 1500);
     function onFocus() {
       void tick();
     }
@@ -1262,9 +1258,7 @@ function MessageThread({
   function send() {
     if (!canSend) return;
     const body = draft.trim();
-    if (!body || sendingLockRef.current) return;
-    sendingLockRef.current = true;
-    setSending(true);
+    if (!body) return;
     setStatus(null);
 
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -1276,42 +1270,40 @@ function MessageThread({
       createdAt: new Date().toISOString(),
       isMine: true,
     };
+    // Paint bubble + clear input immediately (WhatsApp-style). Network is background.
     setDraft("");
-    setMessages((prev) => {
-      const next = [...prev, optimistic];
-      queueMicrotask(() => onMessagesChangeRef.current?.(next));
-      return next;
-    });
+    setMessages((prev) => [...prev, optimistic]);
+    requestAnimationFrame(() => draftRef.current?.focus());
 
     void (async () => {
       try {
-        const res = await portalJobMessageAction(applicationPublicId, body);
-        if (res.ok) {
-          const chat = "chat" in res ? res.chat : undefined;
-          if (chat) {
-            setMessages((prev) => {
-              const cleaned = prev.filter((m) => m.id !== tempId);
-              const next = mergeJobMessages(cleaned, [chat]);
-              lastRef.current = chat.createdAt;
-              queueMicrotask(() => onMessagesChangeRef.current?.(next));
-              return next;
-            });
-          } else {
-            setMessages((prev) => prev.filter((m) => m.id !== tempId));
-            void sync();
-          }
+        const res = await fetch("/api/portal/jobs/messages", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ applicationPublicId, body }),
+        });
+        const data = (await res.json().catch(() => null)) as
+          | { ok?: boolean; message?: string; chat?: PortalJobMessage }
+          | null;
+        if (res.ok && data?.ok && data.chat) {
+          setMessages((prev) => {
+            const cleaned = prev.filter((m) => m.id !== tempId);
+            if (data.chat!.createdAt > lastRef.current) lastRef.current = data.chat!.createdAt;
+            return mergeJobMessages(cleaned, [data.chat!]);
+          });
+        } else if (res.ok && data?.ok) {
+          setMessages((prev) => prev.filter((m) => m.id !== tempId));
+          void sync();
         } else {
           setMessages((prev) => prev.filter((m) => m.id !== tempId));
           setDraft(body);
-          setStatus(res);
+          setStatus({ ok: false, message: data?.message || "Could not send. Try again." });
         }
       } catch {
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
         setDraft(body);
         setStatus({ ok: false, message: "Could not send. Try again." });
-      } finally {
-        sendingLockRef.current = false;
-        setSending(false);
       }
     })();
   }
@@ -1383,12 +1375,12 @@ function MessageThread({
           <>
             <div className="border-dash-border bg-dash-canvas flex items-end gap-2 rounded-2xl border px-2 py-1.5">
               <textarea
+                ref={draftRef}
                 name="body"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 rows={1}
                 maxLength={2000}
-                required
                 placeholder="Message…"
                 className="text-dash-foreground placeholder:text-dash-muted-foreground max-h-28 min-h-[2.25rem] flex-1 resize-none bg-transparent px-2 py-1.5 text-sm outline-none"
                 onKeyDown={(e) => {
@@ -1400,7 +1392,7 @@ function MessageThread({
               />
               <button
                 type="submit"
-                disabled={sending || !draft.trim()}
+                disabled={!draft.trim()}
                 aria-label="Send message"
                 className="bg-dash-accent flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition disabled:opacity-40"
               >

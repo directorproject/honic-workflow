@@ -570,39 +570,50 @@ export async function postJobMessage(
   db: SupabaseClient,
   input: { userId: string; applicationPublicId: string; body: string },
 ): Promise<{ ok: true; chat: PortalJobMessage } | { ok: false; message: string }> {
-  const plan = await requirePaidDeskForJobs(db, input.userId, "jobsMessage");
-  if (!plan.ok) return plan;
-
   const body = input.body.trim().slice(0, 2000);
   if (body.length < 1) return { ok: false, message: "Write a message." };
 
-  const { data: app, error } = await db
-    .from("portal_job_applications")
-    .select("id, job_id, applicant_user_id, status")
-    .eq("public_id", input.applicationPublicId)
-    .maybeSingle();
-  if (error || !app) return { ok: false, message: "Application not found." };
+  // Run plan check + thread lookup together (cuts ~1 round-trip).
+  const [plan, appRes] = await Promise.all([
+    requirePaidDeskForJobs(db, input.userId, "jobsMessage"),
+    db
+      .from("portal_job_applications")
+      .select("id, job_id, applicant_user_id, status, portal_jobs!inner(poster_user_id)")
+      .eq("public_id", input.applicationPublicId)
+      .maybeSingle(),
+  ]);
+  if (!plan.ok) return plan;
+  if (appRes.error || !appRes.data) return { ok: false, message: "Application not found." };
 
-  const { data: job } = await db.from("portal_jobs").select("poster_user_id").eq("id", app.job_id).maybeSingle();
-  if (!job) return { ok: false, message: "Job not found." };
+  const app = appRes.data as {
+    id: string;
+    job_id: string;
+    applicant_user_id: string;
+    status: string;
+    portal_jobs: { poster_user_id: string } | { poster_user_id: string }[] | null;
+  };
+  const jobRow = Array.isArray(app.portal_jobs) ? app.portal_jobs[0] : app.portal_jobs;
+  if (!jobRow) return { ok: false, message: "Job not found." };
 
-  const isPoster = String(job.poster_user_id) === input.userId;
+  const isPoster = String(jobRow.poster_user_id) === input.userId;
   const isApplicant = String(app.applicant_user_id) === input.userId;
   if (!isPoster && !isApplicant) return { ok: false, message: "You cannot message on this application." };
-
-  // The helper may only talk once the poster has replied in this thread.
-  if (isApplicant) {
-    const { count } = await db
-      .from("portal_job_messages")
-      .select("id", { count: "exact", head: true })
-      .eq("application_id", app.id)
-      .eq("sender_user_id", String(job.poster_user_id));
-    if (!count) return { ok: false, message: "Wait for the poster to reply before you send messages." };
-  }
 
   // Allow talk on pending (negotiate) or accepted (continue work talk). No real names.
   if (!["pending", "accepted"].includes(String(app.status))) {
     return { ok: false, message: "Messaging is closed for this application." };
+  }
+
+  // Helper may only talk once the poster has replied in this thread.
+  if (isApplicant) {
+    const { data: posterMsg } = await db
+      .from("portal_job_messages")
+      .select("id")
+      .eq("application_id", app.id)
+      .eq("sender_user_id", String(jobRow.poster_user_id))
+      .limit(1)
+      .maybeSingle();
+    if (!posterMsg) return { ok: false, message: "Wait for the poster to reply before you send messages." };
   }
 
   const senderPublicId = await ensurePortalAccount(db, input.userId);
