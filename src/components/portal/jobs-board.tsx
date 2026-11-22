@@ -1187,26 +1187,35 @@ function MessageThread({
   waitingForPoster?: boolean;
   onMessagesChange?: (messages: PortalJobMessage[]) => void;
 }) {
-  const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<PortalResult | null>(null);
   const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
   const [messages, setMessages] = useState(initialMessages);
   const listRef = useRef<HTMLDivElement>(null);
   const lastRef = useRef(initialMessages.at(-1)?.createdAt ?? new Date(0).toISOString());
   const onMessagesChangeRef = useRef(onMessagesChange);
+  const sendingLockRef = useRef(false);
   onMessagesChangeRef.current = onMessagesChange;
 
   useEffect(() => {
-    setMessages(initialMessages);
-    lastRef.current = initialMessages.at(-1)?.createdAt ?? new Date(0).toISOString();
+    setMessages((prev) => {
+      const temps = prev.filter((m) => String(m.id).startsWith("temp-"));
+      return mergeJobMessages(initialMessages, temps);
+    });
+    const lastServer = initialMessages.at(-1)?.createdAt;
+    if (lastServer && lastServer > lastRef.current) lastRef.current = lastServer;
   }, [initialMessages, applicationPublicId]);
 
   const applyIncoming = useCallback((incoming: PortalJobMessage[]) => {
     if (!incoming.length) return;
     lastRef.current = incoming[incoming.length - 1].createdAt;
     setMessages((prev) => {
-      const next = mergeJobMessages(prev, incoming);
-      // Never call parent setState inside this updater (render phase) — defer lift.
+      // Drop matching optimistic temps once the real row lands.
+      const withoutDupTemps = prev.filter((m) => {
+        if (!String(m.id).startsWith("temp-")) return true;
+        return !incoming.some((n) => n.isMine && n.body === m.body);
+      });
+      const next = mergeJobMessages(withoutDupTemps, incoming);
       queueMicrotask(() => onMessagesChangeRef.current?.(next));
       return next;
     });
@@ -1221,7 +1230,6 @@ function MessageThread({
     applyIncoming(res.messages);
   }, [applicationPublicId, applyIncoming]);
 
-  // Poll-only live chat — avoids Supabase Realtime channel reuse crashes on remount.
   useEffect(() => {
     let cancelled = false;
     async function tick() {
@@ -1229,7 +1237,7 @@ function MessageThread({
       await sync();
     }
     void tick();
-    const timer = window.setInterval(() => void tick(), 3000);
+    const timer = window.setInterval(() => void tick(), 2000);
     function onFocus() {
       void tick();
     }
@@ -1254,18 +1262,58 @@ function MessageThread({
   function send() {
     if (!canSend) return;
     const body = draft.trim();
-    if (!body || pending) return;
+    if (!body || sendingLockRef.current) return;
+    sendingLockRef.current = true;
+    setSending(true);
     setStatus(null);
-    startTransition(async () => {
-      const res = await portalJobMessageAction(applicationPublicId, body);
-      setStatus(res);
-      if (res.ok) {
-        setDraft("");
-        const chat = "chat" in res ? res.chat : undefined;
-        if (chat) applyIncoming([chat]);
-        else void sync();
-      }
+
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const optimistic: PortalJobMessage = {
+      id: tempId,
+      senderPublicId: "me",
+      senderLabel: "You",
+      body,
+      createdAt: new Date().toISOString(),
+      isMine: true,
+    };
+    setDraft("");
+    setMessages((prev) => {
+      const next = [...prev, optimistic];
+      queueMicrotask(() => onMessagesChangeRef.current?.(next));
+      return next;
     });
+
+    void (async () => {
+      try {
+        const res = await portalJobMessageAction(applicationPublicId, body);
+        if (res.ok) {
+          const chat = "chat" in res ? res.chat : undefined;
+          if (chat) {
+            setMessages((prev) => {
+              const cleaned = prev.filter((m) => m.id !== tempId);
+              const next = mergeJobMessages(cleaned, [chat]);
+              lastRef.current = chat.createdAt;
+              queueMicrotask(() => onMessagesChangeRef.current?.(next));
+              return next;
+            });
+          } else {
+            setMessages((prev) => prev.filter((m) => m.id !== tempId));
+            void sync();
+          }
+        } else {
+          setMessages((prev) => prev.filter((m) => m.id !== tempId));
+          setDraft(body);
+          setStatus(res);
+        }
+      } catch {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        setDraft(body);
+        setStatus({ ok: false, message: "Could not send. Try again." });
+      } finally {
+        sendingLockRef.current = false;
+        setSending(false);
+      }
+    })();
   }
 
   return (
@@ -1352,7 +1400,7 @@ function MessageThread({
               />
               <button
                 type="submit"
-                disabled={pending || !draft.trim()}
+                disabled={sending || !draft.trim()}
                 aria-label="Send message"
                 className="bg-dash-accent flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition disabled:opacity-40"
               >

@@ -385,9 +385,7 @@ export async function portalJobMessageAction(
       body: String(body ?? ""),
     });
     if (!result.ok) return { ok: false, message: result.message };
-    // Soft revalidate for other tabs; live UI appends `chat` without a full refresh.
-    revalidatePath("/portal/jobs");
-    revalidatePath("/portal/jobs/mine");
+    // No revalidatePath — chat UI appends locally (WhatsApp-style). Poll picks up the peer side.
     return { ok: true, message: "Message sent.", chat: result.chat };
   } catch (err) {
     return { ok: false, message: err instanceof Error ? err.message : "Could not send message." };
