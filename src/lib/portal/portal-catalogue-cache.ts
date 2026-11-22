@@ -34,18 +34,24 @@ export async function cachedConfirmedProposalIds(): Promise<Set<string>> {
   return new Set(ids);
 }
 
-type EarlierRow = { id: string | number; programme: string | null; source: string | null; title: string | null };
+type EarlierRow = {
+  id: string | number;
+  programme: string | null;
+  source: string | null;
+  title: string | null;
+  notes: string | null;
+};
 
 export async function cachedLastYearProjects(): Promise<EarlierRow[]> {
   return unstable_cache(
     async () => {
       const db = getSupabaseAdminClient();
       if (!db) return [];
-      const { data, error } = await db.from("last_year_projects").select("id, programme, source, title");
+      const { data, error } = await db.from("last_year_projects").select("id, programme, source, title, notes");
       if (error) throw new Error(error.message);
       return (data ?? []) as EarlierRow[];
     },
-    ["last-year-projects-v2"],
+    ["last-year-projects-v3"],
     { revalidate: 300, tags: [LITERATURE_CATALOGUE_TAG] },
   )();
 }

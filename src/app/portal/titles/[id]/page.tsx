@@ -12,8 +12,10 @@ import { ProfileForm } from "@/components/portal/profile-form";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { TitleJumpNav } from "@/components/portal/title-jump-nav";
 import { TitleRelated } from "@/components/portal/title-related";
+import { TitleBriefReplacePanel } from "@/components/portal/title-brief-replace-panel";
 import { TitleSelectAction } from "@/components/portal/title-select-panel";
 import { TitleTermsGate } from "@/components/portal/title-terms-gate";
+import { isTemporaryBrief } from "@/lib/portal/temporary-title-brief";
 import { studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
 import { hasProjectDocumentsAccess } from "@/lib/portal/document-access";
@@ -55,6 +57,8 @@ const NOTICES: Record<string, string> = {
   owner: "Only the confirmed owner can publish documents.",
   upload: "The document could not be stored.",
   unavailable: "Claims are not ready yet.",
+  brief_cleared: "Temporary brief deleted. Upload a PDF to rewrite problem and objectives.",
+  brief_rewritten: "Brief rewritten from the uploaded PDF.",
 };
 
 export default async function PortalTitlePage(props: {
@@ -131,6 +135,23 @@ export default async function PortalTitlePage(props: {
       ? { mine: [], items: prefetched.items.slice(0, GUEST_TITLE_PREVIEW_LIMIT) }
       : prefetched,
   );
+
+  let showBriefReplace = false;
+  if (state.isStaff && item) {
+    const missingCore =
+      !item.problemStatement || !item.objectives || !item.specificObjectives;
+    let notes: string | null = null;
+    if (item.kind === "earlier") {
+      const rawId = item.id.startsWith("earlier:") ? item.id.slice("earlier:".length) : item.id;
+      const { data } = await db.from("last_year_projects").select("notes").eq("id", rawId).maybeSingle();
+      notes = typeof data?.notes === "string" ? data.notes : null;
+    } else {
+      const { data } = await db.from("title_proposals").select("notes").eq("id", item.id).maybeSingle();
+      notes = typeof data?.notes === "string" ? data.notes : null;
+    }
+    showBriefReplace = isTemporaryBrief(notes) || missingCore;
+  }
+
   const courseName = new Map(state.courses.map((course) => [course.code, course.name]));
   const noticeKey =
     typeof search.notice === "string" ? search.notice : Array.isArray(search.notice) ? search.notice[0] : undefined;
@@ -272,6 +293,7 @@ export default async function PortalTitlePage(props: {
                   }
                 : null
             }
+            showTemporaryBriefReplace={showBriefReplace}
           />
         ) : (
           <MissingTitle listHref={listHref} />
@@ -324,6 +346,7 @@ function TitleDetail({
   entitlement,
   isHiddenFromPeers,
   planMode,
+  showTemporaryBriefReplace = false,
 }: {
   listHref: string;
   listFilters: ReturnType<typeof parseTitleListFiltersFromRecord>;
@@ -343,6 +366,7 @@ function TitleDetail({
   entitlement: TitleHideEntitlement | null;
   isHiddenFromPeers: boolean;
   planMode: { deskExpiresAt?: string | null; deskPlan?: string | null } | null;
+  showTemporaryBriefReplace?: boolean;
 }) {
   const mark = projectMark(item);
   const plan = planMode ? planModeLabel(planMode) : null;
@@ -454,6 +478,7 @@ function TitleDetail({
           ) : null}
 
           <section id="brief" className={`mt-10 space-y-5 ${portalTitleSectionScrollMt}`}>
+            {showTemporaryBriefReplace ? <TitleBriefReplacePanel routeId={routeId} /> : null}
             <div>
               <h2 className={sectionTitle}>Problem statement</h2>
               <p className="text-dash-foreground mt-2 text-sm leading-relaxed break-words whitespace-pre-wrap">

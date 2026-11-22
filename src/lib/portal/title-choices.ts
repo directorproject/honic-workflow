@@ -357,10 +357,12 @@ export async function loadLiterature(
     const source = text(row.source);
     const year = source ? yearFromSource(source) : null;
     const id = `earlier:${String(row.id)}`;
+    const notes = includeBriefs ? text((row as { notes?: unknown }).notes) : null;
+    const brief = notes ? parseTitleBrief(notes) : null;
     return {
       id,
       title: String(row.title ?? ""),
-      summary: null,
+      summary: brief?.problemStatement ?? null,
       hardware: null,
       communication: null,
       courseCode: text(row.programme),
@@ -370,12 +372,12 @@ export async function loadLiterature(
       sourceUrl: null,
       year,
       yearLabel: yearLabel(year),
-      problemStatement: null,
-      objectives: null,
-      specificObjectives: null,
-      limitations: null,
-      references: null,
-      literatureNote: null,
+      problemStatement: brief?.problemStatement ?? null,
+      objectives: brief?.objectives ?? null,
+      specificObjectives: brief?.specificObjectives ?? null,
+      limitations: brief?.limitations ?? null,
+      references: brief?.references ?? null,
+      literatureNote: brief?.literatureNote ?? null,
       kind: "earlier",
       canChoose: Boolean(profile) && !mineIds.has(id) && !hidden.has(id),
       isSelected: mineIds.has(id),
@@ -422,9 +424,32 @@ export async function loadReviewItemWithCatalogue(
   const review = prefetchedReview ?? (await loadLiterature(db, userId, profile, { includeBriefs: false }));
   let item = [...review.mine, ...review.items].find((entry) => entry.id === id) ?? null;
   if (!item) return { item: null, review };
+  const text = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
 
   if (item.kind === "earlier" || id.startsWith("earlier:")) {
-    return { item, review };
+    const rawId = id.startsWith("earlier:") ? id.slice("earlier:".length) : String(item.id).replace(/^earlier:/, "");
+    const { data: earlierRow, error: earlierError } = await db
+      .from("last_year_projects")
+      .select("id, title, notes, programme, source")
+      .eq("id", rawId)
+      .maybeSingle();
+    if (earlierError) throw new Error(earlierError.message);
+    if (!earlierRow) return { item: null, review };
+    const brief = parseTitleBrief(text(earlierRow.notes));
+    return {
+      item: {
+        ...item,
+        title: String(earlierRow.title ?? item.title),
+        summary: brief.problemStatement ?? item.summary,
+        problemStatement: brief.problemStatement,
+        objectives: brief.objectives,
+        specificObjectives: brief.specificObjectives,
+        limitations: brief.limitations,
+        references: brief.references,
+        literatureNote: brief.literatureNote,
+      },
+      review,
+    };
   }
 
   const [proposalRes, workspaceRes] = await Promise.all([
@@ -444,7 +469,6 @@ export async function loadReviewItemWithCatalogue(
       ? null
       : workspaceRes.data;
 
-  const text = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
   const brief = parseTitleBrief(text(row.notes));
   const summary = text(row.summary);
 
