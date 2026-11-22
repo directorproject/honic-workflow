@@ -13,6 +13,9 @@ export const MAX_TITLE_CHOICES = 20;
 /** Guests may browse this many titles before Create account is required. */
 export const GUEST_TITLE_PREVIEW_LIMIT = 20;
 
+/** How many titles to paint at first / each Load more on the literature list. */
+export const TITLE_LIST_PAGE_SIZE = 30;
+
 export function hasActiveDeskPlan(deskExpiresAt: string | null | undefined): boolean {
   if (!deskExpiresAt) return false;
   const t = new Date(deskExpiresAt).getTime();

@@ -1,6 +1,16 @@
 "use client";
 
-import { createContext, Suspense, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  Suspense,
+  startTransition,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -15,6 +25,8 @@ import { TitleRules } from "@/components/portal/title-terms-gate";
 import type { Course } from "@/lib/portal/data";
 import { isTanzanianCatalogueTitle, projectMark } from "@/lib/portal/project-mark";
 import { titleCohortFromText, titleCohortKey } from "@/lib/portal/title-cohort";
+import type { ReviewItem } from "@/lib/portal/title-choices";
+import { hasActiveDeskPlan, MAX_TITLE_CHOICES, TITLE_LIST_PAGE_SIZE } from "@/lib/portal/title-limits";
 
 /** TZ / earlier literature → FYP; outsourced foreign lists → New project title. */
 function isFinalYearCatalogueItem(item: ReviewItem): boolean {
@@ -25,8 +37,6 @@ function isFinalYearCatalogueItem(item: ReviewItem): boolean {
     source: item.source,
   });
 }
-import type { ReviewItem } from "@/lib/portal/title-choices";
-import { hasActiveDeskPlan, MAX_TITLE_CHOICES } from "@/lib/portal/title-limits";
 import {
   EMPTY_TITLE_LIST_FILTERS,
   parseTitleListFilters,
@@ -581,11 +591,35 @@ function TitlePolicyPanel() {
   );
 }
 
+function takeGroupedPage(groups: [string, ReviewItem[]][], limit: number): [string, ReviewItem[]][] {
+  let left = limit;
+  const out: [string, ReviewItem[]][] = [];
+  for (const [label, group] of groups) {
+    if (left <= 0) break;
+    const slice = group.slice(0, left);
+    if (slice.length) out.push([label, slice]);
+    left -= slice.length;
+  }
+  return out;
+}
+
 function TitleCatalogue() {
-  const { items, courseName, studentYear, order, setOrder, filtering, matched, ordered, groups, completedCount, proposalCount } =
-    useTitlesFrame();
+  const {
+    courseName,
+    studentYear,
+    order,
+    setOrder,
+    filtering,
+    matched,
+    ordered,
+    groups,
+    completedCount,
+    proposalCount,
+    listFilters,
+  } = useTitlesFrame();
   const [showEarlier, setShowEarlier] = useState(true);
   const [showStudy, setShowStudy] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(TITLE_LIST_PAGE_SIZE);
 
   const visible = (item: ReviewItem) => (isFinalYearCatalogueItem(item) ? showEarlier : showStudy);
   const visibleMatched = matched.filter(visible);
@@ -593,6 +627,16 @@ function TitleCatalogue() {
   const visibleGroups = groups
     .map(([label, group]): [string, ReviewItem[]] => [label, group.filter(visible)])
     .filter(([, group]) => group.length > 0);
+
+  // Reset the paint window when filters / shuffle / category toggles change.
+  useEffect(() => {
+    setVisibleCount(TITLE_LIST_PAGE_SIZE);
+  }, [listFilters.year, listFilters.department, listFilters.institution, listFilters.level, order, showEarlier, showStudy]);
+
+  const totalVisible = visibleMatched.length;
+  const hasMore = totalVisible > visibleCount;
+  const pagedOrdered = visibleOrdered.slice(0, visibleCount);
+  const pagedGroups = takeGroupedPage(visibleGroups, visibleCount);
 
   const list =
     matched.length === 0 ? (
@@ -605,7 +649,7 @@ function TitleCatalogue() {
       <p className="text-dash-muted-foreground py-8 text-sm">Mixing the titles.</p>
     ) : filtering ? (
       <div>
-        {visibleGroups.map(([label, group]) => (
+        {pagedGroups.map(([label, group]) => (
           <section key={label} className="mt-8 first:mt-0">
             <h2 className="text-dash-foreground flex items-baseline justify-between gap-4 border-b border-dash-border pb-2 text-sm font-semibold">
               <span>
@@ -624,7 +668,7 @@ function TitleCatalogue() {
       </div>
     ) : (
       <ul>
-        {visibleOrdered.map((item) => (
+        {pagedOrdered.map((item) => (
           <TitleRow key={item.id} item={item} courseName={courseName} />
         ))}
       </ul>
@@ -679,7 +723,31 @@ function TitleCatalogue() {
           </p>
         ) : null}
       </div>
-      <div className="px-3 pb-6 sm:px-8">{list}</div>
+      <div className="px-3 pb-6 sm:px-8">
+        {list}
+        {hasMore ? (
+          <div className="mt-8 flex flex-col items-center gap-2 border-t border-dash-border pt-6">
+            <p className="text-dash-muted-foreground text-xs tabular-nums">
+              Showing {Math.min(visibleCount, totalVisible)} of {totalVisible}
+            </p>
+            <button
+              type="button"
+              onClick={() =>
+                startTransition(() => {
+                  setVisibleCount((n) => n + TITLE_LIST_PAGE_SIZE);
+                })
+              }
+              className="bg-dash-accent inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold text-white"
+            >
+              Load more
+            </button>
+          </div>
+        ) : totalVisible > TITLE_LIST_PAGE_SIZE ? (
+          <p className="text-dash-muted-foreground mt-6 text-center text-xs tabular-nums">
+            Showing all {totalVisible} titles
+          </p>
+        ) : null}
+      </div>
     </>
   );
 }
