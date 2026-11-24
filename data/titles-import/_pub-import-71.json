@@ -1,0 +1,499 @@
+[
+  {
+    "id": "9b90f945-bfb2-4096-98d9-85b6c1a0b0b7",
+    "title": "A Hybrid Approach for helmet detection",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-97e0328c546957"
+  },
+  {
+    "id": "22111ed0-2765-4f16-ad53-6da703493d28",
+    "title": "A Wireless Sensor Network monitoring system for walls and Civil Structures",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-2f72d115ca2a5d"
+  },
+  {
+    "id": "799f28e9-b958-48f2-aa6f-06fc3de7c84a",
+    "title": "Remote Sensing Based Crop Monitoring System",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-aacbc9fafb0259"
+  },
+  {
+    "id": "a5194102-ac10-4db3-ae9f-97a3f7f48767",
+    "title": "LockBox: An offline Password Manager",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-9b8b63da23e54c"
+  },
+  {
+    "id": "6d4bc06f-d4de-4b78-9c2a-47906c84b60b",
+    "title": "Lightweight Threat Detection System for Edge Devices using Linux Security Tools",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-c064685e25fced"
+  },
+  {
+    "id": "cd9c8185-8dd8-401d-9ca2-42177e422f86",
+    "title": "Examining Anomalies In X-rays Using CNN",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-aba6bdc0cd3866"
+  },
+  {
+    "id": "00cad7f4-883d-425b-ab8d-e9077253216e",
+    "title": "Empowering Communication: A Paralysis-Aid Gloveiris with IoT Integration",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1051c91f747333"
+  },
+  {
+    "id": "33e66e5d-e127-4888-9f11-f216df8a7bbf",
+    "title": "Iot based battery management system for electric vehicles and battery cooling system.",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-0769e5d60a1317"
+  },
+  {
+    "id": "466bdc77-0e13-490a-8f9d-b1e40492276f",
+    "title": "Multiple Interface Configurable Smart IoT Device",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-9e93801601cfe3"
+  },
+  {
+    "id": "6475a759-5626-4596-bc62-27f5d185bf6a",
+    "title": "IOT based Automatic Waste Segregation System",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-c351c981160acd"
+  },
+  {
+    "id": "1bdf1480-1761-469c-9ae8-b27078ab7179",
+    "title": "Smart parking guidance system using wireless sensor network",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-dac695fe1d0b7b"
+  },
+  {
+    "id": "c689b710-8a39-4bf7-bdcb-34224bfcbdbb",
+    "title": "Wearable health monitoring system for workers",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-d8743e47e5379a"
+  },
+  {
+    "id": "4bca08e2-6225-442d-bbc4-dace2f052c87",
+    "title": "Solar Base water purification System",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-4a52720ad037df"
+  },
+  {
+    "id": "a8811d3d-0770-4b95-bc99-a4f647554b59",
+    "title": "Blood Cell Count Detection Using YOLO V5",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-ea1d840fa59dc0"
+  },
+  {
+    "id": "9081c3c8-0242-4358-805c-0c6925c44af9",
+    "title": "The third eye for blind",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-4219447651704f"
+  },
+  {
+    "id": "47316849-5171-4f86-944c-13a9874ffa22",
+    "title": "Sanitary Napkin vending Machine",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-de93de65beb4c7"
+  },
+  {
+    "id": "0e1c5eaa-067b-4f7b-ba43-0814e4c7b3c8",
+    "title": "Intelligent control of Elevator",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-e72bc6d88eb0bd"
+  },
+  {
+    "id": "87854f92-63aa-427f-a106-bc637525e055",
+    "title": "The crop monitoring robot using IoRT",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1d43068ba5416c"
+  },
+  {
+    "id": "805a1535-baab-4ec4-a956-3c116c48cbbd",
+    "title": "Medical Assistive robot supervised through android application",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-04c9174c5c9042"
+  },
+  {
+    "id": "e5b12c5c-a568-49b0-a2d8-4df781740d01",
+    "title": "Non-invasive glucose testing using microstrip antenna",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-9d4f9a5c1df9fb"
+  },
+  {
+    "id": "9207ee36-e5ef-4053-9ce1-dac62d2f2715",
+    "title": "Microstrip Patch Antenna for 5G Network",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-ecd6cbb8b6fb39"
+  },
+  {
+    "id": "fd9d7aad-9a5d-4841-9d26-8bd495bee41c",
+    "title": "Elevator Control Using Voice Command",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-fd7b85713242bb"
+  },
+  {
+    "id": "06edfb42-3c03-4a35-a517-18618e42eebe",
+    "title": "High performance network intrusion detection engine",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-7989660d316e2f"
+  },
+  {
+    "id": "c7ea60a7-e585-4766-a800-41847432c73d",
+    "title": "Satellite remote sensing application for agriculture sector",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-312ade25a2b61a"
+  },
+  {
+    "id": "371edfe7-d196-4c3f-a412-538803510c39",
+    "title": "Design and implementation of 3 Axis CNC PCB drilling machine",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-21ee75bba3b0dc"
+  },
+  {
+    "id": "54d2c6a3-f2d4-4718-bb1f-d38ea7b1d8c1",
+    "title": "Breast Cancer Detection Using ML",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-3f7d74db91e15a"
+  },
+  {
+    "id": "bac05b53-9139-439f-bedb-ab8e814b2e54",
+    "title": "Zeus: Smart electric Vehicle",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-f5f9a1eda9c5d6"
+  },
+  {
+    "id": "faf1d500-456a-46a8-bb3f-1a17a297512d",
+    "title": "Water Surface Cleaning Machine",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-9071fda33aff06"
+  },
+  {
+    "id": "42972f57-7d71-4707-92d1-0c887ab9c46c",
+    "title": "System To Detect Thief Events Using Raspberry Pi",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-0d24cdbb0e1e4c"
+  },
+  {
+    "id": "f1f9f3b7-60cb-457e-b311-c3ed1f4f3109",
+    "title": "IoT based water quality monitoring system",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1872f915e9f035"
+  },
+  {
+    "id": "63e74349-4bad-428a-9466-4ea6790e4826",
+    "title": "Gesture control Robotic Arm",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-acbd55606868ad"
+  },
+  {
+    "id": "326d4c15-519c-47dc-aa8a-f5cdfb9c2043",
+    "title": "IOT based System to avoid wastage of fruits",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-02b5fc6614b9d0"
+  },
+  {
+    "id": "3df96884-914f-4aba-b8b6-f29717bcb2dc",
+    "title": "Pot hole and hump detection",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-969e985eab2189"
+  },
+  {
+    "id": "0e3dbb8f-be26-4cb0-b68a-8375b0e455c4",
+    "title": "Smart Mirror Using Raspberry Pi",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-6c4bbf7c878116"
+  },
+  {
+    "id": "a5d68225-4d04-4306-8838-1f00a3414344",
+    "title": "Detection And Diagnosis of Covid-19 Using Pnuemonia",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-760f66ef40beaa"
+  },
+  {
+    "id": "f7092b83-c59f-4a59-9224-9d0f201ee99a",
+    "title": "Advanced street lighting system using IOT",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-c8b9d7bd2ab78b"
+  },
+  {
+    "id": "13c8e789-7565-4f63-841a-88cbd540b370",
+    "title": "Automated Paralysis Patient Healthcare System",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-a75e09f11a9aeb"
+  },
+  {
+    "id": "9f7e2a59-815c-43fd-a0e6-99250873aae9",
+    "title": "Secured Smart Shopping Cart",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-5e3f0d8b4b4a8a"
+  },
+  {
+    "id": "1d96bcce-bfd4-42a7-b35c-4eb6061bdc77",
+    "title": "The Proctor – A Robot for Crop Disease Detection using IoRT and YOLO",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-8573980d8a9cdc"
+  },
+  {
+    "id": "28632598-1c11-46d4-bbe9-78504c2ffcfd",
+    "title": "IOT based automated toll tax",
+    "institution": "Bharat Institute of Engineering and Technology (BIET)",
+    "batch": "BIET CSE 2018-19",
+    "seed_key": "pub-biet-b06a42007cfa62"
+  },
+  {
+    "id": "29b7c9c1-7693-4811-81ad-2331eba32ee0",
+    "title": "Smart Chef: Automated Cooking System with Robotic Arm",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-71370a2eb6e6bd"
+  },
+  {
+    "id": "2b32fae0-19c5-446a-bfbb-730180630a4f",
+    "title": "Smart ECG Monitoring System",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-564e9f51891960"
+  },
+  {
+    "id": "339655bb-1842-43c3-9e6f-983228149819",
+    "title": "Automated Patient Room using Neural Network based Speech Recognition",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-3fedc168c30a63"
+  },
+  {
+    "id": "2c0e0ea3-90ca-4a81-9fa1-aca6071a3706",
+    "title": "Design and Development Of Microstrip Antenna For Non-Invasive Glucose Testing",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-dcaaa511e42ead"
+  },
+  {
+    "id": "3e8fa914-2fb9-41f4-9312-a549f92d5b00",
+    "title": "Custom Object distance and detection using computer vision",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-51b50965798466"
+  },
+  {
+    "id": "34dca786-3b67-4597-9ea9-f3465f549fc5",
+    "title": "Home Automation using Alexa",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-83c847f3fe07fe"
+  },
+  {
+    "id": "1d559ed3-d566-456a-861f-337c6ae653dd",
+    "title": "IWear - The IOT based protection jacket for women",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1b635275328986"
+  },
+  {
+    "id": "c490ec7d-75c9-4ab0-80ff-c2ca82000de1",
+    "title": "Automated handwritten character recognition",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-1c172278442b57"
+  },
+  {
+    "id": "48f5b760-f18e-47fc-96ae-265eeae9fcbf",
+    "title": "IoT based COVID alert multi-sensor integrated self-Sanitizing System",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-d07372ac6f2455"
+  },
+  {
+    "id": "f48bde8c-1c63-40fc-9b08-fe8c7c17088e",
+    "title": "Real-Time Face Mask Detection using Deep Learning Network",
+    "institution": "Mahatma Gandhi Institute of Technology (MGIT)",
+    "batch": "MGIT CSE 2021-22",
+    "seed_key": "pub-mgit-04d7ae7e87c226"
+  },
+  {
+    "id": "ee05f004-0bc2-4153-8f61-09f655dc73c9",
+    "title": "Diagnosis and Detection of Covid19 , Pneumonia using Deep Learning",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-c2de47f100162e"
+  },
+  {
+    "id": "dfe996a2-12e4-433e-9611-28313e584659",
+    "title": "An Integrated System for Smart Anomaly Detection and Secure Network Configuration",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-b255534e9f830e"
+  },
+  {
+    "id": "65a63fd0-5248-476c-9c62-01d7977aa1bd",
+    "title": "AudioVision: A Helping system for Visually Impaired",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-957145e70d4815"
+  },
+  {
+    "id": "71270b44-6973-4802-9c32-7e4dd31164f9",
+    "title": "Security Analysis of Android Application - static, dynamic and fuzzing",
+    "institution": "Amrita Vishwa Vidyapeetham (TIFAC-CORE Cyber Security)",
+    "batch": "Amrita CYS 2022-26",
+    "seed_key": "pub-amrita-cys-255835d9440b25"
+  },
+  {
+    "id": "1dd5eb46-14a2-4b92-8c07-a45005e37341",
+    "title": "Fungus Detection Using Deep Learning",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-44935b323c646b"
+  },
+  {
+    "id": "a19d31d0-9199-4fd9-9f3c-a705e7efe67a",
+    "title": "Real-time Map-Based Pollution Monitoring and Data Management",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-e4d6445508a9cb"
+  },
+  {
+    "id": "45d08db5-2ab7-466e-a635-16794d6897ca",
+    "title": "Iot-Fog based healthcare framework to identify and control hypertension attack",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-86fea4990f7b94"
+  },
+  {
+    "id": "52e6b9a3-c557-49ab-bbeb-9d6372b60a86",
+    "title": "Android Based Food Waste Management System",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-88156a2df5dd1e"
+  },
+  {
+    "id": "3bd39c5b-4493-474a-bcb1-5626dee76f92",
+    "title": "Timer controlled automatic switch for 3 phase induction motor.",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-37c0a346348302"
+  },
+  {
+    "id": "f2a9df56-cbd2-4a11-b265-6ab1f21c071f",
+    "title": "A Real time non invasive cholesterol monitoring system",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-3013375f541123"
+  },
+  {
+    "id": "3ffcbc23-7c51-4156-8526-c22bdb50b0ee",
+    "title": "CNC PCB Router",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-816fddabf882d5"
+  },
+  {
+    "id": "977b36a5-7c82-43de-be66-c68fe4dfd176",
+    "title": "Smart and integrated home automation system",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-a8686d2a8e8a35"
+  },
+  {
+    "id": "cc02ad8d-906b-44b2-a9f1-6f20fc5ccc03",
+    "title": "Optimizing Water Parameters Maintenance in Aquaculture",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-3d3b2d1f2f60ad"
+  },
+  {
+    "id": "434c611d-5127-4f78-b0ac-db347cf13337",
+    "title": "Design and Development of IoT Based Sanitary Napkin Vending Machine",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-aa79467ed172cf"
+  },
+  {
+    "id": "5e07dd73-31a2-4be0-b25d-775e554a6b55",
+    "title": "Autonomous Medical Assistive Robot",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-9c8907bd0b025d"
+  },
+  {
+    "id": "5106c4f0-062c-4af3-92d6-e4a1a4620a0d",
+    "title": "IoT based smart Blood bank system",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-faad0019aa2740"
+  },
+  {
+    "id": "8709267a-e019-4e6c-abd3-119335c9c41b",
+    "title": "Wireless Electric vehicle charging robot",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-8d57dd98ab39e4"
+  },
+  {
+    "id": "5ea86c48-a8d9-4aeb-bca4-932572ca038c",
+    "title": "IoT based smart grid system using Ardunio",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-128de48ed35dd1"
+  },
+  {
+    "id": "6dec8fbf-8d83-4ff1-b6aa-632ff99b4652",
+    "title": "Designing a control system and software application to monitor advertisement/display screen",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-c6080359a844f0"
+  },
+  {
+    "id": "ee41e151-11e2-440b-b479-66285cbf062e",
+    "title": "ML Based Secured Voting System",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-5d774e30c56f60"
+  },
+  {
+    "id": "f8a98242-ceed-460c-94ea-f9a6c72e2875",
+    "title": "Voice Tone Analyzer Using Ml",
+    "institution": "AISSMS College of Engineering, Pune",
+    "batch": "AISSMS COE Electronics",
+    "seed_key": "pub-aissms-55c798166b1fd8"
+  }
+]
