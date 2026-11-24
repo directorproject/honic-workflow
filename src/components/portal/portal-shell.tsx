@@ -30,6 +30,7 @@ export function PortalShell({
   mode = "student",
   workspaceBase,
   deskExpiresAt = null,
+  deskPlan = null,
   guest = false,
   forceGuide = false,
   children,
@@ -42,6 +43,7 @@ export function PortalShell({
   workspaceBase?: string;
   /** Student desk membership end date; used to show Free plan / Paid plan in the top bar. */
   deskExpiresAt?: string | null;
+  deskPlan?: string | null;
   /** Anonymous browse: full nav visible, actions locked, sign-in CTA. */
   guest?: boolean;
   /** Server says this student still owes the mandatory product tour. */
@@ -263,7 +265,7 @@ export function PortalShell({
               ) : null}
               {mode === "student" ? (
                 <span data-tour="portal-plan" className="inline-flex">
-                  <PlanModeChip deskExpiresAt={deskExpiresAt} compact />
+                  <PlanModeChip deskExpiresAt={deskExpiresAt} deskPlan={deskPlan} compact />
                 </span>
               ) : null}
               {guest ? (

@@ -166,6 +166,12 @@ export async function portalSaveProfileEssentialsAction(input: ProfileEssentials
     };
     const { error } = await db.from("student_profiles").upsert(row, { onConflict: "user_id" });
     if (error) return { ok: false, message: error.message };
+    try {
+      const { ensureDeskTrial } = await import("@/lib/portal/desk-trial");
+      await ensureDeskTrial(db, user.id);
+    } catch {
+      /* trial grant is best-effort until migration 044 */
+    }
     await markProfileAcademicPending(user.id);
     revalidatePath("/portal");
     revalidatePath("/portal/home");
@@ -298,6 +304,12 @@ export async function portalSaveProfileAction(input: ProfileInput): Promise<Port
       .from("student_profiles")
       .upsert({ user_id: user.id, ...row, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
     if (error) return { ok: false, message: error.message };
+    try {
+      const { ensureDeskTrial } = await import("@/lib/portal/desk-trial");
+      await ensureDeskTrial(db, user.id);
+    } catch {
+      /* trial grant is best-effort until migration 044 */
+    }
     const finishedOnboarding = academicPending || isNewProfile;
     if (finishedOnboarding) await clearProfileOnboardingMeta(user.id);
     revalidatePath("/portal");

@@ -47,7 +47,8 @@ export type DeskPlanId = "monthly" | "semester" | "year";
 export function fileStorageBytesForDeskPlan(deskPlan: string | null | undefined): number {
   if (deskPlan === "year") return YEAR_PLAN_FILE_STORAGE_BYTES;
   if (deskPlan === "semester") return SEMESTER_PLAN_FILE_STORAGE_BYTES;
-  if (deskPlan === "monthly") return MONTHLY_PLAN_FILE_STORAGE_BYTES;
+  // Trial uses the same service limits as the 1-month plan.
+  if (deskPlan === "monthly" || deskPlan === "trial") return MONTHLY_PLAN_FILE_STORAGE_BYTES;
   return FREE_PLAN_FILE_STORAGE_BYTES;
 }
 

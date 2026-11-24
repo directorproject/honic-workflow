@@ -29,13 +29,25 @@ export function freeHideAllowance(hasPaidPlan: boolean): number {
 export function planModeLabel(input: {
   deskExpiresAt?: string | null;
   deskPlan?: string | null;
-}): { mode: "paid" | "free"; title: string; detail: string } {
-  const paid = hasActiveDeskPlan(input.deskExpiresAt);
-  if (!paid) {
+}): { mode: "paid" | "trial" | "free"; title: string; detail: string } {
+  const active = hasActiveDeskPlan(input.deskExpiresAt);
+  if (!active) {
     return {
       mode: "free",
       title: "Free plan",
       detail: "",
+    };
+  }
+  const until = input.deskExpiresAt
+    ? new Date(input.deskExpiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : "";
+  if (String(input.deskPlan ?? "").toLowerCase() === "trial") {
+    return {
+      mode: "trial",
+      title: "2-week free trial",
+      detail: until
+        ? `Full monthly Desk limits until ${until}. Pay a plan to keep access after the trial.`
+        : `Full monthly Desk limits. Pay a plan to keep access after the trial.`,
     };
   }
   const plan =
@@ -44,9 +56,6 @@ export function planModeLabel(input: {
       : input.deskPlan === "monthly"
         ? "Nexis Desk · Monthly"
         : "Nexis Desk · Full year";
-  const until = input.deskExpiresAt
-    ? new Date(input.deskExpiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-    : "";
   return {
     mode: "paid",
     title: plan,

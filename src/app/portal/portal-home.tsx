@@ -283,6 +283,7 @@ export async function PortalHome({
         hasWorkspace={Boolean(membership)}
         hasProgress={hasProgress}
         deskExpiresAt={profile.deskExpiresAt}
+        deskPlan={profile.deskPlan}
       >
         {body}
       </PortalShell>

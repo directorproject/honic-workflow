@@ -190,6 +190,23 @@ export const loadPortalState = cache(async (): Promise<PortalState> => {
   ]);
   if (!p) return base;
 
+  // One-time 2-week free Desk trial (monthly limits) for any registered profile.
+  let deskExpiresAt = p.desk_expires_at ? String(p.desk_expires_at) : null;
+  let deskPlan = p.desk_plan ? String(p.desk_plan) : null;
+  try {
+    const { ensureDeskTrial } = await import("@/lib/portal/desk-trial");
+    const trial = await ensureDeskTrial(db, user.id);
+    if (trial.granted) {
+      deskExpiresAt = trial.deskExpiresAt;
+      deskPlan = trial.deskPlan;
+    } else if (trial.deskExpiresAt != null || trial.deskPlan != null) {
+      deskExpiresAt = trial.deskExpiresAt;
+      deskPlan = trial.deskPlan;
+    }
+  } catch {
+    /* migration missing or transient — portal still loads */
+  }
+
   const profile: StudentProfile = {
     fullName: String(p.full_name),
     regNo: p.reg_no ? String(p.reg_no) : null,
@@ -205,8 +222,8 @@ export const loadPortalState = cache(async (): Promise<PortalState> => {
     partner: p.partner ? String(p.partner) : null,
     trackedProjectId: p.tracked_project_id ? String(p.tracked_project_id) : null,
     changeCredits: Number(p.change_credits ?? 0),
-    deskExpiresAt: p.desk_expires_at ? String(p.desk_expires_at) : null,
-    deskPlan: p.desk_plan ? String(p.desk_plan) : null,
+    deskExpiresAt,
+    deskPlan,
   };
 
   return {

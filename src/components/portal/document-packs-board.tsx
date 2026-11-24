@@ -139,8 +139,8 @@ export function DocumentPacksBoard({
               Pick the length that fits
             </h2>
             <p className="text-dash-muted-foreground mt-1.5 text-[13px] leading-relaxed sm:mt-2 sm:text-sm">
-              Paid plans include {FREE_TITLE_SLOTS} free hides and peer-help posting. Renewals stack — you never lose
-              days.
+              {PRICING_BOARD.trial.note} Paid plans include {FREE_TITLE_SLOTS} free hides and peer-help posting.
+              Renewals stack — you never lose days.
             </p>
           </div>
 
@@ -397,7 +397,7 @@ function FreePlanCard({ active }: { active: boolean }) {
       eyebrow="Start here"
       name="Free"
       price="TSh 0"
-      priceNote="Browse and select anytime"
+      priceNote="2-week Desk trial on register"
       active={active}
       footer={
         <Link href="/portal/titles" className={`${SECONDARY} w-full`}>
@@ -405,7 +405,14 @@ function FreePlanCard({ active }: { active: boolean }) {
         </Link>
       }
     >
-      <FeatureList items={["Literature review browse", "Select titles for free", "Browse peer help", "Pay per hide when you need it"]} />
+      <FeatureList
+        items={[
+          "2-week free Desk trial (monthly limits)",
+          "Literature review browse",
+          "Select titles for free",
+          "After trial: browse peer help; pay per hide",
+        ]}
+      />
     </PlanShell>
   );
 }

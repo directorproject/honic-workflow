@@ -443,9 +443,11 @@ function TitleDetail({
               <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
                 <span
                   className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                    plan.mode === "paid"
-                      ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-200"
-                      : "bg-dash-muted text-dash-muted-foreground"
+                    plan.mode === "trial"
+                      ? "bg-sky-500/15 text-sky-800 dark:text-sky-200"
+                      : plan.mode === "paid"
+                        ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-200"
+                        : "bg-dash-muted text-dash-muted-foreground"
                   }`}
                 >
                   {plan.title}

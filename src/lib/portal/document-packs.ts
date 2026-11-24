@@ -73,6 +73,10 @@ export function honicShareTsh(priceTsh: number): number {
  * - Project documents (literature / earlier project files): separate unlock.
  */
 export const PRICING_BOARD = {
+  trial: {
+    days: 14,
+    note: "Every registered account gets a free 2-week Nexis Desk trial with the same service limits as the Monthly plan. Access ends after 14 days unless you pay a plan.",
+  },
   membership: [
     {
       id: "monthly",

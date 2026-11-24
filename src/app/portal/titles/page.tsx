@@ -109,6 +109,7 @@ export default async function PortalTitlesPage() {
           hasWorkspace={Boolean(membership)}
           hasProgress={Boolean(profile.trackedProjectId)}
           deskExpiresAt={profile.deskExpiresAt}
+          deskPlan={profile.deskPlan}
           viewer={{
             name: profile.fullName || user.email,
             detail:

@@ -44,6 +44,7 @@ import {
   TITLE_FILTER_ALL,
   TITLE_FILTER_NONE,
   titleDetailHref,
+  titleMatchesKeywordSearch,
   type TitleListFilters,
 } from "@/lib/portal/title-list-filters";
 
@@ -89,6 +90,7 @@ export function CohortTitleBoard(props: {
   hasWorkspace?: boolean;
   hasProgress?: boolean;
   deskExpiresAt?: string | null;
+  deskPlan?: string | null;
 }) {
   return (
     <TitlesFrame {...props} catalogueTools>
@@ -118,6 +120,7 @@ function TitlesFrameBody({
   hasWorkspace = false,
   hasProgress = false,
   deskExpiresAt = null,
+  deskPlan = null,
   catalogueTools = false,
   children,
 }: {
@@ -133,6 +136,7 @@ function TitlesFrameBody({
   hasWorkspace?: boolean;
   hasProgress?: boolean;
   deskExpiresAt?: string | null;
+  deskPlan?: string | null;
   /** Year / department / institution filters at the top of the titles side nav. */
   catalogueTools?: boolean;
   children: ReactNode;
@@ -155,7 +159,12 @@ function TitlesFrameBody({
   const institution = onListPage ? urlFilters.institution : TITLE_FILTER_ALL;
   const department = onListPage ? urlFilters.department : TITLE_FILTER_ALL;
   const level = onListPage ? urlFilters.level : TITLE_FILTER_ALL;
+  const q = onListPage ? urlFilters.q : "";
   const listFilters = onListPage ? urlFilters : parseTitleListFilters(searchParams);
+  const [searchDraft, setSearchDraft] = useState(q);
+  useEffect(() => {
+    setSearchDraft(q);
+  }, [q]);
 
   const setYear = (value: string) => {
     if (!onListPage) return;
@@ -172,6 +181,12 @@ function TitlesFrameBody({
   const setLevel = (value: string) => {
     if (!onListPage) return;
     pushTitleListFilters(router, pathname, { ...urlFilters, level: value });
+  };
+  const commitSearch = (value: string) => {
+    if (!onListPage) return;
+    const next = value.trim().replace(/\s+/g, " ").slice(0, 120);
+    if (next === urlFilters.q) return;
+    pushTitleListFilters(router, pathname, { ...urlFilters, q: next });
   };
 
   useEffect(() => {
@@ -222,7 +237,11 @@ function TitlesFrameBody({
   const missingInstitution = items.some((item) => !item.institution);
   const slotsLeft = MAX_TITLE_CHOICES - mine.length;
   const filtering =
-    year !== TITLE_FILTER_ALL || institution !== TITLE_FILTER_ALL || department !== TITLE_FILTER_ALL || level !== TITLE_FILTER_ALL;
+    year !== TITLE_FILTER_ALL ||
+    institution !== TITLE_FILTER_ALL ||
+    department !== TITLE_FILTER_ALL ||
+    level !== TITLE_FILTER_ALL ||
+    Boolean(q);
 
   const matched = items.filter((item) => {
     if (year !== TITLE_FILTER_ALL && item.yearLabel !== year) return false;
@@ -237,6 +256,7 @@ function TitlesFrameBody({
       const itemLevel = titleCohortKey(item.batch, item.source);
       if (itemLevel !== level) return false;
     }
+    if (q && !titleMatchesKeywordSearch(item, q)) return false;
     return true;
   });
 
@@ -276,6 +296,24 @@ function TitlesFrameBody({
           ) : null}
         </div>
         <div className="space-y-3 px-3">
+          <label className="block">
+            <span className={`mb-1 block text-[11px] font-semibold tracking-wide uppercase ${labelTone}`}>Search</span>
+            <input
+              type="search"
+              value={searchDraft}
+              onChange={(e) => setSearchDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commitSearch(searchDraft);
+                }
+              }}
+              onBlur={() => commitSearch(searchDraft)}
+              placeholder="Keywords in title or brief…"
+              className={field}
+              aria-label="Search titles by keyword"
+            />
+          </label>
           <Filter
             label="Year"
             value={year}
@@ -382,7 +420,9 @@ function TitlesFrameBody({
       </button>
       <div className="min-w-0 flex-1 basis-[10rem]">
         <p className="text-dash-foreground flex flex-wrap items-baseline gap-x-2">
-          <span className="text-base font-semibold tracking-tight tabular-nums sm:text-xl">{items.length}</span>
+          <span className="text-base font-semibold tracking-tight tabular-nums sm:text-xl">
+            {(guestTotalCount ?? items.length).toLocaleString("en-TZ")}
+          </span>
           <span className="text-dash-muted-foreground text-[11px] sm:text-sm">titles on this site</span>
         </p>
         <p className="text-dash-muted-foreground mt-0.5 max-w-xl truncate text-[10px] leading-relaxed sm:text-xs">
@@ -390,7 +430,7 @@ function TitlesFrameBody({
         </p>
       </div>
       <div className="border-dash-border ml-auto flex shrink-0 flex-wrap items-center justify-end gap-0.5 border-l pl-2 sm:gap-1 sm:pl-3">
-        {!readOnly ? <PlanModeChip deskExpiresAt={deskExpiresAt} compact /> : null}
+        {!readOnly ? <PlanModeChip deskExpiresAt={deskExpiresAt} deskPlan={deskPlan} compact /> : null}
         {viewer?.homeHref ? (
           <Link href={viewer.homeHref} className="text-dash-muted-foreground hover:bg-dash-muted hover:text-dash-foreground inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold sm:px-2.5">
             <HomeIcon />
@@ -617,9 +657,15 @@ function TitleCatalogue() {
     proposalCount,
     listFilters,
   } = useTitlesFrame();
+  const pathname = usePathname();
+  const router = useRouter();
   const [showEarlier, setShowEarlier] = useState(true);
   const [showStudy, setShowStudy] = useState(true);
   const [visibleCount, setVisibleCount] = useState(TITLE_LIST_PAGE_SIZE);
+  const [searchDraft, setSearchDraft] = useState(listFilters.q);
+  useEffect(() => {
+    setSearchDraft(listFilters.q);
+  }, [listFilters.q]);
 
   const visible = (item: ReviewItem) => (isFinalYearCatalogueItem(item) ? showEarlier : showStudy);
   const visibleMatched = matched.filter(visible);
@@ -631,7 +677,7 @@ function TitleCatalogue() {
   // Reset the paint window when filters / shuffle / category toggles change.
   useEffect(() => {
     setVisibleCount(TITLE_LIST_PAGE_SIZE);
-  }, [listFilters.year, listFilters.department, listFilters.institution, listFilters.level, order, showEarlier, showStudy]);
+  }, [listFilters.year, listFilters.department, listFilters.institution, listFilters.level, listFilters.q, order, showEarlier, showStudy]);
 
   const totalVisible = visibleMatched.length;
   const hasMore = totalVisible > visibleCount;
@@ -677,6 +723,38 @@ function TitleCatalogue() {
   return (
     <>
       <div className="mx-3 mt-4 mb-4 sm:mx-8 sm:mt-5 sm:mb-5">
+        <form
+          className="border-dash-border bg-dash-card mb-3 flex gap-2 rounded-lg border px-3 py-2.5 sm:px-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const next = searchDraft.trim().replace(/\s+/g, " ").slice(0, 120);
+            pushTitleListFilters(router, pathname, { ...listFilters, q: next });
+          }}
+        >
+          <input
+            type="search"
+            value={searchDraft}
+            onChange={(e) => setSearchDraft(e.target.value)}
+            placeholder="Search titles by keyword…"
+            className={`${LINE} flex-1 border-0 py-1.5`}
+            aria-label="Search titles by keyword"
+          />
+          <button type="submit" className="bg-dash-accent shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold text-white">
+            Search
+          </button>
+          {listFilters.q ? (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchDraft("");
+                pushTitleListFilters(router, pathname, { ...listFilters, q: "" });
+              }}
+              className="text-dash-muted-foreground hover:text-dash-foreground shrink-0 rounded-lg px-2 py-1.5 text-xs font-semibold"
+            >
+              Clear
+            </button>
+          ) : null}
+        </form>
         <div className="border-dash-border bg-dash-card flex flex-col gap-3 rounded-lg border px-3 py-3 sm:flex-row sm:items-stretch sm:gap-0 sm:px-5">
           <div className="grid min-w-0 flex-1 gap-0 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
             <CategoryCard

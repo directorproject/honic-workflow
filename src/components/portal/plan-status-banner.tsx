@@ -37,13 +37,13 @@ export function PlanStatusBanner({
           <p className="text-dash-foreground font-semibold tabular-nums">
             {selectedCount} shortlisted · {hiddenCount} hidden
           </p>
-          {plan.mode === "paid" && freeRemaining != null ? (
+          {(plan.mode === "paid" || plan.mode === "trial") && freeRemaining != null ? (
             <p className="text-dash-muted-foreground mt-1">{freeRemaining} free hides left</p>
           ) : (
             <p className="text-dash-muted-foreground mt-1">Pay to hide and make yours</p>
           )}
           <Link href="/portal/packs" className="text-dash-accent mt-2 inline-block font-semibold">
-            {plan.mode === "paid" ? "Manage plan →" : "See paid plans →"}
+            {plan.mode === "paid" ? "Manage plan →" : plan.mode === "trial" ? "Keep access after trial →" : "See paid plans →"}
           </Link>
         </div>
       </div>

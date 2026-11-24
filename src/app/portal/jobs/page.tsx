@@ -61,6 +61,7 @@ export default async function PortalJobsPage() {
         hasWorkspace={Boolean(membership)}
         hasProgress={Boolean(profile?.trackedProjectId)}
         deskExpiresAt={profile?.deskExpiresAt ?? null}
+        deskPlan={profile?.deskPlan ?? null}
       >
         <JobsBrowseBoard openJobs={openJobs} canUseJobs={canUseJobs} guest={guest} needsPolicy={needsPolicy} />
       </PortalShell>

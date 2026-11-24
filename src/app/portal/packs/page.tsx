@@ -40,17 +40,19 @@ export default async function DocumentPacksPage() {
           .join(" · ") || user!.email;
 
   const planActive = !guest && hasActiveDeskPlan(profile?.deskExpiresAt);
+  const planName =
+    profile?.deskPlan === "trial"
+      ? "2-week free trial"
+      : profile?.deskPlan === "semester"
+        ? "Semester"
+        : profile?.deskPlan === "monthly"
+          ? "Monthly"
+          : "Full year";
   const planLabel = guest
-    ? "Preview · create an account to activate"
+    ? "Preview · create an account for a free 2-week trial"
     : planActive
-      ? `Active · ${
-          profile?.deskPlan === "semester"
-            ? "Semester"
-            : profile?.deskPlan === "monthly"
-              ? "Monthly"
-              : "Full year"
-        } · until ${formatShort(profile?.deskExpiresAt)}`
-      : "Free plan · pay to hide and make yours";
+      ? `Active · ${planName} · until ${formatShort(profile?.deskExpiresAt)}`
+      : "Free plan · pay to keep Desk after trial";
 
   return (
     <Suspense fallback={<main className="bg-dash-canvas min-h-screen" />}>
@@ -61,6 +63,7 @@ export default async function DocumentPacksPage() {
         hasWorkspace={Boolean(membership)}
         hasProgress={Boolean(profile?.trackedProjectId)}
         deskExpiresAt={profile?.deskExpiresAt ?? null}
+        deskPlan={profile?.deskPlan ?? null}
       >
         <DocumentPacksBoard
           signedIn={!guest}
