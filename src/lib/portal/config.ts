@@ -1,3 +1,6 @@
+/** User-facing name for the /portal/titles catalogue (formerly “Literature review”). */
+export const FINAL_YEAR_TITLES_LABEL = "Final year titles";
+
 /**
  * Honic Nexis / Nexis Desk membership (mobile money via Snippe).
  * Paid plan: up to 2 title hides free; Jobs posting & applying included.

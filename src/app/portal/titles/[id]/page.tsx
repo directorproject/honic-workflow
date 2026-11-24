@@ -3,7 +3,6 @@ import { after } from "next/server";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
-import { publishTitleDocument } from "@/app/portal/title-claim-actions";
 import { NexisBrandBar } from "@/components/brand/nexis-brand-bar";
 import { TitlesFrame } from "@/components/portal/cohort-title-board";
 import { DocumentsUnlockPanel } from "@/components/portal/documents-unlock-panel";
@@ -19,10 +18,9 @@ import { isTemporaryBrief } from "@/lib/portal/temporary-title-brief";
 import { studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
 import { hasProjectDocumentsAccess } from "@/lib/portal/document-access";
-import { TitleEngagementStats } from "@/components/portal/title-engagement-stats";
-import { claimsForTarget, publishedDocuments, type TitleClaim, type TitleTargetKind } from "@/lib/portal/title-claims";
+import { claimsForTarget, publishedDocuments, type TitleTargetKind } from "@/lib/portal/title-claims";
 import { recordPageVisit } from "@/lib/portal/page-visits";
-import { engagementForTargets, recordTitleClick, type TitleEngagement } from "@/lib/portal/title-engagement";
+import { recordTitleClick } from "@/lib/portal/title-engagement";
 import { projectMark } from "@/lib/portal/project-mark";
 import { loadGuestLiteratureCatalogue, loadStudentLiteratureCatalogue } from "@/lib/portal/literature-guest-cache";
 import { loadReviewItemWithCatalogue, type ReviewItem } from "@/lib/portal/title-choices";
@@ -48,15 +46,7 @@ export const metadata = { title: "Title · Honic Company Limited" };
 const NOTICES: Record<string, string> = {
   selected: "Title shortlisted. Classmates can still see it until you pay to make it yours and hide it.",
   owned: "This title is yours and hidden from classmates at your institution / course / level.",
-  claimed: "Your claim was sent. It stays hidden until an admin confirms it.",
-  waiting: "You already asked for this project. It is waiting for an admin.",
-  taken: "Someone already owns this project.",
   published: "The document is published. Viewers need a Nexis Desk plan or documents unlock to open it.",
-  missing: "Add the missing name or file.",
-  large: "That file is larger than 25 MB.",
-  owner: "Only the confirmed owner can publish documents.",
-  upload: "The document could not be stored.",
-  unavailable: "Claims are not ready yet.",
   brief_cleared: "Temporary brief deleted. Upload a PDF to rewrite problem and objectives.",
   brief_rewritten: "Brief rewritten from the uploaded PDF.",
 };
@@ -112,7 +102,7 @@ export default async function PortalTitlePage(props: {
 
   const cataloguePromise =
     guest || state.isStaff
-      ? loadGuestLiteratureCatalogue()
+      ? loadGuestLiteratureCatalogue({ forGuest: guest })
       : loadStudentLiteratureCatalogue(user!.id, profile!);
   const membershipPromise =
     user && !state.isStaff ? findMembership(db, user.id) : Promise.resolve(null);
@@ -163,7 +153,7 @@ export default async function PortalTitlePage(props: {
     !guest && !state.isStaff && user ? confirmed.find((claim) => claim.requesterId === user.id) ?? null : null;
   const ownerId = confirmed[0]?.requesterId ?? null;
 
-  const [documents, canViewDocuments, engagementMap] = await Promise.all([
+  const [documents, canViewDocuments] = await Promise.all([
     confirmed.length ? publishedDocuments(db, confirmed.map((claim) => claim.id)) : Promise.resolve([]),
     !guest && user
       ? hasProjectDocumentsAccess(db, {
@@ -173,9 +163,6 @@ export default async function PortalTitlePage(props: {
           isDocumentOwner: Boolean(mineClaim),
         })
       : Promise.resolve(false),
-    target
-      ? engagementForTargets(db, [target])
-      : Promise.resolve(new Map<string, TitleEngagement>()),
   ]);
 
   const files = documents.map((document) => ({
@@ -203,7 +190,6 @@ export default async function PortalTitlePage(props: {
     });
   }
 
-  const engagement = target ? engagementMap.get(`${target.kind}:${target.id}`) ?? null : null;
   const isMine = Boolean(item && review.mine.some((entry) => entry.id === item.id));
   const viewer = guest
     ? { name: "Guest", detail: "Preview · create account for full catalogue", homeHref: "/portal/home" as string | null }
@@ -253,7 +239,7 @@ export default async function PortalTitlePage(props: {
             <Link href={detailNext} className="text-dash-accent font-semibold">
               Create a free account
             </Link>{" "}
-            to open the full catalogue, shortlist, claim, or open source files.
+            to open the full catalogue, shortlist, or open source files.
           </p>
         ) : null}
         {notice ? <p className="border-dash-border mb-6 rounded-lg border bg-emerald-500/10 px-3 py-2 text-sm">{notice}</p> : null}
@@ -265,8 +251,6 @@ export default async function PortalTitlePage(props: {
             routeId={routeId}
             department={item.courseCode ? (courseName.get(item.courseCode) ?? item.courseCode) : null}
             files={files}
-            myClaim={mineClaim}
-            engagement={engagement}
             related={related}
             isMine={isMine}
             selectedCount={review.mine.length}
@@ -334,8 +318,6 @@ function TitleDetail({
   routeId,
   department,
   files,
-  myClaim,
-  engagement,
   related,
   isMine,
   selectedCount,
@@ -354,8 +336,6 @@ function TitleDetail({
   routeId: string;
   department: string | null;
   files: { id: string; name: string; href: string | null }[];
-  myClaim: TitleClaim | null;
-  engagement: TitleEngagement | null;
   related: { department: ReviewItem[]; institution: ReviewItem[]; year: ReviewItem[] };
   isMine: boolean;
   selectedCount: number;
@@ -595,31 +575,6 @@ function TitleDetail({
             )}
           </section>
 
-          {myClaim ? (
-            <section className="border-dash-border mt-10 space-y-4 border-t pt-6">
-              <div>
-                <h2 className="text-dash-foreground text-sm font-semibold">Ownership confirmed</h2>
-                <p className="text-dash-muted-foreground mt-1 text-xs">
-                  This title is confirmed as yours. Review how many people open it and open your documents.
-                </p>
-                <TitleEngagementStats stats={engagement} />
-              </div>
-              <form action={publishTitleDocument} className="space-y-3">
-                <h2 className="text-dash-foreground text-sm font-semibold">Publish a document</h2>
-                <p className="text-dash-muted-foreground text-xs">A published document is shown to anyone who opens this title.</p>
-                <input type="hidden" name="claimId" value={myClaim.id} />
-                <input type="hidden" name="routeId" value={routeId} />
-                <label className="block text-sm">
-                  <span className="text-dash-muted-foreground text-xs">Document name</span>
-                  <input name="name" required className="border-dash-border mt-1 w-full border-b bg-transparent py-2 text-sm outline-none" />
-                </label>
-                <input name="file" type="file" required className="text-sm" />
-                <button type="submit" className="text-dash-foreground border-b border-current text-sm font-semibold">
-                  Publish
-                </button>
-              </form>
-            </section>
-          ) : null}
         </div>
 
         <aside

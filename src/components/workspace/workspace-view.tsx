@@ -69,7 +69,7 @@ export function workspaceTabs(extra: { progress?: boolean; title?: boolean; supe
   if (extra.supervisor) return BASE_TABS.filter((t) => SUPERVISOR_TABS.includes(t.key));
   const tabs = [...BASE_TABS];
   if (extra.progress) tabs.push({ key: "progress", label: "Honic progress", group: "Honic" });
-  if (extra.title) tabs.push({ key: "title", label: "My title", group: "Title" });
+  if (extra.title) tabs.push({ key: "title", label: "Selected title", group: "Title" });
   return tabs;
 }
 

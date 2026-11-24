@@ -81,7 +81,7 @@ export function SelectedTitlesBoard({
           <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.22em] uppercase">Your shortlist</p>
           <h2 className="text-dash-foreground mt-1 text-2xl font-semibold tracking-tight">Selected titles</h2>
           <p className="text-dash-muted-foreground mt-2 max-w-xl text-sm leading-relaxed">
-            Titles you are studying sit here with your partner. Open each one to read the literature, plan changes, and
+            Titles you are studying sit here with your partner. Open each one to read the brief, plan changes, and
             follow what you have already shortlisted or protected.
           </p>
         </div>
@@ -98,7 +98,7 @@ export function SelectedTitlesBoard({
         {selected.length === 0 ? (
           <article className="relative min-h-[14rem] px-0 py-6 md:col-span-2 md:px-6 md:pl-0">
             <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">No titles yet</p>
-            <h3 className="text-dash-foreground mt-4 text-xl font-semibold tracking-tight">Open a title from literature</h3>
+            <h3 className="text-dash-foreground mt-4 text-xl font-semibold tracking-tight">Open a final year title</h3>
             <p className="text-dash-muted-foreground mt-2 max-w-[28rem] text-sm leading-relaxed">
               {hasPaidPlan
                 ? `Your paid plan includes ${FREE_TITLE_SLOTS} free hides.`
@@ -106,7 +106,7 @@ export function SelectedTitlesBoard({
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link href="/portal/titles" className="text-dash-accent text-sm font-semibold underline-offset-4 hover:underline">
-                Literature review →
+                Final year titles →
               </Link>
               {needsPayToAdd ? (
                 <button
@@ -215,14 +215,14 @@ export function SelectedTitlesBoard({
           <p className="text-dash-foreground text-sm font-semibold">Hide another title</p>
           <p className="text-dash-muted-foreground mt-1 max-w-xl text-sm">
             {needsPayToAdd
-              ? `Buy a hide credit for TSh ${hideFee}, then pick from the literature review.`
+              ? `Buy a hide credit for TSh ${hideFee}, then pick from final year titles.`
               : entitlement && entitlement.hideCredits > 0
                 ? `You have ${entitlement.hideCredits} hide credit${entitlement.hideCredits === 1 ? "" : "s"}. Choose the next title.`
                 : `You still have ${entitlement?.freeRemaining ?? 0} free hide${(entitlement?.freeRemaining ?? 0) === 1 ? "" : "s"} on your plan.`}
           </p>
           <div className="mt-3 flex flex-wrap gap-3">
             <Link href="/portal/titles" className="text-dash-accent text-sm font-semibold underline-offset-4 hover:underline">
-              Literature review →
+              Final year titles →
             </Link>
             {needsPayToAdd ? (
               <button

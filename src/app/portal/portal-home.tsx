@@ -13,8 +13,7 @@ import { WorkspaceView } from "@/components/workspace/workspace-view";
 import type { PortalState } from "@/lib/portal/data";
 import { listPaymentsForUser } from "@/lib/portal/payments-ledger";
 import { loadPayoutAccount } from "@/lib/portal/payout-accounts";
-import { claimsForUser, listOwnershipCatalogue } from "@/lib/portal/title-claims";
-import { engagementForTargets, engagementKey } from "@/lib/portal/title-engagement";
+import { claimsForUser } from "@/lib/portal/title-claims";
 import { loadTitleChoices } from "@/lib/portal/title-choices";
 import { fetchPortalHighlights, formatHighlightCount, type PortalHighlights } from "@/lib/portal/highlights";
 import { hasActiveDeskPlan, titleHideEntitlement } from "@/lib/portal/title-limits";
@@ -28,19 +27,8 @@ import { defaultEndDate, todayIso } from "@/lib/workspace/dates";
 import { loadWorkspaceBundle } from "@/lib/workspace/load";
 
 const PROJECT_NOTICES: Record<string, string> = {
-  posted: "Your new title was sent for review.",
-  claimed: "Your ownership claim was sent for review.",
-  appealed: "Your appeal was sent for review. Admin will check your proof before changing ownership.",
-  missing: "Type a clearer title (at least 8 characters) for a new project.",
-  pick_title: "Search and select a matching title first, or continue as new.",
-  answers: "Answer every ownership question.",
-  files: "Upload valid project files (PDF, Word, PowerPoint, or image, max 25 MB) and ownership proof if you chose upload.",
-  upload: "A file could not be stored. Try again with a smaller file.",
-  waiting: "You already have a pending request for this title.",
-  yours: "You already own this title.",
-  migrate: "Ownership storage is not ready yet. Ask staff to apply the latest database migration.",
-  unavailable: "Claims are not ready yet.",
-  signin: "Sign in to claim a title.",
+  selected: "Title added to your shortlist.",
+  owned: "This title is hidden from classmates at your institution / course / level.",
 };
 
 /** Desk tools shown in the side nav — free users can open them, but services stay locked. */
@@ -125,21 +113,6 @@ export async function PortalHome({
 
   let projectsPanel: React.ReactNode = null;
   if (needsProjectsData) {
-    const [claims, catalogue] = await Promise.all([
-      db ? claimsForUser(db, user.id) : Promise.resolve([]),
-      db ? listOwnershipCatalogue(db) : Promise.resolve([]),
-    ]);
-    const confirmedTargets = claims
-      .filter((c) => c.status === "confirmed" && c.targetKind && c.targetId)
-      .map((c) => ({ kind: c.targetKind!, id: c.targetId! }));
-    const engagementMap = db && confirmedTargets.length ? await engagementForTargets(db, confirmedTargets) : new Map();
-    const engagementByTarget = Object.fromEntries([...engagementMap.entries()].map(([k, v]) => [k, v]));
-    for (const t of confirmedTargets) {
-      const key = engagementKey(t.kind, t.id);
-      if (!engagementByTarget[key]) {
-        engagementByTarget[key] = { targetKind: t.kind, targetId: t.id, clickCount: 0, buyCount: 0 };
-      }
-    }
     const entitlement = titleHideEntitlement({
       deskExpiresAt: profile.deskExpiresAt,
       changeCredits: profile.changeCredits,
@@ -156,12 +129,9 @@ export async function PortalHome({
           phone={profile.phone}
           changeCredits={profile.changeCredits}
           projectStarted={linked}
-          claims={claims}
-          catalogue={catalogue}
           entitlement={entitlement}
           deskExpiresAt={profile.deskExpiresAt}
           deskPlan={profile.deskPlan}
-          engagementByTarget={engagementByTarget}
         />
       </div>
     );
@@ -300,7 +270,7 @@ function FreeHomeExplore({ name, highlights }: { name: string; highlights: Porta
   const jobsCount = formatHighlightCount(highlights.openJobs);
 
   const freeTools = [
-    { href: "/portal/titles", title: "Literature review", blurb: `${titleCount} titles you can browse and shortlist.` },
+    { href: "/portal/titles", title: "Final year titles", blurb: `${titleCount} titles you can browse and shortlist.` },
     { href: "/portal/jobs", title: "Peer help", blurb: "See open jobs and how students help each other." },
   ];
 

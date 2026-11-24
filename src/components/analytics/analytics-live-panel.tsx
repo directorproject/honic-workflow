@@ -61,8 +61,8 @@ function pageLabel(path: string): string {
   const p = displayPath(path);
   if (p === "/" || p === "/portal") return "Student portal home";
   if (p === "/portal/home") return "My home";
-  if (p === "/portal/titles") return "Literature / titles list";
-  if (p === "/portal/titles/mine" || p.startsWith("/portal/titles/mine/")) return "My titles";
+  if (p === "/portal/titles") return "Final year titles list";
+  if (p === "/portal/titles/mine" || p.startsWith("/portal/titles/mine/")) return "Selected titles";
   if (p.startsWith("/portal/titles/")) return "Title detail";
   if (p === "/portal/packs") return "Plans & access";
   if (p === "/portal/jobs") return "Peer help";

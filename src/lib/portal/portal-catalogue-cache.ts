@@ -58,16 +58,17 @@ export async function cachedLastYearProjects(): Promise<EarlierRow[]> {
   )();
 }
 
-/** Cached open catalogue for guests/staff list views (no shortlist logic). */
-export async function loadGuestLiteratureCatalogue() {
+/** Cached open catalogue for guests (hides peer-hidden titles) or staff browse (full list). */
+export async function loadGuestLiteratureCatalogue(options?: { forGuest?: boolean }) {
+  const forGuest = options?.forGuest ?? true;
   return unstable_cache(
     async () => {
       const db = getSupabaseAdminClient();
       if (!db) return { mine: [], items: [] as Awaited<ReturnType<typeof loadLiterature>>["items"] };
       // Keep this under Next's 2MB unstable_cache limit — briefs load on Read expand.
-      return loadLiterature(db, null, null, { includeBriefs: false });
+      return loadLiterature(db, null, null, { includeBriefs: false, guestCatalogue: forGuest });
     },
-    ["portal-literature-guest-v5"],
+    ["portal-literature-guest-v6", forGuest ? "guest" : "staff"],
     { revalidate: 300, tags: [LITERATURE_CATALOGUE_TAG] },
   )();
 }

@@ -11,7 +11,7 @@ export { FREE_TITLE_SLOTS, EXTRA_TITLE_HIDE_FEE_TSH, PAID_PLAN_FREE_HIDES, FREE_
 export const MAX_TITLE_CHOICES = 20;
 
 /** Guests may browse this many titles before Create account is required. */
-export const GUEST_TITLE_PREVIEW_LIMIT = 20;
+export const GUEST_TITLE_PREVIEW_LIMIT = 10;
 
 /** How many titles to paint at first / each Load more on the literature list. */
 export const TITLE_LIST_PAGE_SIZE = 30;

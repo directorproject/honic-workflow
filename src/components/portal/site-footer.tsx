@@ -13,8 +13,8 @@ const SUPPORT = [
 
 const PORTAL_LINKS = [
   { href: "/portal", label: "Student portal", key: "footer-portal" },
-  { href: "/portal/titles", label: "Literature review", key: "footer-titles" },
-  { href: "/portal/home?tab=projects", label: "My projects & titles", key: "footer-projects" },
+  { href: "/portal/titles", label: "Final year titles", key: "footer-titles" },
+  { href: "/portal/home?tab=projects", label: "Selected titles", key: "footer-projects" },
   { href: "/portal/jobs", label: "Peer help", key: "footer-jobs" },
   { href: "/portal/packs", label: "Plans & access", key: "footer-packs" },
 ] as const;
@@ -57,7 +57,7 @@ export function SiteFooter({
           <div className="sm:col-span-2 lg:col-span-5">
             <NexisWordmark href="/portal" size="lg" subtitle="Honic Company Limited" />
             <p className="mt-4 max-w-md text-sm leading-relaxed">
-              Engineering project support for students and institutions: titles, literature review, workspace, fabrication,
+              Engineering project support for students and institutions: final year titles, workspace, fabrication,
               and project follow-up from Dar es Salaam, Tanzania.
             </p>
             <p className="mt-4 text-sm">

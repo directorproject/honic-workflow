@@ -152,11 +152,11 @@ export function ExploreFeaturePanel({
               </TrackedLink>
               <TrackedLink
                 linkKey="cta-explore-titles"
-                trackLabel="Browse literature free"
+                trackLabel="Browse final year titles free"
                 href="/portal/titles"
                 className="text-dash-accent mt-3 inline-flex w-full justify-center text-xs font-semibold"
               >
-                Or browse literature free →
+                Or browse final year titles free →
               </TrackedLink>
             </>
           ) : blockedByWorkspace ? (

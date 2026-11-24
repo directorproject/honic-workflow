@@ -58,7 +58,7 @@ export function TitleRelated({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-dash-foreground text-sm font-semibold">Related titles</h2>
-          <p className="text-dash-muted-foreground mt-1 text-xs">Continue your literature from nearby titles.</p>
+          <p className="text-dash-muted-foreground mt-1 text-xs">Continue from nearby final year titles.</p>
         </div>
         {current.href ? (
           <Link href={current.href} className="text-dash-accent text-xs font-semibold">

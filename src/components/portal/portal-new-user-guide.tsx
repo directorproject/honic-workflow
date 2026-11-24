@@ -90,7 +90,7 @@ const STEPS: Step[] = [
   },
   {
     id: "literature",
-    title: "Literature review",
+    title: "Final year titles",
     body: "What it is: the title catalogue. Browse ideas for your course, select one free to keep it yours on the list, then hide it so classmates at your college, course, and level cannot pick the same title.",
     target: "[data-tour='portal-nav-literature']",
     placement: "right",
@@ -107,7 +107,7 @@ const STEPS: Step[] = [
   {
     id: "you",
     title: "You",
-    body: "Your account area — projects & titles you hold, payments, account details, and Plans & access.",
+    body: "Your account area — selected titles, payments, account details, and Plans & access.",
     target: "[data-tour='portal-nav-you']",
     placement: "right",
     openMenu: true,

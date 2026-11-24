@@ -14,7 +14,7 @@ export const runtime = "nodejs";
 export const metadata = {
   title: "Honic Nexis · Student & supervisor portal",
   description:
-    "Honic Nexis — student and supervisor project portal by Honic Company Limited. Plans, literature, jobs, and project workspace.",
+    "Honic Nexis — student and supervisor project portal by Honic Company Limited. Plans, final year titles, jobs, and project workspace.",
   robots: { index: true, follow: true },
   manifest: "/portal.webmanifest",
   appleWebApp: { capable: true, title: "Honic Nexis", statusBarStyle: "default" as const },

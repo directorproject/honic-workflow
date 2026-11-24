@@ -65,7 +65,7 @@ export function TitleSelectAction({
     startTransition(async () => {
       const result = await portalOwnAndHideTitleAction(proposalId);
       if (!result.ok) {
-        setError(result.message ?? "Could not claim this title.");
+        setError(result.message ?? "Could not update this title.");
         if (/pay|TSh|hide/i.test(result.message ?? "")) openPay();
         return;
       }
@@ -104,7 +104,7 @@ export function TitleSelectAction({
         <div className="text-right">
           <p className="text-dash-foreground text-sm font-semibold">Preview only</p>
           <p className="text-dash-muted-foreground mt-1 text-xs leading-relaxed">
-            You can read this title. Sign in to shortlist it or claim ownership.
+            You can read this title. Sign in to shortlist it or hide it from classmates.
           </p>
           <Link href="/portal?auth=signin" className="text-dash-accent mt-2 inline-block text-xs font-semibold">
             Sign in to use →
@@ -123,7 +123,7 @@ export function TitleSelectAction({
           Classmates at your institution / course / level cannot take it. Conflict protection for defence, not a title shop.
         </p>
         <Link href="/portal/home?tab=projects" className="text-dash-accent mt-2 inline-block text-xs font-semibold">
-          My projects & titles
+          Selected titles
         </Link>
       </div>
     );
@@ -203,7 +203,7 @@ export function TitleSelectAction({
         </p>
         {error ? <p className="text-xs text-red-600">{error}</p> : null}
         <Link href="/portal/home?tab=projects" className="text-dash-accent inline-block text-xs font-semibold">
-          My projects & titles
+          Selected titles
         </Link>
       </div>
     );

@@ -461,13 +461,13 @@ function TitlesFrameBody({
                 </p>
               ) : (
                 <p className="text-dash-muted-foreground mt-2 text-xs">
-                  {guest ? "Preview only — sign in to shortlist or claim." : "You can read every title."}
+                  {guest ? "Preview only — sign in to shortlist." : "You can read every title."}
                 </p>
               )}
               {acceptedOn ? <p className="text-dash-muted-foreground mt-1 text-xs">Rules accepted {acceptedOn}</p> : null}
               {!readOnly ? (
                 <Link href="/portal/home?tab=projects" className="text-dash-accent mt-3 inline-block text-xs font-semibold">
-                  My projects & titles
+                  Selected titles
                 </Link>
               ) : guest ? (
                 <Link href="/portal?auth=signin" className="text-dash-accent mt-3 inline-block text-xs font-semibold">
@@ -568,8 +568,8 @@ function TitlesFrameBody({
               <GuestPreviewBanner
                 blurb={
                   guestTotalCount != null && guestTotalCount > items.length
-                    ? `Preview the first ${items.length} titles. Create a free account to open the full catalogue (${guestTotalCount.toLocaleString("en-TZ")} titles), shortlist, and claim.`
-                    : "Browse preview titles and open a brief. Create a free account to shortlist, claim ownership, or open source documents."
+                    ? `Preview the first ${items.length} titles. Create a free account to open the full catalogue (${guestTotalCount.toLocaleString("en-TZ")} titles) and shortlist.`
+                    : "Browse preview titles and open a brief. Create a free account to shortlist, hide, or open source documents."
                 }
               />
             </div>
@@ -581,7 +581,7 @@ function TitlesFrameBody({
                 Showing {items.length} of {guestTotalCount.toLocaleString("en-TZ")} titles
               </p>
               <p className="text-dash-muted-foreground max-w-md text-sm leading-relaxed">
-                Create a free account to see the rest of the literature review catalogue.
+                Create a free account to see the rest of the final year titles catalogue.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-2">
                 <Link
@@ -760,7 +760,7 @@ function TitleCatalogue() {
             <CategoryCard
               count={completedCount}
               label="Final year projects"
-              detail="Tanzanian institute titles (DIT and other local programmes). Use them as FYP starting points or literature."
+              detail="Tanzanian institute titles (DIT and other local programmes). Use them as FYP starting points."
               visible={showEarlier}
               onToggle={() => setShowEarlier((v) => !v)}
               hideLabel="Hide final year projects"

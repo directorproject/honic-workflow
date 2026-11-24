@@ -90,7 +90,7 @@ export const PRICING_BOARD = {
       name: "Full year",
       priceTsh: SUBSCRIPTION_YEAR_TSH,
       period: "12 months",
-      summary: `Full Nexis Desk for the academic year — workspace, Help desk, literature, Jobs posting & applying, and file storage up to ${formatStorageQuota(YEAR_PLAN_FILE_STORAGE_BYTES)}.`,
+      summary: `Full Nexis Desk for the academic year — workspace, Help desk, final year titles, Jobs posting & applying, and file storage up to ${formatStorageQuota(YEAR_PLAN_FILE_STORAGE_BYTES)}.`,
     },
     {
       id: "semester",
@@ -110,7 +110,7 @@ export const PRICING_BOARD = {
   },
   projectDocuments: {
     priceTsh: PROJECT_DOCUMENTS_ACCESS_TSH,
-    note: "Unlock published documents attached to literature / earlier projects (study material, not a finished submission).",
+    note: "Unlock published documents attached to final year titles / earlier projects (study material, not a finished submission).",
   },
   storage: {
     freeBytes: FREE_PLAN_FILE_STORAGE_BYTES,
@@ -120,7 +120,7 @@ export const PRICING_BOARD = {
     note: `Storage: monthly ${formatStorageQuota(MONTHLY_PLAN_FILE_STORAGE_BYTES)}, semester ${formatStorageQuota(SEMESTER_PLAN_FILE_STORAGE_BYTES)}, year ${formatStorageQuota(YEAR_PLAN_FILE_STORAGE_BYTES)}.`,
   },
   freeAlways: [
-    "Browse all literature titles",
+    "Browse all final year titles",
     "Browse Jobs listings (view only)",
     "Blank workspace templates (when you have a workspace)",
   ],

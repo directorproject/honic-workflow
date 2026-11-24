@@ -7,7 +7,7 @@ import { CohortTitleBoard } from "@/components/portal/cohort-title-board";
 import { ProfileForm } from "@/components/portal/profile-form";
 import { SiteFooter } from "@/components/portal/site-footer";
 import { TitleTermsGate } from "@/components/portal/title-terms-gate";
-import { studyLevelLabel } from "@/lib/portal/config";
+import { FINAL_YEAR_TITLES_LABEL, studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
 import { loadGuestLiteratureCatalogue, loadStudentLiteratureCatalogue } from "@/lib/portal/literature-guest-cache";
 import { recordPageVisit } from "@/lib/portal/page-visits";
@@ -18,7 +18,7 @@ import { formatDate } from "@/lib/workspace/dates";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const metadata = { title: "Literature review · Honic Company Limited" };
+export const metadata = { title: `${FINAL_YEAR_TITLES_LABEL} · Honic Company Limited` };
 
 export default async function PortalTitlesPage() {
   const state = await loadPortalState();
@@ -58,14 +58,14 @@ export default async function PortalTitlesPage() {
   } else if (!user) {
     content = (
       <p className="text-dash-muted-foreground text-sm">
-        Literature is not available right now.{" "}
+        {FINAL_YEAR_TITLES_LABEL} are not available right now.{" "}
         <Link href="/portal?auth=signin" className="text-dash-accent font-semibold">
           Sign in
         </Link>
       </p>
     );
   } else if (state.isStaff && db) {
-    const review = await loadGuestLiteratureCatalogue();
+    const review = await loadGuestLiteratureCatalogue({ forGuest: false });
     catalogue = true;
     content = (
       <CohortTitleBoard

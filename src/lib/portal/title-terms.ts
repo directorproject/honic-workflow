@@ -1,6 +1,6 @@
 /** Bump a version when that text changes. Students must accept the new version before they continue. */
-export const POLICY_VERSION = "2026-11-14";
-export const TITLE_RULES_VERSION = "2026-11-14";
+export const POLICY_VERSION = "2026-11-24";
+export const TITLE_RULES_VERSION = "2026-11-24";
 
 export type ShortPoint = { headline: string; line: string };
 export type FullClause = { title: string; body: string };
@@ -48,7 +48,7 @@ export const RULE_POINTS: ShortPoint[] = [
 export const POLICY_FULL: FullClause[] = [
   {
     title: "What this portal is",
-    body: "This portal is a literature review from Honic Company Limited, Innovation and Research. It shows project titles that were written before, and starting points you may study. It is not a shop. Honic does not sell a finished project or sell ownership of an idea here.",
+    body: "This portal is a final year titles catalogue from Honic Company Limited, Innovation and Research. It shows project titles that were written before, and starting points you may study. It is not a shop. Honic does not sell a finished project or sell ownership of an idea here.",
   },
   {
     title: "Earlier work",

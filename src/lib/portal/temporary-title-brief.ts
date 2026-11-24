@@ -78,7 +78,7 @@ export function buildTemporaryTitleBrief(
 
   const parts = [
     TEMPORARY_BRIEF_MARKER,
-    "Starter text for literature review. Replace this when a source PDF is uploaded.",
+    "Starter text for this final year title. Replace this when a source PDF is uploaded.",
     "",
     "## Problem statement",
     problem,

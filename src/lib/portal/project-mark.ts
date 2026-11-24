@@ -192,8 +192,8 @@ export function projectMark(item: {
       citation: catalogue.citation,
       note:
         item.kind === "earlier"
-          ? "Use this title as literature. Review the method and findings, identify what remains open, and build on that gap."
-          : "Use this title as a starting point for literature review. Study the gap, then change the project before you submit it.",
+          ? "Use this earlier final year title as reference. Review the method and findings, identify what remains open, and build on that gap."
+          : "Use this title as a starting point for your final year project. Study the gap, then change the project before you submit it.",
     };
   }
 
@@ -205,6 +205,6 @@ export function projectMark(item: {
     category: catalogue.category,
     group: "New project title",
     citation: catalogue.citation,
-    note: "Use this title as a starting point for literature review. Study the gap, then change the project before you submit it.",
+    note: "Use this title as a starting point for your final year project. Study the gap, then change the project before you submit it.",
   };
 }

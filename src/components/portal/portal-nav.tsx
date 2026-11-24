@@ -99,7 +99,7 @@ export function portalNavGroups(opts: {
       badge: jobsBadge > 0 ? jobsBadge : undefined,
     },
     { key: "zimamoto", label: "Zimamoto", href: "/portal/zimamoto", external: true },
-    { key: "titles", label: "Literature review", href: "/portal/titles", external: true },
+    { key: "titles", label: "Final year titles", href: "/portal/titles", external: true },
     { key: "messages", label: "Help desk", href: tabHref(base, "messages"), tabs: ["messages"] },
   ];
 
@@ -124,7 +124,7 @@ export function portalNavGroups(opts: {
     {
       label: "You",
       items: [
-        { key: "projects", label: "My projects & titles", href: tabHref(base, "projects"), tabs: ["projects", "title"] },
+        { key: "projects", label: "Selected titles", href: tabHref(base, "projects"), tabs: ["projects", "title"] },
         { key: "payments", label: "Payments & invoices", href: tabHref(base, "payments"), tabs: ["payments"] },
         { key: "account", label: "My account", href: tabHref(base, "account"), tabs: ["account"] },
         { key: "packs", label: "Plans & access", href: "/portal/packs", external: true },

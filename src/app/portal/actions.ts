@@ -462,7 +462,7 @@ export async function portalOwnAndHideTitleAction(proposalId: string): Promise<P
       message: "This title is yours and hidden from classmates at your institution / course / level.",
     };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Could not claim this title.";
+    const message = err instanceof Error ? err.message : "Could not update this title.";
     return { ok: false, message: SELECT_ERRORS[message] ?? message };
   }
 }
@@ -713,7 +713,7 @@ export async function portalPayForChangeAction(network: string, phone: string, t
     revalidatePath("/titles");
     return {
       ok: true,
-      message: `Simulated payment received (reference ${reference}). That slot is open again. Pick a free replacement from the literature review.`,
+      message: `Simulated payment received (reference ${reference}). That slot is open again. Pick a free replacement from final year titles.`,
     };
   } catch (err) {
     return { ok: false, message: toUserError(err, paymentUnavailableMessage()) };

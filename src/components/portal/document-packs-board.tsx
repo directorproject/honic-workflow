@@ -56,7 +56,7 @@ export function DocumentPacksBoard({
 
   const yearPoints = [
     "Full Nexis Desk for the academic year",
-    "Workspace, help desk, literature",
+    "Workspace, help desk, final year titles",
     "Peer help post, offer, and message",
     `${FREE_TITLE_SLOTS} free title hides`,
     `Storage up to ${YEAR_STORAGE}`,
@@ -64,7 +64,7 @@ export function DocumentPacksBoard({
   ];
   const semesterPoints = [
     "Full Nexis Desk for one project cycle",
-    "Workspace, help desk, literature",
+    "Workspace, help desk, final year titles",
     "Peer help post, offer, and message",
     `${FREE_TITLE_SLOTS} free title hides`,
     `Storage up to ${SEMESTER_STORAGE}`,
@@ -109,7 +109,7 @@ export function DocumentPacksBoard({
               href="/portal/titles"
               className="inline-flex flex-1 items-center justify-center rounded-2xl border border-white/25 bg-white/5 px-4 py-3.5 text-sm font-semibold text-white backdrop-blur transition active:scale-[0.98] sm:flex-none sm:rounded-full sm:px-5 sm:py-2.5"
             >
-              Literature
+              Final year titles
             </Link>
           </div>
         </div>
@@ -311,7 +311,7 @@ export function DocumentPacksBoard({
             </ol>
             <div className="mt-6 sm:mt-8">
               <Link href="/portal/titles" className={`${SECONDARY} inline-flex w-full justify-center sm:w-auto`}>
-                Open literature review
+                Open final year titles
               </Link>
             </div>
           </div>
@@ -401,14 +401,14 @@ function FreePlanCard({ active }: { active: boolean }) {
       active={active}
       footer={
         <Link href="/portal/titles" className={`${SECONDARY} w-full`}>
-          Browse literature
+          Browse final year titles
         </Link>
       }
     >
       <FeatureList
         items={[
           "2-week free Desk trial (monthly limits)",
-          "Literature review browse",
+          "Final year titles browse",
           "Select titles for free",
           "After trial: browse peer help; pay per hide",
         ]}

@@ -32,7 +32,7 @@ export default function PosterPage() {
                 },
                 {
                   icon: "📚",
-                  title: "Literature Review",
+                  title: "Final Year Titles",
                   desc: "Browse 1000+ real student projects and research papers",
                 },
                 {

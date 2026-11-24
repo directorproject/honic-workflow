@@ -39,7 +39,7 @@ export default function AboutPage() {
             <div className="border-dash-border bg-dash-card/40 rounded-lg border p-5">
               <h3 className="text-dash-foreground font-semibold mb-2">Honic Nexis</h3>
               <p className="text-dash-muted-foreground text-sm leading-relaxed">
-                Student and supervisor portal for literature review, project titles, peer help jobs, subscription plans, and
+                Student and supervisor portal for final year titles, peer help jobs, subscription plans, and
                 collaborative project workspace.
               </p>
             </div>
@@ -183,7 +183,7 @@ export default function AboutPage() {
             Share portal
           </Link>
           <Link href="/portal/titles" className="text-dash-accent font-semibold hover:underline">
-            Literature review
+            Final year titles
           </Link>
         </div>
       </div>

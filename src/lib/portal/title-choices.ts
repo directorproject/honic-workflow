@@ -167,6 +167,8 @@ function asPortalTitle(item: ReviewItem): PortalTitle {
 export type LoadLiteratureOptions = {
   /** Parse enriched ## notes (heavy). Use on title detail only. */
   includeBriefs?: boolean;
+  /** Anonymous guest catalogue: drop every title hidden from classmates (any cohort). */
+  guestCatalogue?: boolean;
 };
 
 /** Earlier projects plus titles a student may study. Pass a profile to hide titles already taken in that group. */
@@ -177,6 +179,7 @@ export async function loadLiterature(
   options?: LoadLiteratureOptions,
 ): Promise<{ mine: ReviewItem[]; items: ReviewItem[] }> {
   const includeBriefs = options?.includeBriefs ?? false;
+  const guestCatalogue = Boolean(options?.guestCatalogue && !userId);
   const viewerKey = profile
     ? cohortKey({
         institution: profile.institution,
@@ -188,6 +191,7 @@ export async function loadLiterature(
     : "";
 
   const needsPeerVisibility = Boolean(profile && userId);
+  const needsGuestPeerHidden = guestCatalogue;
   const needsWorkspaceOverlay = includeBriefs;
 
   const proposalsQuery = includeBriefs
@@ -204,7 +208,8 @@ export async function loadLiterature(
         )
         .neq("status", "dropped");
 
-  const selectionsQuery = needsPeerVisibility
+  const selectionsQuery =
+    needsPeerVisibility || needsGuestPeerHidden
     ? db
         .from("title_selections")
         .select("user_id, proposal_id, title, selected_at, hidden_at")
@@ -282,7 +287,13 @@ export async function loadLiterature(
   const hidden = new Set<string>();
   const mineIds = new Set<string>();
   const mineHiddenIds = new Set<string>();
-  if (userId) {
+  if (needsGuestPeerHidden) {
+    for (const row of selections ?? []) {
+      if (!row.hidden_at) continue;
+      const key = selectionKey(row.proposal_id, row.title);
+      if (key) hidden.add(key);
+    }
+  } else if (userId) {
     for (const row of selections ?? []) {
       const holder = String(row.user_id);
       const key = selectionKey(row.proposal_id, row.title);

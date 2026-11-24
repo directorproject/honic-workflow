@@ -172,7 +172,7 @@ export function TitleClaimForm({ catalogue }: { catalogue: OwnershipCatalogueIte
       <section className="space-y-3">
         <StepLabel n={1} title="Search your title" />
         <p className="text-dash-muted-foreground text-sm">
-          Paste or type the title from the literature review. Matching titles appear as you type, then select one.
+          Paste or type the title from final year titles. Matching titles appear as you type, then select one.
           {catalogue.length ? (
             <span className="text-dash-muted-foreground"> ({catalogue.length} titles loaded)</span>
           ) : (
