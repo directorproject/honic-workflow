@@ -68,7 +68,7 @@ export async function loadGuestLiteratureCatalogue(options?: { forGuest?: boolea
       // Keep this under Next's 2MB unstable_cache limit — briefs load on Read expand.
       return loadLiterature(db, null, null, { includeBriefs: false, guestCatalogue: forGuest });
     },
-    ["portal-literature-guest-v7", forGuest ? "guest" : "staff"],
+    ["portal-literature-guest-v8", forGuest ? "guest" : "staff"],
     { revalidate: 300, tags: [LITERATURE_CATALOGUE_TAG] },
   )();
 }
