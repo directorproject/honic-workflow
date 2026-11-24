@@ -11,6 +11,7 @@ import { FINAL_YEAR_TITLES_LABEL, studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
 import { loadGuestLiteratureCatalogue, loadStudentLiteratureCatalogue } from "@/lib/portal/literature-guest-cache";
 import { recordPageVisit } from "@/lib/portal/page-visits";
+import { visitSessionKeyFromCookie } from "@/lib/portal/visit-session-cookie";
 import { GUEST_TITLE_PREVIEW_LIMIT } from "@/lib/portal/title-limits";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
 import { findMembership } from "@/lib/workspace/access";
@@ -27,10 +28,11 @@ export default async function PortalTitlesPage() {
 
   // Server-side visit so analytics sees /portal/titles even when the browser beacon misses.
   if (db) {
+    const visitSessionKey = await visitSessionKeyFromCookie();
     after(() => {
       void recordPageVisit(db, {
         path: "/portal/titles",
-        sessionKey: null,
+        sessionKey: visitSessionKey,
         viewerId: user?.id ?? null,
       });
     });

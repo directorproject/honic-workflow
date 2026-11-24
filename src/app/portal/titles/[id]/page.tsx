@@ -20,6 +20,7 @@ import { loadPortalState } from "@/lib/portal/data";
 import { hasProjectDocumentsAccess } from "@/lib/portal/document-access";
 import { claimsForTarget, publishedDocuments, type TitleTargetKind } from "@/lib/portal/title-claims";
 import { recordPageVisit } from "@/lib/portal/page-visits";
+import { visitSessionKeyFromCookie } from "@/lib/portal/visit-session-cookie";
 import { recordTitleClick } from "@/lib/portal/title-engagement";
 import { projectMark } from "@/lib/portal/project-mark";
 import { loadGuestLiteratureCatalogue, loadStudentLiteratureCatalogue } from "@/lib/portal/literature-guest-cache";
@@ -171,6 +172,8 @@ export default async function PortalTitlePage(props: {
     href: canViewDocuments ? `/api/portal/title-documents/${document.id}` : null,
   }));
 
+  const visitSessionKey = await visitSessionKeyFromCookie();
+
   // Title opens + page visit on the server (client VisitTracker skips title detail to avoid doubles).
   // Owner viewing their own title is skipped inside recordTitleClick only.
   if (target) {
@@ -184,7 +187,7 @@ export default async function PortalTitlePage(props: {
       });
       void recordPageVisit(db, {
         path: `/portal/titles/${routeId}`,
-        sessionKey: null,
+        sessionKey: visitSessionKey,
         viewerId: user?.id ?? null,
       });
     });

@@ -36,6 +36,61 @@ function missingRelation(message: string): boolean {
   return /portal_visit|portal_path_visit|does not exist|schema cache/i.test(message);
 }
 
+/** Same session or account refreshing the same path within this window = one pageview. */
+export const VISIT_DEDUP_MS = 30 * 60 * 1000;
+
+function visitIdentity(sessionKey: string, viewerId: string | null | undefined): string | null {
+  const viewer = String(viewerId ?? "").trim();
+  if (viewer) return `v:${viewer}`;
+  if (sessionKey.length >= 8) return `s:${sessionKey}`;
+  return null;
+}
+
+async function recentVisitBlocks(
+  db: SupabaseClient,
+  dayKey: string,
+  path: string,
+  identity: string,
+  nowMs: number,
+): Promise<boolean> {
+  const { data, error } = await db
+    .from("portal_visit_recent")
+    .select("last_seen_at")
+    .eq("day_key", dayKey)
+    .eq("identity_key", identity)
+    .eq("path", path)
+    .maybeSingle();
+  if (error) {
+    if (missingRelation(error.message)) return false;
+    console.error("[page-visits] recent read", error.message);
+    return false;
+  }
+  if (!data?.last_seen_at) return false;
+  const last = new Date(String(data.last_seen_at)).getTime();
+  return Number.isFinite(last) && nowMs - last < VISIT_DEDUP_MS;
+}
+
+async function touchRecentVisit(
+  db: SupabaseClient,
+  dayKey: string,
+  path: string,
+  identity: string,
+  now: string,
+): Promise<void> {
+  const { error } = await db.from("portal_visit_recent").upsert(
+    {
+      day_key: dayKey,
+      identity_key: identity,
+      path,
+      last_seen_at: now,
+    },
+    { onConflict: "day_key,identity_key,path" },
+  );
+  if (error && !missingRelation(error.message)) {
+    console.error("[page-visits] recent upsert", error.message);
+  }
+}
+
 function eatDayKey(date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Africa/Dar_es_Salaam",
@@ -83,10 +138,15 @@ export async function recordPageVisit(
 
     const dayKey = eatDayKey();
     const now = new Date().toISOString();
+    const nowMs = Date.now();
     const sessionKey = String(input.sessionKey ?? "")
       .trim()
       .slice(0, 80);
     const hasSession = sessionKey.length >= 8;
+    const identity = visitIdentity(sessionKey, input.viewerId);
+    if (identity && (await recentVisitBlocks(db, dayKey, path, identity, nowMs))) {
+      return;
+    }
 
     let newSession = false;
     if (hasSession) {
@@ -168,6 +228,10 @@ export async function recordPageVisit(
         .update({ pageview_count: Number(pathRow.pageview_count ?? 0) + 1, updated_at: now })
         .eq("day_key", dayKey)
         .eq("path", path);
+    }
+
+    if (identity) {
+      await touchRecentVisit(db, dayKey, path, identity, now);
     }
   } catch (err) {
     if (err instanceof Error && missingRelation(err.message)) return;

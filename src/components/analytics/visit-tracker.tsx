@@ -4,6 +4,10 @@ import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 const SESSION_KEY = "honic_visit_sid";
+export const VISIT_SESSION_COOKIE = "honic_visit_sid";
+const VISIT_LAST_PREFIX = "honic_visit_at:";
+/** Match server VISIT_DEDUP_MS in page-visits.ts */
+const VISIT_DEDUP_MS = 30 * 60 * 1000;
 
 function getSessionKey(): string {
   try {
@@ -14,6 +18,11 @@ function getSessionKey(): string {
           ? crypto.randomUUID().replace(/-/g, "").slice(0, 32)
           : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`;
       sessionStorage.setItem(SESSION_KEY, id);
+    }
+    try {
+      document.cookie = `${VISIT_SESSION_COOKIE}=${encodeURIComponent(id)}; path=/; max-age=86400; samesite=lax`;
+    } catch {
+      /* ignore */
     }
     return id;
   } catch {
@@ -43,6 +52,15 @@ function isServerTrackedTitlesPath(pathname: string): boolean {
 function ping(path: string) {
   if (typeof window === "undefined") return;
   if (typeof navigator !== "undefined" && navigator.webdriver) return;
+
+  try {
+    const storageKey = `${VISIT_LAST_PREFIX}${path}`;
+    const last = Number(sessionStorage.getItem(storageKey) ?? 0);
+    if (last && Date.now() - last < VISIT_DEDUP_MS) return;
+    sessionStorage.setItem(storageKey, String(Date.now()));
+  } catch {
+    /* still ping server */
+  }
 
   const payload = JSON.stringify({
     path,

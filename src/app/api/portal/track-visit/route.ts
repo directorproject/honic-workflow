@@ -32,12 +32,22 @@ export async function POST(request: NextRequest) {
   const path = typeof body.path === "string" ? body.path : "";
   if (!path) return NextResponse.json({ ok: false, error: "path required" }, { status: 400 });
 
+  const sessionKey = typeof body.sessionKey === "string" ? body.sessionKey.trim().slice(0, 80) : "";
   const actor = await getSessionActor();
   await recordPageVisit(db, {
     path,
-    sessionKey: typeof body.sessionKey === "string" ? body.sessionKey : null,
+    sessionKey: sessionKey || null,
     viewerId: actor?.userId ?? null,
   });
 
-  return NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true });
+  if (sessionKey.length >= 8) {
+    res.cookies.set("honic_visit_sid", sessionKey, {
+      path: "/",
+      maxAge: 60 * 60 * 24,
+      sameSite: "lax",
+      httpOnly: false,
+    });
+  }
+  return res;
 }
