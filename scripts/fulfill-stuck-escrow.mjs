@@ -1,6 +1,7 @@
 /**
- * One-off: Snippe completed but our ESC row still pending → mark paid + fund escrow.
+ * Snippe completed but our ESC row still pending → mark paid + fund escrow.
  *   node scripts/fulfill-stuck-escrow.mjs [ESC…]
+ *   node scripts/fulfill-stuck-escrow.mjs [ESC…] --simulate   # testing: skip Snippe check (webhook replay)
  */
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -23,7 +24,9 @@ async function main() {
   const env = { ...readEnv(".env.local"), ...readEnv(".env.tools.local"), ...process.env };
   const token = env.SUPABASE_ACCESS_TOKEN;
   const project = (env.NEXT_PUBLIC_SUPABASE_URL ?? "").match(/https:\/\/([a-z0-9]+)\.supabase\.co/)?.[1];
-  const orderWanted = process.argv[2] || "ESCMWRWRVX04FA37F44";
+  const argv = process.argv.slice(2).filter((a) => a !== "--simulate");
+  const simulate = process.argv.includes("--simulate");
+  const orderWanted = argv[0] || "ESCMWRWRVX04FA37F44";
   if (!token || !project) throw new Error("Missing Supabase env");
 
   async function query(sql) {
@@ -51,18 +54,22 @@ async function main() {
   if (!pay) throw new Error(`Payment ${orderWanted} not found`);
 
   const snippeRef = String(pay.provider_txn_id || "");
-  if (!snippeRef) throw new Error("No provider_txn_id");
-  const key = (env.SNIPPE_API_KEY || "").trim();
-  const base = (env.SNIPPE_API_URL || "https://api.snippe.sh").replace(/\/$/, "");
-  const liveRes = await fetch(`${base}/v1/payments/${encodeURIComponent(snippeRef)}`, {
-    headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
-  });
-  const live = (await liveRes.json())?.data;
-  if (String(live?.status).toLowerCase() !== "completed") {
-    throw new Error(`Snippe status is ${live?.status}, not completed`);
-  }
-  if (Math.round(Number(live?.amount?.value)) !== Math.round(Number(pay.amount))) {
-    throw new Error("Amount mismatch with Snippe");
+  if (!simulate) {
+    if (!snippeRef) throw new Error("No provider_txn_id");
+    const key = (env.SNIPPE_API_KEY || "").trim();
+    const base = (env.SNIPPE_API_URL || "https://api.snippe.sh").replace(/\/$/, "");
+    const liveRes = await fetch(`${base}/v1/payments/${encodeURIComponent(snippeRef)}`, {
+      headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
+    });
+    const live = (await liveRes.json())?.data;
+    if (String(live?.status).toLowerCase() !== "completed") {
+      throw new Error(`Snippe status is ${live?.status}, not completed`);
+    }
+    if (Math.round(Number(live?.amount?.value)) !== Math.round(Number(pay.amount))) {
+      throw new Error("Amount mismatch with Snippe");
+    }
+  } else {
+    console.log("simulate webhook — marking paid without Snippe confirm");
   }
 
   const escrows = await query(`
@@ -79,7 +86,7 @@ async function main() {
     "payment",
     await query(`
       update public.title_change_payments
-      set status = 'paid', paid_at = ${lit(at)}, provider_txn_id = ${lit(snippeRef)}
+      set status = 'paid', paid_at = ${lit(at)}, provider_txn_id = coalesce(nullif(${lit(snippeRef)}, ''), provider_txn_id)
       where id = ${lit(pay.id)} and status in ('pending', 'failed')
       returning id, status;
     `),
@@ -113,7 +120,7 @@ async function main() {
         ${lit(escrow.id)},
         'funds_held',
         'system',
-        'Money locked (reconcile after missed webhook). Request marked taken.'
+        ${lit(simulate ? "Money locked (simulate webhook — testing)." : "Money locked (reconcile after missed webhook). Request marked taken.")}
       );
     `);
   } catch (e) {
