@@ -34,6 +34,7 @@ import type {
   PortalJobEscrow,
   PortalJobEscrowEvent,
 } from "@/lib/portal/job-escrow-shared";
+import { ESCROW_DELIVERY_HOURS } from "@/lib/portal/job-escrow-shared";
 import {
   IconBack,
   IconChat,
@@ -56,6 +57,7 @@ import {
   JOB_CATEGORIES,
   jobRefLabel,
   type PortalChatThread,
+  type JobStatus,
   type PortalJob,
   type PortalJobApplication,
   type PortalJobMessage,
@@ -258,15 +260,15 @@ export function JobsBrowseBoard({
                 className="inline-flex items-center gap-2 self-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-teal-700"
               >
                 <IconInbox size={16} /> Manage my requests
-              </Link>
+        </Link>
               {canUseJobs ? (
                 <Link
                   href="/portal/jobs/mine"
                   className="inline-flex items-center gap-2 self-center rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/30 hover:bg-white/20"
                 >
                   <IconPlus size={16} /> Request help
-                </Link>
-              ) : null}
+          </Link>
+      ) : null}
             </>
           ) : guest ? (
             <Link href="/portal?auth=signin" className="inline-flex items-center gap-2 self-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-teal-700">
@@ -303,7 +305,7 @@ export function JobsBrowseBoard({
               <option value="newest">Newest first</option>
               <option value="price">Highest offer</option>
             </select>
-          </div>
+        </div>
           <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
             <CategoryChip active={cat === "all"} onClick={() => setCat("all")} label="All" />
             {JOB_CATEGORIES.filter((c) => categoriesInUse.has(c.id)).map((c) => (
@@ -344,7 +346,7 @@ export function JobsBrowseBoard({
             ) : null}
           </div>
         )}
-      </div>
+    </div>
     </PolicyWall>
   );
 }
@@ -417,7 +419,7 @@ function JobCard({ job, canApply, unread = 0 }: { job: PortalJob; canApply: bool
               <StatusChip status={job.status} />
             ) : null}
           </div>
-          <Link
+        <Link
             href={`/portal/jobs/${job.publicId}`}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
               job.isMine
@@ -445,9 +447,9 @@ function JobCard({ job, canApply, unread = 0 }: { job: PortalJob; canApply: bool
                 <IconChat size={14} /> View
               </>
             )}
-          </Link>
-        </div>
+        </Link>
       </div>
+    </div>
 
       {!job.isMine && !canApply ? (
         <div className="border-dash-border bg-dash-muted/30 flex items-center gap-2 border-t px-5 py-2.5">
@@ -529,20 +531,20 @@ export function MyJobsBoard({
                 {t.id === "chats" && unread > 0 ? (
                   <span className="bg-dash-accent flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-white tabular-nums">
                     {unread > 99 ? "99+" : unread}
-                  </span>
+        </span>
                 ) : null}
                 {t.id === "requests" && requestsUnread > 0 ? (
                   <span className="bg-dash-accent flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-white tabular-nums">
                     {requestsUnread > 99 ? "99+" : requestsUnread}
-                  </span>
+        </span>
                 ) : null}
               </button>
             ))}
-          </div>
+              </div>
           <Link href="/portal/jobs" className={SOFT}>
             <IconBack size={15} /> Peer help board
           </Link>
-        </div>
+            </div>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-start">
           <div className="space-y-3">
@@ -564,34 +566,34 @@ export function MyJobsBoard({
             ) : myApplications.length ? (
               myApplications.map((app) => (
                 <div key={app.id} className={`${CARD} flex flex-wrap items-start justify-between gap-3 p-5`}>
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
                       <StatusChip status={app.status} />
                       {app.jobPublicId ? <Chip tone="neutral">{jobRefLabel(app.jobPublicId)}</Chip> : null}
+                      </div>
+                      <p className="text-dash-muted-foreground line-clamp-2 text-sm">{app.message}</p>
+                      <p className="text-dash-muted-foreground text-xs">
+                        {formatDate(app.createdAt)}
+                        {app.proposedTsh != null ? ` · proposed ${formatTsh(app.proposedTsh)}` : ""}
+                      </p>
                     </div>
-                    <p className="text-dash-muted-foreground line-clamp-2 text-sm">{app.message}</p>
-                    <p className="text-dash-muted-foreground text-xs">
-                      {formatDate(app.createdAt)}
-                      {app.proposedTsh != null ? ` · proposed ${formatTsh(app.proposedTsh)}` : ""}
-                    </p>
-                  </div>
-                  {app.jobPublicId ? (
+                    {app.jobPublicId ? (
                     <Link href={`/portal/jobs/${app.jobPublicId}`} className={`${SOFT} !py-2`}>
-                      Open
-                    </Link>
-                  ) : null}
-                </div>
+                        Open
+                      </Link>
+                    ) : null}
+              </div>
               ))
             ) : (
               <EmptyState title="No offers yet" body="Browse requests and offer the help you can give." link={{ href: "/portal/jobs", label: "Browse peer help" }} />
             )}
-          </div>
-
-          <aside className="lg:sticky lg:top-24">
-            {canUseJobs ? <PostJobForm /> : <JobsPlanGate action="post" />}
-          </aside>
         </div>
+
+        <aside className="lg:sticky lg:top-24">
+            {canUseJobs ? <PostJobForm /> : <JobsPlanGate action="post" />}
+        </aside>
       </div>
+    </div>
     </PolicyWall>
   );
 }
@@ -622,7 +624,7 @@ function ManagedPostRow({ job, canManage, unread = 0 }: { job: PortalJob; canMan
     <div className={`${CARD} p-5 border-l-4 border-l-dash-accent/50 hover:border-l-dash-accent transition`}>
       <div className="flex flex-col gap-4">
         {/* Top section */}
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <StatusChip status={job.status} />
@@ -631,8 +633,8 @@ function ManagedPostRow({ job, canManage, unread = 0 }: { job: PortalJob; canMan
               </span>
               <span className="bg-dash-muted/40 text-dash-muted-foreground px-2 py-1 rounded-full text-[11px] font-semibold">
                 {job.categoryLabel}
-              </span>
-            </div>
+            </span>
+          </div>
             <p className="text-dash-foreground text-lg font-bold leading-snug mb-1">{job.title}</p>
             <div className="text-dash-muted-foreground text-sm space-y-1">
               <p className="font-semibold">{formatTsh(job.offerTsh)} · {job.priceMode === "negotiable" ? "Negotiable" : "Fixed price"}</p>
@@ -643,7 +645,7 @@ function ManagedPostRow({ job, canManage, unread = 0 }: { job: PortalJob; canMan
                   New message{unread > 1 ? `s (${unread})` : ""} — open to reply
                 </p>
               ) : null}
-            </div>
+        </div>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
             <Link href={`/portal/jobs/${job.publicId}`} className={`${PRIMARY} !py-2 !px-4 inline-flex items-center gap-2`}>
@@ -653,26 +655,26 @@ function ManagedPostRow({ job, canManage, unread = 0 }: { job: PortalJob; canMan
                   {unread > 99 ? "99+" : unread}
                 </span>
               ) : null}
-            </Link>
-            {canEdit ? (
-              <button
-                type="button"
-                onClick={() => setEditing((v) => !v)}
+          </Link>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => setEditing((v) => !v)}
                 className={`${SOFT} !py-2 inline-flex items-center gap-2`}
-              >
+            >
                 <IconEdit size={15} /> {editing ? "Done" : "Edit"}
-              </button>
-            ) : null}
-            {canManage ? <DeleteJobButton jobPublicId={job.publicId} redirectTo="/portal/jobs/mine" /> : null}
-          </div>
+            </button>
+          ) : null}
+          {canManage ? <DeleteJobButton jobPublicId={job.publicId} redirectTo="/portal/jobs/mine" /> : null}
         </div>
+      </div>
 
         {/* Edit form */}
-        {editing && canEdit ? (
+      {editing && canEdit ? (
           <div className="mt-2 pt-4 border-t border-dash-border/50">
-            <EditJobForm job={job} onDone={() => setEditing(false)} />
-          </div>
-        ) : null}
+          <EditJobForm job={job} onDone={() => setEditing(false)} />
+        </div>
+      ) : null}
       </div>
     </div>
   );
@@ -683,12 +685,12 @@ function PriceModeChoice({ value, onChange }: { value: "fixed" | "negotiable"; o
     { id: "fixed" as const, label: "Fixed", body: "The amount you listed", icon: <IconWallet size={18} /> },
     { id: "negotiable" as const, label: "Negotiable", body: "Talk about it in chat", icon: <IconChat size={18} /> },
   ];
-  return (
+    return (
     <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Price">
       {options.map((o) => (
-        <button
+          <button
           key={o.id}
-          type="button"
+            type="button"
           role="radio"
           aria-checked={value === o.id}
           onClick={() => onChange(o.id)}
@@ -703,7 +705,7 @@ function PriceModeChoice({ value, onChange }: { value: "fixed" | "negotiable"; o
             <span className="text-dash-foreground block text-sm font-semibold">{o.label}</span>
             <span className="text-dash-muted-foreground block text-xs">{o.body}</span>
           </span>
-        </button>
+          </button>
       ))}
     </div>
   );
@@ -749,7 +751,7 @@ function EditJobForm({ job, onDone }: { job: PortalJob; onDone?: () => void }) {
         </select>
         <input name="offerTsh" type="number" min={500} step={100} required className={INPUT} defaultValue={job.offerTsh} />
       </div>
-      <input name="title" required minLength={8} maxLength={160} className={INPUT} defaultValue={job.title} />
+        <input name="title" required minLength={8} maxLength={160} className={INPUT} defaultValue={job.title} />
       <textarea name="description" required minLength={20} maxLength={4000} rows={4} className={INPUT} defaultValue={job.description} />
       <PriceModeChoice value={priceMode} onChange={setPriceMode} />
       <button type="submit" className={PRIMARY} disabled={pending}>
@@ -816,39 +818,39 @@ function PostJobForm() {
         onSubmit={(e) => {
           e.preventDefault();
           const fd = new FormData(e.currentTarget);
-          setStatus(null);
-          startTransition(async () => {
-            const res = await portalPostJobAction({
-              category: String(fd.get("category") ?? ""),
-              title: String(fd.get("title") ?? ""),
-              description: String(fd.get("description") ?? ""),
-              offerTsh: Number(fd.get("offerTsh")),
+    setStatus(null);
+    startTransition(async () => {
+      const res = await portalPostJobAction({
+        category: String(fd.get("category") ?? ""),
+        title: String(fd.get("title") ?? ""),
+        description: String(fd.get("description") ?? ""),
+        offerTsh: Number(fd.get("offerTsh")),
               priceMode,
-            });
-            setStatus(res);
-            if (res.ok) {
-              (document.getElementById("post-job-form") as HTMLFormElement | null)?.reset();
-              setPriceMode("fixed");
-              router.refresh();
-            }
-          });
+      });
+      setStatus(res);
+      if (res.ok) {
+        (document.getElementById("post-job-form") as HTMLFormElement | null)?.reset();
+        setPriceMode("fixed");
+        router.refresh();
+      }
+    });
         }}
       >
-        <select name="category" className={INPUT} defaultValue={JOB_CATEGORIES[0].id} required>
-          {JOB_CATEGORIES.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+          <select name="category" className={INPUT} defaultValue={JOB_CATEGORIES[0].id} required>
+            {JOB_CATEGORIES.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
         <input name="title" required minLength={8} maxLength={160} className={INPUT} placeholder="e.g. Draw block diagram for IoT monitoring" />
-        <textarea
-          name="description"
-          required
-          minLength={20}
-          maxLength={4000}
+          <textarea
+            name="description"
+            required
+            minLength={20}
+            maxLength={4000}
           rows={4}
-          className={INPUT}
+            className={INPUT}
           placeholder="What you need, the deadline, tools, and what you will supply. Not a full report or chapter."
         />
         <div className="grid grid-cols-[1fr_auto] items-center gap-2">
@@ -1002,7 +1004,36 @@ export function JobDetailPanel({
     startPick(async () => {
       const res = await portalPickHelperAction(activeOfferApp.publicId);
       setPickNote(res);
-      if (res.ok) router.refresh();
+      if (res.ok) {
+        const at = new Date().toISOString();
+        setJobStatus("assigned");
+        setApplications((prev) =>
+          prev.map((a) =>
+            a.publicId === activeOfferApp.publicId
+              ? { ...a, status: "accepted" as const }
+              : a.status === "pending"
+                ? { ...a, status: "rejected" as const }
+                : a,
+          ),
+        );
+        setThreads((prev) =>
+          prev.map((t) =>
+            t.applicationPublicId === activeOfferApp.publicId
+              ? { ...t, status: "accepted" as const }
+              : t,
+          ),
+        );
+        if (escrow) {
+          setEscrow({
+            ...escrow,
+            status: "locked",
+            applicationId: activeOfferApp.id,
+            deliveryDeadlineAt: new Date(Date.now() + ESCROW_DELIVERY_HOURS * 3600 * 1000).toISOString(),
+            lockedAt: at,
+          });
+        }
+        window.setTimeout(() => void router.refresh(), 0);
+      }
     });
   }
 
@@ -1048,7 +1079,8 @@ export function JobDetailPanel({
       setEvents(res.events);
     }
     void sync();
-    const timer = window.setInterval(() => void sync(), 5000);
+    const pollMs = escrow?.status === "awaiting_funds" ? 2000 : 6000;
+    const timer = window.setInterval(() => void sync(), pollMs);
     function onFocus() {
       void sync();
     }
@@ -1058,7 +1090,7 @@ export function JobDetailPanel({
       window.clearInterval(timer);
       window.removeEventListener("focus", onFocus);
     };
-  }, [job.publicId, job.isMine, activeAppId]);
+  }, [job.publicId, job.isMine, activeAppId, escrow?.status]);
 
   const showApplySlot = !job.isMine && jobStatus === "open" && !myApplication;
   const showAside = !posterInbox && (showApplySlot || Boolean(helperApp));
@@ -1072,17 +1104,17 @@ export function JobDetailPanel({
   return (
     <PolicyWall needed={needsPolicy}>
       <div className="mx-auto max-w-6xl space-y-6 pb-12">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
           <Link href="/portal/jobs" className={SOFT}>
             <IconBack size={15} /> Peer help
-          </Link>
+        </Link>
           <Link href="/portal/jobs/mine" className={SOFT}>
             <IconInbox size={15} /> My requests & offers
-          </Link>
-        </div>
+        </Link>
+      </div>
 
-        <div className={`grid gap-6 ${showAside ? "lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start" : ""}`}>
-          <div className="space-y-6">
+      <div className={`grid gap-6 ${showAside ? "lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start" : ""}`}>
+        <div className="space-y-6">
             {/* Request card */}
             <section className={`${CARD} overflow-hidden`}>
               <div className="bg-gradient-to-br from-emerald-600/15 via-teal-600/10 to-transparent p-6">
@@ -1124,6 +1156,10 @@ export function JobDetailPanel({
                   job={job}
                   awaiting={escrow?.status === "awaiting_funds"}
                   hasOffers={threads.length > 0}
+                  onEscrowChange={(next, jobSt) => {
+                    if (next) setEscrow(next);
+                    if (jobSt) setJobStatus(jobSt);
+                  }}
                 />
               </div>
             ) : escrow ? (
@@ -1137,15 +1173,15 @@ export function JobDetailPanel({
               />
             ) : null}
 
-            {myApplication ? (
+          {myApplication ? (
               <div className={`${CARD} flex items-center gap-3 p-4`}>
                 <IconCheck size={18} className="text-emerald-600" />
-                <p className="text-dash-muted-foreground text-sm">
+            <p className="text-dash-muted-foreground text-sm">
                   Your offer is <StatusChip status={myApplication.status} />
                   {myApplication.proposedTsh != null ? ` · proposed ${formatTsh(myApplication.proposedTsh)}` : ""}
-                </p>
+            </p>
               </div>
-            ) : null}
+          ) : null}
 
             {posterInbox ? (
               <section ref={chatsRef} className="scroll-mt-24 space-y-2">
@@ -1169,8 +1205,8 @@ export function JobDetailPanel({
                       activeId={activeAppId}
                       onSelect={selectThread}
                       title={`Helpers (${threads.length})`}
-                    />
-                  </div>
+                      />
+                    </div>
                   <div className={`min-h-0 flex-col lg:flex ${mobilePane === "list" ? "hidden" : "flex"}`}>
                     {activeThread ? (
                       <>
@@ -1253,20 +1289,20 @@ export function JobDetailPanel({
                     </div>
                   </details>
                 ) : null}
-              </section>
-            ) : null}
+            </section>
+          ) : null}
 
-            {showApplySlot ? (
+          {showApplySlot ? (
               <div className="lg:hidden">{canUseJobs ? <ApplyForm job={job} /> : <JobsPlanGate action="apply" />}</div>
-            ) : null}
-          </div>
+          ) : null}
+        </div>
 
-          <aside className="lg:sticky lg:top-24">
-            {showApplySlot ? (
+        <aside className="lg:sticky lg:top-24">
+          {showApplySlot ? (
               <div className="hidden lg:block">{canUseJobs ? <ApplyForm job={job} /> : <JobsPlanGate action="apply" />}</div>
-            ) : null}
+          ) : null}
             {helperApp ? (
-              <MessageThread
+            <MessageThread
                 key={helperApp.publicId}
                 applicationPublicId={helperApp.publicId}
                 initialMessages={messagesByApplicationPublicId[helperApp.publicId] ?? []}
@@ -1274,9 +1310,9 @@ export function JobDetailPanel({
                 canSend={false}
                 unlockOnReply={canUseJobs}
               />
-            ) : null}
-          </aside>
-        </div>
+          ) : null}
+        </aside>
+      </div>
       </div>
     </PolicyWall>
   );
@@ -1395,7 +1431,17 @@ function ApplicationRow({ app }: { app: PortalJobApplication }) {
 }
 
 /** Poster: lock the request's money once. After that, any chat has a one-tap Pick. */
-function LockMoneyCard({ job, awaiting, hasOffers }: { job: PortalJob; awaiting: boolean; hasOffers: boolean }) {
+function LockMoneyCard({
+  job,
+  awaiting,
+  hasOffers,
+  onEscrowChange,
+}: {
+  job: PortalJob;
+  awaiting: boolean;
+  hasOffers: boolean;
+  onEscrowChange?: (escrow: PortalJobEscrow | null, jobStatus?: JobStatus) => void;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<(PortalResult & { awaitingPayment?: boolean }) | null>(null);
@@ -1403,12 +1449,26 @@ function LockMoneyCard({ job, awaiting, hasOffers }: { job: PortalJob; awaiting:
   const [phone, setPhone] = useState("");
   const waiting = awaiting || Boolean(status?.ok && status.awaitingPayment);
 
-  // While waiting for PIN confirmation, refresh often so a missed webhook still clears.
+  // Light poll while PIN confirms — no full page reload each tick.
   useEffect(() => {
     if (!waiting) return;
-    const tick = window.setInterval(() => router.refresh(), 4000);
-    return () => window.clearInterval(tick);
-  }, [waiting, router]);
+    let stopped = false;
+    async function poll() {
+      const res = await portalJobDetailSyncAction({ jobPublicId: job.publicId });
+      if (stopped || !res.ok) return;
+      onEscrowChange?.(res.escrow, res.jobStatus);
+      if (res.escrow?.status === "funded") {
+        setStatus({ ok: true, message: "Money locked. Pick a helper in Chats." });
+        void router.refresh();
+      }
+    }
+    void poll();
+    const tick = window.setInterval(() => void poll(), 2000);
+    return () => {
+      stopped = true;
+      window.clearInterval(tick);
+    };
+  }, [waiting, job.publicId, onEscrowChange, router]);
 
   return (
     <section className={`${CARD} p-5`}>
@@ -1425,20 +1485,20 @@ function LockMoneyCard({ job, awaiting, hasOffers }: { job: PortalJob; awaiting:
               ? "Enter your PIN on the phone prompt. This page updates by itself once the money is locked."
               : `Your money goes into Honic escrow, not to anyone yet. Then pick ${hasOffers ? "any helper" : "a helper"} with one tap in their chat. The helper is paid only after you approve the work.`}
           </p>
-        </div>
+      </div>
       </div>
       <form
         className="mt-3"
         onSubmit={(e) => {
           e.preventDefault();
-          setStatus(null);
-          startTransition(async () => {
+            setStatus(null);
+            startTransition(async () => {
             const res = await portalLockJobMoneyAction(job.publicId, network, phone);
-            setStatus(res);
-            if (res.ok) window.setTimeout(() => router.refresh(), res.awaitingPayment ? 4000 : 0);
-          });
-        }}
-      >
+              setStatus(res);
+            if (res.ok && !res.awaitingPayment) void router.refresh();
+            });
+          }}
+        >
         <div className="grid gap-2 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)_auto] sm:items-end">
           <select className={INPUT} value={network} onChange={(e) => setNetwork(e.target.value)} aria-label="Mobile money">
             {PAYMENT_NETWORKS.map((n) => (
@@ -1458,7 +1518,7 @@ function LockMoneyCard({ job, awaiting, hasOffers }: { job: PortalJob; awaiting:
           />
           <button type="submit" className={PRIMARY} disabled={pending}>
             <IconWallet size={15} /> {pending ? "Sending prompt…" : waiting ? "Send prompt again" : `Lock ${formatTsh(job.offerTsh)}`}
-          </button>
+        </button>
         </div>
       </form>
       {status ? (
@@ -1625,7 +1685,7 @@ function MessageThread({
     };
 
     // Bubble shows and the box clears at once; the keyboard stays up for the next message.
-    setDraft("");
+        setDraft("");
     setMessages((prev) => [...prev, optimistic]);
 
     draftRef.current?.focus();
@@ -1678,12 +1738,12 @@ function MessageThread({
           <span className="bg-dash-accent/10 text-dash-accent flex h-9 w-9 items-center justify-center rounded-full">
             <IconChat size={17} />
           </span>
-          <div>
+        <div>
             <p className="text-dash-foreground text-sm font-bold">{threadFor ? `Chat · ${threadFor}` : "Chat"}</p>
-            <p className="text-dash-muted-foreground text-[11px]">
+          <p className="text-dash-muted-foreground text-[11px]">
               {canSend ? "Anonymous · instant send" : "View only on the free plan"}
-            </p>
-          </div>
+          </p>
+        </div>
         </div>
       </header>
 
@@ -1691,7 +1751,7 @@ function MessageThread({
         {!messages.length ? (
           <p className="text-dash-muted-foreground py-10 text-center text-sm">
             {canSend ? "No messages yet. Say hello below." : "No messages yet."}
-          </p>
+            </p>
         ) : (
           messages.map((m) => (
             <div key={m.id} className={`flex items-end gap-2 ${m.isMine ? "justify-end" : "justify-start"}`}>
@@ -1724,7 +1784,7 @@ function MessageThread({
         {!canSend && waitingForPoster ? (
           <div className="flex items-center gap-2 rounded-xl bg-sky-500/10 px-3 py-2.5 text-xs text-sky-900 dark:text-sky-200">
             <IconClock size={14} /> Waiting for the poster to reply. You can chat once they answer.
-          </div>
+            </div>
         ) : !canSend ? (
           <div className="border-dash-border bg-dash-muted/40 flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5">
             <p className="text-dash-muted-foreground flex items-center gap-2 text-xs">

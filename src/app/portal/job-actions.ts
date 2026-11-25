@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import { isStaffUser } from "@/lib/auth-staff";
 import { simulatedPaymentsAllowed } from "@/lib/payments/security";
@@ -406,31 +407,37 @@ export async function portalPickHelperAction(applicationPublicId: string): Promi
     });
     if (!picked.ok) return { ok: false, message: picked.message };
 
-    const peerPayout = await loadPeerPayoutAccount(db, picked.helperUserId);
-    const payoutReady = Boolean(peerPayout?.sealOk && peerPayout.status === "active");
-    const amount = `TSh ${picked.amountTsh.toLocaleString("en-TZ")}`;
-
-    await Promise.all([
-      postPosterNote(db, {
-        posterUserId: user.id,
-        applicationId: picked.applicationId,
-        body: payoutReady
-          ? `You're picked! ${amount} is locked in Honic escrow. Your payout number is saved, so you can start now. Upload a preview + final file on this page within ${ESCROW_DELIVERY_HOURS}h.`
-          : `You're picked! ${amount} is locked in Honic escrow. Next: set the number you'll be paid on (or use your saved payout account) on this page, then start. Upload a preview + final file within ${ESCROW_DELIVERY_HOURS}h.`,
-      }),
-      notifyHelperPicked(db, {
-        jobId: picked.jobId,
-        jobPublicId: picked.jobPublicId,
-        jobTitle: picked.jobTitle,
-        helperUserId: picked.helperUserId,
-        applicationId: picked.applicationId,
-        amountTsh: picked.amountTsh,
-        payoutReady,
-      }),
-    ]);
-
     revalidateJob(picked.jobPublicId);
-    return { ok: true, message: "Helper picked. We've let them know and they can start now." };
+
+    const amount = `TSh ${picked.amountTsh.toLocaleString("en-TZ")}`;
+    after(async () => {
+      try {
+        const peerPayout = await loadPeerPayoutAccount(db, picked.helperUserId);
+        const payoutReady = Boolean(peerPayout?.sealOk && peerPayout.status === "active");
+        await Promise.all([
+          postPosterNote(db, {
+            posterUserId: user.id,
+            applicationId: picked.applicationId,
+            body: payoutReady
+              ? `You're picked! ${amount} is locked in Honic escrow. Your payout number is saved, so you can start now. Upload a preview + final file on this page within ${ESCROW_DELIVERY_HOURS}h.`
+              : `You're picked! ${amount} is locked in Honic escrow. Next: set the number you'll be paid on (or use your saved payout account) on this page, then start. Upload a preview + final file within ${ESCROW_DELIVERY_HOURS}h.`,
+          }),
+          notifyHelperPicked(db, {
+            jobId: picked.jobId,
+            jobPublicId: picked.jobPublicId,
+            jobTitle: picked.jobTitle,
+            helperUserId: picked.helperUserId,
+            applicationId: picked.applicationId,
+            amountTsh: picked.amountTsh,
+            payoutReady,
+          }),
+        ]);
+      } catch (err) {
+        console.error("pick helper follow-up:", err);
+      }
+    });
+
+    return { ok: true, message: "Helper picked. They can start now." };
   } catch (err) {
     return { ok: false, message: toUserError(err, "Could not pick this helper. Please try again.") };
   }
@@ -551,13 +558,13 @@ export async function portalJobDetailSyncAction(input: {
       }
     }
 
-    // Missed webhook recovery while the poster waits on the lock card.
-    if (job.isMine) {
+    let escrow = await getEscrowForJob(db, job.id, user.id);
+  let liveJob = job;
+    if (job.isMine && escrow?.status === "awaiting_funds") {
       await reconcileAwaitingJobEscrow(db, { jobId: job.id, viewerUserId: user.id });
+      liveJob = (await getJobByPublicId(db, jobPublicId, user.id)) ?? job;
+      escrow = (await getEscrowForJob(db, job.id, user.id)) ?? escrow;
     }
-
-    const liveJob = (await getJobByPublicId(db, jobPublicId, user.id)) ?? job;
-    const escrow = await getEscrowForJob(db, job.id, user.id);
     const deliverables = escrow ? await listDeliverablesForEscrow(db, escrow.id) : [];
     const events = escrow ? await listEscrowEvents(db, escrow.id) : [];
 
