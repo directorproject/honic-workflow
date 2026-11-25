@@ -5,7 +5,7 @@ import { PortalShell } from "@/components/portal/portal-shell";
 import { ProfileForm } from "@/components/portal/profile-form";
 import { studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
-import { listChatThreads, listOpenJobs } from "@/lib/portal/jobs";
+import { listChatThreads, listMyJobs, listOpenJobs } from "@/lib/portal/jobs";
 import { loadGuestOpenJobs } from "@/lib/portal/portal-catalogue-cache";
 import { hasActiveDeskPlan } from "@/lib/portal/title-limits";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
@@ -32,14 +32,11 @@ export default async function PortalJobsPage() {
     );
   }
 
-  const [membership, openJobs, chatThreads] = await Promise.all([
+  const [membership, openJobs, chatThreads, myJobs] = await Promise.all([
     db && user && !state.isStaff ? findMembership(db, user.id) : Promise.resolve(null),
-    db
-      ? guest || state.isStaff
-        ? loadGuestOpenJobs()
-        : listOpenJobs(db, user!.id)
-      : Promise.resolve([]),
-    db && user && !state.isStaff ? listChatThreads(db, user.id) : Promise.resolve([]),
+    db ? (guest ? loadGuestOpenJobs() : listOpenJobs(db, user!.id)) : Promise.resolve([]),
+    db && user ? listChatThreads(db, user.id) : Promise.resolve([]),
+    db && user ? listMyJobs(db, user.id) : Promise.resolve([]),
   ]);
 
   const viewerDetail = guest
@@ -50,7 +47,8 @@ export default async function PortalJobsPage() {
           .filter(Boolean)
           .join(" · ") || user!.email;
 
-  const canUseJobs = !guest && hasActiveDeskPlan(profile?.deskExpiresAt);
+  const canUseJobs = !guest && (state.isStaff || hasActiveDeskPlan(profile?.deskExpiresAt));
+  const myRequestCount = myJobs.filter((j) => j.status === "open" || j.status === "assigned").length;
   const needsPolicy = !guest && !state.isStaff && !state.peerHelpAccepted;
 
   return (
@@ -70,6 +68,8 @@ export default async function PortalJobsPage() {
           guest={guest}
           needsPolicy={needsPolicy}
           threads={chatThreads}
+          myRequestCount={myRequestCount}
+          signedIn={!guest}
         />
       </PortalShell>
     </Suspense>

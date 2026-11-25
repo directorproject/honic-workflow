@@ -73,11 +73,11 @@ const CARD = "border-dash-border bg-dash-card rounded-2xl border";
 
 /** Peer-help policy gate wrapper: blocks the page until the student accepts the rules. */
 function PolicyWall({ needed, children }: { needed: boolean; children: ReactNode }) {
-  // The modal sits outside the inert wrapper so it stays clickable while the page behind is locked.
+  // Policy blocks posting/offering on the server; keep browse and Manage links clickable while rules are open.
   return (
     <>
       {needed ? <PeerHelpPolicyGate /> : null}
-      <div inert={needed ? true : undefined}>{children}</div>
+      <div>{children}</div>
     </>
   );
 }
@@ -203,12 +203,16 @@ export function JobsBrowseBoard({
   guest = false,
   needsPolicy = false,
   threads: initialThreads = [],
+  myRequestCount = 0,
+  signedIn = false,
 }: {
   openJobs: PortalJob[];
   canUseJobs: boolean;
   guest?: boolean;
   needsPolicy?: boolean;
   threads?: PortalChatThread[];
+  myRequestCount?: number;
+  signedIn?: boolean;
 }) {
   useSoftLiveRefresh(!guest);
   const { threads } = useChatThreads(null, initialThreads, !guest);
@@ -244,14 +248,25 @@ export function JobsBrowseBoard({
           }
         >
           <Stat icon={<IconInbox size={20} />} label="open requests" value={openJobs.length} />
-          {canUseJobs ? (
+          {myRequestCount > 0 ? (
+            <Stat icon={<IconEdit size={20} />} label="your requests" value={myRequestCount} />
+          ) : null}
+          {signedIn && (canUseJobs || myRequestCount > 0) ? (
             <>
-              <Link href="/portal/jobs/mine" className="inline-flex items-center gap-2 self-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-teal-700">
+              <Link
+                href="/portal/jobs/mine"
+                className="inline-flex items-center gap-2 self-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-teal-700"
+              >
                 <IconInbox size={16} /> Manage my requests
               </Link>
-              <Link href="/portal/jobs/mine" className="inline-flex items-center gap-2 self-center rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/30 hover:bg-white/20">
-                <IconPlus size={16} /> Request help
-              </Link>
+              {canUseJobs ? (
+                <Link
+                  href="/portal/jobs/mine"
+                  className="inline-flex items-center gap-2 self-center rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/30 hover:bg-white/20"
+                >
+                  <IconPlus size={16} /> Request help
+                </Link>
+              ) : null}
             </>
           ) : guest ? (
             <Link href="/portal?auth=signin" className="inline-flex items-center gap-2 self-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-teal-700">
@@ -261,9 +276,15 @@ export function JobsBrowseBoard({
         </Hero>
 
         {!canUseJobs && !guest ? (
-          <LockNotice href="/portal/packs#plans" cta="See plans">
-            Free plan: you can read any request. Posting and offering help need an active Nexis Desk plan.
-          </LockNotice>
+          myRequestCount > 0 ? (
+            <LockNotice href="/portal/jobs/mine" cta="Manage my requests">
+              You already have open requests you can manage. Posting or offering on new jobs needs an active Nexis Desk plan.
+            </LockNotice>
+          ) : (
+            <LockNotice href="/portal/packs#plans" cta="See plans">
+              Free plan: you can read any request. Posting and offering help need an active Nexis Desk plan.
+            </LockNotice>
+          )
         ) : null}
 
         {/* Search, sort, categories */}
@@ -312,7 +333,11 @@ export function JobsBrowseBoard({
             <p className="text-dash-muted-foreground mt-1 text-sm">
               {openJobs.length ? "Try another search or category." : "Be the first to ask for help."}
             </p>
-            {canUseJobs ? (
+            {signedIn && myRequestCount > 0 ? (
+              <Link href="/portal/jobs/mine" className={`${PRIMARY} mt-5`}>
+                <IconInbox size={16} /> Manage my requests
+              </Link>
+            ) : canUseJobs ? (
               <Link href="/portal/jobs/mine" className={`${PRIMARY} mt-5`}>
                 <IconPlus size={16} /> Request help
               </Link>
@@ -441,12 +466,15 @@ export function MyJobsBoard({
   myJobs,
   myApplications,
   canUseJobs,
+  canManageOwn = false,
   needsPolicy = false,
   threads: initialThreads = [],
 }: {
   myJobs: PortalJob[];
   myApplications: PortalJobApplication[];
   canUseJobs: boolean;
+  /** Open, edit, or delete requests you already posted (does not require Desk for view/manage). */
+  canManageOwn?: boolean;
   needsPolicy?: boolean;
   threads?: PortalChatThread[];
 }) {
@@ -526,7 +554,7 @@ export function MyJobsBoard({
                   <ManagedPostRow
                     key={job.id}
                     job={job}
-                    canManage={canUseJobs}
+                    canManage={canManageOwn || canUseJobs}
                     unread={unreadForJob(threads, job.publicId, reads)}
                   />
                 ))

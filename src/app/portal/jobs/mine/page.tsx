@@ -70,10 +70,9 @@ export default async function PortalMyJobsPage() {
         .filter(Boolean)
         .join(" · ") || user.email;
 
-  const [myJobs, myApplications, threads] =
-    db && !state.isStaff
-      ? await Promise.all([listMyJobs(db, user.id), listMyApplications(db, user.id), listChatThreads(db, user.id)])
-      : [[], [], []];
+  const [myJobs, myApplications, threads] = db
+    ? await Promise.all([listMyJobs(db, user.id), listMyApplications(db, user.id), listChatThreads(db, user.id)])
+    : [[], [], []];
 
   return (
     <Suspense fallback={<main className="bg-dash-canvas min-h-screen" />}>
@@ -86,7 +85,8 @@ export default async function PortalMyJobsPage() {
         <MyJobsBoard
           myJobs={myJobs}
           myApplications={myApplications}
-          canUseJobs={hasActiveDeskPlan(profile?.deskExpiresAt)}
+          canUseJobs={state.isStaff || hasActiveDeskPlan(profile?.deskExpiresAt)}
+          canManageOwn={myJobs.length > 0 || state.isStaff}
           needsPolicy={Boolean(user) && !state.isStaff && !state.peerHelpAccepted}
           threads={threads}
         />

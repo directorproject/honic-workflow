@@ -43,7 +43,7 @@ export default async function PortalJobDetailPage(props: {
 
   if (!db) notFound();
 
-  const viewerId = guest || state.isStaff ? null : user!.id;
+  const viewerId = guest ? null : user!.id;
   const job = await getJobByPublicId(db, id, viewerId);
   if (!job) notFound();
 
@@ -105,7 +105,9 @@ export default async function PortalJobDetailPage(props: {
           applications={applications}
           myApplication={myApplication}
           messagesByApplicationPublicId={messagesByApplicationPublicId}
-          canUseJobs={!guest && hasActiveDeskPlan(profile?.deskExpiresAt)}
+          canUseJobs={
+            !guest && (state.isStaff || hasActiveDeskPlan(profile?.deskExpiresAt) || job.isMine)
+          }
           needsPolicy={Boolean(user) && !state.isStaff && !state.peerHelpAccepted}
           escrow={escrow}
           deliverables={deliverables}

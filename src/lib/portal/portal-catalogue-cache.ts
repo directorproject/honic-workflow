@@ -96,7 +96,7 @@ export async function loadGuestOpenJobs() {
       if (!db) return [];
       return listOpenJobs(db, null);
     },
-    ["portal-jobs-open-v2"],
+    ["portal-jobs-open-v3"],
     { revalidate: 120, tags: [PORTAL_JOBS_TAG] },
   )();
 }
