@@ -22,7 +22,9 @@ import {
   ChatThreadList,
   PeerChatInbox,
   markThreadRead,
+  unreadCount,
   useChatThreads,
+  useThreadReads,
   useTotalUnread,
 } from "@/components/portal/peer-chat-inbox";
 import { PAYMENT_NETWORKS } from "@/lib/portal/config";
@@ -170,6 +172,12 @@ function JobsPlanGate({ action }: { action: "post" | "apply" }) {
 }
 
 /** Soft live refresh for list pages — no spinner, just pulls new server data. */
+function unreadForJob(threads: PortalChatThread[], jobPublicId: string, reads: Record<string, number>): number {
+  return threads
+    .filter((t) => t.jobPublicId === jobPublicId)
+    .reduce((sum, t) => sum + unreadCount(t, reads), 0);
+}
+
 function useSoftLiveRefresh(enabled = true, ms = 8000) {
   const router = useRouter();
   useEffect(() => {
@@ -194,13 +202,17 @@ export function JobsBrowseBoard({
   canUseJobs,
   guest = false,
   needsPolicy = false,
+  threads: initialThreads = [],
 }: {
   openJobs: PortalJob[];
   canUseJobs: boolean;
   guest?: boolean;
   needsPolicy?: boolean;
+  threads?: PortalChatThread[];
 }) {
   useSoftLiveRefresh(!guest);
+  const { threads } = useChatThreads(null, initialThreads, !guest);
+  const reads = useThreadReads();
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<string>("all");
   const [sort, setSort] = useState<"newest" | "price">("newest");
@@ -233,9 +245,14 @@ export function JobsBrowseBoard({
         >
           <Stat icon={<IconInbox size={20} />} label="open requests" value={openJobs.length} />
           {canUseJobs ? (
-            <Link href="/portal/jobs/mine" className="inline-flex items-center gap-2 self-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-teal-700">
-              <IconPlus size={16} /> Request help
-            </Link>
+            <>
+              <Link href="/portal/jobs/mine" className="inline-flex items-center gap-2 self-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-teal-700">
+                <IconInbox size={16} /> Manage my requests
+              </Link>
+              <Link href="/portal/jobs/mine" className="inline-flex items-center gap-2 self-center rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/30 hover:bg-white/20">
+                <IconPlus size={16} /> Request help
+              </Link>
+            </>
           ) : guest ? (
             <Link href="/portal?auth=signin" className="inline-flex items-center gap-2 self-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-teal-700">
               Sign in
@@ -278,7 +295,12 @@ export function JobsBrowseBoard({
         {list.length ? (
           <ul className="grid gap-4 md:grid-cols-2">
             {list.map((job) => (
-              <JobCard key={job.id} job={job} canApply={canUseJobs} />
+              <JobCard
+                key={job.id}
+                job={job}
+                canApply={canUseJobs}
+                unread={guest ? 0 : unreadForJob(threads, job.publicId, reads)}
+              />
             ))}
           </ul>
         ) : (
@@ -316,7 +338,8 @@ function CategoryChip({ active, onClick, label }: { active: boolean; onClick: ()
   );
 }
 
-function JobCard({ job, canApply }: { job: PortalJob; canApply: boolean }) {
+function JobCard({ job, canApply, unread = 0 }: { job: PortalJob; canApply: boolean; unread?: number }) {
+  const hasNew = unread > 0;
   return (
     <li className={`${CARD} group flex flex-col overflow-hidden transition hover:shadow-lg hover:border-dash-accent/40 p-0`}>
       {/* Header background */}
@@ -354,6 +377,12 @@ function JobCard({ job, canApply }: { job: PortalJob; canApply: boolean }) {
         <p className="text-dash-muted-foreground text-sm leading-relaxed line-clamp-2 flex-grow">
           {job.description}
         </p>
+        {hasNew ? (
+          <p className="text-dash-accent mt-2 flex items-center gap-1.5 text-xs font-semibold">
+            <IconChat size={14} />
+            New message{unread > 1 ? `s (${unread})` : ""}
+          </p>
+        ) : null}
 
         {/* Price & Status */}
         <div className="mt-4 pt-4 border-t border-dash-border/30 flex items-center justify-between gap-3">
@@ -376,6 +405,11 @@ function JobCard({ job, canApply }: { job: PortalJob; canApply: boolean }) {
             {job.isMine ? (
               <>
                 <IconEdit size={14} /> Manage
+                {hasNew ? (
+                  <span className="ml-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-white/25 px-1 text-[10px] font-bold tabular-nums">
+                    {unread > 99 ? "99+" : unread}
+                  </span>
+                ) : null}
               </>
             ) : canApply ? (
               <>
@@ -418,8 +452,15 @@ export function MyJobsBoard({
 }) {
   useSoftLiveRefresh(true, 6000);
   const { threads } = useChatThreads(null, initialThreads);
+  const reads = useThreadReads();
   const unread = useTotalUnread(threads);
-  const [tab, setTab] = useState<"chats" | "requests" | "offers">("chats");
+  const requestsUnread = useMemo(
+    () => myJobs.reduce((sum, job) => sum + unreadForJob(threads, job.publicId, reads), 0),
+    [myJobs, threads, reads],
+  );
+  const [tab, setTab] = useState<"chats" | "requests" | "offers">(() =>
+    myJobs.length > 0 ? "requests" : "chats",
+  );
 
   return (
     <PolicyWall needed={needsPolicy}>
@@ -462,6 +503,11 @@ export function MyJobsBoard({
                     {unread > 99 ? "99+" : unread}
                   </span>
                 ) : null}
+                {t.id === "requests" && requestsUnread > 0 ? (
+                  <span className="bg-dash-accent flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-white tabular-nums">
+                    {requestsUnread > 99 ? "99+" : requestsUnread}
+                  </span>
+                ) : null}
               </button>
             ))}
           </div>
@@ -476,7 +522,14 @@ export function MyJobsBoard({
               <PeerChatInbox threads={threads} />
             ) : tab === "requests" ? (
               myJobs.length ? (
-                myJobs.map((job) => <ManagedPostRow key={job.id} job={job} canManage={canUseJobs} />)
+                myJobs.map((job) => (
+                  <ManagedPostRow
+                    key={job.id}
+                    job={job}
+                    canManage={canUseJobs}
+                    unread={unreadForJob(threads, job.publicId, reads)}
+                  />
+                ))
               ) : (
                 <EmptyState title="No requests yet" body="Ask for peer help on a task. Your name stays hidden." />
               )
@@ -532,9 +585,10 @@ function EmptyState({ title, body, link }: { title: string; body: string; link?:
   );
 }
 
-function ManagedPostRow({ job, canManage }: { job: PortalJob; canManage: boolean }) {
+function ManagedPostRow({ job, canManage, unread = 0 }: { job: PortalJob; canManage: boolean; unread?: number }) {
   const [editing, setEditing] = useState(false);
   const canEdit = canManage && (job.status === "open" || job.status === "assigned");
+  const hasNew = unread > 0;
 
   return (
     <div className={`${CARD} p-5 border-l-4 border-l-dash-accent/50 hover:border-l-dash-accent transition`}>
@@ -555,11 +609,22 @@ function ManagedPostRow({ job, canManage }: { job: PortalJob; canManage: boolean
             <div className="text-dash-muted-foreground text-sm space-y-1">
               <p className="font-semibold">{formatTsh(job.offerTsh)} · {job.priceMode === "negotiable" ? "Negotiable" : "Fixed price"}</p>
               <p className="text-xs">Posted {formatDate(job.createdAt)}</p>
+              {hasNew ? (
+                <p className="text-dash-accent flex items-center gap-1.5 text-xs font-semibold">
+                  <IconChat size={14} />
+                  New message{unread > 1 ? `s (${unread})` : ""} — open to reply
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
             <Link href={`/portal/jobs/${job.publicId}`} className={`${PRIMARY} !py-2 !px-4 inline-flex items-center gap-2`}>
-              <IconChat size={15} /> Open
+              <IconEdit size={15} /> Manage
+              {hasNew ? (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white/25 px-1 text-[10px] font-bold tabular-nums">
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              ) : null}
             </Link>
             {canEdit ? (
               <button

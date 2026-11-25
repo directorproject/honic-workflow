@@ -5,7 +5,7 @@ import { PortalShell } from "@/components/portal/portal-shell";
 import { ProfileForm } from "@/components/portal/profile-form";
 import { studyLevelLabel } from "@/lib/portal/config";
 import { loadPortalState } from "@/lib/portal/data";
-import { listOpenJobs } from "@/lib/portal/jobs";
+import { listChatThreads, listOpenJobs } from "@/lib/portal/jobs";
 import { loadGuestOpenJobs } from "@/lib/portal/portal-catalogue-cache";
 import { hasActiveDeskPlan } from "@/lib/portal/title-limits";
 import { getSupabaseAdminClient } from "@/lib/supabase-server";
@@ -32,13 +32,14 @@ export default async function PortalJobsPage() {
     );
   }
 
-  const [membership, openJobs] = await Promise.all([
+  const [membership, openJobs, chatThreads] = await Promise.all([
     db && user && !state.isStaff ? findMembership(db, user.id) : Promise.resolve(null),
     db
       ? guest || state.isStaff
         ? loadGuestOpenJobs()
         : listOpenJobs(db, user!.id)
       : Promise.resolve([]),
+    db && user && !state.isStaff ? listChatThreads(db, user.id) : Promise.resolve([]),
   ]);
 
   const viewerDetail = guest
@@ -63,7 +64,13 @@ export default async function PortalJobsPage() {
         deskExpiresAt={profile?.deskExpiresAt ?? null}
         deskPlan={profile?.deskPlan ?? null}
       >
-        <JobsBrowseBoard openJobs={openJobs} canUseJobs={canUseJobs} guest={guest} needsPolicy={needsPolicy} />
+        <JobsBrowseBoard
+          openJobs={openJobs}
+          canUseJobs={canUseJobs}
+          guest={guest}
+          needsPolicy={needsPolicy}
+          threads={chatThreads}
+        />
       </PortalShell>
     </Suspense>
   );

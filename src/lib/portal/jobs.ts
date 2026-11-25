@@ -94,8 +94,6 @@ export async function listOpenJobs(db: SupabaseClient, viewerId: string | null):
     .eq("status", "open")
     .order("created_at", { ascending: false })
     .limit(80);
-  // Poster manages their own requests under My peer help — hide them from the public board.
-  if (viewerId) q = q.neq("poster_user_id", viewerId);
   const { data, error } = await q;
   if (error) {
     if (missingJobs(error.message)) return [];
