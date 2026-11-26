@@ -406,6 +406,9 @@ function TitlesFrameBody({
     </div>
   ) : null;
 
+  /** Guests see a preview slice in the list; headline always shows full catalogue size. */
+  const siteTitleCount = guest && guestTotalCount != null ? guestTotalCount : items.length;
+
   const titleBand = (
     <div className="flex min-h-[3.6rem] flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2 sm:h-[4.25rem] sm:flex-nowrap sm:gap-4 sm:px-6 sm:py-0">
       <button
@@ -421,7 +424,7 @@ function TitlesFrameBody({
       <div className="min-w-0 flex-1 basis-[10rem]">
         <p className="text-dash-foreground flex flex-wrap items-baseline gap-x-2">
           <span className="text-base font-semibold tracking-tight tabular-nums sm:text-xl">
-            {(guestTotalCount ?? items.length).toLocaleString("en-TZ")}
+            {siteTitleCount.toLocaleString("en-TZ")}
           </span>
           <span className="text-dash-muted-foreground text-[11px] sm:text-sm">titles on this site</span>
         </p>
@@ -568,7 +571,7 @@ function TitlesFrameBody({
               <GuestPreviewBanner
                 blurb={
                   guestTotalCount != null && guestTotalCount > items.length
-                    ? `Preview the first ${items.length} titles. Create a free account to open the full catalogue (${guestTotalCount.toLocaleString("en-TZ")} titles) and shortlist.`
+                    ? `Preview the first ${items.length} titles. Create a free account to open the full catalogue (${guestTotalCount.toLocaleString("en-TZ")} titles), shortlist, and claim.`
                     : "Browse preview titles and open a brief. Create a free account to shortlist, hide, or open source documents."
                 }
               />

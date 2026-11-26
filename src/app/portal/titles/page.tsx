@@ -42,7 +42,7 @@ export default async function PortalTitlesPage() {
   let catalogue = false;
   if (!user && db) {
     const review = await loadGuestLiteratureCatalogue();
-    const total = review.items.length;
+    const guestSiteTotal = review.items.length;
     const preview = review.items.slice(0, GUEST_TITLE_PREVIEW_LIMIT);
     catalogue = true;
     content = (
@@ -53,7 +53,7 @@ export default async function PortalTitlesPage() {
         studentYear={null}
         readOnly
         guest
-        guestTotalCount={total}
+        guestTotalCount={guestSiteTotal}
         viewer={{ name: "Guest", detail: "Preview · sign in to shortlist", homeHref: "/portal/home" }}
       />
     );
