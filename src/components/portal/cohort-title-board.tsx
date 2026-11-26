@@ -16,7 +16,6 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { portalSignOutAction } from "@/app/portal/auth-actions";
-import { GuestPreviewBanner } from "@/components/portal/guest-preview-banner";
 import { LinkifiedText } from "@/components/portal/linkified-text";
 import { PortalNavLinks } from "@/components/portal/portal-nav";
 import { PlanModeChip } from "@/components/portal/plan-mode-chip";
@@ -481,12 +480,21 @@ function TitlesFrameBody({
           ) : null}
         </div>
         {guest ? (
-          <Link
-            href="/portal?auth=signin"
-            className="bg-dash-accent inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white"
-          >
-            Sign in
-          </Link>
+          <>
+            <Link
+              href="/portal?auth=signin&next=/portal/titles"
+              className="text-dash-foreground hover:bg-dash-muted hidden items-center rounded-lg px-2.5 py-1.5 text-xs font-semibold sm:inline-flex"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/portal?auth=signup&next=/portal/titles"
+              className="bg-dash-accent inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-95"
+            >
+              <span className="sm:hidden">Join free</span>
+              <span className="hidden sm:inline">Create free account</span>
+            </Link>
+          </>
         ) : (
           <form action={portalSignOutAction}>
             <button
@@ -568,39 +576,12 @@ function TitlesFrameBody({
         <div className="min-w-0 flex-1 overflow-visible">
           {guest ? (
             <div className="px-3 pt-4 sm:px-6 lg:px-8">
-              <GuestPreviewBanner
-                blurb={
-                  guestTotalCount != null && guestTotalCount > items.length
-                    ? `Preview the first ${items.length} titles. Create a free account to open the full catalogue (${guestTotalCount.toLocaleString("en-TZ")} titles), shortlist, and claim.`
-                    : "Browse preview titles and open a brief. Create a free account to shortlist, hide, or open source documents."
-                }
-              />
+              <GuestTitlesBanner shown={items.length} total={guestTotalCount ?? items.length} />
             </div>
           ) : null}
           {children}
           {guest && guestTotalCount != null && guestTotalCount > items.length ? (
-            <div className="border-dash-border mx-3 mb-10 flex flex-col items-center gap-3 rounded-xl border bg-dash-card px-4 py-8 text-center sm:mx-8">
-              <p className="text-dash-foreground text-sm font-semibold">
-                Showing {items.length} of {guestTotalCount.toLocaleString("en-TZ")} titles
-              </p>
-              <p className="text-dash-muted-foreground max-w-md text-sm leading-relaxed">
-                Create a free account to see the rest of the final year titles catalogue.
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <Link
-                  href="/portal?auth=signup&next=/portal/titles"
-                  className="bg-dash-accent inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold text-white"
-                >
-                  See more — create account
-                </Link>
-                <Link
-                  href="/portal?auth=signin&next=/portal/titles"
-                  className="border-dash-border text-dash-foreground inline-flex items-center justify-center rounded-lg border px-5 py-2.5 text-sm font-semibold"
-                >
-                  Sign in
-                </Link>
-              </div>
-            </div>
+            <GuestUnlockCard shown={items.length} total={guestTotalCount} />
           ) : null}
         </div>
         <SiteFooter className="lg:pl-0" />
@@ -1036,6 +1017,128 @@ function LogoutIcon() {
   return (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 8.25V6A2.25 2.25 0 0013.5 3.75h-6A2.25 2.25 0 005.25 6v12A2.25 2.25 0 007.5 20.25h6A2.25 2.25 0 0015.75 18v-2.25M18 12H9m0 0l2.25-2.25M9 12l2.25 2.25" />
+    </svg>
+  );
+}
+
+const GUEST_PERKS = [
+  "Open every title for your course",
+  "Read full briefs and sources",
+  "Shortlist and keep a title yours",
+  "Hide it so classmates can't pick it",
+];
+
+/** Guest: top of the list. Shows what is locked and why an account is worth it. */
+function GuestTitlesBanner({ shown, total }: { shown: number; total: number }) {
+  const more = Math.max(0, total - shown);
+  return (
+    <div className="border-dash-border bg-dash-card relative mb-4 overflow-hidden rounded-2xl border">
+      <div
+        aria-hidden
+        className="from-dash-accent/12 pointer-events-none absolute inset-0 bg-gradient-to-r via-transparent to-transparent"
+      />
+      <div className="relative flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-5">
+        <div className="min-w-0 flex-1 basis-[18rem]">
+          <p className="text-dash-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase">Free preview</p>
+          <p className="text-dash-foreground mt-1 text-base font-semibold tracking-tight sm:text-lg">
+            You&apos;re seeing {shown} of {total.toLocaleString("en-TZ")} final year titles
+          </p>
+          {more > 0 ? (
+            <p className="text-dash-muted-foreground mt-0.5 text-sm">
+              Create a free account to open the other {more.toLocaleString("en-TZ")}. It takes under a minute.
+            </p>
+          ) : null}
+          <div className="bg-dash-muted mt-3 h-1.5 w-full max-w-sm overflow-hidden rounded-full" aria-hidden>
+            <div className="bg-dash-accent h-full rounded-full" style={{ width: `${Math.max(3, Math.min(100, (shown / Math.max(1, total)) * 100))}%` }} />
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Link
+            href="/portal?auth=signup&next=/portal/titles"
+            className="bg-dash-accent inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+          >
+            Create free account
+          </Link>
+          <Link
+            href="/portal?auth=signin&next=/portal/titles"
+            className="border-dash-border text-dash-foreground hover:bg-dash-muted inline-flex items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-semibold"
+          >
+            Sign in
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Guest: end of the preview list. Faded "locked" rows + one clear ask. */
+function GuestUnlockCard({ shown, total }: { shown: number; total: number }) {
+  const more = Math.max(0, total - shown);
+  return (
+    <div className="mx-3 mb-10 sm:mx-8">
+      {/* Hint that the list keeps going behind the lock. */}
+      <div aria-hidden className="relative -mt-2 space-y-2 select-none">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="border-dash-border bg-dash-card rounded-xl border px-4 py-3 blur-[3px]" style={{ opacity: 0.7 - i * 0.2 }}>
+            <div className="bg-dash-muted h-3 w-3/4 rounded" />
+            <div className="bg-dash-muted mt-2 h-2.5 w-1/3 rounded" />
+          </div>
+        ))}
+        <div className="from-dash-canvas pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t to-transparent" />
+      </div>
+
+      <div className="border-dash-border bg-dash-card mt-3 rounded-2xl border px-5 py-8 text-center shadow-sm sm:px-8">
+        <span className="bg-dash-muted text-dash-foreground mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full">
+          <LockIcon />
+        </span>
+        <p className="text-dash-foreground mt-3 text-3xl font-bold tracking-tight tabular-nums sm:text-4xl">
+          +{more.toLocaleString("en-TZ")}
+        </p>
+        <p className="text-dash-foreground mt-1 text-base font-semibold">more final year titles are waiting</p>
+        <p className="text-dash-muted-foreground mx-auto mt-1 max-w-md text-sm leading-relaxed">
+          Showing {shown} of {total.toLocaleString("en-TZ")}. Open a free account to see them all and claim yours before a classmate does.
+        </p>
+        <ul className="text-dash-foreground mx-auto mt-5 grid max-w-lg gap-2 text-left text-sm sm:grid-cols-2">
+          {GUEST_PERKS.map((perk) => (
+            <li key={perk} className="flex items-start gap-2">
+              <CheckIcon />
+              <span>{perk}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+          <Link
+            href="/portal?auth=signup&next=/portal/titles"
+            className="bg-dash-accent inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+          >
+            Create free account: see all {total.toLocaleString("en-TZ")}
+          </Link>
+          <Link
+            href="/portal?auth=signin&next=/portal/titles"
+            className="border-dash-border text-dash-foreground hover:bg-dash-muted inline-flex items-center justify-center rounded-lg border px-5 py-3 text-sm font-semibold"
+          >
+            I have an account
+          </Link>
+        </div>
+        <p className="text-dash-muted-foreground mt-3 text-xs">Free to join. No payment needed to browse.</p>
+      </div>
+    </div>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
+      <rect x="4.5" y="10.5" width="15" height="10" rx="2" />
+      <path strokeLinecap="round" d="M8 10.5V7.5a4 4 0 018 0v3" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg className="text-dash-foreground mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12.5l4.5 4.5L19 7.5" />
     </svg>
   );
 }
