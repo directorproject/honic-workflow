@@ -28,10 +28,15 @@ export async function ensureDeskTrial(
   if (error) {
     // Column missing until migration 044 is applied — do not block the portal.
     if (/desk_trial_started_at|column|schema cache|does not exist/i.test(error.message)) {
+      const { data: plain } = await db
+        .from("student_profiles")
+        .select("desk_expires_at, desk_plan")
+        .eq("user_id", id)
+        .maybeSingle();
       return {
         granted: false,
-        deskExpiresAt: profile?.desk_expires_at ? String(profile.desk_expires_at) : null,
-        deskPlan: profile?.desk_plan ? String(profile.desk_plan) : null,
+        deskExpiresAt: plain?.desk_expires_at ? String(plain.desk_expires_at) : null,
+        deskPlan: plain?.desk_plan ? String(plain.desk_plan) : null,
       };
     }
     throw new Error(error.message);
